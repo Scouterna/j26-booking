@@ -6,6 +6,7 @@ import wisp.{type Request, type Response}
 pub fn handle_request(req: Request, ctx: Context) -> Response {
   use req <- web.middleware(req, ctx)
   case wisp.path_segments(req) {
+    [] -> wisp.redirect("/index.html")
     ["book", id] -> book(id)
     ["activities"] -> activities()
     _ -> wisp.not_found()
