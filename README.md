@@ -12,6 +12,13 @@ This app will enable participant of Jamboree 2026 to book various activities.
 - TailwindCSS
 - PostgreSQL
 
+## Development
+
+```sh
+gleam run   # Run the project
+gleam test  # Run the tests
+```
+
 ## Database schema
 
 ### MVP
