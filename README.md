@@ -8,6 +8,7 @@ This app will enable participant of Jamboree 2026 to book various activities.
   - mist + wisp for web server
   - lustre + hx for templating and SSR
   - Squirrel for type safe DB interface
+  - Cigogne for database migrations
 - HTMX
 - TailwindCSS
 - PostgreSQL
@@ -19,9 +20,60 @@ gleam run   # Run the project
 gleam test  # Run the tests
 ```
 
-## Database schema
+## Database usage
 
-### MVP
+This app requires you to have a postgreSQL database running locally if you want to run it.
+
+### Gleam Squirrel
+
+This project uses [Gleam Squirrel](https://hexdocs.pm/squirrel/index.html) for type-safe database access. Squirrel generates Gleam modules from your SQL schema and queries, allowing you to interact with PostgreSQL using Gleam types and functions.
+
+**After changing or adding any SQL files** in [`src/j26booking/sql/`](src/j26booking/sql/), regenerate the Gleam modules by running:
+
+```sh
+gleam run -m squirrel
+```
+
+For usage details and examples, see the official Squirrel documentation: https://hexdocs.pm/squirrel/index.html
+
+### Database configuration
+
+The app for now uses a hardcoded default localhost PostgreSQL config. It requires your database to have the following connection config:
+
+```
+host=localhost
+port=5432
+user=postgres
+password=
+database=j26booking
+```
+
+### Running migrations with Gleam Cigogne
+
+Database migrations are managed using [Gleam Cigogne](https://hexdocs.pm/cigogne/index.html).
+
+You must set the `DATABASE_URL` environment variable with your database connection string before running migrations.
+
+```sh
+export DATABASE_URL="postgres://postgres@localhost:5432/j26booking"
+gleam run -m cigogne last
+```
+
+This will apply all migrations in [`priv/migrations/`](priv/migrations/) to your database. Make sure your database is running and accessible with the config above.
+
+### Seeding the database
+
+To seed the database with example activities, you can run the SQL script in [`priv/seeding/activities.sql`](priv/seeding/activities.sql):
+
+```sh
+psql "$DATABASE_URL" -f priv/seeding/activities.sql
+```
+
+This will insert several sample activities into the `activity` table. Make sure your database is running and the schema is migrated before seeding.
+
+### Database schema
+
+#### MVP
 
 ```mermaid
 erDiagram
@@ -62,7 +114,7 @@ booking }o--|| activity : reserves
 user ||--o{ booking : places
 ```
 
-### Extra features
+#### Extra features
 
 ```mermaid
 erDiagram
