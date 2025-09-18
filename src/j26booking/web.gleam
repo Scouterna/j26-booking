@@ -1,7 +1,8 @@
+import pog
 import wisp
 
 pub type Context {
-  Context(static_directory: String)
+  Context(static_directory: String, db_connection: pog.Connection)
 }
 
 pub fn middleware(
