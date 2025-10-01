@@ -13,6 +13,18 @@ This app will enable participant of Jamboree 2026 to book various activities.
 - TailwindCSS
 - PostgreSQL
 
+## Folder structure
+
+| Path                                         | Purpose                                                      |
+| -------------------------------------------- | ------------------------------------------------------------ |
+| [`src/`](src/)                               | Gleam source code                                            |
+| [`src/j26booking/`](src/j26booking/)         | Main app modules (components, data, router, sql, web, etc.)  |
+| [`src/j26booking/sql/`](src/j26booking/sql/) | SQL queries for Squirrel                                     |
+| [`priv/migrations/`](priv/migrations/)       | Database migration SQL files (applied with Cigogne)          |
+| [`priv/seeding/`](priv/seeding/)             | SQL scripts for seeding the database with example data       |
+| [`priv/static/`](priv/static/)               | Static files to be served by the web server (e.g. HTML, CSS) |
+| [`test/`](test/)                             | Gleam test files                                             |
+
 ## Development
 
 ```sh
