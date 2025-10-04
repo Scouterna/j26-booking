@@ -82,3 +82,59 @@ Core tables:
 - **activity_user**: many-to-many between activities and organizers
 
 See README.md for detailed schema diagram including extra features.
+
+## Gleam and Functional Programming Best Practices
+
+### Error Handling
+
+- **Always use Result types**: Handle errors explicitly with `Result(a, e)` instead of exceptions
+- **Pattern match on Results**: Always pattern match to handle both `Ok` and `Error` cases:
+  ```gleam
+  case result {
+    Ok(value) -> // handle success
+    Error(error) -> // handle failure
+  }
+  ```
+- **Use `use` expressions**: Simplify nested Result handling with the `use` syntax:
+  ```gleam
+  use value <- result.try(operation())
+  // Continue with value
+  ```
+- **Exhaustive pattern matching**: Ensure all cases are handled in `case` expressions to prevent runtime errors
+
+### Type Safety
+
+- **Leverage the type system**: Let the compiler catch errors at compile-time rather than runtime
+- **Pattern match on custom types**: Extract data from custom types using pattern matching:
+  ```gleam
+  pub fn to_string(pokemon: Pokemon) {
+    let Pokemon(pokedex_number:, name:) = pokemon
+    // Use extracted fields
+  }
+  ```
+- **Avoid underscore variables in logic**: Use meaningful names for clarity; `_` should only be used for truly unused values
+
+### Code Organization
+
+- **Pure functions**: Prefer pure functions that don't produce side effects
+- **Small, focused functions**: Break complex operations into smaller, composable functions
+- **Use pipelines**: Chain operations with `|>` for clarity:
+  ```gleam
+  list
+  |> list.map(transform)
+  |> list.filter(predicate)
+  |> list.first
+  ```
+
+### Pattern Matching
+
+- **Match early, match often**: Use pattern matching to destructure data at function boundaries
+- **Alternative patterns with care**: Ensure all patterns define the same variables
+- **Label fields in patterns**: Use labelled fields for clarity: `Person(name:, age:)`
+
+### Best Practices for This Project
+
+- **Use Squirrel for queries**: Never hand-write SQL strings; always use `.sql` files and regenerate with `gleam run -m squirrel`
+- **Handle database Results**: Database operations return `Result` types—always handle both success and failure
+- **Validate input early**: Pattern match and validate request data at handler entry points
+- **Type-safe routing**: Use Wisp's routing helpers to ensure type-safe path parameter extraction
