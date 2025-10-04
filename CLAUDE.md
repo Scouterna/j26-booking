@@ -138,3 +138,111 @@ See README.md for detailed schema diagram including extra features.
 - **Handle database Results**: Database operations return `Result` types—always handle both success and failure
 - **Validate input early**: Pattern match and validate request data at handler entry points
 - **Type-safe routing**: Use Wisp's routing helpers to ensure type-safe path parameter extraction
+
+## Commit Message Guidelines
+
+This project follows the [Conventional Commits](https://www.conventionalcommits.org/) specification for all git commits.
+
+### Pre-Commit Checklist
+
+**ALWAYS run `gleam format` before committing any code changes.**
+
+### Commit Message Format
+
+```
+<type>[optional scope]: <description>
+
+[optional body]
+
+[optional footer(s)]
+```
+
+### Commit Types
+
+- **feat**: A new feature
+- **fix**: A bug fix
+- **docs**: Documentation only changes
+- **style**: Code style changes (formatting, missing semi-colons, etc.)
+- **refactor**: Code change that neither fixes a bug nor adds a feature
+- **perf**: Performance improvements
+- **test**: Adding or correcting tests
+- **chore**: Changes to build process or auxiliary tools
+- **ci**: Changes to CI configuration files and scripts
+- **build**: Changes that affect the build system or dependencies
+- **revert**: Reverts a previous commit
+
+### Scope (Optional)
+
+The scope provides additional context about which part of the codebase is affected:
+- `router`: Routing and request handling
+- `db`: Database queries and migrations
+- `sql`: SQL files and Squirrel codegen
+- `components`: Lustre UI components
+- `api`: API endpoints
+- `auth`: Authentication/authorization
+
+Example: `feat(router): add booking endpoint`
+
+### Breaking Changes
+
+Mark breaking changes with `!` after the type/scope:
+- `feat!: migrate to new authentication system`
+- `feat(api)!: change response format to JSON:API`
+
+Or use a `BREAKING CHANGE:` footer:
+```
+feat: allow config object to extend other configs
+
+BREAKING CHANGE: `extends` key in config file is now used for extending other config files
+```
+
+### Length Standards
+
+- **Subject line**: Maximum 50 characters (hard limit 72)
+  - Use imperative mood: "add" not "added" or "adds"
+  - Don't capitalize first letter after the colon
+  - No period at the end
+- **Body**: Wrap at 72 characters per line
+  - Explain the "what" and "why" (not "how")
+  - Separate from subject with blank line
+- **Footer**: For references and breaking changes
+  - Examples: `Refs: #123`, `Fixes: #456`, `Reviewed-by: Name`
+
+### Examples
+
+Simple feature:
+```
+feat: add user authentication
+```
+
+Bug fix with scope:
+```
+fix(router): correct path parameter parsing
+```
+
+Documentation:
+```
+docs: update database setup instructions
+```
+
+Breaking change:
+```
+feat(api)!: change activity response format
+
+Changed from flat structure to nested format with metadata.
+
+BREAKING CHANGE: API clients must update response parsing logic
+```
+
+Complex fix with details:
+```
+fix: prevent racing of requests
+
+Introduce a request id and a reference to latest request. Dismiss
+incoming responses other than from latest request.
+
+Remove timeouts which were used to mitigate the racing issue but are
+obsolete now.
+
+Refs: #123
+```
