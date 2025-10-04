@@ -139,6 +139,105 @@ See README.md for detailed schema diagram including extra features.
 - **Validate input early**: Pattern match and validate request data at handler entry points
 - **Type-safe routing**: Use Wisp's routing helpers to ensure type-safe path parameter extraction
 
+## HTMX Best Practices
+
+HTMX is used in this project for building dynamic, interactive UIs with minimal JavaScript. It works seamlessly with our Lustre SSR components and follows a hypermedia-driven approach.
+
+### Core Patterns Used in This Project
+
+- **HTML fragments**: Endpoints return HTML fragments (via Lustre components), not JSON
+- **Progressive enhancement**: Forms work without JS; HTMX enhances them
+- **Server-side validation**: Return updated form HTML with validation errors inline
+- **Event coordination**: Use `HX-Trigger` response header to coordinate multi-component updates
+
+### Essential Attributes
+
+**Request methods**:
+- `hx-get`, `hx-post`, `hx-put`, `hx-patch`, `hx-delete`
+
+**Targeting and swapping**:
+- `hx-target`: Where to put response content (`#id`, `.class`, `this`, `closest div`)
+- `hx-swap`: How to insert content (`innerHTML`, `outerHTML`, `beforeend`, `afterend`)
+- `hx-select`: Extract specific part of response HTML
+
+**Common modifiers**:
+- `hx-trigger`: Specify triggering events (e.g., `click`, `keyup changed delay:500ms`)
+- `hx-vals`: Add extra data to requests (supports JSON and `js:{...}` for dynamic values)
+- `hx-confirm`: Show confirmation dialog before request
+- `hx-indicator`: Show loading indicator during request
+
+Example:
+```html
+<input hx-get="/search"
+       hx-trigger="keyup changed delay:300ms"
+       hx-target="#results"
+       hx-indicator="#loading">
+```
+
+### Event Handling
+
+Use `hx-on:<event>` for inline handlers:
+```html
+<button hx-on:click="console.log('Clicked!')">Click</button>
+```
+
+For HTMX lifecycle events, use shorthand `hx-on::<event>`:
+```html
+<button hx-get="/data" hx-on::before-request="showSpinner()">Load</button>
+```
+
+### Key Lifecycle Events
+
+**Most commonly used**:
+- `htmx:beforeRequest`: Intercept/cancel requests
+- `htmx:afterSwap`: Run code after DOM update
+- `htmx:responseError`: Handle server errors
+
+**Less common** (see full list in docs when needed):
+- Request lifecycle: `htmx:configRequest`, `htmx:beforeSend`, `htmx:afterRequest`
+- Content swapping: `htmx:beforeSwap`, `htmx:afterSettle`, `htmx:load`
+- History: `htmx:beforeHistorySave`, `htmx:historyRestore`
+
+### Server-Side Integration with Wisp
+
+When handling HTMX requests in `router.gleam`:
+
+1. **Return HTML fragments** from Lustre components:
+   ```gleam
+   pub fn handle_activity_list(req: Request, ctx: Context) {
+     use activities <- result.try(sql.get_activities(ctx.db))
+     let html = components.activity_list(activities)
+     response.html(html)
+   }
+   ```
+
+2. **Use HX-* response headers** to control behavior:
+   - `HX-Trigger`: Fire client-side events
+   - `HX-Retarget`: Change target element
+   - `HX-Reswap`: Override swap strategy
+
+3. **Validation errors**: Return the form with error messages:
+   ```gleam
+   case validate_booking(form_data) {
+     Ok(booking) -> save_and_redirect(booking)
+     Error(errors) -> response.html(components.booking_form(form_data, errors))
+   }
+   ```
+
+### Common Gotchas
+
+- **Form serialization**: Forms automatically serialize; use `hx-include` for additional fields
+- **Event bubbling**: Use `consume` modifier to prevent parent handlers from firing
+- **Debouncing searches**: Use `changed delay:300ms` to avoid excessive requests
+- **Loading states**: Style `.htmx-request` class or use `hx-indicator`
+
+### Accessibility Considerations
+
+- Ensure keyboard navigation works (tab, enter, escape)
+- Announce dynamic content changes to screen readers
+- Provide visual feedback for loading states
+- Don't break browser back button (use `hx-push-url` when appropriate)
+
 ## Commit Message Guidelines
 
 This project follows the [Conventional Commits](https://www.conventionalcommits.org/) specification for all git commits.
