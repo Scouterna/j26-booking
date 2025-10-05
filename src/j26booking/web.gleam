@@ -1,3 +1,4 @@
+import gleam/http/request
 import pog
 import wisp
 
@@ -16,4 +17,11 @@ pub fn middleware(
   use req <- wisp.handle_head(req)
   use <- wisp.serve_static(req, under: "/", from: ctx.static_directory)
   handle_request(req)
+}
+
+pub fn is_htmx_request(req: wisp.Request) -> Bool {
+  case request.get_header(req, "HX-Request") {
+    Ok(_) -> True
+    Error(_) -> False
+  }
 }
