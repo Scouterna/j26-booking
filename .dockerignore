@@ -1,0 +1,45 @@
+# Build artifacts
+build/
+*.beam
+*.ez
+
+# Dependencies
+deps/
+_build/
+
+# Development files
+.git/
+.gitignore
+.github/
+*.md
+!CLAUDE.md
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Test files
+test/
+
+# CI/CD
+.gitlab-ci.yml
+.travis.yml
+
+# Docker files (no need to include in image)
+Dockerfile*
+docker-compose*.yml
+.dockerignore
+
+# Node modules (if using TailwindCSS)
+node_modules/
+
+# Logs
+*.log
+
+# Environment files (should use secrets management)
+.env
+.env.*

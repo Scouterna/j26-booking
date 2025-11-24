@@ -27,9 +27,66 @@ This app will enable participant of Jamboree 2026 to book various activities.
 
 ## Development
 
+### Local Development (without Docker)
+
 ```sh
 gleam run   # Run the project
 gleam test  # Run the tests
+```
+
+### Local Development (with Docker)
+
+The easiest way to run the entire stack locally is using Docker Compose:
+
+```sh
+# Start all services (database + migrations + application)
+docker-compose up
+
+# Start in detached mode
+docker-compose up -d
+
+# View logs
+docker-compose logs -f app
+
+# Stop all services
+docker-compose down
+
+# Rebuild after code changes
+docker-compose up --build
+```
+
+The application will be available at http://localhost:8000
+
+**Note**: Database migrations run automatically when starting the stack. The app service waits for migrations to complete successfully before starting.
+
+### Environment Variables
+
+The application can be configured using the following environment variables:
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `PORT` | 8000 | Port the web server listens on |
+| `DB_HOST` | localhost | PostgreSQL host |
+| `DB_PORT` | 5432 | PostgreSQL port |
+| `DB_NAME` | j26booking | Database name |
+| `DB_USER` | postgres | Database user |
+| `DB_PASSWORD` | (empty) | Database password |
+| `DB_POOL_SIZE` | 15 | Connection pool size |
+| `SECRET_KEY_BASE` | (random) | Secret key for sessions (required in production) |
+
+### Building Docker Image
+
+To build the Docker image manually:
+
+```sh
+# Build the image
+docker build -t j26booking:latest .
+
+# Run the container
+docker run -p 8000:8000 \
+  -e DB_HOST=host.docker.internal \
+  -e SECRET_KEY_BASE=your-secret-key \
+  j26booking:latest
 ```
 
 ## Frontend Development Guide
@@ -358,7 +415,7 @@ You must set the `DATABASE_URL` environment variable with your database connecti
 
 ```sh
 export DATABASE_URL="postgres://postgres@localhost:5432/j26booking"
-gleam run -m cigogne last
+gleam run -m cigogne all
 ```
 
 This will apply all migrations in [`priv/migrations/`](priv/migrations/) to your database. Make sure your database is running and accessible with the config above.
