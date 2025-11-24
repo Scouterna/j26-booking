@@ -21,7 +21,8 @@ services:
   migrate:
     build:
       context: .
-      dockerfile: migrate.Dockerfile
+      dockerfile: app.Dockerfile
+      target: migrate
     container_name: j26booking-migrate
     environment:
       # TODO: SHould be same as env vars below

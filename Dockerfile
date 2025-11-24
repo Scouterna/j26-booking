@@ -4,26 +4,36 @@
 ARG ERLANG_VERSION=28.0.2.0
 ARG GLEAM_VERSION=v1.13.0
 
-# Gleam stage - extract Gleam binary
 FROM ghcr.io/gleam-lang/gleam:${GLEAM_VERSION}-scratch AS gleam
 
-# Build stage
-FROM erlang:${ERLANG_VERSION}-alpine AS build
+# Migrate stage - has gleam, deps, and source code (also used for migrations)
+FROM erlang:${ERLANG_VERSION}-alpine AS migrate
 
-# Copy Gleam binary from scratch image
 COPY --from=gleam /bin/gleam /bin/gleam
 
-# Set working directory
 WORKDIR /build
 
 # Copy dependency manifests first (for better layer caching)
 COPY gleam.toml manifest.toml ./
 
-# Copy source code
+# Download dependencies (includes dev dependencies like cigogne for migrations)
+RUN gleam deps download
+
 COPY src ./src
 COPY priv ./priv
 
-# Build the application
+# Entrypoint for migrations
+ENTRYPOINT ["gleam", "run", "-m", "cigogne"]
+CMD ["all"]
+
+# Build stage
+FROM migrate AS build
+
+# Reset entrypoint from migrate stage for build
+ENTRYPOINT []
+CMD []
+
+# Build the application and export an erlang-shipment
 RUN gleam export erlang-shipment
 
 # Runtime stage
@@ -37,7 +47,6 @@ ENV BUILD_TIME=${BUILD_TIME}
 
 WORKDIR /app
 
-# Copy health check script
 COPY healthcheck.sh /app/healthcheck.sh
 
 # Create non-root user for running the application
@@ -45,17 +54,12 @@ RUN chmod +x /app/healthcheck.sh && \
     addgroup -S gleam && \
     adduser -S gleam -G gleam
 
-# Copy built application from builder (includes priv directory)
 COPY --from=build --chown=gleam:gleam /build/build/erlang-shipment /app
 
-# Switch to non-root user
 USER gleam
 
-# Expose port (configurable via PORT env var, defaults to 8000)
-EXPOSE 8000
-
-# Environment variables (with defaults)
 ENV PORT=8000
+EXPOSE $PORT
 ENV DB_HOST=localhost
 ENV DB_PORT=5432
 ENV DB_NAME=j26booking
@@ -64,10 +68,8 @@ ENV DB_USER=postgres
 ENV DB_PASSWORD=""
 ENV DB_POOL_SIZE=15
 
-# Health check
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
   CMD /app/healthcheck.sh
 
-# Run the application
 ENTRYPOINT ["/app/entrypoint.sh"]
 CMD ["run"]
