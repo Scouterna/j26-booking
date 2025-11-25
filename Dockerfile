@@ -60,12 +60,7 @@ USER gleam
 
 ENV PORT=8000
 EXPOSE $PORT
-ENV DB_HOST=localhost
-ENV DB_PORT=5432
-ENV DB_NAME=j26booking
-ENV DB_USER=postgres
-# TODO: Should be mounted as secret
-ENV DB_PASSWORD=""
+ENV DATABASE_URL="postgres://postgres@localhost:5432/j26booking"
 ENV DB_POOL_SIZE=15
 
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \

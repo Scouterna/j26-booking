@@ -1,3 +1,10 @@
+# WARNING: This file is for LOCAL DEVELOPMENT ONLY.
+# Do NOT use in production - it contains hardcoded credentials.
+# For production, use proper secrets management
+
+x-database-url: &database-url
+  DATABASE_URL: "postgres://postgres:postgres@db:5432/j26booking"
+
 services:
   # PostgreSQL database
   db:
@@ -21,12 +28,11 @@ services:
   migrate:
     build:
       context: .
-      dockerfile: app.Dockerfile
+      dockerfile: Dockerfile
       target: migrate
     container_name: j26booking-migrate
     environment:
-      # TODO: SHould be same as env vars below
-      DATABASE_URL: "postgres://postgres:postgres@db:5432/j26booking"
+      <<: *database-url
     depends_on:
       db:
         condition: service_healthy
@@ -36,21 +42,13 @@ services:
   app:
     build:
       context: .
-      dockerfile: app.Dockerfile
+      dockerfile: Dockerfile
     container_name: j26booking-app
     environment:
-      # Database connection
-      DB_HOST: db
-      DB_PORT: 5432
-      DB_NAME: j26booking
-      DB_USER: postgres
-      DB_PASSWORD: postgres
+      <<: *database-url
       DB_POOL_SIZE: 15
-
-      # Server configuration
       PORT: 8000
-
-      # Security (change for production!)
+      # Security
       SECRET_KEY_BASE: "development-secret-key-change-this-in-production-must-be-at-least-64-characters-long"
     ports:
       - "8000:8000"

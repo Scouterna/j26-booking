@@ -1,7 +1,6 @@
 import envoy
 import gleam/erlang/process
 import gleam/int
-import gleam/option
 import gleam/otp/static_supervisor as supervisor
 import gleam/result
 import gleam/string
@@ -17,29 +16,22 @@ pub fn main() -> Nil {
 
   // Configuration from environment variables
   let secret_key_base = get_secret_key_base()
-  // TODO: Should maybe be passed as db url instead
-  let db_host = get_env("DB_HOST", "localhost")
-  let db_port = get_env_int("DB_PORT", 5432)
-  let db_name = get_env("DB_NAME", "j26booking")
-  let db_user = get_env("DB_USER", "postgres")
-  let db_password = get_env("DB_PASSWORD", "")
+  let database_url =
+    get_env("DATABASE_URL", "postgres://postgres@localhost:5432/j26booking")
   let db_pool_size = get_env_int("DB_POOL_SIZE", 15)
   let server_port = get_env_int("PORT", 8000)
 
   let pool_name = process.new_name("j26booking_pool")
-  let pool_child =
-    // TODO: use url_config instead
-    pog.default_config(pool_name)
-    |> pog.host(db_host)
-    |> pog.port(db_port)
-    |> pog.database(db_name)
-    |> pog.user(db_user)
-    |> pog.password(case db_password {
-      "" -> option.None
-      pass -> option.Some(pass)
-    })
-    |> pog.pool_size(db_pool_size)
-    |> pog.supervised
+  let pool_child = case pog.url_config(pool_name, database_url) {
+    Ok(config) ->
+      config
+      |> pog.pool_size(db_pool_size)
+      |> pog.supervised
+    Error(Nil) -> {
+      wisp.log_error("Invalid DATABASE_URL format: " <> database_url)
+      panic as "Invalid DATABASE_URL"
+    }
+  }
 
   let ctx =
     Context(

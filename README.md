@@ -66,11 +66,7 @@ The application can be configured using the following environment variables:
 | Variable | Default | Description |
 |----------|---------|-------------|
 | `PORT` | 8000 | Port the web server listens on |
-| `DB_HOST` | localhost | PostgreSQL host |
-| `DB_PORT` | 5432 | PostgreSQL port |
-| `DB_NAME` | j26booking | Database name |
-| `DB_USER` | postgres | Database user |
-| `DB_PASSWORD` | (empty) | Database password |
+| `DATABASE_URL` | postgres://postgres@localhost:5432/j26booking | PostgreSQL connection URL |
 | `DB_POOL_SIZE` | 15 | Connection pool size |
 | `SECRET_KEY_BASE` | (random) | Secret key for sessions (required in production) |
 
@@ -84,7 +80,7 @@ docker build -t j26booking:latest .
 
 # Run the container
 docker run -p 8000:8000 \
-  -e DB_HOST=host.docker.internal \
+  -e DATABASE_URL=postgres://postgres@host.docker.internal:5432/j26booking \
   -e SECRET_KEY_BASE=your-secret-key \
   j26booking:latest
 ```
@@ -397,28 +393,24 @@ For usage details and examples, see the official Squirrel documentation: https:/
 
 ### Database configuration
 
-The app for now uses a hardcoded default localhost PostgreSQL config. It requires your database to have the following connection config:
+The app, migrations (Cigogne), and Squirrel all use the same `DATABASE_URL` environment variable format:
 
+```sh
+export DATABASE_URL="postgres://postgres@localhost:5432/j26booking"
 ```
-host=localhost
-port=5432
-user=postgres
-password=
-database=j26booking
-```
+
+If `DATABASE_URL` is not set, the app defaults to `postgres://postgres@localhost:5432/j26booking` for local development.
 
 ### Running migrations with Gleam Cigogne
 
 Database migrations are managed using [Gleam Cigogne](https://hexdocs.pm/cigogne/index.html).
-
-You must set the `DATABASE_URL` environment variable with your database connection string before running migrations.
 
 ```sh
 export DATABASE_URL="postgres://postgres@localhost:5432/j26booking"
 gleam run -m cigogne all
 ```
 
-This will apply all migrations in [`priv/migrations/`](priv/migrations/) to your database. Make sure your database is running and accessible with the config above.
+This will apply all migrations in [`priv/migrations/`](priv/migrations/) to your database.
 
 ### Seeding the database
 

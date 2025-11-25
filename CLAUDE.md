@@ -40,7 +40,7 @@ The app uses a supervised architecture with two main components:
 1. **Database pool** (`pog.supervised`): Connection pool to PostgreSQL
 2. **Web server** (`wisp_mist.supervised`): HTTP server on port 8000
 
-Both are managed by a RestForOne supervisor in `src/j26booking.gleam:36-39`.
+Both are managed by a RestForOne supervisor in `src/j26booking.gleam:51-55`.
 
 ### Key Modules
 
@@ -58,7 +58,7 @@ Both are managed by a RestForOne supervisor in `src/j26booking.gleam:36-39`.
 3. **Regenerate**: Run `gleam run -m squirrel` to generate type-safe Gleam code in `src/j26booking/sql.gleam`
 4. **Apply migrations**: Run `gleam run -m cigogne last`
 
-The database connection is hardcoded to `localhost:5432` with database name `j26booking` and user `postgres` (no password).
+The database connection is configured via the `DATABASE_URL` environment variable. If not set, it defaults to `postgres://postgres@localhost:5432/j26booking` for local development.
 
 ### Request Flow
 
