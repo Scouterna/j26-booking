@@ -6,8 +6,8 @@ ARG GLEAM_VERSION=v1.13.0
 
 FROM ghcr.io/gleam-lang/gleam:${GLEAM_VERSION}-scratch AS gleam
 
-# Migrate stage - has gleam, deps, and source code (also used for migrations)
-FROM erlang:${ERLANG_VERSION}-alpine AS migrate
+# Build stage - has gleam, deps, and source code (also used for migrations) and builds the project
+FROM erlang:${ERLANG_VERSION}-alpine AS build
 
 COPY --from=gleam /bin/gleam /bin/gleam
 
@@ -22,16 +22,17 @@ RUN gleam deps download
 COPY src ./src
 COPY priv ./priv
 
+RUN gleam build
+
+# Migrate stage
+FROM build AS migrate
+
 # Entrypoint for migrations
 ENTRYPOINT ["gleam", "run", "-m", "cigogne"]
 CMD ["all"]
 
-# Build stage
-FROM migrate AS build
-
-# Reset entrypoint from migrate stage for build
-ENTRYPOINT []
-CMD []
+# Export stage
+FROM build AS export
 
 # Build the application and export an erlang-shipment
 RUN gleam export erlang-shipment
@@ -54,7 +55,7 @@ RUN chmod +x /app/healthcheck.sh && \
     addgroup -S gleam && \
     adduser -S gleam -G gleam
 
-COPY --from=build --chown=gleam:gleam /build/build/erlang-shipment /app
+COPY --from=export --chown=gleam:gleam /build/build/erlang-shipment /app
 
 USER gleam
 
