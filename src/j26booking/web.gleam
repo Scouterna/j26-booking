@@ -1,7 +1,6 @@
 import gleam/http/request
 import gleam/http/response
 import gleam/regexp
-import gleam/result
 import pog
 import wisp.{type Request, type Response}
 
@@ -18,7 +17,6 @@ pub fn middleware(
   use <- wisp.log_request(req)
   use <- wisp.rescue_crashes
   use req <- wisp.handle_head(req)
-  use <- add_base_to_response(req)
   use <- wisp.serve_static(req, under: "/", from: ctx.static_directory)
   handle_request(req)
 }
@@ -30,11 +28,7 @@ pub fn is_htmx_request(req: Request) -> Bool {
   }
 }
 
-pub fn relative_path(req: Request, path: String) -> String {
-  result.unwrap(get_base_path(req), "") <> path
-}
-
-fn get_base_path(req: Request) -> Result(String, Nil) {
+pub fn get_base_path(req: Request) -> Result(String, Nil) {
   req |> request.get_header("X-Forwarded-Prefix")
 }
 
@@ -43,6 +37,7 @@ fn add_base_to_response(
   next handler: fn() -> Response,
 ) -> wisp.Response {
   let res = handler()
+  echo res
   case get_base_path(req) {
     Ok(base_path) -> {
       case res.body {

@@ -1,4 +1,5 @@
 import gleam/list
+import gleam/result
 import j26booking/components
 import j26booking/sql
 import j26booking/web.{type Context}
@@ -8,12 +9,18 @@ import wisp.{type Request, type Response}
 
 pub fn handle_request(req: Request, ctx: Context) -> Response {
   use req <- web.middleware(req, ctx)
+  let base_path = web.get_base_path(req) |> result.unwrap("")
   case wisp.path_segments(req) {
-    [] -> wisp.redirect(web.relative_path(req, "/index.html"))
+    [] -> index()
     ["book", id] -> book(id)
-    ["activities"] -> activities_fragment_or_page(req, ctx.db_connection)
+    ["activities"] ->
+      activities_fragment_or_page(req, base_path, ctx.db_connection)
     _ -> wisp.not_found()
   }
+}
+
+fn index() -> Response {
+  components.index_page() |> element.to_string |> wisp.html_response(200)
 }
 
 fn book(id: String) -> Response {
@@ -22,6 +29,7 @@ fn book(id: String) -> Response {
 
 fn activities_fragment_or_page(
   req: Request,
+  base_path: String,
   db_connection: pog.Connection,
 ) -> Response {
   let search_query = wisp.get_query(req)
@@ -37,8 +45,8 @@ fn activities_fragment_or_page(
 
   fragment_or_page(
     req,
-    components.activities_list(activity_names),
-    components.activities_page(activity_names, search_term),
+    components.activities_list(base_path, activity_names),
+    components.activities_page(base_path, activity_names, search_term),
   )
 }
 
