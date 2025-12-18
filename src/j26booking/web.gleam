@@ -5,7 +5,11 @@ import pog
 import wisp.{type Request, type Response}
 
 pub type Context {
-  Context(static_directory: String, db_connection: pog.Connection)
+  Context(
+    static_directory: String,
+    db_connection: pog.Connection,
+    base_path: String,
+  )
 }
 
 pub fn middleware(

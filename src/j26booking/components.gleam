@@ -64,7 +64,7 @@ pub fn activities_page(
   ])
 }
 
-pub fn index_page() {
+pub fn index_page(base_path: String) {
   html.html([attribute.attribute("lang", "en")], [
     html.head([], [
       html.meta([attribute.charset("UTF-8")]),
@@ -81,7 +81,7 @@ pub fn index_page() {
     html.body([], [
       html.h1([], [html.text("Welcome to Jamboree 2026")]),
       html.p([], [html.text("Book your activities for the event")]),
-      html.a([attribute.href("/activities")], [
+      html.a([attribute.href(base_path <> "/activities")], [
         html.button([], [html.text("View Activities")]),
       ]),
     ]),

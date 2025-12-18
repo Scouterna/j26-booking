@@ -19,6 +19,7 @@ pub fn main() -> Nil {
   let database_url =
     get_env("DATABASE_URL", "postgres://postgres@localhost:5432/j26booking")
   let db_pool_size = get_env_int("DB_POOL_SIZE", 15)
+  let base_path = get_env("BASE_PATH", "")
   let server_port = get_env_int("PORT", 8000)
 
   let pool_name = process.new_name("j26booking_pool")
@@ -37,6 +38,7 @@ pub fn main() -> Nil {
     Context(
       static_directory: static_directory(),
       db_connection: pog.named_connection(pool_name),
+      base_path:,
     )
   let handler = router.handle_request(_, ctx)
 
