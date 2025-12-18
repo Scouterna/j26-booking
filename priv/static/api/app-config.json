@@ -1,0 +1,26 @@
+
+{
+  "navigation": [
+    {
+      "type": "group",
+      "id": "group_booking",
+      "label": "booking.schedule.label",
+      "children": [
+        {
+          "type": "page",
+          "id": "page_all_activities",
+          "label": "booking.all_activities.label",
+          "icon": "campfire",
+          "path": "/activities"
+        },
+        {
+          "type": "page",
+          "id": "page_my_schedule",
+          "label": "booking.my_schedule.label",
+          "icon": "calendar-event",
+          "path": "/index"
+        }
+      ]
+    }
+  ]
+}
