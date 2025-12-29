@@ -1,0 +1,69 @@
+import gleam/dynamic
+import gleam/dynamic/decode
+import gleam/http.{Get}
+import gleam/int
+import gleam/json
+import gleam/list
+import gleam/result
+import j26booking/model/activity
+import j26booking/sql
+import j26booking/web
+import wisp.{type Request, type Response}
+
+type SortQueryParams {
+  Title
+  StartTime
+}
+
+const default_page = 0
+
+const page_size = 20
+
+const default_sort = Title
+
+fn sort_query_params_decoder() -> decode.Decoder(SortQueryParams) {
+  use variant <- decode.then(decode.string)
+  case variant {
+    "title" -> decode.success(Title)
+    "start_time" | "time" | "date" -> decode.success(StartTime)
+    _ -> decode.failure(Title, "SortQueryParams")
+  }
+}
+
+pub fn get_page(req: Request, ctx: web.Context) -> Response {
+  use <- wisp.require_method(req, Get)
+  let request_query = wisp.get_query(req)
+  let sort_query_param = {
+    use sort_value <- result.try(list.key_find(request_query, "sort"))
+    sort_value
+    |> dynamic.string
+    |> decode.run(sort_query_params_decoder())
+    |> result.try_recover(fn(_) { Error(Nil) })
+  }
+  let page_query_param =
+    request_query |> list.key_find("page") |> result.try(int.parse)
+  let limit = page_size
+  let offset = result.unwrap(page_query_param, default_page) * page_size
+  let activities_result = case sort_query_param |> result.unwrap(default_sort) {
+    StartTime ->
+      sql.get_activities_by_start_time(ctx.db_connection, limit, offset)
+      |> result.map(fn(returned) {
+        returned.rows
+        |> list.map(activity.from_get_activities_by_start_time_row)
+      })
+    Title ->
+      sql.get_activities_by_title(ctx.db_connection, limit, offset)
+      |> result.map(fn(returned) {
+        returned.rows |> list.map(activity.from_get_activities_by_title_row)
+      })
+  }
+  case activities_result {
+    Error(_) -> wisp.internal_server_error()
+    Ok(activities) ->
+      wisp.json_response(
+        json.object([#("activities", json.array(activities, activity.to_json))])
+          |> json.to_string,
+        200,
+      )
+  }
+}

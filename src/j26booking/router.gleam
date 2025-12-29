@@ -2,6 +2,7 @@ import gleam/list
 import j26booking/components
 import j26booking/sql
 import j26booking/web.{type Context}
+import j26booking/web/activities
 import lustre/element.{type Element}
 import pog
 import wisp.{type Request, type Response}
@@ -10,9 +11,21 @@ pub fn handle_request(req: Request, ctx: Context) -> Response {
   use req <- web.middleware(req, ctx)
   case wisp.path_segments(req) {
     [] -> index(ctx.base_path)
+    ["api", ..rest] -> handle_api_request(req, ctx, rest)
     ["book", id] -> book(id)
     ["activities"] ->
       activities_fragment_or_page(req, ctx.base_path, ctx.db_connection)
+    _ -> wisp.not_found()
+  }
+}
+
+fn handle_api_request(
+  req: Request,
+  ctx: Context,
+  path_segments: List(String),
+) -> Response {
+  case path_segments {
+    ["activities"] -> activities.get_page(req, ctx)
     _ -> wisp.not_found()
   }
 }
