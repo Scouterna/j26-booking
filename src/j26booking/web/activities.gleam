@@ -5,6 +5,8 @@ import gleam/int
 import gleam/json
 import gleam/list
 import gleam/result
+import gleam/string
+import j26booking/db
 import j26booking/model/activity
 import j26booking/sql
 import j26booking/web
@@ -45,20 +47,31 @@ pub fn get_page(req: Request, ctx: web.Context) -> Response {
   let limit = page_size
   let offset = result.unwrap(page_query_param, default_page) * page_size
   let activities_result = case sort_query_param |> result.unwrap(default_sort) {
-    StartTime ->
-      sql.get_activities_by_start_time(ctx.db_connection, limit, offset)
-      |> result.map(fn(returned) {
-        returned.rows
-        |> list.map(activity.from_get_activities_by_start_time_row)
-      })
-    Title ->
-      sql.get_activities_by_title(ctx.db_connection, limit, offset)
-      |> result.map(fn(returned) {
-        returned.rows |> list.map(activity.from_get_activities_by_title_row)
-      })
+    StartTime -> {
+      use returned <- result.map(sql.get_activities_by_start_time(
+        ctx.db_connection,
+        limit,
+        offset,
+      ))
+      db.map_returned_rows(
+        returned,
+        activity.from_get_activities_by_start_time_row,
+      )
+    }
+    Title -> {
+      use returned <- result.map(sql.get_activities_by_title(
+        ctx.db_connection,
+        limit,
+        offset,
+      ))
+      db.map_returned_rows(returned, activity.from_get_activities_by_title_row)
+    }
   }
   case activities_result {
-    Error(_) -> wisp.internal_server_error()
+    Error(error) -> {
+      wisp.log_error("QueryError " <> string.inspect(error))
+      wisp.internal_server_error()
+    }
     Ok(activities) ->
       wisp.json_response(
         json.object([#("activities", json.array(activities, activity.to_json))])
