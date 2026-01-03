@@ -21,6 +21,7 @@ jobs:
         run: |
           echo "sha_long=$(git rev-parse HEAD)" >> $GITHUB_OUTPUT
           echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
+          echo "release_version=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
 
       - name: Login to Docker Hub
         uses: docker/login-action@v3
@@ -41,7 +42,7 @@ jobs:
           push: true
           tags: |
             ghcr.io/scouterna/j26-booking:${{ steps.vars.outputs.sha_short }}-migrate
-            ${{ github.event_name == 'release' && format('ghcr.io/scouterna/j26-booking:{0}-migrate', github.event.release.tag_name) || '' }}
+            ${{ github.event_name == 'release' && format('ghcr.io/scouterna/j26-booking:{0}-migrate', steps.vars.outputs.release_version) || '' }}
           labels: |
             org.opencontainers.image.created=${{ github.event.head_commit.timestamp }}
             org.opencontainers.image.revision=${{ steps.vars.outputs.sha_long }}
@@ -57,7 +58,7 @@ jobs:
           tags: |
             ghcr.io/scouterna/j26-booking:latest
             ghcr.io/scouterna/j26-booking:${{ steps.vars.outputs.sha_short }}-app
-            ${{ github.event_name == 'release' && format('ghcr.io/scouterna/j26-booking:{0}-app', github.event.release.tag_name) || '' }}
+            ${{ github.event_name == 'release' && format('ghcr.io/scouterna/j26-booking:{0}-app', steps.vars.outputs.release_version) || '' }}
           labels: |
             org.opencontainers.image.created=${{ github.event.head_commit.timestamp }}
             org.opencontainers.image.revision=${{ steps.vars.outputs.sha_long }}
