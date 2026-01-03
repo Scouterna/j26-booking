@@ -1,6 +1,4 @@
 import gleam/http/request
-import gleam/http/response
-import gleam/regexp
 import pog
 import wisp.{type Request, type Response}
 
@@ -34,31 +32,4 @@ pub fn is_htmx_request(req: Request) -> Bool {
 
 pub fn get_base_path(req: Request) -> Result(String, Nil) {
   req |> request.get_header("X-Forwarded-Prefix")
-}
-
-fn add_base_to_response(
-  req: Request,
-  next handler: fn() -> Response,
-) -> wisp.Response {
-  let res = handler()
-  echo res
-  case get_base_path(req) {
-    Ok(base_path) -> {
-      case res.body {
-        wisp.Text(s) -> {
-          let assert Ok(regex) = regexp.from_string("</head>")
-          res
-          |> response.set_body(
-            wisp.Text(regexp.replace(
-              each: regex,
-              in: s,
-              with: "<base href=\"" <> base_path <> "/\"/></head>",
-            )),
-          )
-        }
-        _ -> res
-      }
-    }
-    Error(_) -> res
-  }
 }
