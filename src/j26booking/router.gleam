@@ -1,4 +1,4 @@
-import gleam/http.{Get, Post}
+import gleam/http.{Delete, Get, Post}
 import gleam/list
 import j26booking/components
 import j26booking/sql
@@ -32,7 +32,12 @@ fn handle_api_request(
         Post -> activities.create(req, ctx)
         _ -> wisp.method_not_allowed([Get, Post])
       }
-    ["activities", id] -> activities.get_one(req, id, ctx)
+    ["activities", id] ->
+      case req.method {
+        Get -> activities.get_one(req, id, ctx)
+        Delete -> activities.delete(req, id, ctx)
+        _ -> wisp.method_not_allowed([Get, Delete])
+      }
     _ -> wisp.not_found()
   }
 }

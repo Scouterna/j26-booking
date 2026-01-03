@@ -133,6 +133,39 @@ RETURNING id, title, description, start_time, end_time
   |> pog.execute(db)
 }
 
+/// A row you get from running the `delete_activity` query
+/// defined in `./src/j26booking/sql/delete_activity.sql`.
+///
+/// > 🐿️ This type definition was generated automatically using v4.6.0 of the
+/// > [squirrel package](https://github.com/giacomocavalieri/squirrel).
+///
+pub type DeleteActivityRow {
+  DeleteActivityRow(id: Uuid)
+}
+
+/// Runs the `delete_activity` query
+/// defined in `./src/j26booking/sql/delete_activity.sql`.
+///
+/// > 🐿️ This function was generated automatically using v4.6.0 of
+/// > the [squirrel package](https://github.com/giacomocavalieri/squirrel).
+///
+pub fn delete_activity(
+  db: pog.Connection,
+  arg_1: Uuid,
+) -> Result(pog.Returned(DeleteActivityRow), pog.QueryError) {
+  let decoder = {
+    use id <- decode.field(0, uuid_decoder())
+    decode.success(DeleteActivityRow(id:))
+  }
+
+  "DELETE FROM activity WHERE id = $1 RETURNING id
+"
+  |> pog.query
+  |> pog.parameter(pog.text(uuid.to_string(arg_1)))
+  |> pog.returning(decoder)
+  |> pog.execute(db)
+}
+
 /// A row you get from running the `get_activities_by_start_time` query
 /// defined in `./src/j26booking/sql/get_activities_by_start_time.sql`.
 ///

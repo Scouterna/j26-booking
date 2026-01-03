@@ -1,6 +1,6 @@
 import gleam/dynamic/decode
 import gleam/float
-import gleam/http.{Get, Post}
+import gleam/http.{Delete, Get, Post}
 import gleam/int
 import gleam/json
 import gleam/option.{type Option, None}
@@ -111,6 +111,23 @@ pub fn get_one(req: Request, id: String, ctx: web.Context) -> Response {
               |> json.to_string,
             200,
           )
+      }
+    }
+  }
+}
+
+pub fn delete(req: Request, id: String, ctx: web.Context) -> Response {
+  use <- wisp.require_method(req, Delete)
+  case uuid.from_string(id) {
+    Error(_) -> wisp.bad_request("Invalid activity ID format")
+    Ok(activity_id) -> {
+      case sql.delete_activity(ctx.db_connection, activity_id) {
+        Error(error) -> {
+          wisp.log_error("QueryError " <> string.inspect(error))
+          wisp.internal_server_error()
+        }
+        Ok(pog.Returned(_, [])) -> wisp.not_found()
+        Ok(pog.Returned(_, [_, ..])) -> wisp.no_content()
       }
     }
   }
