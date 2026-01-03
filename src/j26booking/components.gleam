@@ -77,10 +77,34 @@ pub fn index_page(base_path: String) {
         ],
         "",
       ),
+      html.script(
+        [
+          attribute.src(
+            "https://cdn.jsdelivr.net/npm/@scouterna/ui-webc@2.2.2/dist/esm/ui-webc.js",
+          ),
+          attribute.type_("module"),
+        ],
+        "",
+      ),
+      html.link([
+        attribute.rel("stylesheet"),
+        attribute.href(
+          "https://cdn.jsdelivr.net/npm/@scouterna/ui-webc@2.2.2/dist/ui-webc/ui-webc.css",
+        ),
+      ]),
     ]),
     html.body([], [
       html.h1([], [html.text("Welcome to Jamboree 2026")]),
       html.p([], [html.text("Book your activities for the event")]),
+      element.element(
+        "scout-button",
+        [
+          attribute.attribute("variant", "primary"),
+          attribute.type_("link"),
+          attribute.href(base_path <> "/activities"),
+        ],
+        [html.text("hej")],
+      ),
       html.a([attribute.href(base_path <> "/activities")], [
         html.button([], [html.text("View Activities")]),
       ]),
