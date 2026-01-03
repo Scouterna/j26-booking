@@ -1,0 +1,20 @@
+meta {
+  name: Delete Activity
+  type: http
+  seq: 5
+}
+
+delete {
+  url: {{host}}/api/activities/{{id}}
+  body: none
+  auth: inherit
+}
+
+vars:pre-request {
+  id: 019b81e1-db05-747b-a5a0-04a97ccbbab7
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}
