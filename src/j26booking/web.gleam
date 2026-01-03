@@ -1,4 +1,6 @@
+import given
 import gleam/http/request
+import gleam/list
 import pog
 import wisp.{type Request, type Response}
 
@@ -32,4 +34,22 @@ pub fn is_htmx_request(req: Request) -> Bool {
 
 pub fn get_base_path(req: Request) -> Result(String, Nil) {
   req |> request.get_header("X-Forwarded-Prefix")
+}
+
+pub fn ensure_valid_query_param(
+  in request_query: List(#(String, String)),
+  with_name parameter_name: String,
+  if_missing_return default_value: a,
+  using parse: fn(String) -> Result(a, e),
+  else_respond_with error_detail: String,
+  then next: fn(a) -> Response,
+) -> Response {
+  use value <- given.ok(
+    in: case list.key_find(request_query, parameter_name) {
+      Error(_) -> Ok(default_value)
+      Ok(raw) -> parse(raw)
+    },
+    else_return: fn(_) { wisp.bad_request(error_detail) },
+  )
+  next(value)
 }

@@ -1,14 +1,12 @@
-import gleam/dynamic
-import gleam/dynamic/decode
 import gleam/http.{Get}
 import gleam/int
 import gleam/json
-import gleam/list
 import gleam/result
 import gleam/string
 import j26booking/db
 import j26booking/model/activity
 import j26booking/sql
+import j26booking/utils
 import j26booking/web
 import pog
 import wisp.{type Request, type Response}
@@ -25,30 +23,37 @@ const page_size = 20
 
 const default_sort = Title
 
-fn sort_query_params_decoder() -> decode.Decoder(SortQueryParams) {
-  use variant <- decode.then(decode.string)
-  case variant {
-    "title" -> decode.success(Title)
-    "start_time" | "time" | "date" -> decode.success(StartTime)
-    _ -> decode.failure(Title, "SortQueryParams")
+fn parse_sort(value: String) -> Result(SortQueryParams, Nil) {
+  case value {
+    "title" -> Ok(Title)
+    "start_time" -> Ok(StartTime)
+    _ -> Error(Nil)
   }
 }
 
 pub fn get_page(req: Request, ctx: web.Context) -> Response {
   use <- wisp.require_method(req, Get)
   let request_query = wisp.get_query(req)
-  let sort_query_param = {
-    use sort_value <- result.try(list.key_find(request_query, "sort"))
-    sort_value
-    |> dynamic.string
-    |> decode.run(sort_query_params_decoder())
-    |> result.try_recover(fn(_) { Error(Nil) })
-  }
-  let page_query_param =
-    request_query |> list.key_find("page") |> result.try(int.parse)
+
+  use sort <- web.ensure_valid_query_param(
+    in: request_query,
+    with_name: "sort",
+    if_missing_return: default_sort,
+    using: parse_sort,
+    else_respond_with: "Invalid sort parameter. Allowed values: title, start_time",
+  )
+
+  use page <- web.ensure_valid_query_param(
+    in: request_query,
+    with_name: "page",
+    if_missing_return: default_page,
+    using: fn(i) { int.parse(i) |> result.try(utils.ensure_non_negative) },
+    else_respond_with: "Invalid page parameter. Must be a non-negative integer",
+  )
+
   let limit = page_size
-  let offset = result.unwrap(page_query_param, default_page) * page_size
-  let activities_result = case sort_query_param |> result.unwrap(default_sort) {
+  let offset = page * page_size
+  let activities_result = case sort {
     StartTime -> {
       use returned <- result.map(sql.get_activities_by_start_time(
         ctx.db_connection,
