@@ -92,12 +92,20 @@ pub fn from_get_activities_by_start_time_row(
 }
 
 pub fn to_json(activity: Activity) -> Json {
+  let Activity(
+    id:,
+    title:,
+    description:,
+    max_attendees:,
+    start_time:,
+    end_time:,
+  ) = activity
   json.object([
-    #("id", activity.id |> uuid.to_string |> json.string),
-    #("title", json.string(activity.title)),
-    #("description", json.string(activity.description)),
-    #("max_attendees", json.nullable(activity.max_attendees, json.int)),
-    #("start_time", json.float(timestamp.to_unix_seconds(activity.start_time))),
-    #("end_time", json.float(timestamp.to_unix_seconds(activity.end_time))),
+    #("id", id |> uuid.to_string |> json.string),
+    #("title", json.string(title)),
+    #("description", json.string(description)),
+    #("max_attendees", json.nullable(max_attendees, json.int)),
+    #("start_time", json.float(timestamp.to_unix_seconds(start_time))),
+    #("end_time", json.float(timestamp.to_unix_seconds(end_time))),
   ])
 }

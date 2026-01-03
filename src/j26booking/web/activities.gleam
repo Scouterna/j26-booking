@@ -1,8 +1,12 @@
-import gleam/http.{Get}
+import gleam/dynamic/decode
+import gleam/float
+import gleam/http.{Get, Post}
 import gleam/int
 import gleam/json
+import gleam/option.{type Option, None}
 import gleam/result
 import gleam/string
+import gleam/time/timestamp
 import j26booking/db
 import j26booking/model/activity
 import j26booking/sql
@@ -107,6 +111,110 @@ pub fn get_one(req: Request, id: String, ctx: web.Context) -> Response {
               |> json.to_string,
             200,
           )
+      }
+    }
+  }
+}
+
+pub type ActivityInput {
+  ActivityInput(
+    title: String,
+    description: String,
+    max_attendees: Option(Int),
+    start_time: Float,
+    end_time: Float,
+  )
+}
+
+fn activity_input_decoder() -> decode.Decoder(ActivityInput) {
+  use title <- decode.field("title", decode.string)
+  use description <- decode.field("description", decode.string)
+  use max_attendees <- decode.optional_field(
+    "max_attendees",
+    None,
+    decode.optional(decode.int),
+  )
+  use start_time <- decode.field("start_time", decode.float)
+  use end_time <- decode.field("end_time", decode.float)
+  decode.success(ActivityInput(
+    title:,
+    description:,
+    max_attendees:,
+    start_time:,
+    end_time:,
+  ))
+}
+
+pub fn create(req: Request, ctx: web.Context) -> Response {
+  use <- wisp.require_method(req, Post)
+  use json_body <- wisp.require_json(req)
+
+  case decode.run(json_body, activity_input_decoder()) {
+    Error(_) -> wisp.bad_request("Invalid JSON payload")
+    Ok(input) -> {
+      let id = uuid.v7()
+      let start_time =
+        timestamp.from_unix_seconds(float.truncate(input.start_time))
+      let end_time = timestamp.from_unix_seconds(float.truncate(input.end_time))
+
+      case input.max_attendees {
+        option.Some(max) -> {
+          case
+            sql.create_activity_with_max_attendees(
+              ctx.db_connection,
+              id,
+              input.title,
+              input.description,
+              max,
+              start_time,
+              end_time,
+            )
+          {
+            Error(error) -> {
+              wisp.log_error("QueryError " <> string.inspect(error))
+              wisp.internal_server_error()
+            }
+            Ok(pog.Returned(_, [row, ..])) -> {
+              let created =
+                activity.from_create_activity_with_max_attendees_row(row)
+              let location = "/api/activities/" <> uuid.to_string(created.id)
+              wisp.json_response(
+                activity.to_json(created) |> json.to_string,
+                201,
+              )
+              |> wisp.set_header("location", location)
+            }
+            Ok(pog.Returned(_, [])) -> wisp.internal_server_error()
+          }
+        }
+        option.None -> {
+          case
+            sql.create_activity_without_max_attendees(
+              ctx.db_connection,
+              id,
+              input.title,
+              input.description,
+              start_time,
+              end_time,
+            )
+          {
+            Error(error) -> {
+              wisp.log_error("QueryError " <> string.inspect(error))
+              wisp.internal_server_error()
+            }
+            Ok(pog.Returned(_, [row, ..])) -> {
+              let created =
+                activity.from_create_activity_without_max_attendees_row(row)
+              let location = "/api/activities/" <> uuid.to_string(created.id)
+              wisp.json_response(
+                activity.to_json(created) |> json.to_string,
+                201,
+              )
+              |> wisp.set_header("location", location)
+            }
+            Ok(pog.Returned(_, [])) -> wisp.internal_server_error()
+          }
+        }
       }
     }
   }

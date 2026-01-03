@@ -1,3 +1,4 @@
+import gleam/http.{Get, Post}
 import gleam/list
 import j26booking/components
 import j26booking/sql
@@ -25,7 +26,12 @@ fn handle_api_request(
   path_segments: List(String),
 ) -> Response {
   case path_segments {
-    ["activities"] -> activities.get_page(req, ctx)
+    ["activities"] ->
+      case req.method {
+        Get -> activities.get_page(req, ctx)
+        Post -> activities.create(req, ctx)
+        _ -> wisp.method_not_allowed([Get, Post])
+      }
     ["activities", id] -> activities.get_one(req, id, ctx)
     _ -> wisp.not_found()
   }
