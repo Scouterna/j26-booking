@@ -1,3 +1,4 @@
+import gleam/float
 import gleam/json.{type Json}
 import gleam/option.{type Option, None}
 import gleam/time/timestamp.{type Timestamp}
@@ -105,7 +106,10 @@ pub fn to_json(activity: Activity) -> Json {
     #("title", json.string(title)),
     #("description", json.string(description)),
     #("max_attendees", json.nullable(max_attendees, json.int)),
-    #("start_time", json.float(timestamp.to_unix_seconds(start_time))),
-    #("end_time", json.float(timestamp.to_unix_seconds(end_time))),
+    #(
+      "start_time",
+      json.int(timestamp.to_unix_seconds(start_time) |> float.round),
+    ),
+    #("end_time", json.int(timestamp.to_unix_seconds(end_time) |> float.round)),
   ])
 }
