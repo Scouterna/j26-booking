@@ -1,0 +1,11 @@
+@import "tailwindcss";
+@import "@scouterna/tailwind-theme";
+
+body {
+  font-family: "Source Sans 3 Variable", sans-serif;
+  font-size: var(--text-body-base);
+  line-height: 1.5;
+  color: var(--color-text-base);
+  font-family: "Source Sans 3", sans-serif; --fontfamily-sans: "Source Sans 3", sans-serif;
+}
+
