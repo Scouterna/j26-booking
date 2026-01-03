@@ -32,10 +32,6 @@ pub fn is_htmx_request(req: Request) -> Bool {
   }
 }
 
-pub fn get_base_path(req: Request) -> Result(String, Nil) {
-  req |> request.get_header("X-Forwarded-Prefix")
-}
-
 pub fn ensure_valid_query_param(
   in request_query: List(#(String, String)),
   with_name parameter_name: String,
