@@ -26,6 +26,7 @@ fn handle_api_request(
 ) -> Response {
   case path_segments {
     ["activities"] -> activities.get_page(req, ctx)
+    ["activities", id] -> activities.get_one(req, id, ctx)
     _ -> wisp.not_found()
   }
 }

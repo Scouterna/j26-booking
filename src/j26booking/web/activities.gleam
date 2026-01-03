@@ -10,7 +10,9 @@ import j26booking/db
 import j26booking/model/activity
 import j26booking/sql
 import j26booking/web
+import pog
 import wisp.{type Request, type Response}
+import youid/uuid
 
 type SortQueryParams {
   Title
@@ -78,5 +80,29 @@ pub fn get_page(req: Request, ctx: web.Context) -> Response {
           |> json.to_string,
         200,
       )
+  }
+}
+
+pub fn get_one(req: Request, id: String, ctx: web.Context) -> Response {
+  use <- wisp.require_method(req, Get)
+  case uuid.from_string(id) {
+    Error(_) -> wisp.bad_request("Invalid activity ID format")
+    Ok(activity_id) -> {
+      case sql.get_activity(ctx.db_connection, activity_id) {
+        Error(error) -> {
+          wisp.log_error("QueryError " <> string.inspect(error))
+          wisp.internal_server_error()
+        }
+        Ok(pog.Returned(_, [])) -> wisp.not_found()
+        Ok(pog.Returned(_, [row, ..])) ->
+          wisp.json_response(
+            row
+              |> activity.from_get_activity_row
+              |> activity.to_json
+              |> json.to_string,
+            200,
+          )
+      }
+    }
   }
 }
