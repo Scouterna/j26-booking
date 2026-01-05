@@ -1,1 +1,3 @@
-DELETE FROM activity WHERE id = $1 RETURNING id
+DELETE FROM activity
+WHERE id = $1
+RETURNING id

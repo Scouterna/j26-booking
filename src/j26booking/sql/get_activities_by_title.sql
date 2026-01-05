@@ -1,5 +1,4 @@
 SELECT *
 FROM activity
 ORDER BY title ASC
-LIMIT $1
-OFFSET $2;
+LIMIT $1 OFFSET $2;
