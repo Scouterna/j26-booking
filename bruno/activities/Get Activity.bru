@@ -1,10 +1,10 @@
 meta {
-  name: Delete Activity
+  name: Get Activity
   type: http
-  seq: 5
+  seq: 1
 }
 
-delete {
+get {
   url: {{host}}/api/activities/{{id}}
   body: none
   auth: inherit
