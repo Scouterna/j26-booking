@@ -92,6 +92,32 @@ pub fn from_get_activities_by_start_time_row(
   )
 }
 
+pub fn from_update_activity_with_max_attendees_row(
+  row: sql.UpdateActivityWithMaxAttendeesRow,
+) -> Activity {
+  Activity(
+    id: row.id,
+    title: row.title,
+    description: row.description,
+    max_attendees: row.max_attendees,
+    start_time: row.start_time,
+    end_time: row.end_time,
+  )
+}
+
+pub fn from_update_activity_without_max_attendees_row(
+  row: sql.UpdateActivityWithoutMaxAttendeesRow,
+) -> Activity {
+  Activity(
+    id: row.id,
+    title: row.title,
+    description: row.description,
+    max_attendees: None,
+    start_time: row.start_time,
+    end_time: row.end_time,
+  )
+}
+
 pub fn to_json(activity: Activity) -> Json {
   let Activity(
     id:,

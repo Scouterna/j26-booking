@@ -1,13 +1,14 @@
+import given
 import gleam/dynamic/decode
 import gleam/float
-import gleam/http.{Delete, Get, Post}
+import gleam/http.{Delete, Get, Post, Put}
 import gleam/int
 import gleam/json
-import gleam/option.{type Option, None}
+import gleam/list
+import gleam/option.{type Option, None, Some}
 import gleam/result
 import gleam/string
 import gleam/time/timestamp
-import j26booking/db
 import j26booking/model/activity
 import j26booking/sql
 import j26booking/utils
@@ -35,6 +36,26 @@ fn parse_sort(value: String) -> Result(SortQueryParams, Nil) {
   }
 }
 
+fn response_from_db_activities_page(
+  query_result: Result(pog.Returned(a), pog.QueryError),
+  to_activity: fn(a) -> activity.Activity,
+) -> Response {
+  case query_result {
+    Error(error) -> {
+      wisp.log_error("QueryError " <> string.inspect(error))
+      wisp.internal_server_error()
+    }
+    Ok(pog.Returned(_, rows)) -> {
+      let activities = rows |> list.map(to_activity)
+      wisp.json_response(
+        json.object([#("activities", json.array(activities, activity.to_json))])
+          |> json.to_string,
+        200,
+      )
+    }
+  }
+}
+
 pub fn get_page(req: Request, ctx: web.Context) -> Response {
   use <- wisp.require_method(req, Get)
   let request_query = wisp.get_query(req)
@@ -57,79 +78,55 @@ pub fn get_page(req: Request, ctx: web.Context) -> Response {
 
   let limit = page_size
   let offset = page * page_size
-  let activities_result = case sort {
-    StartTime -> {
-      use returned <- result.map(sql.get_activities_by_start_time(
-        ctx.db_connection,
-        limit,
-        offset,
-      ))
-      db.map_returned_rows(
-        returned,
+  case sort {
+    StartTime ->
+      response_from_db_activities_page(
+        sql.get_activities_by_start_time(ctx.db_connection, limit, offset),
         activity.from_get_activities_by_start_time_row,
       )
-    }
-    Title -> {
-      use returned <- result.map(sql.get_activities_by_title(
-        ctx.db_connection,
-        limit,
-        offset,
-      ))
-      db.map_returned_rows(returned, activity.from_get_activities_by_title_row)
-    }
-  }
-  case activities_result {
-    Error(error) -> {
-      wisp.log_error("QueryError " <> string.inspect(error))
-      wisp.internal_server_error()
-    }
-    Ok(activities) ->
-      wisp.json_response(
-        json.object([#("activities", json.array(activities, activity.to_json))])
-          |> json.to_string,
-        200,
+    Title ->
+      response_from_db_activities_page(
+        sql.get_activities_by_title(ctx.db_connection, limit, offset),
+        activity.from_get_activities_by_title_row,
       )
   }
 }
 
 pub fn get_one(req: Request, id: String, ctx: web.Context) -> Response {
   use <- wisp.require_method(req, Get)
-  case uuid.from_string(id) {
-    Error(_) -> wisp.bad_request("Invalid activity ID format")
-    Ok(activity_id) -> {
-      case sql.get_activity(ctx.db_connection, activity_id) {
-        Error(error) -> {
-          wisp.log_error("QueryError " <> string.inspect(error))
-          wisp.internal_server_error()
-        }
-        Ok(pog.Returned(_, [])) -> wisp.not_found()
-        Ok(pog.Returned(_, [row, ..])) ->
-          wisp.json_response(
-            row
-              |> activity.from_get_activity_row
-              |> activity.to_json
-              |> json.to_string,
-            200,
-          )
-      }
+  use activity_id <- given.ok(uuid.from_string(id), fn(_) {
+    wisp.bad_request("Invalid activity ID format")
+  })
+  case sql.get_activity(ctx.db_connection, activity_id) {
+    Error(error) -> {
+      wisp.log_error("QueryError " <> string.inspect(error))
+      wisp.internal_server_error()
     }
+    Ok(pog.Returned(_, [])) -> wisp.not_found()
+    Ok(pog.Returned(_, [row, ..])) ->
+      wisp.json_response(
+        row
+          |> activity.from_get_activity_row
+          |> activity.to_json
+          |> json.to_string,
+        200,
+      )
   }
 }
 
 pub fn delete(req: Request, id: String, ctx: web.Context) -> Response {
   use <- wisp.require_method(req, Delete)
-  case uuid.from_string(id) {
-    Error(_) -> wisp.bad_request("Invalid activity ID format")
-    Ok(activity_id) -> {
-      case sql.delete_activity(ctx.db_connection, activity_id) {
-        Error(error) -> {
-          wisp.log_error("QueryError " <> string.inspect(error))
-          wisp.internal_server_error()
-        }
-        Ok(pog.Returned(_, [])) -> wisp.not_found()
-        Ok(pog.Returned(_, [_, ..])) -> wisp.no_content()
-      }
+  use activity_id <- given.ok(uuid.from_string(id), fn(_) {
+    wisp.bad_request("Invalid activity ID format")
+  })
+
+  case sql.delete_activity(ctx.db_connection, activity_id) {
+    Error(error) -> {
+      wisp.log_error("QueryError " <> string.inspect(error))
+      wisp.internal_server_error()
     }
+    Ok(pog.Returned(_, [])) -> wisp.not_found()
+    Ok(pog.Returned(_, [_, ..])) -> wisp.no_content()
   }
 }
 
@@ -162,77 +159,124 @@ fn activity_input_decoder() -> decode.Decoder(ActivityInput) {
   ))
 }
 
+fn response_from_db_activity_creation(
+  query_result: Result(pog.Returned(a), pog.QueryError),
+  to_activity: fn(a) -> activity.Activity,
+) -> Response {
+  case query_result {
+    Error(error) -> {
+      wisp.log_error("QueryError " <> string.inspect(error))
+      wisp.internal_server_error()
+    }
+    Ok(pog.Returned(_, [])) -> wisp.internal_server_error()
+    Ok(pog.Returned(_, [row, ..])) -> {
+      let created_activity = to_activity(row)
+      let location = "/api/activities/" <> uuid.to_string(created_activity.id)
+      wisp.json_response(
+        activity.to_json(created_activity) |> json.to_string,
+        201,
+      )
+      |> wisp.set_header("location", location)
+    }
+  }
+}
+
 pub fn create(req: Request, ctx: web.Context) -> Response {
   use <- wisp.require_method(req, Post)
   use json_body <- wisp.require_json(req)
+  use input <- given.ok(decode.run(json_body, activity_input_decoder()), fn(_) {
+    wisp.bad_request("Invalid JSON payload")
+  })
+  let id = uuid.v7()
+  let start_time = timestamp.from_unix_seconds(float.truncate(input.start_time))
+  let end_time = timestamp.from_unix_seconds(float.truncate(input.end_time))
 
-  case decode.run(json_body, activity_input_decoder()) {
-    Error(_) -> wisp.bad_request("Invalid JSON payload")
-    Ok(input) -> {
-      let id = uuid.v7()
-      let start_time =
-        timestamp.from_unix_seconds(float.truncate(input.start_time))
-      let end_time = timestamp.from_unix_seconds(float.truncate(input.end_time))
+  case input.max_attendees {
+    Some(max_attendees) ->
+      response_from_db_activity_creation(
+        sql.create_activity_with_max_attendees(
+          ctx.db_connection,
+          id,
+          input.title,
+          input.description,
+          max_attendees,
+          start_time,
+          end_time,
+        ),
+        activity.from_create_activity_with_max_attendees_row,
+      )
+    None ->
+      response_from_db_activity_creation(
+        sql.create_activity_without_max_attendees(
+          ctx.db_connection,
+          id,
+          input.title,
+          input.description,
+          start_time,
+          end_time,
+        ),
+        activity.from_create_activity_without_max_attendees_row,
+      )
+  }
+}
 
-      case input.max_attendees {
-        option.Some(max) -> {
-          case
-            sql.create_activity_with_max_attendees(
-              ctx.db_connection,
-              id,
-              input.title,
-              input.description,
-              max,
-              start_time,
-              end_time,
-            )
-          {
-            Error(error) -> {
-              wisp.log_error("QueryError " <> string.inspect(error))
-              wisp.internal_server_error()
-            }
-            Ok(pog.Returned(_, [row, ..])) -> {
-              let created =
-                activity.from_create_activity_with_max_attendees_row(row)
-              let location = "/api/activities/" <> uuid.to_string(created.id)
-              wisp.json_response(
-                activity.to_json(created) |> json.to_string,
-                201,
-              )
-              |> wisp.set_header("location", location)
-            }
-            Ok(pog.Returned(_, [])) -> wisp.internal_server_error()
-          }
-        }
-        option.None -> {
-          case
-            sql.create_activity_without_max_attendees(
-              ctx.db_connection,
-              id,
-              input.title,
-              input.description,
-              start_time,
-              end_time,
-            )
-          {
-            Error(error) -> {
-              wisp.log_error("QueryError " <> string.inspect(error))
-              wisp.internal_server_error()
-            }
-            Ok(pog.Returned(_, [row, ..])) -> {
-              let created =
-                activity.from_create_activity_without_max_attendees_row(row)
-              let location = "/api/activities/" <> uuid.to_string(created.id)
-              wisp.json_response(
-                activity.to_json(created) |> json.to_string,
-                201,
-              )
-              |> wisp.set_header("location", location)
-            }
-            Ok(pog.Returned(_, [])) -> wisp.internal_server_error()
-          }
-        }
-      }
+fn response_from_db_activity_update(
+  query_result: Result(pog.Returned(a), pog.QueryError),
+  to_activity: fn(a) -> activity.Activity,
+) -> Response {
+  case query_result {
+    Error(error) -> {
+      wisp.log_error("QueryError " <> string.inspect(error))
+      wisp.internal_server_error()
     }
+    Ok(pog.Returned(_, [])) -> wisp.not_found()
+    Ok(pog.Returned(_, [row, ..])) -> {
+      let updated_activity = row |> to_activity
+      wisp.json_response(
+        activity.to_json(updated_activity) |> json.to_string,
+        200,
+      )
+    }
+  }
+}
+
+pub fn update(req: Request, id: String, ctx: web.Context) -> Response {
+  use <- wisp.require_method(req, Put)
+  use activity_id <- given.ok(uuid.from_string(id), fn(_) {
+    wisp.bad_request("Invalid activity ID format")
+  })
+  use json_body <- wisp.require_json(req)
+  use input <- given.ok(decode.run(json_body, activity_input_decoder()), fn(_) {
+    wisp.bad_request("Invalid JSON payload")
+  })
+  let start_time = timestamp.from_unix_seconds(float.truncate(input.start_time))
+  let end_time = timestamp.from_unix_seconds(float.truncate(input.end_time))
+
+  case input.max_attendees {
+    Some(max_attendees) ->
+      response_from_db_activity_update(
+        sql.update_activity_with_max_attendees(
+          ctx.db_connection,
+          activity_id,
+          input.title,
+          input.description,
+          max_attendees,
+          start_time,
+          end_time,
+        ),
+        activity.from_update_activity_with_max_attendees_row,
+      )
+    None ->
+      response_from_db_activity_update(
+        sql.update_activity_without_max_attendees(
+          ctx.db_connection,
+          activity_id,
+          input.title,
+          input.description,
+          start_time,
+          end_time,
+        ),
+        activity.from_update_activity_without_max_attendees_row,
+      )
   }
 }

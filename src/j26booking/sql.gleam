@@ -389,6 +389,139 @@ ORDER BY title;
   |> pog.execute(db)
 }
 
+/// A row you get from running the `update_activity_with_max_attendees` query
+/// defined in `./src/j26booking/sql/update_activity_with_max_attendees.sql`.
+///
+/// > 🐿️ This type definition was generated automatically using v4.6.0 of the
+/// > [squirrel package](https://github.com/giacomocavalieri/squirrel).
+///
+pub type UpdateActivityWithMaxAttendeesRow {
+  UpdateActivityWithMaxAttendeesRow(
+    id: Uuid,
+    title: String,
+    description: String,
+    max_attendees: Option(Int),
+    start_time: Timestamp,
+    end_time: Timestamp,
+  )
+}
+
+/// Runs the `update_activity_with_max_attendees` query
+/// defined in `./src/j26booking/sql/update_activity_with_max_attendees.sql`.
+///
+/// > 🐿️ This function was generated automatically using v4.6.0 of
+/// > the [squirrel package](https://github.com/giacomocavalieri/squirrel).
+///
+pub fn update_activity_with_max_attendees(
+  db: pog.Connection,
+  arg_1: Uuid,
+  arg_2: String,
+  arg_3: String,
+  arg_4: Int,
+  arg_5: Timestamp,
+  arg_6: Timestamp,
+) -> Result(pog.Returned(UpdateActivityWithMaxAttendeesRow), pog.QueryError) {
+  let decoder = {
+    use id <- decode.field(0, uuid_decoder())
+    use title <- decode.field(1, decode.string)
+    use description <- decode.field(2, decode.string)
+    use max_attendees <- decode.field(3, decode.optional(decode.int))
+    use start_time <- decode.field(4, pog.timestamp_decoder())
+    use end_time <- decode.field(5, pog.timestamp_decoder())
+    decode.success(UpdateActivityWithMaxAttendeesRow(
+      id:,
+      title:,
+      description:,
+      max_attendees:,
+      start_time:,
+      end_time:,
+    ))
+  }
+
+  "UPDATE activity
+SET title = $2,
+    description = $3,
+    max_attendees = $4,
+    start_time = $5,
+    end_time = $6
+WHERE id = $1
+RETURNING id, title, description, max_attendees, start_time, end_time
+"
+  |> pog.query
+  |> pog.parameter(pog.text(uuid.to_string(arg_1)))
+  |> pog.parameter(pog.text(arg_2))
+  |> pog.parameter(pog.text(arg_3))
+  |> pog.parameter(pog.int(arg_4))
+  |> pog.parameter(pog.timestamp(arg_5))
+  |> pog.parameter(pog.timestamp(arg_6))
+  |> pog.returning(decoder)
+  |> pog.execute(db)
+}
+
+/// A row you get from running the `update_activity_without_max_attendees` query
+/// defined in `./src/j26booking/sql/update_activity_without_max_attendees.sql`.
+///
+/// > 🐿️ This type definition was generated automatically using v4.6.0 of the
+/// > [squirrel package](https://github.com/giacomocavalieri/squirrel).
+///
+pub type UpdateActivityWithoutMaxAttendeesRow {
+  UpdateActivityWithoutMaxAttendeesRow(
+    id: Uuid,
+    title: String,
+    description: String,
+    start_time: Timestamp,
+    end_time: Timestamp,
+  )
+}
+
+/// Runs the `update_activity_without_max_attendees` query
+/// defined in `./src/j26booking/sql/update_activity_without_max_attendees.sql`.
+///
+/// > 🐿️ This function was generated automatically using v4.6.0 of
+/// > the [squirrel package](https://github.com/giacomocavalieri/squirrel).
+///
+pub fn update_activity_without_max_attendees(
+  db: pog.Connection,
+  arg_1: Uuid,
+  arg_2: String,
+  arg_3: String,
+  arg_4: Timestamp,
+  arg_5: Timestamp,
+) -> Result(pog.Returned(UpdateActivityWithoutMaxAttendeesRow), pog.QueryError) {
+  let decoder = {
+    use id <- decode.field(0, uuid_decoder())
+    use title <- decode.field(1, decode.string)
+    use description <- decode.field(2, decode.string)
+    use start_time <- decode.field(3, pog.timestamp_decoder())
+    use end_time <- decode.field(4, pog.timestamp_decoder())
+    decode.success(UpdateActivityWithoutMaxAttendeesRow(
+      id:,
+      title:,
+      description:,
+      start_time:,
+      end_time:,
+    ))
+  }
+
+  "UPDATE activity
+SET title = $2,
+    description = $3,
+    max_attendees = NULL,
+    start_time = $4,
+    end_time = $5
+WHERE id = $1
+RETURNING id, title, description, start_time, end_time
+"
+  |> pog.query
+  |> pog.parameter(pog.text(uuid.to_string(arg_1)))
+  |> pog.parameter(pog.text(arg_2))
+  |> pog.parameter(pog.text(arg_3))
+  |> pog.parameter(pog.timestamp(arg_4))
+  |> pog.parameter(pog.timestamp(arg_5))
+  |> pog.returning(decoder)
+  |> pog.execute(db)
+}
+
 // --- Encoding/decoding utils -------------------------------------------------
 
 /// A decoder to decode `Uuid`s coming from a Postgres query.
