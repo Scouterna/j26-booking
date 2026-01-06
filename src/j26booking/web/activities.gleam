@@ -135,8 +135,8 @@ pub type ActivityInput {
     title: String,
     description: String,
     max_attendees: Option(Int),
-    start_time: Float,
-    end_time: Float,
+    start_time: Int,
+    end_time: Int,
   )
 }
 
@@ -148,8 +148,14 @@ fn activity_input_decoder() -> decode.Decoder(ActivityInput) {
     None,
     decode.optional(decode.int),
   )
-  use start_time <- decode.field("start_time", decode.float)
-  use end_time <- decode.field("end_time", decode.float)
+  use start_time <- decode.field(
+    "start_time",
+    decode.one_of(decode.int, [decode.float |> decode.map(float.round)]),
+  )
+  use end_time <- decode.field(
+    "end_time",
+    decode.one_of(decode.int, [decode.float |> decode.map(float.round)]),
+  )
   decode.success(ActivityInput(
     title:,
     description:,
@@ -188,8 +194,8 @@ pub fn create(req: Request, ctx: web.Context) -> Response {
     wisp.bad_request("Invalid JSON payload")
   })
   let id = uuid.v7()
-  let start_time = timestamp.from_unix_seconds(float.truncate(input.start_time))
-  let end_time = timestamp.from_unix_seconds(float.truncate(input.end_time))
+  let start_time = timestamp.from_unix_seconds(input.start_time)
+  let end_time = timestamp.from_unix_seconds(input.end_time)
 
   case input.max_attendees {
     Some(max_attendees) ->
@@ -249,8 +255,8 @@ pub fn update(req: Request, id: String, ctx: web.Context) -> Response {
   use input <- given.ok(decode.run(json_body, activity_input_decoder()), fn(_) {
     wisp.bad_request("Invalid JSON payload")
   })
-  let start_time = timestamp.from_unix_seconds(float.truncate(input.start_time))
-  let end_time = timestamp.from_unix_seconds(float.truncate(input.end_time))
+  let start_time = timestamp.from_unix_seconds(input.start_time)
+  let end_time = timestamp.from_unix_seconds(input.end_time)
 
   case input.max_attendees {
     Some(max_attendees) ->
