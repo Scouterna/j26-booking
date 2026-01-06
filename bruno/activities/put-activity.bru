@@ -1,0 +1,30 @@
+meta {
+  name: put-activity
+  type: http
+  seq: 4
+}
+
+put {
+  url: {{host}}/api/activities/{{id}}
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "title": "Kayaking",
+    "description": "Lake kayaking adventure",
+    "max_attendees": 3,
+    "start_time": 1735900800,
+    "end_time": 1735908000
+  }
+}
+
+vars:pre-request {
+  id: 019b90da-9c35-7487-a3fd-b323d3aa7b7e
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}
