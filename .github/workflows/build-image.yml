@@ -41,8 +41,8 @@ jobs:
         with:
           push: true
           tags: |
-            ghcr.io/scouterna/j26-booking:${{ steps.vars.outputs.sha_short }}-migrate
-            ${{ github.event_name == 'release' && format('ghcr.io/scouterna/j26-booking:{0}-migrate', steps.vars.outputs.release_version) || '' }}
+            ghcr.io/scouterna/j26-booking-migrate:${{ steps.vars.outputs.sha_short }}
+            ${{ github.event_name == 'release' && format('ghcr.io/scouterna/j26-booking-migrate:{0}', steps.vars.outputs.release_version) || '' }}
           labels: |
             org.opencontainers.image.created=${{ github.event.head_commit.timestamp }}
             org.opencontainers.image.revision=${{ steps.vars.outputs.sha_long }}
@@ -57,8 +57,8 @@ jobs:
           push: true
           tags: |
             ghcr.io/scouterna/j26-booking:latest
-            ghcr.io/scouterna/j26-booking:${{ steps.vars.outputs.sha_short }}-app
-            ${{ github.event_name == 'release' && format('ghcr.io/scouterna/j26-booking:{0}-app', steps.vars.outputs.release_version) || '' }}
+            ghcr.io/scouterna/j26-booking:${{ steps.vars.outputs.sha_short }}
+            ${{ github.event_name == 'release' && format('ghcr.io/scouterna/j26-booking:{0}', steps.vars.outputs.release_version) || '' }}
           labels: |
             org.opencontainers.image.created=${{ github.event.head_commit.timestamp }}
             org.opencontainers.image.revision=${{ steps.vars.outputs.sha_long }}
