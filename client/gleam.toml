@@ -1,4 +1,4 @@
-name = "client"
+name = "j26booking_client"
 version = "1.0.0"
 target = "javascript"
 
@@ -34,3 +34,6 @@ link = [
     { href = "https://fonts.googleapis.com", rel = "preconnect" },
     { href = "https://fonts.gstatic.com", rel = "preconnect", crossorigin = "" },
 ]
+
+[tools.lustre.build]
+no_html = true

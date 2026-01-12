@@ -22,7 +22,7 @@ pub fn middleware(
   use <- wisp.rescue_crashes
   use req <- wisp.handle_head(req)
   use req <- wisp.csrf_known_header_protection(req)
-  use <- wisp.serve_static(req, under: "/", from: ctx.static_directory)
+  use <- wisp.serve_static(req, under: "/static", from: ctx.static_directory)
   handle_request(req)
 }
 

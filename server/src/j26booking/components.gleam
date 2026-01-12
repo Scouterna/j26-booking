@@ -86,6 +86,13 @@ pub fn index_page(base_path: String) {
         ],
         "",
       ),
+      html.script(
+        [
+          attribute.type_("module"),
+          attribute.src("/static/client.js"),
+        ],
+        "",
+      ),
       html.link([
         attribute.rel("stylesheet"),
         attribute.href(
@@ -108,6 +115,7 @@ pub fn index_page(base_path: String) {
       html.a([attribute.href(base_path <> "/activities")], [
         html.button([], [html.text("View Activities")]),
       ]),
+      html.div([attribute.id("app")], []),
     ]),
   ])
 }

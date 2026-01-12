@@ -4,6 +4,7 @@ import j26booking/components
 import j26booking/sql
 import j26booking/web.{type Context}
 import j26booking/web/activities
+import j26booking/web/app_config
 import lustre/element.{type Element}
 import pog
 import wisp.{type Request, type Response}
@@ -38,6 +39,11 @@ fn handle_api_request(
         Put -> activities.update(req, id, ctx)
         Delete -> activities.delete(req, id, ctx)
         _ -> wisp.method_not_allowed([Get, Put, Delete])
+      }
+    ["app-config"] ->
+      case req.method {
+        Get -> app_config.navigation()
+        _ -> wisp.method_not_allowed([Get])
       }
     _ -> wisp.not_found()
   }
