@@ -89,7 +89,7 @@ pub fn index_page(base_path: String) {
       html.script(
         [
           attribute.type_("module"),
-          attribute.src("/static/client.js"),
+          attribute.src("/static/j26booking_client.js"),
         ],
         "",
       ),

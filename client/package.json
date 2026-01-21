@@ -1,20 +1,9 @@
 {
-  "name": "client",
-  "version": "1.0.0",
-  "description": "[![Package Version](https://img.shields.io/hexpm/v/client)](https://hex.pm/packages/client) [![Hex Docs](https://img.shields.io/badge/hex-docs-ffaff3)](https://hexdocs.pm/client/)",
-  "main": "index.js",
-  "directories": {
-    "test": "test"
-  },
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "author": "",
-  "license": "ISC",
-  "devDependencies": {
-    "@scouterna/tailwind-theme": "^0.0.4"
-  },
+  "name": "j26booking_client",
   "dependencies": {
     "@fontsource-variable/source-sans-3": "^5.2.9"
+  },
+  "devDependencies": {
+    "@scouterna/tailwind-theme": "^0.0.4"
   }
 }

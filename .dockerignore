@@ -1,21 +1,24 @@
 # Build artifacts
-build/
-*.beam
-*.ez
+**/build/
+**/*.beam
+**/*.ez
 
-# Dependencies
-deps/
-_build/
+# Erlang files
+erl_crash.dump
+
+# Lustre files
+.lustre
 
 # Development files
 .git/
 .gitignore
 .github/
 *.md
-!CLAUDE.md
 
 # IDE and editor files
 .vscode/
+.claude/
+bruno/
 .idea/
 *.swp
 *.swo
@@ -23,11 +26,7 @@ _build/
 .DS_Store
 
 # Test files
-test/
-
-# CI/CD
-.gitlab-ci.yml
-.travis.yml
+**/test/
 
 # Docker files (no need to include in image)
 Dockerfile*
@@ -35,7 +34,7 @@ docker-compose*.yml
 .dockerignore
 
 # Node modules (if using TailwindCSS)
-node_modules/
+**/node_modules/
 
 # Logs
 *.log
