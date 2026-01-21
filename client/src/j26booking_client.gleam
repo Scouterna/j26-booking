@@ -1,5 +1,3 @@
-// IMPORTS ---------------------------------------------------------------------
-
 import gleam/dynamic/decode
 import gleam/int
 import lustre

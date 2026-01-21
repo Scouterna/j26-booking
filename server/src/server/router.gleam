@@ -1,12 +1,12 @@
 import gleam/http.{Delete, Get, Post, Put}
 import gleam/list
-import j26booking/components
-import j26booking/sql
-import j26booking/web.{type Context}
-import j26booking/web/activities
-import j26booking/web/app_config
 import lustre/element.{type Element}
 import pog
+import server/components
+import server/sql
+import server/web.{type Context}
+import server/web/activities
+import server/web/app_config
 import wisp.{type Request, type Response}
 
 pub fn handle_request(req: Request, ctx: Context) -> Response {

@@ -9,11 +9,12 @@ import gleam/option.{type Option, None, Some}
 import gleam/result
 import gleam/string
 import gleam/time/timestamp
-import j26booking/model/activity
-import j26booking/sql
-import j26booking/utils
-import j26booking/web
 import pog
+import server/model/activity
+import server/sql
+import server/utils
+import server/web
+import shared/model
 import wisp.{type Request, type Response}
 import youid/uuid
 
@@ -38,7 +39,7 @@ fn parse_sort(value: String) -> Result(SortQueryParams, Nil) {
 
 fn response_from_db_activities_page(
   query_result: Result(pog.Returned(a), pog.QueryError),
-  to_activity: fn(a) -> activity.Activity,
+  to_activity: fn(a) -> model.Activity,
 ) -> Response {
   case query_result {
     Error(error) -> {
@@ -167,7 +168,7 @@ fn activity_input_decoder() -> decode.Decoder(ActivityInput) {
 
 fn response_from_db_activity_creation(
   query_result: Result(pog.Returned(a), pog.QueryError),
-  to_activity: fn(a) -> activity.Activity,
+  to_activity: fn(a) -> model.Activity,
 ) -> Response {
   case query_result {
     Error(error) -> {
@@ -228,7 +229,7 @@ pub fn create(req: Request, ctx: web.Context) -> Response {
 
 fn response_from_db_activity_update(
   query_result: Result(pog.Returned(a), pog.QueryError),
-  to_activity: fn(a) -> activity.Activity,
+  to_activity: fn(a) -> model.Activity,
 ) -> Response {
   case query_result {
     Error(error) -> {

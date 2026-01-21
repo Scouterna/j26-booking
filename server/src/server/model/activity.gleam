@@ -1,22 +1,10 @@
 import gleam/float
 import gleam/json.{type Json}
-import gleam/option.{type Option, None}
-import gleam/time/timestamp.{type Timestamp}
-import j26booking/sql
-import youid/uuid.{type Uuid}
-
-pub type Activity {
-  Activity(
-    id: Uuid,
-    title: String,
-    description: String,
-    max_attendees: Option(Int),
-    start_time: Timestamp,
-    end_time: Timestamp,
-  )
-}
-
-// --- CONVERTERS
+import gleam/option.{None}
+import gleam/time/timestamp
+import server/sql
+import shared/model.{type Activity, Activity}
+import youid/uuid
 
 pub fn from_create_activity_with_max_attendees_row(
   row: sql.CreateActivityWithMaxAttendeesRow,

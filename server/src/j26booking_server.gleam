@@ -4,10 +4,10 @@ import gleam/int
 import gleam/otp/static_supervisor as supervisor
 import gleam/result
 import gleam/string
-import j26booking/router
-import j26booking/web.{Context}
 import mist
 import pog
+import server/router
+import server/web.{Context}
 import wisp
 import wisp/wisp_mist
 
@@ -98,6 +98,6 @@ fn get_secret_key_base() -> String {
 }
 
 pub fn static_directory() -> String {
-  let assert Ok(priv_directory) = wisp.priv_directory("j26booking")
+  let assert Ok(priv_directory) = wisp.priv_directory("j26booking_server")
   priv_directory <> "/static"
 }
