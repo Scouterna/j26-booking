@@ -49,7 +49,7 @@ RUN cd client && gleam deps download
 COPY client/src ./client/src
 
 RUN cd client && gleam run -m lustre/dev add bun tailwind
-RUN cd client && .lustre/bin/bun-linux-aarch64-musl/bun install
+RUN cd client && .lustre/bin/*/bun install
 
 # Build client bundle directly to server static directory
 RUN cd client && gleam run -m lustre/dev build --minify --outdir=../server/priv/static
