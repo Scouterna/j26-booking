@@ -1,5 +1,23 @@
-# Lustre Web Client
+# J26 Booking Client
 
-## Why is there a package.json and package-lock.json in this project?
+Lustre web client for the Jamboree 2026 booking application.
 
-This is currently needed as a workaround for Lustre to be able to load the stylesheet dependency `@scouterna/tailwind-theme`
+## Tech Stack
+
+- Gleam (targeting JavaScript)
+- Lustre (Elm-like frontend framework)
+- Scouterna UI web components
+
+## Development
+
+```sh
+gleam run -m lustre/dev start  # Start dev server with hot reload
+gleam build                    # Build the project
+gleam test                     # Run the tests
+```
+
+## Notes
+
+### Why is there a package.json and bun.lock?
+
+We use the Lustre Dev Tools bun binary to install a Tailwind dependency which is used by the Lustre Dev Tools Tailwind integration. 

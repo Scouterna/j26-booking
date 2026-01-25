@@ -18,8 +18,8 @@ Backend server for the Jamboree 2026 booking application.
 | Path                                         | Purpose                                                      |
 | -------------------------------------------- | ------------------------------------------------------------ |
 | [`src/`](src/)                               | Gleam source code                                            |
-| [`src/j26booking/`](src/j26booking/)         | Main app modules (components, data, router, sql, web, etc.)  |
-| [`src/j26booking/sql/`](src/j26booking/sql/) | SQL queries for Squirrel                                     |
+| [`src/server/`](src/server/)                 | Main app modules (components, model, router, sql, web, etc.) |
+| [`src/server/sql/`](src/server/sql/)         | SQL queries for Squirrel                                     |
 | [`priv/migrations/`](priv/migrations/)       | Database migration SQL files (applied with Cigogne)          |
 | [`priv/seeding/`](priv/seeding/)             | SQL scripts for seeding the database with example data       |
 | [`priv/static/`](priv/static/)               | Static files to be served by the web server (e.g. HTML, CSS) |
@@ -69,6 +69,7 @@ The application can be configured using the following environment variables:
 | `DATABASE_URL`    | postgres://postgres@localhost:5432/j26booking | PostgreSQL connection URL                        |
 | `DB_POOL_SIZE`    | 15                                            | Connection pool size                             |
 | `SECRET_KEY_BASE` | (random)                                      | Secret key for sessions (required in production) |
+| `BASE_PATH`       | (empty string)                                | Base path prefix for all routes                  |
 
 ### Building Docker Image
 
@@ -93,7 +94,7 @@ This app requires you to have a postgreSQL database running locally if you want 
 
 This project uses [Gleam Squirrel](https://hexdocs.pm/squirrel/index.html) for type-safe database access. Squirrel generates Gleam modules from your SQL schema and queries, allowing you to interact with PostgreSQL using Gleam types and functions.
 
-**After changing or adding any SQL files** in [`src/j26booking/sql/`](src/j26booking/sql/), regenerate the Gleam modules by running:
+**After changing or adding any SQL files** in [`src/server/sql/`](src/server/sql/), regenerate the Gleam modules by running:
 
 ```sh
 gleam run -m squirrel
