@@ -45,12 +45,23 @@ fn handle_api_request(
         Get -> app_config.navigation()
         _ -> wisp.method_not_allowed([Get])
       }
+    ["docs"] ->
+      case req.method {
+        Get -> api_documentation()
+        _ -> wisp.method_not_allowed([Get])
+      }
     _ -> wisp.not_found()
   }
 }
 
 fn index(base_path: String) -> Response {
   components.index_page(base_path)
+  |> element.to_string
+  |> wisp.html_response(200)
+}
+
+fn api_documentation() -> Response {
+  components.api_documentation_page()
   |> element.to_string
   |> wisp.html_response(200)
 }

@@ -2,4 +2,5 @@
 *.ez
 /build
 erl_crash.dump
-/priv/static
+/priv/static/*
+!/priv/static/openapi.yaml

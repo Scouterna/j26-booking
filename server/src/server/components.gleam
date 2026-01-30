@@ -3,10 +3,13 @@ import gleam/list
 import gleam/option.{None}
 import hx
 import lustre/attribute
-import lustre/element
+import lustre/element.{type Element}
 import lustre/element/html
 
-pub fn activities_list(base_path: String, activity_names: List(String)) {
+pub fn activities_list(
+  base_path: String,
+  activity_names: List(String),
+) -> Element(a) {
   html.table(
     [],
     list.index_map(activity_names, fn(name, booking_id) {
@@ -30,7 +33,7 @@ pub fn activities_page(
   base_path: String,
   activity_names: List(String),
   search_query: String,
-) {
+) -> Element(a) {
   html.html([], [
     html.head([], [
       html.meta([attribute.attribute("charset", "UTF-8")]),
@@ -64,7 +67,7 @@ pub fn activities_page(
   ])
 }
 
-pub fn index_page(base_path: String) {
+pub fn index_page(base_path: String) -> Element(a) {
   html.html([attribute.attribute("lang", "en")], [
     html.head([], [
       html.meta([attribute.charset("UTF-8")]),
@@ -116,6 +119,30 @@ pub fn index_page(base_path: String) {
         html.button([], [html.text("View Activities")]),
       ]),
       html.div([attribute.id("app")], []),
+    ]),
+  ])
+}
+
+pub fn api_documentation_page() -> Element(a) {
+  html.html([], [
+    html.head([], [
+      html.title([], "J26 Booking API Documentation"),
+      html.meta([attribute.charset("utf-8")]),
+      html.meta([
+        attribute.content("width=device-width, initial-scale=1"),
+        attribute.name("viewport"),
+      ]),
+    ]),
+    html.body([], [
+      html.div([attribute.id("app")], []),
+      html.script(
+        [attribute.src("https://cdn.jsdelivr.net/npm/@scalar/api-reference")],
+        "",
+      ),
+      html.script(
+        [],
+        "Scalar.createApiReference('#app', {url: '/static/openapi.yaml'})",
+      ),
     ]),
   ])
 }

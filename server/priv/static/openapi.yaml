@@ -1,0 +1,428 @@
+openapi: 3.0.3
+info:
+  title: J26 Booking API
+  description: |
+    REST API for the J26 Booking application. Provides endpoints for managing
+    activities and application configuration.
+  version: 1.0.0
+  contact:
+    name: J26 Booking Team
+
+servers:
+  - url: /api
+    description: API base path
+
+tags:
+  - name: Activities
+    description: Manage booking activities
+  - name: Configuration
+    description: Application configuration
+
+paths:
+  /activities:
+    get:
+      tags:
+        - Activities
+      summary: List activities
+      description: Retrieve a paginated list of activities with optional sorting.
+      operationId: listActivities
+      parameters:
+        - $ref: '#/components/parameters/SortParam'
+        - $ref: '#/components/parameters/PageParam'
+      responses:
+        '200':
+          description: Successfully retrieved activities
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Activity'
+              example:
+                - id: "550e8400-e29b-41d4-a716-446655440000"
+                  title: "Morning Yoga"
+                  description: "Start your day with energizing yoga"
+                  max_attendees: 20
+                  start_time: 1706774400
+                  end_time: 1706778000
+                - id: "550e8400-e29b-41d4-a716-446655440001"
+                  title: "Team Meeting"
+                  description: "Weekly sync meeting"
+                  max_attendees: null
+                  start_time: 1706785200
+                  end_time: 1706788800
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '500':
+          $ref: '#/components/responses/ServerError'
+
+    post:
+      tags:
+        - Activities
+      summary: Create activity
+      description: Create a new activity with the provided details.
+      operationId: createActivity
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ActivityInput'
+            example:
+              title: "Morning Yoga"
+              description: "Start your day with energizing yoga"
+              max_attendees: 20
+              start_time: 1706774400
+              end_time: 1706778000
+      responses:
+        '201':
+          description: Activity created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Activity'
+              example:
+                id: "550e8400-e29b-41d4-a716-446655440000"
+                title: "Morning Yoga"
+                description: "Start your day with energizing yoga"
+                max_attendees: 20
+                start_time: 1706774400
+                end_time: 1706778000
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '500':
+          $ref: '#/components/responses/ServerError'
+
+  /activities/{id}:
+    get:
+      tags:
+        - Activities
+      summary: Get activity
+      description: Retrieve a single activity by its ID.
+      operationId: getActivity
+      parameters:
+        - $ref: '#/components/parameters/ActivityId'
+      responses:
+        '200':
+          description: Successfully retrieved activity
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Activity'
+              example:
+                id: "550e8400-e29b-41d4-a716-446655440000"
+                title: "Morning Yoga"
+                description: "Start your day with energizing yoga"
+                max_attendees: 20
+                start_time: 1706774400
+                end_time: 1706778000
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/ServerError'
+
+    put:
+      tags:
+        - Activities
+      summary: Update activity
+      description: Update an existing activity with new details.
+      operationId: updateActivity
+      parameters:
+        - $ref: '#/components/parameters/ActivityId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ActivityInput'
+            example:
+              title: "Updated Morning Yoga"
+              description: "Updated description for morning yoga session"
+              max_attendees: 25
+              start_time: 1706774400
+              end_time: 1706778000
+      responses:
+        '200':
+          description: Activity updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Activity'
+              example:
+                id: "550e8400-e29b-41d4-a716-446655440000"
+                title: "Updated Morning Yoga"
+                description: "Updated description for morning yoga session"
+                max_attendees: 25
+                start_time: 1706774400
+                end_time: 1706778000
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/ServerError'
+
+    delete:
+      tags:
+        - Activities
+      summary: Delete activity
+      description: Delete an activity by its ID.
+      operationId: deleteActivity
+      parameters:
+        - $ref: '#/components/parameters/ActivityId'
+      responses:
+        '204':
+          description: Activity deleted successfully
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/ServerError'
+
+  /app-config:
+    get:
+      tags:
+        - Configuration
+      summary: Get application configuration
+      description: Retrieve the application navigation configuration.
+      operationId: getAppConfig
+      responses:
+        '200':
+          description: Successfully retrieved application configuration
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AppConfig'
+              example:
+                navigation:
+                  - type: "group"
+                    id: "activities"
+                    label: "Activities"
+                    children:
+                      - type: "page"
+                        id: "list"
+                        label: "All Activities"
+                        href: "/activities"
+
+components:
+  schemas:
+    Activity:
+      type: object
+      description: Represents a booking activity
+      required:
+        - id
+        - title
+        - description
+        - start_time
+        - end_time
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Unique identifier for the activity
+          example: "550e8400-e29b-41d4-a716-446655440000"
+        title:
+          type: string
+          description: Title of the activity
+          example: "Morning Yoga"
+        description:
+          type: string
+          description: Detailed description of the activity
+          example: "Start your day with energizing yoga"
+        max_attendees:
+          type: integer
+          nullable: true
+          description: Maximum number of attendees (null for unlimited)
+          example: 20
+        start_time:
+          type: integer
+          format: int64
+          description: Start time as Unix timestamp in seconds
+          example: 1706774400
+        end_time:
+          type: integer
+          format: int64
+          description: End time as Unix timestamp in seconds
+          example: 1706778000
+
+    ActivityInput:
+      type: object
+      description: Input data for creating or updating an activity
+      required:
+        - title
+        - description
+        - start_time
+        - end_time
+      properties:
+        title:
+          type: string
+          description: Title of the activity
+          example: "Morning Yoga"
+        description:
+          type: string
+          description: Detailed description of the activity
+          example: "Start your day with energizing yoga"
+        max_attendees:
+          type: integer
+          nullable: true
+          description: Maximum number of attendees (null or omit for unlimited)
+          example: 20
+        start_time:
+          type: number
+          description: Start time as Unix timestamp in seconds (accepts integer or float)
+          example: 1706774400
+        end_time:
+          type: number
+          description: End time as Unix timestamp in seconds (accepts integer or float)
+          example: 1706778000
+
+    AppConfig:
+      type: object
+      description: Application configuration including navigation structure
+      required:
+        - navigation
+      properties:
+        navigation:
+          type: array
+          description: Navigation menu structure
+          items:
+            $ref: '#/components/schemas/NavigationGroup'
+
+    NavigationGroup:
+      type: object
+      description: A group of navigation items
+      required:
+        - type
+        - id
+        - label
+        - children
+      properties:
+        type:
+          type: string
+          enum:
+            - group
+          description: Type identifier for navigation group
+          example: "group"
+        id:
+          type: string
+          description: Unique identifier for the group
+          example: "activities"
+        label:
+          type: string
+          description: Display label for the group
+          example: "Activities"
+        children:
+          type: array
+          description: Child navigation pages
+          items:
+            $ref: '#/components/schemas/NavigationPage'
+
+    NavigationPage:
+      type: object
+      description: A navigation page link
+      required:
+        - type
+        - id
+        - label
+        - href
+      properties:
+        type:
+          type: string
+          enum:
+            - page
+          description: Type identifier for navigation page
+          example: "page"
+        id:
+          type: string
+          description: Unique identifier for the page
+          example: "list"
+        label:
+          type: string
+          description: Display label for the page
+          example: "All Activities"
+        href:
+          type: string
+          description: URL path for the page
+          example: "/activities"
+
+    Error:
+      type: object
+      description: Error response
+      required:
+        - error
+      properties:
+        error:
+          type: string
+          description: Error message describing what went wrong
+          example: "Invalid request parameters"
+
+  parameters:
+    ActivityId:
+      name: id
+      in: path
+      required: true
+      description: Unique identifier of the activity
+      schema:
+        type: string
+        format: uuid
+      example: "550e8400-e29b-41d4-a716-446655440000"
+
+    SortParam:
+      name: sort
+      in: query
+      required: false
+      description: |
+        Sort order for results. Prefix with `-` for descending order.
+        Available fields: start_time, end_time, title
+      schema:
+        type: string
+        enum:
+          - start_time
+          - -start_time
+          - end_time
+          - -end_time
+          - title
+          - -title
+      example: "-start_time"
+
+    PageParam:
+      name: page
+      in: query
+      required: false
+      description: Page number for pagination (1-indexed)
+      schema:
+        type: integer
+        minimum: 1
+        default: 1
+      example: 1
+
+  responses:
+    BadRequest:
+      description: Bad request - invalid parameters or request body
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            error: "Invalid request parameters"
+
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            error: "Activity not found"
+
+    ServerError:
+      description: Internal server error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            error: "Internal server error"
