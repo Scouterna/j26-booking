@@ -3,19 +3,41 @@ import gleam/http/request
 import gleam/list
 import pog
 import wisp.{type Request, type Response}
+import ywt/verify_key.{type VerifyKey}
+
+pub type Permissions {
+  CreateActivity
+  DeleteActivity
+}
+
+pub type User {
+  User(user_id: String, user_name: String, roles: Permissions)
+}
+
+pub type AuthenticationResult {
+  NotAuthenticated
+  InvalidToken
+  Authenticated(user: User)
+}
+
+pub type JWTVerifyKeys {
+  JWTVerifyKeys(issuer: String, keys: List(VerifyKey))
+}
 
 pub type Context {
   Context(
     static_directory: String,
     db_connection: pog.Connection,
+    jwt_verify_keys: JWTVerifyKeys,
     base_path: String,
+    authentication_result: AuthenticationResult,
   )
 }
 
 pub fn middleware(
   req: Request,
   ctx: Context,
-  handle_request: fn(Request) -> Response,
+  handle_request: fn(Request, Context) -> Response,
 ) -> Response {
   let req = wisp.method_override(req)
   use <- wisp.log_request(req)
@@ -23,7 +45,13 @@ pub fn middleware(
   use req <- wisp.handle_head(req)
   use req <- wisp.csrf_known_header_protection(req)
   use <- wisp.serve_static(req, under: "/static", from: ctx.static_directory)
-  handle_request(req)
+  let ctx = authenticate(req, ctx)
+  handle_request(req, ctx)
+}
+
+/// TODO: Should use the JWT verify keys to authenticate the request and populate the context with the authentication result.
+fn authenticate(req: Request, ctx: Context) -> Context {
+  ctx
 }
 
 pub fn is_htmx_request(req: Request) -> Bool {

@@ -10,7 +10,7 @@ import server/web/app_config
 import wisp.{type Request, type Response}
 
 pub fn handle_request(req: Request, ctx: Context) -> Response {
-  use req <- web.middleware(req, ctx)
+  use req, ctx <- web.middleware(req, ctx)
   case wisp.path_segments(req) {
     [] -> index(ctx.base_path)
     ["api", ..rest] -> handle_api_request(req, ctx, rest)
