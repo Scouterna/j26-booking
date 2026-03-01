@@ -1,0 +1,12 @@
+{
+    "current_page": ["schedule", "activity", "booking"],
+    "schedule_page": {
+        "search": ["kaya"],
+        "matches": [{ "id": "1234", "title": "kayaking" }, { "id": "2345", "title": "kayabaloo" }]
+    },
+    "activity_page": {
+        "activity": {
+            "title": "kayabaloo"
+        }
+    }
+}

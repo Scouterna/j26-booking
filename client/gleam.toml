@@ -14,9 +14,11 @@ target = "javascript"
 # https://gleam.run/writing-gleam/gleam-toml/.
 
 [dependencies]
+j26booking_shared = { path = "../shared" }
 gleam_stdlib = ">= 0.44.0 and < 2.0.0"
 lustre = ">= 5.4.0 and < 6.0.0"
-j26booking_shared = { path = "../shared" }
+youid = ">= 1.5.1 and < 2.0.0"
+gleam_time = ">= 1.7.0 and < 2.0.0"
 
 [dev-dependencies]
 gleeunit = ">= 1.0.0 and < 2.0.0"
