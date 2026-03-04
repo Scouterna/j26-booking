@@ -1,15 +1,48 @@
-# Booking app for Jamboree26
+# Booking app for Jamboree 2026
 
-This app will enable participants of Jamboree 2026 to book various activities.
+This app enables participants of Jamboree 2026 to book various activities.
+
+Built as a Gleam fullstack monorepo with Lustre.
 
 ## Project Structure
 
-| Path | Purpose |
-| ---- | ------- |
-| [`server/`](server/) | Backend server (Gleam, PostgreSQL) - See [server/README.md](server/README.md) |
-| [`client/`](client/) | Lustre web client - See [client/README.md](client/README.md) |
-| [`shared/`](shared/) | Shared types and utilities - See [shared/README.md](shared/README.md) |
+| Package | Target | Purpose |
+| ------- | ------ | ------- |
+| [`server/`](server/) | Erlang | Web server (Mist + Wisp), SSR, REST API, PostgreSQL |
+| [`client/`](client/) | JavaScript | Lustre SPA, compiled to `server/priv/static/client.js` |
+| [`shared/`](shared/) | Both | Shared types (`Activity`, etc.) and utilities |
 
 ## Getting Started
 
-For server setup and development instructions, see the [server README](server/README.md).
+### Prerequisites
+
+- [Gleam](https://gleam.run/getting-started/installing/) (v1.13+)
+- [Erlang/OTP](https://www.erlang.org/) (for server)
+- [PostgreSQL](https://www.postgresql.org/) (running locally or via Docker)
+
+### Quick Start (with Docker)
+
+```sh
+docker-compose up
+```
+
+This starts PostgreSQL, runs migrations, and starts the server at http://localhost:8000.
+
+### Quick Start (without Docker)
+
+```sh
+# 1. Set up database
+export DATABASE_URL="postgres://postgres@localhost:5432/j26booking"
+cd server
+gleam run -m cigogne last                          # Run migrations
+psql "$DATABASE_URL" -f priv/seeding/activities.sql  # Seed example data
+
+# 2. Start the server
+gleam run  # Starts on http://localhost:8000
+
+# 3. (Optional) Start client dev server
+cd ../client
+gleam run -m lustre/dev start
+```
+
+For detailed instructions, see the [server README](server/README.md) and [client README](client/README.md).

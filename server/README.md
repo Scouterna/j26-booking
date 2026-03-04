@@ -2,28 +2,28 @@
 
 Backend server for the Jamboree 2026 booking application.
 
-## Tech stack
+## Tech Stack
 
-- Gleam
-  - mist + wisp for web server
-  - lustre + hx for templating and SSR
-  - Squirrel for type safe DB interface
+- Gleam (targeting Erlang)
+  - Mist + Wisp for web server
+  - Lustre for SSR and client-side SPA
+  - Squirrel for type-safe DB queries
   - Cigogne for database migrations
-- HTMX
-- TailwindCSS
 - PostgreSQL
 
-## Folder structure
+The compiled Lustre client app (`client.js`) is served from `priv/static/`.
 
-| Path                                         | Purpose                                                      |
-| -------------------------------------------- | ------------------------------------------------------------ |
-| [`src/`](src/)                               | Gleam source code                                            |
-| [`src/server/`](src/server/)                 | Main app modules (components, model, router, sql, web, etc.) |
-| [`src/server/sql/`](src/server/sql/)         | SQL queries for Squirrel                                     |
-| [`priv/migrations/`](priv/migrations/)       | Database migration SQL files (applied with Cigogne)          |
-| [`priv/seeding/`](priv/seeding/)             | SQL scripts for seeding the database with example data       |
-| [`priv/static/`](priv/static/)               | Static files to be served by the web server (e.g. HTML, CSS) |
-| [`test/`](test/)                             | Gleam test files                                             |
+## Folder Structure
+
+| Path | Purpose |
+| ---- | ------- |
+| [`src/server.gleam`](src/server.gleam) | Entry point, supervision tree |
+| [`src/server/`](src/server/) | Main app modules (router, web, components, model, etc.) |
+| [`src/server/sql/`](src/server/sql/) | SQL query files for Squirrel |
+| [`priv/migrations/`](priv/migrations/) | Database migration SQL files (applied with Cigogne) |
+| [`priv/seeding/`](priv/seeding/) | SQL scripts for seeding the database with example data |
+| [`priv/static/`](priv/static/) | Static files served by the web server (client.js, CSS, OpenAPI spec) |
+| [`test/`](test/) | Gleam test files |
 
 ## Development
 
@@ -61,15 +61,14 @@ The application will be available at http://localhost:8000
 
 ### Environment Variables
 
-The application can be configured using the following environment variables:
-
-| Variable          | Default                                       | Description                                      |
-| ----------------- | --------------------------------------------- | ------------------------------------------------ |
-| `PORT`            | 8000                                          | Port the web server listens on                   |
-| `DATABASE_URL`    | postgres://postgres@localhost:5432/j26booking | PostgreSQL connection URL                        |
-| `DB_POOL_SIZE`    | 15                                            | Connection pool size                             |
-| `SECRET_KEY_BASE` | (random)                                      | Secret key for sessions (required in production) |
-| `BASE_PATH`       | (empty string)                                | Base path prefix for all routes                  |
+| Variable | Default | Description |
+| -------- | ------- | ----------- |
+| `PORT` | 8000 | Port the web server listens on |
+| `DATABASE_URL` | postgres://postgres@localhost:5432/j26booking | PostgreSQL connection URL |
+| `DB_POOL_SIZE` | 15 | Connection pool size |
+| `SECRET_KEY_BASE` | (random) | Secret key for sessions (required in production) |
+| `BASE_PATH` | (empty string) | Base path prefix for all routes |
+| `OPEN_ID_CONFIGURATION_URL` | https://app.dev.j26.se/auth/... | OpenID Connect discovery URL |
 
 ### Building Docker Image
 
@@ -86,13 +85,13 @@ docker run -p 8000:8000 \
   j26booking:latest
 ```
 
-## Database usage
+## Database
 
-This app requires you to have a postgreSQL database running locally if you want to run it.
+This app requires a PostgreSQL database.
 
-### Gleam Squirrel
+### Squirrel
 
-This project uses [Gleam Squirrel](https://hexdocs.pm/squirrel/index.html) for type-safe database access. Squirrel generates Gleam modules from your SQL schema and queries, allowing you to interact with PostgreSQL using Gleam types and functions.
+This project uses [Squirrel](https://hexdocs.pm/squirrel/index.html) for type-safe database access. Squirrel generates Gleam code from SQL query files.
 
 **After changing or adding any SQL files** in [`src/server/sql/`](src/server/sql/), regenerate the Gleam modules by running:
 
@@ -100,40 +99,37 @@ This project uses [Gleam Squirrel](https://hexdocs.pm/squirrel/index.html) for t
 gleam run -m squirrel
 ```
 
-For usage details and examples, see the official Squirrel documentation: https://hexdocs.pm/squirrel/index.html
+This updates `src/server/sql.gleam` — do not edit that file manually.
 
-### Database configuration
+### Database Configuration
 
-The app, migrations (Cigogne), and Squirrel all use the same `DATABASE_URL` environment variable format:
+The app, migrations (Cigogne), and Squirrel all use the same `DATABASE_URL` environment variable:
 
 ```sh
 export DATABASE_URL="postgres://postgres@localhost:5432/j26booking"
 ```
 
-If `DATABASE_URL` is not set, the app defaults to `postgres://postgres@localhost:5432/j26booking` for local development.
+If not set, the app defaults to `postgres://postgres@localhost:5432/j26booking`.
 
-### Running migrations with Gleam Cigogne
+### Running Migrations
 
-Database migrations are managed using [Gleam Cigogne](https://hexdocs.pm/cigogne/index.html).
+Database migrations are managed using [Cigogne](https://hexdocs.pm/cigogne/index.html).
 
 ```sh
-export DATABASE_URL="postgres://postgres@localhost:5432/j26booking"
-gleam run -m cigogne all
+gleam run -m cigogne last
 ```
 
-This will apply all migrations in [`priv/migrations/`](priv/migrations/) to your database.
+This applies all pending migrations from [`priv/migrations/`](priv/migrations/).
 
-### Seeding the database
-
-To seed the database with example activities, you can run the SQL script in [`priv/seeding/activities.sql`](priv/seeding/activities.sql):
+### Seeding the Database
 
 ```sh
 psql "$DATABASE_URL" -f priv/seeding/activities.sql
 ```
 
-This will insert several sample activities into the `activity` table. Make sure your database is running and the schema is migrated before seeding.
+This inserts sample activities into the `activity` table. Make sure migrations have been applied first.
 
-### Database schema
+### Database Schema
 
 #### MVP
 
@@ -176,7 +172,7 @@ booking }o--|| activity : reserves
 user ||--o{ booking : places
 ```
 
-#### Extra features
+#### Extra Features
 
 ```mermaid
 erDiagram
