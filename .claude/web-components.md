@@ -50,7 +50,7 @@ event.on_input(fn(value) { TitleChanged(value) })
 **3. Custom decoder** — when you need specific fields from a custom event:
 ```gleam
 event.on("scoutChange", {
-  use value <- decode.field("detail", decode.field("value", decode.int))
+  use value <- decode.subfield(["detail", "value"], decode.int)
   decode.success(TabChanged(value))
 })
 // scoutChange fires → decodes event.detail.value as Int → dispatches TabChanged(2)

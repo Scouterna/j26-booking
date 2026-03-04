@@ -83,7 +83,7 @@ pub fn index_page(base_path: String) -> Element(a) {
       html.script(
         [
           attribute.src(
-            "https://cdn.jsdelivr.net/npm/@scouterna/ui-webc@2.2.2/dist/esm/ui-webc.js",
+            "https://cdn.jsdelivr.net/npm/@scouterna/ui-webc@3.2.0/dist/esm/ui-webc.js",
           ),
           attribute.type_("module"),
         ],
@@ -99,7 +99,7 @@ pub fn index_page(base_path: String) -> Element(a) {
       html.link([
         attribute.rel("stylesheet"),
         attribute.href(
-          "https://cdn.jsdelivr.net/npm/@scouterna/ui-webc@2.2.2/dist/ui-webc/ui-webc.css",
+          "https://cdn.jsdelivr.net/npm/@scouterna/ui-webc@3.2.0/dist/ui-webc/ui-webc.css",
         ),
       ]),
     ]),
