@@ -40,11 +40,11 @@ The app uses a supervised architecture with two main components:
 1. **Database pool** (`pog.supervised`): Connection pool to PostgreSQL
 2. **Web server** (`wisp_mist.supervised`): HTTP server on port 8000
 
-Both are managed by a RestForOne supervisor in `src/j26booking_server.gleam:51-55`.
+Both are managed by a RestForOne supervisor in `src/server.gleam:51-55`.
 
 ### Key Modules
 
-- **`src/j26booking_server.gleam`**: Entry point, sets up supervision tree and database connection
+- **`src/server.gleam`**: Entry point, sets up supervision tree and database connection
 - **`src/server/router.gleam`**: Request routing and handlers
 - **`src/server/web.gleam`**: Middleware configuration and Context type
 - **`src/server/components.gleam`**: Lustre components for SSR

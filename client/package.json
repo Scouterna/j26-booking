@@ -1,5 +1,5 @@
 {
-  "name": "j26booking_client",
+  "name": "client",
   "dependencies": {
     "@fontsource-variable/source-sans-3": "^5.2.9"
   },

@@ -1,4 +1,4 @@
-name = "j26booking_client"
+name = "client"
 version = "1.0.0"
 target = "javascript"
 
@@ -16,7 +16,7 @@ target = "javascript"
 [dependencies]
 gleam_stdlib = ">= 0.44.0 and < 2.0.0"
 lustre = ">= 5.4.0 and < 6.0.0"
-j26booking_shared = { path = "../shared" }
+shared = { path = "../shared" }
 
 [dev-dependencies]
 gleeunit = ">= 1.0.0 and < 2.0.0"

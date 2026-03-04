@@ -11,7 +11,7 @@ Shared types and utilities used by both the server and client packages.
 This package is referenced as a path dependency in `client/gleam.toml`:
 
 ```toml
-j26booking_shared = { path = "../shared" }
+shared = { path = "../shared" }
 ```
 
 ## Development

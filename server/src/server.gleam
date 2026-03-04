@@ -149,6 +149,6 @@ fn get_secret_key_base() -> String {
 }
 
 pub fn static_directory() -> String {
-  let assert Ok(priv_directory) = wisp.priv_directory("j26booking_server")
+  let assert Ok(priv_directory) = wisp.priv_directory("server")
   priv_directory <> "/static"
 }
