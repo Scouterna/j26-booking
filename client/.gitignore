@@ -2,3 +2,4 @@
 node_modules/
 .lustre/
 dist/
+erl_crash.dump
