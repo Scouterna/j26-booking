@@ -93,6 +93,7 @@ Request → web.middleware → router.handle_request → handler
 ## Conventions
 
 - Follow Gleam conventions in `.claude/gleam-conventions.md`
+- Follow web component patterns in `.claude/web-components.md`
 - Always use qualified imports for functions (unqualified OK for types)
 - Annotate all function arguments and return types
 - Use `Result` for fallible functions, not `Option` or panics
