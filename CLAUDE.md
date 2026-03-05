@@ -106,6 +106,7 @@ Request → web.middleware → router.handle_request → handler
 - Conversion functions: `x_to_y` (or just `to_y` if module matches type)
 - Design descriptive error types with context fields
 - Don't fragment modules prematurely — prefer larger, well-designed modules
+- Always add dependencies with `gleam add <package>` — never edit `gleam.toml` manually
 
 ## Commits
 
