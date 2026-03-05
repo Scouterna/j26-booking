@@ -1,0 +1,24 @@
+name = "example_client"
+version = "1.0.0"
+target = "javascript"
+
+[dependencies]
+gleam_stdlib = ">= 0.44.0 and < 2.0.0"
+lustre = ">= 5.4.0 and < 6.0.0"
+
+[dev-dependencies]
+gleeunit = ">= 1.0.0 and < 2.0.0"
+lustre_dev_tools = ">= 2.3.2 and < 3.0.0"
+
+[tools.lustre.html]
+stylesheets = [
+    { href = "https://cdn.jsdelivr.net/npm/@scouterna/ui-webc@3.2.0/dist/ui-webc/ui-webc.css" },
+    { href = "https://fonts.googleapis.com/css2?family=Source+Sans+3:ital,wght@0,200..900;1,200..900&display=swap" },
+]
+scripts = [
+    { src = "https://cdn.jsdelivr.net/npm/@scouterna/ui-webc@3.2.0/dist/esm/ui-webc.js", type = "module" },
+]
+link = [
+    { href = "https://fonts.googleapis.com", rel = "preconnect" },
+    { href = "https://fonts.gstatic.com", rel = "preconnect", crossorigin = "" },
+]

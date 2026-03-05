@@ -2,86 +2,31 @@
 
 Guide for using `@scouterna/ui-webc` web components in the Lustre client.
 
+See also: [Lustre guide](lustre-guide.md) for general Lustre patterns (MVU, events, effects, state management).
+
+**Working example:** [`examples/client/`](../examples/client/) — standalone Lustre app demonstrating all patterns below.
 **Storybook docs:** https://scouterna.github.io/j26-components/?path=/docs/home--docs
 
-## Event Handling in Lustre (Model-View-Update)
+## Connecting Scout Events to Lustre Msg
 
-Lustre follows the Elm Architecture. Understanding this is essential for wiring up web component events correctly.
-
-```
-                        +--------+
-                        | update |  fn(Model, Msg) -> #(Model, Effect(Msg))
-                        +--------+
-                          ^    |
-                    Msg   |    |  #(Model, Effect(Msg))
-                          |    v
-+------+           +----------------+
-| init | --------> | Lustre Runtime |
-+------+           +----------------+
-                          ^    |
-                    Msg   |    |  Model
-                          |    v
-                        +------+
-                        | view |  fn(Model) -> Element(Msg)
-                        +------+
-```
-
-1. **`view`** renders the current `Model` as HTML elements. Event listeners in the view produce `Msg` values.
-2. **`Msg`** is a custom type with a variant for every event your app handles.
-3. **`update`** receives the current model and a message, returns the new model (and optional effects).
-4. The runtime re-renders the view with the new model.
-
-### Connecting web component events to Msg
-
-Every event listener must produce a value of your `Msg` type. There are three ways to do this:
+Every event listener must produce a value of your `Msg` type. Three patterns:
 
 **1. Fixed message** — when you don't need the event payload:
 ```gleam
 event.on("scoutClick", decode.success(AddClicked))
-// scoutClick fires → always dispatches AddClicked
 ```
 
-**2. Message with decoded value** — when you need data from the event:
+**2. Standard input event** — scout-input fires native `input` event:
 ```gleam
 event.on_input(fn(value) { TitleChanged(value) })
-// input fires → decodes event.target.value → dispatches TitleChanged("...")
 ```
 
-**3. Custom decoder** — when you need specific fields from a custom event:
+**3. Custom decoder** — for component-specific events with detail payload:
 ```gleam
 event.on("scoutChange", {
   use value <- decode.subfield(["detail", "value"], decode.int)
   decode.success(TabChanged(value))
 })
-// scoutChange fires → decodes event.detail.value as Int → dispatches TabChanged(2)
-```
-
-### Common `lustre/event` helpers
-
-| Function | Decodes | Use for |
-|---|---|---|
-| `event.on(name, decoder)` | Custom decoder on event object | Any event, especially custom ones |
-| `event.on_click(msg)` | Nothing (fixed msg) | Standard click |
-| `event.on_input(fn(String) -> msg)` | `event.target.value` as String | Text inputs, textareas, selects |
-| `event.on_check(fn(Bool) -> msg)` | `event.target.checked` as Bool | Checkboxes |
-| `event.on_submit(fn(List(#(String, String))) -> msg)` | Form name/value pairs | Form submission (auto-prevents default) |
-| `event.on_keydown(fn(String) -> msg)` | Key name as String | Keyboard handling |
-| `event.prevent_default(attr)` | — | Wrap any event attr to cancel default |
-| `event.stop_propagation(attr)` | — | Wrap any event attr to stop bubbling |
-
-### Controlled inputs
-
-For form inputs, keep the value in your `Model` and pass it back as an attribute. This is "controlled input" style — the model is the single source of truth:
-
-```gleam
-// In view:
-element.element("scout-input", [
-  attribute.attribute("value", model.title),
-  event.on_input(TitleChanged),
-], [])
-
-// In update:
-TitleChanged(value) -> #(Model(..model, title: value), effect.none())
 ```
 
 ## Wrapping Web Components

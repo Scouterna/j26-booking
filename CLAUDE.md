@@ -6,9 +6,10 @@ Booking application for Jamboree 2026. Gleam fullstack monorepo with Lustre.
 
 | Package    | Target     | Purpose                                    |
 | ---------- | ---------- | ------------------------------------------ |
-| `server/`  | Erlang     | Web server (Mist + Wisp), SSR, API, DB     |
-| `client/`  | JavaScript | Lustre SPA, compiled to `server/priv/static/client.js` |
-| `shared/`  | Both       | Shared types (Activity, etc.) and utilities |
+| `server/`          | Erlang     | Web server (Mist + Wisp), SSR, API, DB     |
+| `client/`          | JavaScript | Lustre SPA, compiled to `server/priv/static/client.js` |
+| `shared/`          | Both       | Shared types (Activity, etc.) and utilities |
+| `examples/client/` | JavaScript | Reference app for Scouterna UI web components in Lustre |
 
 ## Commands
 
@@ -23,6 +24,9 @@ gleam run -m cigogne last    # Apply latest database migration
 # Client (run from client/)
 gleam run -m lustre/dev start  # Dev server with hot reload
 gleam run -m lustre/dev build  # Build client.js (output: server/priv/static/)
+
+# Example client (run from examples/client/)
+gleam run -m lustre/dev start  # Dev server with hot reload (standalone demo)
 
 # Database
 export DATABASE_URL="postgres://postgres@localhost:5432/j26booking"
