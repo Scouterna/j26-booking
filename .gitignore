@@ -97,3 +97,7 @@ $RECYCLE.BIN/
 # End of https://www.toptal.com/developers/gitignore/api/windows,macos,linux,visualstudiocode
 
 .playwright-mcp
+
+# j26 mcp
+.j26
+.j26.local.yaml
