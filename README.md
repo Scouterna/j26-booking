@@ -37,12 +37,9 @@ cd server
 gleam run -m cigogne last                          # Run migrations
 psql "$DATABASE_URL" -f priv/seeding/activities.sql  # Seed example data
 
-# 2. Start the server
-gleam run  # Starts on http://localhost:8000
-
-# 3. (Optional) Start client dev server
-cd ../client
-gleam run -m lustre/dev start
+# 2. Build client and start the server
+cd ..
+./dev.sh  # Builds client, then starts server on http://localhost:8000
 ```
 
 For detailed instructions, see the [server README](server/README.md) and [client README](client/README.md).
