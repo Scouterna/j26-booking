@@ -46,10 +46,12 @@ FROM server-base AS build
 COPY client/gleam.toml client/manifest.toml client/package.json client/bun.lock ./client/
 RUN cd client && gleam deps download
 
-COPY client/src ./client/src
+RUN mkdir client/src
 
 RUN cd client && gleam run -m lustre/dev add bun tailwind
 RUN cd client && .lustre/bin/*/bun install
+
+COPY client/src ./client/src
 
 # Build client bundle directly to server static directory
 RUN cd client && gleam run -m lustre/dev build --minify --outdir=../server/priv/static

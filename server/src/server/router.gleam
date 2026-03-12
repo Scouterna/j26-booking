@@ -1,9 +1,6 @@
 import gleam/http.{Delete, Get, Post, Put}
-import gleam/list
-import lustre/element.{type Element}
-import pog
+import lustre/element
 import server/components
-import server/sql
 import server/web.{type Context}
 import server/web/activities
 import server/web/app_config
@@ -15,8 +12,8 @@ pub fn handle_request(req: Request, ctx: Context) -> Response {
     [] -> index(ctx.base_path)
     ["api", ..rest] -> handle_api_request(req, ctx, rest)
     ["book", id] -> book(id)
-    ["activities"] ->
-      activities_fragment_or_page(req, ctx.base_path, ctx.db_connection)
+    ["activities"] -> spa_shell(ctx.base_path)
+    ["activities", _] -> spa_shell(ctx.base_path)
     _ -> wisp.not_found()
   }
 }
@@ -60,6 +57,12 @@ fn index(base_path: String) -> Response {
   |> wisp.html_response(200)
 }
 
+fn spa_shell(base_path: String) -> Response {
+  components.spa_shell_page(base_path)
+  |> element.to_string
+  |> wisp.html_response(200)
+}
+
 fn api_documentation() -> Response {
   components.api_documentation_page()
   |> element.to_string
@@ -68,40 +71,4 @@ fn api_documentation() -> Response {
 
 fn book(id: String) -> Response {
   wisp.html_response("Booked " <> id, 200)
-}
-
-fn activities_fragment_or_page(
-  req: Request,
-  base_path: String,
-  db_connection: pog.Connection,
-) -> Response {
-  let search_query = wisp.get_query(req)
-  let search_term = case list.key_find(search_query, "q") {
-    Ok(term) -> term
-    Error(_) -> ""
-  }
-
-  let assert Ok(pog.Returned(_, activity_rows)) =
-    sql.search_activities(db_connection, search_term)
-
-  let activity_names = list.map(activity_rows, fn(row) { row.title })
-
-  fragment_or_page(
-    req,
-    components.activities_list(base_path, activity_names),
-    components.activities_page(base_path, activity_names, search_term),
-  )
-}
-
-fn fragment_or_page(
-  req: Request,
-  fragment: Element(a),
-  page: Element(a),
-) -> Response {
-  case web.is_htmx_request(req) {
-    True -> fragment
-    False -> page
-  }
-  |> element.to_string
-  |> wisp.html_response(200)
 }
