@@ -357,16 +357,26 @@ fn view(model: Model) -> Element(Msg) {
 
 fn view_activities_list(model: Model) -> Element(Msg) {
   scout_stack("column", "none", [
-    scout_app_bar("Activities", [], [
-      html.a(
-        [
-          attribute.href(api_prefix <> "/activities/new"),
-          attribute.attribute("slot", "suffix"),
-          attribute.styles([#("text-decoration", "none")]),
-        ],
-        [scout_button_icon("Create", "primary", "plus")],
-      ),
-    ]),
+    html.div(
+      [
+        attribute.styles([
+          #("display", "flex"),
+          #("justify-content", "space-between"),
+          #("align-items", "center"),
+          #("padding", "var(--scout-spacing-m)"),
+        ]),
+      ],
+      [
+        html.h1([], [element.text("Activities")]),
+        html.a(
+          [
+            attribute.href(api_prefix <> "/activities/new"),
+            attribute.styles([#("text-decoration", "none")]),
+          ],
+          [scout_button_icon("Create", "primary", "plus")],
+        ),
+      ],
+    ),
     case model.error {
       Some(err) -> error_banner(err)
       None -> element.none()
@@ -421,7 +431,9 @@ fn view_activities_list(model: Model) -> Element(Msg) {
 
 fn view_activity_new(model: Model) -> Element(Msg) {
   scout_stack("column", "none", [
-    scout_app_bar("New Activity", [], []),
+    html.div([attribute.styles([#("padding", "var(--scout-spacing-m)")])], [
+      html.h1([], [element.text("New Activity")]),
+    ]),
     html.div([attribute.styles([#("padding", "var(--scout-spacing-m)")])], [
       case model.error {
         Some(err) -> error_banner(err)
@@ -472,19 +484,25 @@ fn view_activity_detail(model: Model) -> Element(Msg) {
   case model.loading {
     True ->
       scout_stack("column", "none", [
-        scout_app_bar(
-          "Loading...",
+        html.div(
+          [
+            attribute.styles([
+              #("display", "flex"),
+              #("align-items", "center"),
+              #("gap", "var(--scout-spacing-s)"),
+              #("padding", "var(--scout-spacing-m)"),
+            ]),
+          ],
           [
             html.a(
               [
                 attribute.href(api_prefix <> "/activities"),
-                attribute.attribute("slot", "prefix"),
                 attribute.styles([#("text-decoration", "none")]),
               ],
               [scout_button_el("Back", "text")],
             ),
+            html.h1([], [element.text("Loading...")]),
           ],
-          [],
         ),
         html.div([attribute.styles([#("padding", "var(--scout-spacing-l)")])], [
           scout_loader("Loading activity..."),
@@ -494,19 +512,25 @@ fn view_activity_detail(model: Model) -> Element(Msg) {
       case model.selected_activity {
         None ->
           scout_stack("column", "none", [
-            scout_app_bar(
-              "Not Found",
+            html.div(
+              [
+                attribute.styles([
+                  #("display", "flex"),
+                  #("align-items", "center"),
+                  #("gap", "var(--scout-spacing-s)"),
+                  #("padding", "var(--scout-spacing-m)"),
+                ]),
+              ],
               [
                 html.a(
                   [
                     attribute.href(api_prefix <> "/activities"),
-                    attribute.attribute("slot", "prefix"),
                     attribute.styles([#("text-decoration", "none")]),
                   ],
                   [scout_button_el("Back", "text")],
                 ),
+                html.h1([], [element.text("Not Found")]),
               ],
-              [],
             ),
             html.div(
               [attribute.styles([#("padding", "var(--scout-spacing-l)")])],
@@ -520,7 +544,9 @@ fn view_activity_detail(model: Model) -> Element(Msg) {
 
 fn view_activity_detail_loaded(model: Model, activity: Activity) -> Element(Msg) {
   scout_stack("column", "none", [
-    scout_app_bar(activity.title, [], []),
+    html.div([attribute.styles([#("padding", "var(--scout-spacing-m)")])], [
+      html.h1([], [element.text(activity.title)]),
+    ]),
     html.div([attribute.styles([#("padding", "var(--scout-spacing-m)")])], [
       case model.error {
         Some(err) -> error_banner(err)
@@ -601,7 +627,9 @@ fn view_activity_edit_form(model: Model) -> Element(Msg) {
 
 fn view_not_found() -> Element(Msg) {
   scout_stack("column", "none", [
-    scout_app_bar("Not Found", [], []),
+    html.div([attribute.styles([#("padding", "var(--scout-spacing-m)")])], [
+      html.h1([], [element.text("Not Found")]),
+    ]),
     html.div([attribute.styles([#("padding", "var(--scout-spacing-l)")])], [
       html.p([], [element.text("Page not found.")]),
       html.a([attribute.href(api_prefix <> "/activities")], [
@@ -612,18 +640,6 @@ fn view_not_found() -> Element(Msg) {
 }
 
 // COMPONENT WRAPPERS ----------------------------------------------------------
-
-fn scout_app_bar(
-  title: String,
-  prefix: List(Element(Msg)),
-  suffix: List(Element(Msg)),
-) -> Element(Msg) {
-  element.element(
-    "scout-app-bar",
-    [attribute.attribute("title-text", title)],
-    list.flatten([prefix, suffix]),
-  )
-}
 
 fn scout_stack(
   direction: String,
