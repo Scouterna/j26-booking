@@ -102,7 +102,11 @@ fn init(_flags) -> #(Model, Effect(Msg)) {
 
   let effects = case route {
     ActivitiesList ->
-      effect.batch([modem.init(OnRouteChange), fetch_activities()])
+      effect.batch([
+        modem.init(OnRouteChange),
+        fetch_activities(),
+        set_app_bar_title("Activities"),
+      ])
     ActivityDetail(id) ->
       effect.batch([modem.init(OnRouteChange), fetch_activity(id)])
     _ -> modem.init(OnRouteChange)
@@ -144,7 +148,7 @@ fn update(model: Model, msg: Msg) -> #(Model, Effect(Msg)) {
       case route {
         ActivitiesList -> #(
           Model(..model, loading: True, editing: False),
-          fetch_activities(),
+          effect.batch([fetch_activities(), set_app_bar_title("Activities")]),
         )
         ActivityDetail(id) -> #(
           Model(..model, loading: True, selected_activity: None, editing: False),
@@ -270,6 +274,13 @@ fn update(model: Model, msg: Msg) -> #(Model, Effect(Msg)) {
 
 // EFFECTS ---------------------------------------------------------------------
 
+@external(javascript, "./client_ffi.mjs", "post_message_to_parent")
+fn post_message_to_parent(type_: String, title: String) -> Nil
+
+pub fn set_app_bar_title(title: String) -> Effect(msg) {
+  effect.from(fn(_dispatch) { post_message_to_parent("j26:appBar", title) })
+}
+
 fn fetch_activities() -> Effect(Msg) {
   rsvp.get(
     api_prefix <> "/api/activities",
@@ -367,7 +378,6 @@ fn view_activities_list(model: Model) -> Element(Msg) {
         ]),
       ],
       [
-        html.h1([], [element.text("Activities")]),
         html.a(
           [
             attribute.href(api_prefix <> "/activities/new"),
