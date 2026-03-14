@@ -20,31 +20,19 @@ fn handle_api_request(
   ctx: Context,
   path_segments: List(String),
 ) -> Response {
-  case path_segments {
-    ["activities"] ->
-      case req.method {
-        Get -> activities.get_page(req, ctx)
-        Post -> activities.create(req, ctx)
-        _ -> wisp.method_not_allowed([Get, Post])
-      }
-    ["activities", id] ->
-      case req.method {
-        Get -> activities.get_one(req, id, ctx)
-        Put -> activities.update(req, id, ctx)
-        Delete -> activities.delete(req, id, ctx)
-        _ -> wisp.method_not_allowed([Get, Put, Delete])
-      }
-    ["app-config"] ->
-      case req.method {
-        Get -> app_config.navigation()
-        _ -> wisp.method_not_allowed([Get])
-      }
-    ["docs"] ->
-      case req.method {
-        Get -> api_documentation()
-        _ -> wisp.method_not_allowed([Get])
-      }
-    _ -> wisp.not_found()
+  case req.method, path_segments {
+    Get, ["activities"] -> activities.get_page(req, ctx)
+    Post, ["activities"] -> activities.create(req, ctx)
+    _, ["activities"] -> wisp.method_not_allowed([Get, Post])
+    Get, ["activities", id] -> activities.get_one(req, id, ctx)
+    Put, ["activities", id] -> activities.update(req, id, ctx)
+    Delete, ["activities", id] -> activities.delete(req, id, ctx)
+    _, ["activities", _] -> wisp.method_not_allowed([Get, Put, Delete])
+    Get, ["app-config"] -> app_config.navigation()
+    _, ["app-config"] -> wisp.method_not_allowed([Get])
+    Get, ["docs"] -> api_documentation()
+    _, ["docs"] -> wisp.method_not_allowed([Get])
+    _, _ -> wisp.not_found()
   }
 }
 
