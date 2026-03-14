@@ -144,7 +144,9 @@ user {
 activity {
   uuid id PK
   text title
+  text title_en
   text description
+  text description_en
   int[null] max_attendees
   timestamp start_time
   timestamp end_time
@@ -154,7 +156,11 @@ booking {
   uuid id PK
   uuid user_id FK "_booker_"
   uuid activity_id FK
-  text group "Kår, Patrull"
+  int booker_group_id "Bokarens kår id
+  _Kopierat från Scoutnet_"
+  text booker_group_name "Bokarens kårnamn
+  _Kopierat från Scoutnet_"
+  text group_free_text "Kår, Patrull"
   text responsible "Ansvarig vuxen"
   text phone_number "Till ansvarig vuxen"
   int participant_count
@@ -165,6 +171,31 @@ activity_user {
   uuid user_id PK,FK
 }
 
+location {
+  uuid id PK,FK
+  text name
+  text name_en
+  text description
+  text description_en
+  uuid category "How do we solve subcategories/tags?
+  Toilet -> Handicap toilet"
+  text[null] icon_name "Not MVP.
+  Overrides category icon."
+  float8 latitude
+  float8 longitude
+}
+
+location_category {
+  uuid id PK,FK
+  text name
+  text name_en
+  text icon_name
+}
+
+activity }o--|| location : happens_at
+location }o--|| location_category : has
+
+
 activity ||--o{ activity_user : organized_by
 user ||--o{ activity_user : organizes
 
@@ -172,7 +203,7 @@ booking }o--|| activity : reserves
 user ||--o{ booking : places
 ```
 
-#### Extra Features
+#### Non MVP Scout Group feature
 
 ```mermaid
 erDiagram
@@ -185,26 +216,16 @@ scout_group {
 
 user {
   uuid id PK
-  enum role "_organizer_, _booker_, _admin_"
 }
 
 activity {
   uuid id PK
-  text title
-  text description
-  int[null] max_attendees
-  timestamp start_time
-  timestamp end_time
 }
 
 booking {
   uuid id PK
   uuid user_id FK "_booker_"
   uuid activity_id FK
-  text group "Kår, Patrull"
-  text responsible "Ansvarig vuxen"
-  text phone_number "Till ansvarig vuxen"
-  int participant_count
 }
 
 booking_scout_group {
