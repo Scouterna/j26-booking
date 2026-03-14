@@ -27,7 +27,6 @@ pub fn main() -> Nil {
     get_env("DATABASE_URL", "postgres://postgres@localhost:5432/j26booking")
   let db_pool_size = get_env_int("DB_POOL_SIZE", 15)
 
-  let base_path = get_env("BASE_PATH", "")
   let server_port = get_env_int("PORT", 8000)
   let open_id_configuration_url =
     get_env(
@@ -53,7 +52,6 @@ pub fn main() -> Nil {
       static_directory: static_directory(),
       db_connection: pog.named_connection(pool_name),
       jwt_verify_keys:,
-      base_path:,
       authentication_result: web.NotAuthenticated,
     )
   let handler = router.handle_request(_, ctx)

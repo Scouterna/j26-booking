@@ -1,9 +1,10 @@
 import given
-import gleam/http/request
 import gleam/list
 import pog
 import wisp.{type Request, type Response}
 import ywt/verify_key.{type VerifyKey}
+
+pub const base_path = "/_services/booking"
 
 pub type Permissions {
   CreateActivity
@@ -29,7 +30,6 @@ pub type Context {
     static_directory: String,
     db_connection: pog.Connection,
     jwt_verify_keys: JWTVerifyKeys,
-    base_path: String,
     authentication_result: AuthenticationResult,
   )
 }
@@ -44,7 +44,11 @@ pub fn middleware(
   use <- wisp.rescue_crashes
   use req <- wisp.handle_head(req)
   use req <- wisp.csrf_known_header_protection(req)
-  use <- wisp.serve_static(req, under: "/static", from: ctx.static_directory)
+  use <- wisp.serve_static(
+    req,
+    under: base_path <> "/static",
+    from: ctx.static_directory,
+  )
   let ctx = authenticate(req, ctx)
   handle_request(req, ctx)
 }
@@ -52,13 +56,6 @@ pub fn middleware(
 /// TODO: Should use the JWT verify keys to authenticate the request and populate the context with the authentication result.
 fn authenticate(req: Request, ctx: Context) -> Context {
   ctx
-}
-
-pub fn is_htmx_request(req: Request) -> Bool {
-  case request.get_header(req, "HX-Request") {
-    Ok(_) -> True
-    Error(_) -> False
-  }
 }
 
 pub fn ensure_valid_query_param(

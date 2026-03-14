@@ -76,8 +76,7 @@ Request → web.middleware → router.handle_request → handler
 
 | Method | Path | Purpose |
 | ------ | ---- | ------- |
-| GET | `/` | Home page (SSR) |
-| GET | `/activities` | Activities page (SSR) |
+| GET | `*` | SPA shell (catch-all for client-side routing) |
 | GET/POST | `/api/activities` | List (paginated) / Create |
 | GET/PUT/DELETE | `/api/activities/:id` | Single activity CRUD |
 | GET | `/api/app-config` | Navigation config |
