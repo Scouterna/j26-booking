@@ -187,7 +187,10 @@ fn update(model: Model, msg: Msg) -> #(Model, Effect(Msg)) {
       effect.none(),
     )
 
-    ApiCreatedActivity(Ok(_)) -> #(model, modem.push("/activities", None, None))
+    ApiCreatedActivity(Ok(_)) -> #(
+      model,
+      modem.push(api_prefix <> "/activities", None, None),
+    )
 
     ApiCreatedActivity(Error(_)) -> #(
       Model(..model, error: Some("Failed to create activity")),
@@ -210,7 +213,10 @@ fn update(model: Model, msg: Msg) -> #(Model, Effect(Msg)) {
       effect.none(),
     )
 
-    ApiDeletedActivity(Ok(_)) -> #(model, modem.push("/activities", None, None))
+    ApiDeletedActivity(Ok(_)) -> #(
+      model,
+      modem.push(api_prefix <> "/activities", None, None),
+    )
 
     ApiDeletedActivity(Error(_)) -> #(
       Model(..model, error: Some("Failed to delete activity")),

@@ -1,8 +1,9 @@
 import lustre/attribute
 import lustre/element.{type Element}
 import lustre/element/html
+import server/web.{base_path}
 
-pub fn spa_shell_page(base_path: String) -> Element(a) {
+pub fn spa_shell_page() -> Element(a) {
   html.html([attribute.attribute("lang", "en")], [
     html.head([], [
       html.meta([attribute.charset("UTF-8")]),
@@ -79,7 +80,9 @@ pub fn api_documentation_page() -> Element(a) {
       ),
       html.script(
         [],
-        "Scalar.createApiReference('#app', {url: '/static/openapi.yaml'})",
+        "Scalar.createApiReference('#app', {url: '"
+          <> base_path
+          <> "/static/openapi.yaml'})",
       ),
     ]),
   ])

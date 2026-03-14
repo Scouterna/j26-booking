@@ -1,7 +1,7 @@
 import gleam/http.{Delete, Get, Post, Put}
 import lustre/element
 import server/components
-import server/web.{type Context, base_path}
+import server/web.{type Context}
 import server/web/activities
 import server/web/app_config
 import wisp.{type Request, type Response}
@@ -9,8 +9,9 @@ import wisp.{type Request, type Response}
 pub fn handle_request(req: Request, ctx: Context) -> Response {
   use req, ctx <- web.middleware(req, ctx)
   case wisp.path_segments(req) {
-    ["api", ..rest] -> handle_api_request(req, ctx, rest)
-    _ -> spa_shell(base_path)
+    ["_services", "booking", "api", ..rest] ->
+      handle_api_request(req, ctx, rest)
+    _ -> spa_shell()
   }
 }
 
@@ -47,8 +48,8 @@ fn handle_api_request(
   }
 }
 
-fn spa_shell(base_path: String) -> Response {
-  components.spa_shell_page(base_path)
+fn spa_shell() -> Response {
+  components.spa_shell_page()
   |> element.to_string
   |> wisp.html_response(200)
 }

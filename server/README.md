@@ -67,8 +67,9 @@ The application will be available at http://localhost:8000
 | `DATABASE_URL` | postgres://postgres@localhost:5432/j26booking | PostgreSQL connection URL |
 | `DB_POOL_SIZE` | 15 | Connection pool size |
 | `SECRET_KEY_BASE` | (random) | Secret key for sessions (required in production) |
-| `BASE_PATH` | (empty string) | Base path prefix for all routes |
 | `OPEN_ID_CONFIGURATION_URL` | https://app.dev.j26.se/auth/... | OpenID Connect discovery URL |
+
+**Note:** The base path `/_services/booking` is hardcoded as `web.base_path` (not an environment variable). All routes are served under this prefix.
 
 ### Building Docker Image
 
