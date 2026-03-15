@@ -6,5 +6,4 @@ if [ -f .env.sh ]; then
   . ./.env.sh
 fi
 
-cd client && gleam run -m lustre/dev build --minify --outdir=../server/priv/static
-cd ../server && gleam run
+psql "$DATABASE_URL" -f server/priv/seeding/activities.sql

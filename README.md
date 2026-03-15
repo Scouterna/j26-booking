@@ -18,28 +18,34 @@ Built as a Gleam fullstack monorepo with Lustre.
 
 - [Gleam](https://gleam.run/getting-started/installing/) (v1.13+)
 - [Erlang/OTP](https://www.erlang.org/) (for server)
-- [PostgreSQL](https://www.postgresql.org/) (running locally or via Docker)
+- [Docker](https://www.docker.com/) (for PostgreSQL and migrations)
 
-### Quick Start (with Docker)
+### Quick Start
 
 ```sh
-docker-compose up
+# 1. Set up environment
+cp .env.sh.template .env.sh  # Adjust values if needed
+
+# 2. Start PostgreSQL and run migrations
+docker compose up db migrate
+
+# 3. (Optional) Seed example data
+./seed.sh
+
+# 4. Build client and start the server
+./dev.sh  # Sources .env.sh, builds client, starts server on http://localhost:8000
+```
+
+> **Note:** Docker exposes PostgreSQL on port **5433** to avoid conflicts with any local Postgres instance. The `DATABASE_URL` in `.env.sh.template` already reflects this.
+
+### Full Docker Setup
+
+To run everything in Docker (DB, migrations, and app):
+
+```sh
+docker compose up
 ```
 
 This starts PostgreSQL, runs migrations, and starts the server at http://localhost:8000.
-
-### Quick Start (without Docker)
-
-```sh
-# 1. Set up database
-export DATABASE_URL="postgres://postgres@localhost:5432/j26booking"
-cd server
-gleam run -m cigogne last                          # Run migrations
-psql "$DATABASE_URL" -f priv/seeding/activities.sql  # Seed example data
-
-# 2. Build client and start the server
-cd ..
-./dev.sh  # Builds client, then starts server on http://localhost:8000
-```
 
 For detailed instructions, see the [server README](server/README.md) and [client README](client/README.md).
