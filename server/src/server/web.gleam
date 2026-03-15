@@ -15,6 +15,7 @@ pub type User {
   User(user_id: String, user_name: String, roles: Permissions)
 }
 
+/// TODO: This is a draft of a authentication result which should be the result of validating and parsing a JWT.
 pub type AuthenticationResult {
   NotAuthenticated
   InvalidToken

@@ -1,18 +1,15 @@
-import envoy
 import gleam/dynamic/decode
 import gleam/erlang/process
 import gleam/http/request
 import gleam/httpc
-import gleam/int
 import gleam/json
 import gleam/otp/static_supervisor as supervisor
-import gleam/result
-import gleam/string
 import mist
 import pog
 import server/router
+import server/utils
 import server/web.{type JWTVerifyKeys, Context, JWTVerifyKeys}
-import shared/utils
+import shared/utils as shared_utils
 import wisp
 import wisp/wisp_mist
 import ywt/verify_key
@@ -21,15 +18,18 @@ pub fn main() -> Nil {
   wisp.configure_logger()
 
   // Configuration from environment variables
-  let secret_key_base = get_secret_key_base()
+  let secret_key_base = utils.get_secret_key_base()
 
   let database_url =
-    get_env("DATABASE_URL", "postgres://postgres@localhost:5432/j26booking")
-  let db_pool_size = get_env_int("DB_POOL_SIZE", 15)
+    utils.get_env(
+      "DATABASE_URL",
+      "postgres://postgres@localhost:5432/j26booking",
+    )
+  let db_pool_size = utils.get_env_int("DB_POOL_SIZE", 15)
 
-  let server_port = get_env_int("PORT", 8000)
+  let server_port = utils.get_env_int("PORT", 8000)
   let open_id_configuration_url =
-    get_env(
+    utils.get_env(
       "OPEN_ID_CONFIGURATION_URL",
       "https://app.dev.j26.se/auth/.well-known/openid-configuration",
     )
@@ -102,48 +102,12 @@ fn fetch_jwt_verify_keys(open_id_configuration_url: String) -> JWTVerifyKeys {
   let assert Ok(jwt_verify_keys) =
     json.parse(
       jwks_response.body,
-      decode.at(["keys"], utils.decode_partial_list(verify_key.decoder())),
+      decode.at(
+        ["keys"],
+        shared_utils.decode_partial_list(verify_key.decoder()),
+      ),
     )
   JWTVerifyKeys(issuer, jwt_verify_keys)
-}
-
-fn get_env(name: String, default: String) -> String {
-  envoy.get(name)
-  |> result.unwrap(default)
-}
-
-fn get_env_int(name: String, default: Int) -> Int {
-  envoy.get(name)
-  |> result.try(int.parse)
-  |> result.unwrap(default)
-}
-
-fn get_secret_key_base() -> String {
-  let not_set_message =
-    "SECRET_KEY_BASE not set, using random key (not suitable for production)"
-  case envoy.get("SECRET_KEY_BASE") {
-    Ok(key) -> {
-      case string.length(key) >= 64 {
-        True -> key
-        False -> {
-          case key {
-            "" -> {
-              wisp.log_warning(not_set_message)
-            }
-            _ ->
-              wisp.log_error(
-                "SECRET_KEY_BASE is too short (minimum 64 characters required), using random key",
-              )
-          }
-          wisp.random_string(64)
-        }
-      }
-    }
-    Error(_) -> {
-      wisp.log_warning(not_set_message)
-      wisp.random_string(64)
-    }
-  }
 }
 
 pub fn static_directory() -> String {
