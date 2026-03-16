@@ -1,6 +1,5 @@
 import gleam/http.{Delete, Get, Post, Put}
 import lustre/element
-import server/components
 import server/web.{type Context}
 import server/web/activities
 import server/web/app_config
@@ -37,13 +36,13 @@ fn handle_api_request(
 }
 
 fn spa_shell() -> Response {
-  components.spa_shell_page()
+  web.spa_shell_page()
   |> element.to_string
   |> wisp.html_response(200)
 }
 
 fn api_documentation() -> Response {
-  components.api_documentation_page()
+  web.api_documentation_page()
   |> element.to_string
   |> wisp.html_response(200)
 }
