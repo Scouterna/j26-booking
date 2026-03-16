@@ -7,3 +7,4 @@ if [ -f .env.sh ]; then
 fi
 
 psql "$DATABASE_URL" -f server/priv/seeding/activities.sql
+psql "$DATABASE_URL" -f server/priv/seeding/bookings.sql

@@ -117,7 +117,7 @@ If not set, the app defaults to `postgres://postgres@localhost:5432/j26booking`.
 Database migrations are managed using [Cigogne](https://hexdocs.pm/cigogne/index.html).
 
 ```sh
-gleam run -m cigogne last
+gleam run -m cigogne all
 ```
 
 This applies all pending migrations from [`priv/migrations/`](priv/migrations/).
@@ -126,9 +126,10 @@ This applies all pending migrations from [`priv/migrations/`](priv/migrations/).
 
 ```sh
 psql "$DATABASE_URL" -f priv/seeding/activities.sql
+psql "$DATABASE_URL" -f priv/seeding/bookings.sql
 ```
 
-This inserts sample activities into the `activity` table. Make sure migrations have been applied first.
+This inserts sample activities, users, bookings, and activity_user assignments. Make sure migrations have been applied first. From the repo root you can also run `./seed.sh`.
 
 ### Database Schema
 
@@ -162,7 +163,7 @@ booking {
   text booker_group_name "Bokarens kårnamn
   _Kopierat från Scoutnet_"
   text group_free_text "Kår, Patrull"
-  text responsible "Ansvarig vuxen"
+  text responsible_name "Ansvarig vuxen"
   text phone_number "Till ansvarig vuxen"
   int participant_count
 }

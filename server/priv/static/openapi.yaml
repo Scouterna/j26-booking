@@ -3,7 +3,7 @@ info:
   title: J26 Booking API
   description: |
     REST API for the J26 Booking application. Provides endpoints for managing
-    activities and application configuration.
+    activities, bookings, and application configuration.
   version: 1.0.0
   contact:
     name: J26 Booking Team
@@ -15,6 +15,8 @@ servers:
 tags:
   - name: Activities
     description: Manage booking activities
+  - name: Bookings
+    description: Manage bookings for activities
   - name: Configuration
     description: Application configuration
 
@@ -182,6 +184,189 @@ paths:
         '500':
           $ref: '#/components/responses/ServerError'
 
+  /activities/{activity_id}/bookings:
+    get:
+      tags:
+        - Bookings
+      summary: List bookings for activity
+      description: Retrieve a paginated list of bookings for a specific activity, ordered by responsible name.
+      operationId: listBookingsByActivity
+      parameters:
+        - $ref: '#/components/parameters/ActivityIdPath'
+        - $ref: '#/components/parameters/PageParam'
+      responses:
+        '200':
+          description: Successfully retrieved bookings
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - bookings
+                properties:
+                  bookings:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Booking'
+              example:
+                bookings:
+                  - id: "660e8400-e29b-41d4-a716-446655440000"
+                    user_id: "770e8400-e29b-41d4-a716-446655440000"
+                    activity_id: "550e8400-e29b-41d4-a716-446655440000"
+                    booker_group_id: 0
+                    booker_group_name: "TODO: from JWT"
+                    group_free_text: "Patrol Eagles"
+                    responsible_name: "Anna Svensson"
+                    phone_number: "+46701234567"
+                    participant_count: 12
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '500':
+          $ref: '#/components/responses/ServerError'
+
+    post:
+      tags:
+        - Bookings
+      summary: Create booking for activity
+      description: |
+        Create a new booking for a specific activity. The `user_id`, `booker_group_id`,
+        and `booker_group_name` are currently set to dummy values and will be populated
+        from JWT authentication in the future.
+      operationId: createBooking
+      parameters:
+        - $ref: '#/components/parameters/ActivityIdPath'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BookingInput'
+            example:
+              group_free_text: "Patrol Eagles"
+              responsible_name: "Anna Svensson"
+              phone_number: "+46701234567"
+              participant_count: 12
+      responses:
+        '201':
+          description: Booking created successfully
+          headers:
+            Location:
+              description: URL of the created booking
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Booking'
+              example:
+                id: "660e8400-e29b-41d4-a716-446655440000"
+                user_id: "770e8400-e29b-41d4-a716-446655440000"
+                activity_id: "550e8400-e29b-41d4-a716-446655440000"
+                booker_group_id: 0
+                booker_group_name: "TODO: from JWT"
+                group_free_text: "Patrol Eagles"
+                responsible_name: "Anna Svensson"
+                phone_number: "+46701234567"
+                participant_count: 12
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '500':
+          $ref: '#/components/responses/ServerError'
+
+  /bookings/{id}:
+    get:
+      tags:
+        - Bookings
+      summary: Get booking
+      description: Retrieve a single booking by its ID.
+      operationId: getBooking
+      parameters:
+        - $ref: '#/components/parameters/BookingId'
+      responses:
+        '200':
+          description: Successfully retrieved booking
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Booking'
+              example:
+                id: "660e8400-e29b-41d4-a716-446655440000"
+                user_id: "770e8400-e29b-41d4-a716-446655440000"
+                activity_id: "550e8400-e29b-41d4-a716-446655440000"
+                booker_group_id: 0
+                booker_group_name: "TODO: from JWT"
+                group_free_text: "Patrol Eagles"
+                responsible_name: "Anna Svensson"
+                phone_number: "+46701234567"
+                participant_count: 12
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/ServerError'
+
+    put:
+      tags:
+        - Bookings
+      summary: Update booking
+      description: Update an existing booking. Only mutable fields (group_free_text, responsible_name, phone_number, participant_count) can be changed.
+      operationId: updateBooking
+      parameters:
+        - $ref: '#/components/parameters/BookingId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BookingInput'
+            example:
+              group_free_text: "Patrol Hawks"
+              responsible_name: "Erik Johansson"
+              phone_number: "+46709876543"
+              participant_count: 15
+      responses:
+        '200':
+          description: Booking updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Booking'
+              example:
+                id: "660e8400-e29b-41d4-a716-446655440000"
+                user_id: "770e8400-e29b-41d4-a716-446655440000"
+                activity_id: "550e8400-e29b-41d4-a716-446655440000"
+                booker_group_id: 0
+                booker_group_name: "TODO: from JWT"
+                group_free_text: "Patrol Hawks"
+                responsible_name: "Erik Johansson"
+                phone_number: "+46709876543"
+                participant_count: 15
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/ServerError'
+
+    delete:
+      tags:
+        - Bookings
+      summary: Delete booking
+      description: Delete a booking by its ID.
+      operationId: deleteBooking
+      parameters:
+        - $ref: '#/components/parameters/BookingId'
+      responses:
+        '204':
+          description: Booking deleted successfully
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/ServerError'
+
   /app-config:
     get:
       tags:
@@ -247,6 +432,86 @@ components:
           format: int64
           description: End time as Unix timestamp in seconds
           example: 1706778000
+
+    Booking:
+      type: object
+      description: Represents a booking for an activity
+      required:
+        - id
+        - user_id
+        - activity_id
+        - booker_group_id
+        - booker_group_name
+        - group_free_text
+        - responsible_name
+        - phone_number
+        - participant_count
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Unique identifier for the booking
+          example: "660e8400-e29b-41d4-a716-446655440000"
+        user_id:
+          type: string
+          format: uuid
+          description: ID of the user who created the booking
+          example: "770e8400-e29b-41d4-a716-446655440000"
+        activity_id:
+          type: string
+          format: uuid
+          description: ID of the activity being booked
+          example: "550e8400-e29b-41d4-a716-446655440000"
+        booker_group_id:
+          type: integer
+          description: Booker's scout group ID (from Scoutnet via JWT, currently dummy value)
+          example: 0
+        booker_group_name:
+          type: string
+          description: Booker's scout group name (from Scoutnet via JWT, currently dummy value)
+          example: "TODO: from JWT"
+        group_free_text:
+          type: string
+          description: Free text for group/patrol identification
+          example: "Patrol Eagles"
+        responsible_name:
+          type: string
+          description: Name of the responsible adult
+          example: "Anna Svensson"
+        phone_number:
+          type: string
+          description: Phone number of the responsible adult
+          example: "+46701234567"
+        participant_count:
+          type: integer
+          description: Number of participants
+          example: 12
+
+    BookingInput:
+      type: object
+      description: Input data for creating or updating a booking
+      required:
+        - group_free_text
+        - responsible_name
+        - phone_number
+        - participant_count
+      properties:
+        group_free_text:
+          type: string
+          description: Free text for group/patrol identification
+          example: "Patrol Eagles"
+        responsible_name:
+          type: string
+          description: Name of the responsible adult
+          example: "Anna Svensson"
+        phone_number:
+          type: string
+          description: Phone number of the responsible adult
+          example: "+46701234567"
+        participant_count:
+          type: integer
+          description: Number of participants
+          example: 12
 
     ActivityInput:
       type: object
@@ -369,6 +634,26 @@ components:
         type: string
         format: uuid
       example: "550e8400-e29b-41d4-a716-446655440000"
+
+    ActivityIdPath:
+      name: activity_id
+      in: path
+      required: true
+      description: Unique identifier of the activity
+      schema:
+        type: string
+        format: uuid
+      example: "550e8400-e29b-41d4-a716-446655440000"
+
+    BookingId:
+      name: id
+      in: path
+      required: true
+      description: Unique identifier of the booking
+      schema:
+        type: string
+        format: uuid
+      example: "660e8400-e29b-41d4-a716-446655440000"
 
     SortParam:
       name: sort

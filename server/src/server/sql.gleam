@@ -1,5 +1,5 @@
 //// This module contains the code to run the sql queries defined in
-//// `./src/j26booking/sql`.
+//// `./src/server/sql`.
 //// > 🐿️ This module was generated automatically using v4.6.0 of
 //// > the [squirrel package](https://github.com/giacomocavalieri/squirrel).
 ////
@@ -11,7 +11,7 @@ import pog
 import youid/uuid.{type Uuid}
 
 /// A row you get from running the `create_activity_with_max_attendees` query
-/// defined in `./src/j26booking/sql/create_activity_with_max_attendees.sql`.
+/// defined in `./src/server/sql/create_activity_with_max_attendees.sql`.
 ///
 /// > 🐿️ This type definition was generated automatically using v4.6.0 of the
 /// > [squirrel package](https://github.com/giacomocavalieri/squirrel).
@@ -28,7 +28,7 @@ pub type CreateActivityWithMaxAttendeesRow {
 }
 
 /// Runs the `create_activity_with_max_attendees` query
-/// defined in `./src/j26booking/sql/create_activity_with_max_attendees.sql`.
+/// defined in `./src/server/sql/create_activity_with_max_attendees.sql`.
 ///
 /// > 🐿️ This function was generated automatically using v4.6.0 of
 /// > the [squirrel package](https://github.com/giacomocavalieri/squirrel).
@@ -59,10 +59,21 @@ pub fn create_activity_with_max_attendees(
     ))
   }
 
-  "INSERT INTO activity (id, title, description, max_attendees, start_time, end_time)
+  "INSERT INTO activity (
+        id,
+        title,
+        description,
+        max_attendees,
+        start_time,
+        end_time
+    )
 VALUES ($1, $2, $3, $4, $5, $6)
-RETURNING id, title, description, max_attendees, start_time, end_time
-"
+RETURNING id,
+    title,
+    description,
+    max_attendees,
+    start_time,
+    end_time"
   |> pog.query
   |> pog.parameter(pog.text(uuid.to_string(arg_1)))
   |> pog.parameter(pog.text(arg_2))
@@ -75,7 +86,7 @@ RETURNING id, title, description, max_attendees, start_time, end_time
 }
 
 /// A row you get from running the `create_activity_without_max_attendees` query
-/// defined in `./src/j26booking/sql/create_activity_without_max_attendees.sql`.
+/// defined in `./src/server/sql/create_activity_without_max_attendees.sql`.
 ///
 /// > 🐿️ This type definition was generated automatically using v4.6.0 of the
 /// > [squirrel package](https://github.com/giacomocavalieri/squirrel).
@@ -91,7 +102,7 @@ pub type CreateActivityWithoutMaxAttendeesRow {
 }
 
 /// Runs the `create_activity_without_max_attendees` query
-/// defined in `./src/j26booking/sql/create_activity_without_max_attendees.sql`.
+/// defined in `./src/server/sql/create_activity_without_max_attendees.sql`.
 ///
 /// > 🐿️ This function was generated automatically using v4.6.0 of
 /// > the [squirrel package](https://github.com/giacomocavalieri/squirrel).
@@ -119,10 +130,20 @@ pub fn create_activity_without_max_attendees(
     ))
   }
 
-  "INSERT INTO activity (id, title, description, max_attendees, start_time, end_time)
+  "INSERT INTO activity (
+        id,
+        title,
+        description,
+        max_attendees,
+        start_time,
+        end_time
+    )
 VALUES ($1, $2, $3, NULL, $4, $5)
-RETURNING id, title, description, start_time, end_time
-"
+RETURNING id,
+    title,
+    description,
+    start_time,
+    end_time"
   |> pog.query
   |> pog.parameter(pog.text(uuid.to_string(arg_1)))
   |> pog.parameter(pog.text(arg_2))
@@ -133,8 +154,105 @@ RETURNING id, title, description, start_time, end_time
   |> pog.execute(db)
 }
 
+/// A row you get from running the `create_booking` query
+/// defined in `./src/server/sql/create_booking.sql`.
+///
+/// > 🐿️ This type definition was generated automatically using v4.6.0 of the
+/// > [squirrel package](https://github.com/giacomocavalieri/squirrel).
+///
+pub type CreateBookingRow {
+  CreateBookingRow(
+    id: Uuid,
+    user_id: Uuid,
+    activity_id: Uuid,
+    booker_group_id: Int,
+    booker_group_name: String,
+    group_free_text: String,
+    responsible_name: String,
+    phone_number: String,
+    participant_count: Int,
+  )
+}
+
+/// Runs the `create_booking` query
+/// defined in `./src/server/sql/create_booking.sql`.
+///
+/// > 🐿️ This function was generated automatically using v4.6.0 of
+/// > the [squirrel package](https://github.com/giacomocavalieri/squirrel).
+///
+pub fn create_booking(
+  db: pog.Connection,
+  arg_1: Uuid,
+  arg_2: Uuid,
+  arg_3: Uuid,
+  arg_4: Int,
+  arg_5: String,
+  arg_6: String,
+  arg_7: String,
+  arg_8: String,
+  arg_9: Int,
+) -> Result(pog.Returned(CreateBookingRow), pog.QueryError) {
+  let decoder = {
+    use id <- decode.field(0, uuid_decoder())
+    use user_id <- decode.field(1, uuid_decoder())
+    use activity_id <- decode.field(2, uuid_decoder())
+    use booker_group_id <- decode.field(3, decode.int)
+    use booker_group_name <- decode.field(4, decode.string)
+    use group_free_text <- decode.field(5, decode.string)
+    use responsible_name <- decode.field(6, decode.string)
+    use phone_number <- decode.field(7, decode.string)
+    use participant_count <- decode.field(8, decode.int)
+    decode.success(CreateBookingRow(
+      id:,
+      user_id:,
+      activity_id:,
+      booker_group_id:,
+      booker_group_name:,
+      group_free_text:,
+      responsible_name:,
+      phone_number:,
+      participant_count:,
+    ))
+  }
+
+  "INSERT INTO booking (
+        id,
+        user_id,
+        activity_id,
+        booker_group_id,
+        booker_group_name,
+        group_free_text,
+        responsible_name,
+        phone_number,
+        participant_count
+    )
+VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+RETURNING id,
+    user_id,
+    activity_id,
+    booker_group_id,
+    booker_group_name,
+    group_free_text,
+    responsible_name,
+    phone_number,
+    participant_count
+"
+  |> pog.query
+  |> pog.parameter(pog.text(uuid.to_string(arg_1)))
+  |> pog.parameter(pog.text(uuid.to_string(arg_2)))
+  |> pog.parameter(pog.text(uuid.to_string(arg_3)))
+  |> pog.parameter(pog.int(arg_4))
+  |> pog.parameter(pog.text(arg_5))
+  |> pog.parameter(pog.text(arg_6))
+  |> pog.parameter(pog.text(arg_7))
+  |> pog.parameter(pog.text(arg_8))
+  |> pog.parameter(pog.int(arg_9))
+  |> pog.returning(decoder)
+  |> pog.execute(db)
+}
+
 /// A row you get from running the `delete_activity` query
-/// defined in `./src/j26booking/sql/delete_activity.sql`.
+/// defined in `./src/server/sql/delete_activity.sql`.
 ///
 /// > 🐿️ This type definition was generated automatically using v4.6.0 of the
 /// > [squirrel package](https://github.com/giacomocavalieri/squirrel).
@@ -144,7 +262,7 @@ pub type DeleteActivityRow {
 }
 
 /// Runs the `delete_activity` query
-/// defined in `./src/j26booking/sql/delete_activity.sql`.
+/// defined in `./src/server/sql/delete_activity.sql`.
 ///
 /// > 🐿️ This function was generated automatically using v4.6.0 of
 /// > the [squirrel package](https://github.com/giacomocavalieri/squirrel).
@@ -158,7 +276,43 @@ pub fn delete_activity(
     decode.success(DeleteActivityRow(id:))
   }
 
-  "DELETE FROM activity WHERE id = $1 RETURNING id
+  "DELETE FROM activity
+WHERE id = $1
+RETURNING id"
+  |> pog.query
+  |> pog.parameter(pog.text(uuid.to_string(arg_1)))
+  |> pog.returning(decoder)
+  |> pog.execute(db)
+}
+
+/// A row you get from running the `delete_booking` query
+/// defined in `./src/server/sql/delete_booking.sql`.
+///
+/// > 🐿️ This type definition was generated automatically using v4.6.0 of the
+/// > [squirrel package](https://github.com/giacomocavalieri/squirrel).
+///
+pub type DeleteBookingRow {
+  DeleteBookingRow(id: Uuid)
+}
+
+/// Runs the `delete_booking` query
+/// defined in `./src/server/sql/delete_booking.sql`.
+///
+/// > 🐿️ This function was generated automatically using v4.6.0 of
+/// > the [squirrel package](https://github.com/giacomocavalieri/squirrel).
+///
+pub fn delete_booking(
+  db: pog.Connection,
+  arg_1: Uuid,
+) -> Result(pog.Returned(DeleteBookingRow), pog.QueryError) {
+  let decoder = {
+    use id <- decode.field(0, uuid_decoder())
+    decode.success(DeleteBookingRow(id:))
+  }
+
+  "DELETE FROM booking
+WHERE id = $1
+RETURNING id
 "
   |> pog.query
   |> pog.parameter(pog.text(uuid.to_string(arg_1)))
@@ -167,7 +321,7 @@ pub fn delete_activity(
 }
 
 /// A row you get from running the `get_activities_by_start_time` query
-/// defined in `./src/j26booking/sql/get_activities_by_start_time.sql`.
+/// defined in `./src/server/sql/get_activities_by_start_time.sql`.
 ///
 /// > 🐿️ This type definition was generated automatically using v4.6.0 of the
 /// > [squirrel package](https://github.com/giacomocavalieri/squirrel).
@@ -184,7 +338,7 @@ pub type GetActivitiesByStartTimeRow {
 }
 
 /// Runs the `get_activities_by_start_time` query
-/// defined in `./src/j26booking/sql/get_activities_by_start_time.sql`.
+/// defined in `./src/server/sql/get_activities_by_start_time.sql`.
 ///
 /// > 🐿️ This function was generated automatically using v4.6.0 of
 /// > the [squirrel package](https://github.com/giacomocavalieri/squirrel).
@@ -214,9 +368,7 @@ pub fn get_activities_by_start_time(
   "SELECT *
 FROM activity
 ORDER BY start_time ASC
-LIMIT $1
-OFFSET $2;
-"
+LIMIT $1 OFFSET $2;"
   |> pog.query
   |> pog.parameter(pog.int(arg_1))
   |> pog.parameter(pog.int(arg_2))
@@ -225,7 +377,7 @@ OFFSET $2;
 }
 
 /// A row you get from running the `get_activities_by_title` query
-/// defined in `./src/j26booking/sql/get_activities_by_title.sql`.
+/// defined in `./src/server/sql/get_activities_by_title.sql`.
 ///
 /// > 🐿️ This type definition was generated automatically using v4.6.0 of the
 /// > [squirrel package](https://github.com/giacomocavalieri/squirrel).
@@ -242,7 +394,7 @@ pub type GetActivitiesByTitleRow {
 }
 
 /// Runs the `get_activities_by_title` query
-/// defined in `./src/j26booking/sql/get_activities_by_title.sql`.
+/// defined in `./src/server/sql/get_activities_by_title.sql`.
 ///
 /// > 🐿️ This function was generated automatically using v4.6.0 of
 /// > the [squirrel package](https://github.com/giacomocavalieri/squirrel).
@@ -272,8 +424,7 @@ pub fn get_activities_by_title(
   "SELECT *
 FROM activity
 ORDER BY title ASC
-LIMIT $1
-OFFSET $2;"
+LIMIT $1 OFFSET $2;"
   |> pog.query
   |> pog.parameter(pog.int(arg_1))
   |> pog.parameter(pog.int(arg_2))
@@ -282,7 +433,7 @@ OFFSET $2;"
 }
 
 /// A row you get from running the `get_activity` query
-/// defined in `./src/j26booking/sql/get_activity.sql`.
+/// defined in `./src/server/sql/get_activity.sql`.
 ///
 /// > 🐿️ This type definition was generated automatically using v4.6.0 of the
 /// > [squirrel package](https://github.com/giacomocavalieri/squirrel).
@@ -299,7 +450,7 @@ pub type GetActivityRow {
 }
 
 /// Runs the `get_activity` query
-/// defined in `./src/j26booking/sql/get_activity.sql`.
+/// defined in `./src/server/sql/get_activity.sql`.
 ///
 /// > 🐿️ This function was generated automatically using v4.6.0 of
 /// > the [squirrel package](https://github.com/giacomocavalieri/squirrel).
@@ -334,8 +485,157 @@ WHERE id = $1;"
   |> pog.execute(db)
 }
 
+/// A row you get from running the `get_booking` query
+/// defined in `./src/server/sql/get_booking.sql`.
+///
+/// > 🐿️ This type definition was generated automatically using v4.6.0 of the
+/// > [squirrel package](https://github.com/giacomocavalieri/squirrel).
+///
+pub type GetBookingRow {
+  GetBookingRow(
+    id: Uuid,
+    user_id: Uuid,
+    activity_id: Uuid,
+    booker_group_id: Int,
+    booker_group_name: String,
+    group_free_text: String,
+    responsible_name: String,
+    phone_number: String,
+    participant_count: Int,
+  )
+}
+
+/// Runs the `get_booking` query
+/// defined in `./src/server/sql/get_booking.sql`.
+///
+/// > 🐿️ This function was generated automatically using v4.6.0 of
+/// > the [squirrel package](https://github.com/giacomocavalieri/squirrel).
+///
+pub fn get_booking(
+  db: pog.Connection,
+  arg_1: Uuid,
+) -> Result(pog.Returned(GetBookingRow), pog.QueryError) {
+  let decoder = {
+    use id <- decode.field(0, uuid_decoder())
+    use user_id <- decode.field(1, uuid_decoder())
+    use activity_id <- decode.field(2, uuid_decoder())
+    use booker_group_id <- decode.field(3, decode.int)
+    use booker_group_name <- decode.field(4, decode.string)
+    use group_free_text <- decode.field(5, decode.string)
+    use responsible_name <- decode.field(6, decode.string)
+    use phone_number <- decode.field(7, decode.string)
+    use participant_count <- decode.field(8, decode.int)
+    decode.success(GetBookingRow(
+      id:,
+      user_id:,
+      activity_id:,
+      booker_group_id:,
+      booker_group_name:,
+      group_free_text:,
+      responsible_name:,
+      phone_number:,
+      participant_count:,
+    ))
+  }
+
+  "SELECT id,
+    user_id,
+    activity_id,
+    booker_group_id,
+    booker_group_name,
+    group_free_text,
+    responsible_name,
+    phone_number,
+    participant_count
+FROM booking
+WHERE id = $1
+"
+  |> pog.query
+  |> pog.parameter(pog.text(uuid.to_string(arg_1)))
+  |> pog.returning(decoder)
+  |> pog.execute(db)
+}
+
+/// A row you get from running the `get_bookings_by_activity` query
+/// defined in `./src/server/sql/get_bookings_by_activity.sql`.
+///
+/// > 🐿️ This type definition was generated automatically using v4.6.0 of the
+/// > [squirrel package](https://github.com/giacomocavalieri/squirrel).
+///
+pub type GetBookingsByActivityRow {
+  GetBookingsByActivityRow(
+    id: Uuid,
+    user_id: Uuid,
+    activity_id: Uuid,
+    booker_group_id: Int,
+    booker_group_name: String,
+    group_free_text: String,
+    responsible_name: String,
+    phone_number: String,
+    participant_count: Int,
+  )
+}
+
+/// Runs the `get_bookings_by_activity` query
+/// defined in `./src/server/sql/get_bookings_by_activity.sql`.
+///
+/// > 🐿️ This function was generated automatically using v4.6.0 of
+/// > the [squirrel package](https://github.com/giacomocavalieri/squirrel).
+///
+pub fn get_bookings_by_activity(
+  db: pog.Connection,
+  arg_1: Uuid,
+  arg_2: Int,
+  arg_3: Int,
+) -> Result(pog.Returned(GetBookingsByActivityRow), pog.QueryError) {
+  let decoder = {
+    use id <- decode.field(0, uuid_decoder())
+    use user_id <- decode.field(1, uuid_decoder())
+    use activity_id <- decode.field(2, uuid_decoder())
+    use booker_group_id <- decode.field(3, decode.int)
+    use booker_group_name <- decode.field(4, decode.string)
+    use group_free_text <- decode.field(5, decode.string)
+    use responsible_name <- decode.field(6, decode.string)
+    use phone_number <- decode.field(7, decode.string)
+    use participant_count <- decode.field(8, decode.int)
+    decode.success(GetBookingsByActivityRow(
+      id:,
+      user_id:,
+      activity_id:,
+      booker_group_id:,
+      booker_group_name:,
+      group_free_text:,
+      responsible_name:,
+      phone_number:,
+      participant_count:,
+    ))
+  }
+
+  "SELECT id,
+    user_id,
+    activity_id,
+    booker_group_id,
+    booker_group_name,
+    group_free_text,
+    responsible_name,
+    phone_number,
+    participant_count
+FROM booking
+WHERE activity_id = $1
+ORDER BY responsible_name ASC
+LIMIT $2
+OFFSET $3
+"
+  |> pog.query
+  |> pog.parameter(pog.text(uuid.to_string(arg_1)))
+  |> pog.parameter(pog.int(arg_2))
+  |> pog.parameter(pog.int(arg_3))
+  |> pog.returning(decoder)
+  |> pog.execute(db)
+}
+
 /// A row you get from running the `search_activities` query
-/// defined in `./src/j26booking/sql/search_activities.sql`.
+/// defined in `./src/server/sql/search_activities.sql`.
 ///
 /// > 🐿️ This type definition was generated automatically using v4.6.0 of the
 /// > [squirrel package](https://github.com/giacomocavalieri/squirrel).
@@ -381,8 +681,7 @@ pub fn search_activities(
 SELECT *
 FROM activity
 WHERE title ILIKE '%' || $1 || '%'
-ORDER BY title;
-"
+ORDER BY title;"
   |> pog.query
   |> pog.parameter(pog.text(arg_1))
   |> pog.returning(decoder)
@@ -390,7 +689,7 @@ ORDER BY title;
 }
 
 /// A row you get from running the `update_activity_with_max_attendees` query
-/// defined in `./src/j26booking/sql/update_activity_with_max_attendees.sql`.
+/// defined in `./src/server/sql/update_activity_with_max_attendees.sql`.
 ///
 /// > 🐿️ This type definition was generated automatically using v4.6.0 of the
 /// > [squirrel package](https://github.com/giacomocavalieri/squirrel).
@@ -407,7 +706,7 @@ pub type UpdateActivityWithMaxAttendeesRow {
 }
 
 /// Runs the `update_activity_with_max_attendees` query
-/// defined in `./src/j26booking/sql/update_activity_with_max_attendees.sql`.
+/// defined in `./src/server/sql/update_activity_with_max_attendees.sql`.
 ///
 /// > 🐿️ This function was generated automatically using v4.6.0 of
 /// > the [squirrel package](https://github.com/giacomocavalieri/squirrel).
@@ -445,8 +744,12 @@ SET title = $2,
     start_time = $5,
     end_time = $6
 WHERE id = $1
-RETURNING id, title, description, max_attendees, start_time, end_time
-"
+RETURNING id,
+    title,
+    description,
+    max_attendees,
+    start_time,
+    end_time"
   |> pog.query
   |> pog.parameter(pog.text(uuid.to_string(arg_1)))
   |> pog.parameter(pog.text(arg_2))
@@ -459,7 +762,7 @@ RETURNING id, title, description, max_attendees, start_time, end_time
 }
 
 /// A row you get from running the `update_activity_without_max_attendees` query
-/// defined in `./src/j26booking/sql/update_activity_without_max_attendees.sql`.
+/// defined in `./src/server/sql/update_activity_without_max_attendees.sql`.
 ///
 /// > 🐿️ This type definition was generated automatically using v4.6.0 of the
 /// > [squirrel package](https://github.com/giacomocavalieri/squirrel).
@@ -475,7 +778,7 @@ pub type UpdateActivityWithoutMaxAttendeesRow {
 }
 
 /// Runs the `update_activity_without_max_attendees` query
-/// defined in `./src/j26booking/sql/update_activity_without_max_attendees.sql`.
+/// defined in `./src/server/sql/update_activity_without_max_attendees.sql`.
 ///
 /// > 🐿️ This function was generated automatically using v4.6.0 of
 /// > the [squirrel package](https://github.com/giacomocavalieri/squirrel).
@@ -510,14 +813,100 @@ SET title = $2,
     start_time = $4,
     end_time = $5
 WHERE id = $1
-RETURNING id, title, description, start_time, end_time
-"
+RETURNING id,
+    title,
+    description,
+    start_time,
+    end_time"
   |> pog.query
   |> pog.parameter(pog.text(uuid.to_string(arg_1)))
   |> pog.parameter(pog.text(arg_2))
   |> pog.parameter(pog.text(arg_3))
   |> pog.parameter(pog.timestamp(arg_4))
   |> pog.parameter(pog.timestamp(arg_5))
+  |> pog.returning(decoder)
+  |> pog.execute(db)
+}
+
+/// A row you get from running the `update_booking` query
+/// defined in `./src/server/sql/update_booking.sql`.
+///
+/// > 🐿️ This type definition was generated automatically using v4.6.0 of the
+/// > [squirrel package](https://github.com/giacomocavalieri/squirrel).
+///
+pub type UpdateBookingRow {
+  UpdateBookingRow(
+    id: Uuid,
+    user_id: Uuid,
+    activity_id: Uuid,
+    booker_group_id: Int,
+    booker_group_name: String,
+    group_free_text: String,
+    responsible_name: String,
+    phone_number: String,
+    participant_count: Int,
+  )
+}
+
+/// Runs the `update_booking` query
+/// defined in `./src/server/sql/update_booking.sql`.
+///
+/// > 🐿️ This function was generated automatically using v4.6.0 of
+/// > the [squirrel package](https://github.com/giacomocavalieri/squirrel).
+///
+pub fn update_booking(
+  db: pog.Connection,
+  arg_1: Uuid,
+  arg_2: String,
+  arg_3: String,
+  arg_4: String,
+  arg_5: Int,
+) -> Result(pog.Returned(UpdateBookingRow), pog.QueryError) {
+  let decoder = {
+    use id <- decode.field(0, uuid_decoder())
+    use user_id <- decode.field(1, uuid_decoder())
+    use activity_id <- decode.field(2, uuid_decoder())
+    use booker_group_id <- decode.field(3, decode.int)
+    use booker_group_name <- decode.field(4, decode.string)
+    use group_free_text <- decode.field(5, decode.string)
+    use responsible_name <- decode.field(6, decode.string)
+    use phone_number <- decode.field(7, decode.string)
+    use participant_count <- decode.field(8, decode.int)
+    decode.success(UpdateBookingRow(
+      id:,
+      user_id:,
+      activity_id:,
+      booker_group_id:,
+      booker_group_name:,
+      group_free_text:,
+      responsible_name:,
+      phone_number:,
+      participant_count:,
+    ))
+  }
+
+  "UPDATE booking
+SET group_free_text = $2,
+    responsible_name = $3,
+    phone_number = $4,
+    participant_count = $5
+WHERE id = $1
+RETURNING id,
+    user_id,
+    activity_id,
+    booker_group_id,
+    booker_group_name,
+    group_free_text,
+    responsible_name,
+    phone_number,
+    participant_count
+"
+  |> pog.query
+  |> pog.parameter(pog.text(uuid.to_string(arg_1)))
+  |> pog.parameter(pog.text(arg_2))
+  |> pog.parameter(pog.text(arg_3))
+  |> pog.parameter(pog.text(arg_4))
+  |> pog.parameter(pog.int(arg_5))
   |> pog.returning(decoder)
   |> pog.execute(db)
 }
