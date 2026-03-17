@@ -178,7 +178,10 @@ fn response_from_db_activity_creation(
     Ok(pog.Returned(_, [])) -> wisp.internal_server_error()
     Ok(pog.Returned(_, [row, ..])) -> {
       let created_activity = to_activity(row)
-      let location = "/api/activities/" <> uuid.to_string(created_activity.id)
+      let location =
+        web.base_path
+        <> "/api/activities/"
+        <> uuid.to_string(created_activity.id)
       wisp.json_response(
         activity.to_json(created_activity) |> json.to_string,
         201,

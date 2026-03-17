@@ -55,7 +55,8 @@ pub fn create(
   })
   let id = uuid.v7()
   // TODO: Get user_id from JWT authentication
-  let user_id = uuid.v7()
+  let assert Ok(user_id) =
+    uuid.from_string("a1b2c3d4-e5f6-4a90-abcd-ef1234567890")
   // TODO: Get booker_group_id and booker_group_name from JWT
   let booker_group_id = 0
   let booker_group_name = "TODO: from JWT"

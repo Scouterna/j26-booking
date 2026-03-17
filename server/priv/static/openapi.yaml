@@ -9,8 +9,8 @@ info:
     name: J26 Booking Team
 
 servers:
-  - url: /api
-    description: API base path
+  - url: /_services/booking/api
+    description: API base path (under iframe base path)
 
 tags:
   - name: Activities
@@ -41,18 +41,18 @@ paths:
                 items:
                   $ref: '#/components/schemas/Activity'
               example:
-                - id: "550e8400-e29b-41d4-a716-446655440000"
-                  title: "Morning Yoga"
-                  description: "Start your day with energizing yoga"
-                  max_attendees: 20
-                  start_time: 1706774400
-                  end_time: 1706778000
-                - id: "550e8400-e29b-41d4-a716-446655440001"
-                  title: "Team Meeting"
-                  description: "Weekly sync meeting"
-                  max_attendees: null
-                  start_time: 1706785200
-                  end_time: 1706788800
+                - id: "6f5e1d46-5f58-4e23-9a9d-8c2bfc2d22a0"
+                  title: "Campfire Songs"
+                  description: "An evening of classic scout songs around the campfire with marshmallows."
+                  max_attendees: 50
+                  start_time: 1752350400
+                  end_time: 1752357600
+                - id: "b4219a53-4746-4a09-8b4e-3e2ac0c3df11"
+                  title: "Orienteering Challenge"
+                  description: "Scouts navigate through the forest using only a compass and a map."
+                  max_attendees: 30
+                  start_time: 1752400800
+                  end_time: 1752411600
         '400':
           $ref: '#/components/responses/BadRequest'
         '500':
@@ -71,11 +71,11 @@ paths:
             schema:
               $ref: '#/components/schemas/ActivityInput'
             example:
-              title: "Morning Yoga"
-              description: "Start your day with energizing yoga"
-              max_attendees: 20
-              start_time: 1706774400
-              end_time: 1706778000
+              title: "Campfire Songs"
+              description: "An evening of classic scout songs around the campfire with marshmallows."
+              max_attendees: 50
+              start_time: 1752350400
+              end_time: 1752357600
       responses:
         '201':
           description: Activity created successfully
@@ -84,12 +84,12 @@ paths:
               schema:
                 $ref: '#/components/schemas/Activity'
               example:
-                id: "550e8400-e29b-41d4-a716-446655440000"
-                title: "Morning Yoga"
-                description: "Start your day with energizing yoga"
-                max_attendees: 20
-                start_time: 1706774400
-                end_time: 1706778000
+                id: "6f5e1d46-5f58-4e23-9a9d-8c2bfc2d22a0"
+                title: "Campfire Songs"
+                description: "An evening of classic scout songs around the campfire with marshmallows."
+                max_attendees: 50
+                start_time: 1752350400
+                end_time: 1752357600
         '400':
           $ref: '#/components/responses/BadRequest'
         '500':
@@ -112,12 +112,12 @@ paths:
               schema:
                 $ref: '#/components/schemas/Activity'
               example:
-                id: "550e8400-e29b-41d4-a716-446655440000"
-                title: "Morning Yoga"
-                description: "Start your day with energizing yoga"
-                max_attendees: 20
-                start_time: 1706774400
-                end_time: 1706778000
+                id: "6f5e1d46-5f58-4e23-9a9d-8c2bfc2d22a0"
+                title: "Campfire Songs"
+                description: "An evening of classic scout songs around the campfire with marshmallows."
+                max_attendees: 50
+                start_time: 1752350400
+                end_time: 1752357600
         '400':
           $ref: '#/components/responses/BadRequest'
         '404':
@@ -140,11 +140,11 @@ paths:
             schema:
               $ref: '#/components/schemas/ActivityInput'
             example:
-              title: "Updated Morning Yoga"
-              description: "Updated description for morning yoga session"
-              max_attendees: 25
-              start_time: 1706774400
-              end_time: 1706778000
+              title: "Campfire Songs (Updated)"
+              description: "An evening of classic scout songs with marshmallows and hot chocolate."
+              max_attendees: 60
+              start_time: 1752350400
+              end_time: 1752357600
       responses:
         '200':
           description: Activity updated successfully
@@ -153,12 +153,12 @@ paths:
               schema:
                 $ref: '#/components/schemas/Activity'
               example:
-                id: "550e8400-e29b-41d4-a716-446655440000"
-                title: "Updated Morning Yoga"
-                description: "Updated description for morning yoga session"
-                max_attendees: 25
-                start_time: 1706774400
-                end_time: 1706778000
+                id: "6f5e1d46-5f58-4e23-9a9d-8c2bfc2d22a0"
+                title: "Campfire Songs (Updated)"
+                description: "An evening of classic scout songs with marshmallows and hot chocolate."
+                max_attendees: 60
+                start_time: 1752350400
+                end_time: 1752357600
         '400':
           $ref: '#/components/responses/BadRequest'
         '404':
@@ -210,12 +210,12 @@ paths:
                       $ref: '#/components/schemas/Booking'
               example:
                 bookings:
-                  - id: "660e8400-e29b-41d4-a716-446655440000"
-                    user_id: "770e8400-e29b-41d4-a716-446655440000"
-                    activity_id: "550e8400-e29b-41d4-a716-446655440000"
-                    booker_group_id: 0
-                    booker_group_name: "TODO: from JWT"
-                    group_free_text: "Patrol Eagles"
+                  - id: "dd000001-0000-4000-8000-000000000001"
+                    user_id: "a1b2c3d4-e5f6-4a90-abcd-ef1234567890"
+                    activity_id: "6f5e1d46-5f58-4e23-9a9d-8c2bfc2d22a0"
+                    booker_group_id: 101
+                    booker_group_name: "Sjöscoutkåren Dansen"
+                    group_free_text: "Patrull Örnarna"
                     responsible_name: "Anna Svensson"
                     phone_number: "+46701234567"
                     participant_count: 12
@@ -259,12 +259,12 @@ paths:
               schema:
                 $ref: '#/components/schemas/Booking'
               example:
-                id: "660e8400-e29b-41d4-a716-446655440000"
-                user_id: "770e8400-e29b-41d4-a716-446655440000"
-                activity_id: "550e8400-e29b-41d4-a716-446655440000"
-                booker_group_id: 0
-                booker_group_name: "TODO: from JWT"
-                group_free_text: "Patrol Eagles"
+                id: "dd000001-0000-4000-8000-000000000001"
+                user_id: "a1b2c3d4-e5f6-4a90-abcd-ef1234567890"
+                activity_id: "6f5e1d46-5f58-4e23-9a9d-8c2bfc2d22a0"
+                booker_group_id: 101
+                booker_group_name: "Sjöscoutkåren Dansen"
+                group_free_text: "Patrull Örnarna"
                 responsible_name: "Anna Svensson"
                 phone_number: "+46701234567"
                 participant_count: 12
@@ -290,12 +290,12 @@ paths:
               schema:
                 $ref: '#/components/schemas/Booking'
               example:
-                id: "660e8400-e29b-41d4-a716-446655440000"
-                user_id: "770e8400-e29b-41d4-a716-446655440000"
-                activity_id: "550e8400-e29b-41d4-a716-446655440000"
-                booker_group_id: 0
-                booker_group_name: "TODO: from JWT"
-                group_free_text: "Patrol Eagles"
+                id: "dd000001-0000-4000-8000-000000000001"
+                user_id: "a1b2c3d4-e5f6-4a90-abcd-ef1234567890"
+                activity_id: "6f5e1d46-5f58-4e23-9a9d-8c2bfc2d22a0"
+                booker_group_id: 101
+                booker_group_name: "Sjöscoutkåren Dansen"
+                group_free_text: "Patrull Örnarna"
                 responsible_name: "Anna Svensson"
                 phone_number: "+46701234567"
                 participant_count: 12
@@ -333,12 +333,12 @@ paths:
               schema:
                 $ref: '#/components/schemas/Booking'
               example:
-                id: "660e8400-e29b-41d4-a716-446655440000"
-                user_id: "770e8400-e29b-41d4-a716-446655440000"
-                activity_id: "550e8400-e29b-41d4-a716-446655440000"
-                booker_group_id: 0
-                booker_group_name: "TODO: from JWT"
-                group_free_text: "Patrol Hawks"
+                id: "dd000001-0000-4000-8000-000000000001"
+                user_id: "a1b2c3d4-e5f6-4a90-abcd-ef1234567890"
+                activity_id: "6f5e1d46-5f58-4e23-9a9d-8c2bfc2d22a0"
+                booker_group_id: 101
+                booker_group_name: "Sjöscoutkåren Dansen"
+                group_free_text: "Patrull Falkarna"
                 responsible_name: "Erik Johansson"
                 phone_number: "+46709876543"
                 participant_count: 15
@@ -408,30 +408,30 @@ components:
           type: string
           format: uuid
           description: Unique identifier for the activity
-          example: "550e8400-e29b-41d4-a716-446655440000"
+          example: "6f5e1d46-5f58-4e23-9a9d-8c2bfc2d22a0"
         title:
           type: string
           description: Title of the activity
-          example: "Morning Yoga"
+          example: "Campfire Songs"
         description:
           type: string
           description: Detailed description of the activity
-          example: "Start your day with energizing yoga"
+          example: "An evening of classic scout songs around the campfire with marshmallows."
         max_attendees:
           type: integer
           nullable: true
           description: Maximum number of attendees (null for unlimited)
-          example: 20
+          example: 50
         start_time:
           type: integer
           format: int64
           description: Start time as Unix timestamp in seconds
-          example: 1706774400
+          example: 1752350400
         end_time:
           type: integer
           format: int64
           description: End time as Unix timestamp in seconds
-          example: 1706778000
+          example: 1752357600
 
     Booking:
       type: object
@@ -451,29 +451,29 @@ components:
           type: string
           format: uuid
           description: Unique identifier for the booking
-          example: "660e8400-e29b-41d4-a716-446655440000"
+          example: "dd000001-0000-4000-8000-000000000001"
         user_id:
           type: string
           format: uuid
           description: ID of the user who created the booking
-          example: "770e8400-e29b-41d4-a716-446655440000"
+          example: "a1b2c3d4-e5f6-4a90-abcd-ef1234567890"
         activity_id:
           type: string
           format: uuid
           description: ID of the activity being booked
-          example: "550e8400-e29b-41d4-a716-446655440000"
+          example: "6f5e1d46-5f58-4e23-9a9d-8c2bfc2d22a0"
         booker_group_id:
           type: integer
           description: Booker's scout group ID (from Scoutnet via JWT, currently dummy value)
-          example: 0
+          example: 101
         booker_group_name:
           type: string
           description: Booker's scout group name (from Scoutnet via JWT, currently dummy value)
-          example: "TODO: from JWT"
+          example: "Sjöscoutkåren Dansen"
         group_free_text:
           type: string
           description: Free text for group/patrol identification
-          example: "Patrol Eagles"
+          example: "Patrull Örnarna"
         responsible_name:
           type: string
           description: Name of the responsible adult
@@ -499,7 +499,7 @@ components:
         group_free_text:
           type: string
           description: Free text for group/patrol identification
-          example: "Patrol Eagles"
+          example: "Patrull Örnarna"
         responsible_name:
           type: string
           description: Name of the responsible adult
@@ -525,24 +525,24 @@ components:
         title:
           type: string
           description: Title of the activity
-          example: "Morning Yoga"
+          example: "Campfire Songs"
         description:
           type: string
           description: Detailed description of the activity
-          example: "Start your day with energizing yoga"
+          example: "An evening of classic scout songs around the campfire with marshmallows."
         max_attendees:
           type: integer
           nullable: true
           description: Maximum number of attendees (null or omit for unlimited)
-          example: 20
+          example: 50
         start_time:
           type: number
           description: Start time as Unix timestamp in seconds (accepts integer or float)
-          example: 1706774400
+          example: 1752350400
         end_time:
           type: number
           description: End time as Unix timestamp in seconds (accepts integer or float)
-          example: 1706778000
+          example: 1752357600
 
     AppConfig:
       type: object
@@ -633,7 +633,7 @@ components:
       schema:
         type: string
         format: uuid
-      example: "550e8400-e29b-41d4-a716-446655440000"
+      example: "6f5e1d46-5f58-4e23-9a9d-8c2bfc2d22a0"
 
     ActivityIdPath:
       name: activity_id
@@ -643,7 +643,7 @@ components:
       schema:
         type: string
         format: uuid
-      example: "550e8400-e29b-41d4-a716-446655440000"
+      example: "6f5e1d46-5f58-4e23-9a9d-8c2bfc2d22a0"
 
     BookingId:
       name: id
@@ -653,7 +653,7 @@ components:
       schema:
         type: string
         format: uuid
-      example: "660e8400-e29b-41d4-a716-446655440000"
+      example: "dd000001-0000-4000-8000-000000000001"
 
     SortParam:
       name: sort

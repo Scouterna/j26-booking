@@ -91,7 +91,11 @@ pub fn booking_decoder() -> decode.Decoder(Booking) {
   use responsible_name <- decode.field("responsible_name", decode.string)
   use phone_number <- decode.field("phone_number", decode.string)
   use participant_count <- decode.field("participant_count", decode.int)
-  case uuid.from_string(id_str), uuid.from_string(user_id_str), uuid.from_string(activity_id_str) {
+  case
+    uuid.from_string(id_str),
+    uuid.from_string(user_id_str),
+    uuid.from_string(activity_id_str)
+  {
     Ok(id), Ok(user_id), Ok(activity_id) ->
       decode.success(Booking(
         id:,
@@ -105,17 +109,18 @@ pub fn booking_decoder() -> decode.Decoder(Booking) {
         participant_count:,
       ))
     _, _, _ -> {
-      let dummy = Booking(
-        id: uuid.v7(),
-        user_id: uuid.v7(),
-        activity_id: uuid.v7(),
-        booker_group_id:,
-        booker_group_name:,
-        group_free_text:,
-        responsible_name:,
-        phone_number:,
-        participant_count:,
-      )
+      let dummy =
+        Booking(
+          id: uuid.v7(),
+          user_id: uuid.v7(),
+          activity_id: uuid.v7(),
+          booker_group_id:,
+          booker_group_name:,
+          group_free_text:,
+          responsible_name:,
+          phone_number:,
+          participant_count:,
+        )
       decode.failure(dummy, "valid UUID strings for id, user_id, activity_id")
     }
   }
