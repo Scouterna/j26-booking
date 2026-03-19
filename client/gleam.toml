@@ -25,7 +25,7 @@ youid = ">= 1.5.1 and < 2.0.0"
 
 [dev-dependencies]
 gleeunit = ">= 1.0.0 and < 2.0.0"
-lustre_dev_tools = ">= 2.3.2 and < 3.0.0"
+lustre_dev_tools = { git = "https://github.com/m4reko/lustre-dev-tools", ref = "main" }
 
 [tools.lustre.html]
 # Include Bootstrap in our project for simple styling.
@@ -45,4 +45,5 @@ link = [
 no_html = true
 
 [tools.lustre.dev]
+base_path = "/_services/booking"
 proxy = { from = "/_services/booking/api", to = "http://localhost:8000/_services/booking/api" }
