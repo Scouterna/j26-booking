@@ -101,7 +101,7 @@ pub fn spa_shell_page() -> Element(a) {
       html.script(
         [
           attribute.type_("module"),
-          attribute.src(base_path <> "/static/client.dev.js"),
+          attribute.src(base_path <> "/static/client.js"),
         ],
         "",
       ),
