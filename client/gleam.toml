@@ -43,3 +43,6 @@ link = [
 
 [tools.lustre.build]
 no_html = true
+
+[tools.lustre.dev]
+proxy = { from = "/_services/booking/api", to = "http://localhost:8000/_services/booking/api" }
