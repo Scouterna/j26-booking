@@ -9,3 +9,7 @@ body {
   font-family: "Source Sans 3", sans-serif; --fontfamily-sans: "Source Sans 3", sans-serif;
 }
 
+.icon-tabler {
+  width: 100%;
+  height: 100%;
+}

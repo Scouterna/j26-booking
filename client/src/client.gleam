@@ -7,8 +7,10 @@ import gleam/string
 import gleam/time/calendar
 import gleam/time/timestamp
 import gleam/uri.{type Uri}
+import icons
 import lustre
 import lustre/attribute
+import lustre/dev/query
 import lustre/effect.{type Effect}
 import lustre/element.{type Element}
 import lustre/element/html
@@ -499,30 +501,8 @@ fn view_activity_new(model: Model) -> Element(Msg) {
 fn view_activity_detail(model: Model) -> Element(Msg) {
   case model.loading {
     True ->
-      scout_stack("column", "none", [
-        html.div(
-          [
-            attribute.styles([
-              #("display", "flex"),
-              #("align-items", "center"),
-              #("gap", "var(--scout-spacing-s)"),
-              #("padding", "var(--scout-spacing-m)"),
-            ]),
-          ],
-          [
-            html.a(
-              [
-                attribute.href(api_prefix <> "/activities"),
-                attribute.styles([#("text-decoration", "none")]),
-              ],
-              [scout_button_el("Back", "text")],
-            ),
-            html.h1([], [element.text("Loading...")]),
-          ],
-        ),
-        html.div([attribute.styles([#("padding", "var(--scout-spacing-l)")])], [
-          scout_loader("Loading activity..."),
-        ]),
+      html.div([attribute.class("flex justify-center py-8")], [
+        scout_loader("Laddar aktivitet..."),
       ])
     False ->
       case model.selected_activity {
@@ -538,13 +518,6 @@ fn view_activity_detail(model: Model) -> Element(Msg) {
                 ]),
               ],
               [
-                html.a(
-                  [
-                    attribute.href(api_prefix <> "/activities"),
-                    attribute.styles([#("text-decoration", "none")]),
-                  ],
-                  [scout_button_el("Back", "text")],
-                ),
                 html.h1([], [element.text("Not Found")]),
               ],
             ),
@@ -559,42 +532,154 @@ fn view_activity_detail(model: Model) -> Element(Msg) {
 }
 
 fn view_activity_detail_loaded(model: Model, activity: Activity) -> Element(Msg) {
-  scout_stack("column", "none", [
-    html.div([attribute.styles([#("padding", "var(--scout-spacing-m)")])], [
-      html.h1([], [element.text(activity.title)]),
-    ]),
-    html.div([attribute.styles([#("padding", "var(--scout-spacing-m)")])], [
-      case model.error {
-        Some(err) -> error_banner(err)
-        None -> element.none()
-      },
-      scout_card([
-        case model.editing {
-          False -> view_activity_read_only(activity)
-          True -> view_activity_edit_form(model)
-        },
-      ]),
-      html.div(
-        [
-          attribute.styles([
-            #("padding-top", "var(--scout-spacing-m)"),
-            #("display", "flex"),
-            #("gap", "var(--scout-spacing-s)"),
+  html.div([attribute.class("flex flex-col")], [
+    html.div(
+      // Map
+      [
+        attribute.class("h-28 border-b border-gray-200"),
+      ],
+      [
+        html.iframe([
+          attribute.src(
+            // TODO: Don't use hardcodded domain.
+            // TODO: Use proper coordinates.
+            "https://local.j26.se/_services/map/preview.html?lat=55.979571&lng=14.130669&icon=badge-wc&variant=filled",
+          ),
+          attribute.class("w-full h-full outline-none"),
+        ]),
+      ],
+    ),
+    html.div(
+      // Content
+      [
+        attribute.class("flex-1 flex flex-col p-4 gap-4"),
+      ],
+      [
+        html.div(
+          // Header row
+          [
+            attribute.class("flex gap-4"),
+          ],
+          [
+            html.div([attribute.class("flex-1 flex items-center")], [
+              html.h1(
+                [
+                  attribute.class("text-heading-xs"),
+                ],
+                [element.text(activity.title)],
+              ),
+            ]),
+            html.div([attribute.class("flex flex-col gap-1 items-end")], [
+              scout_button_action("Boka", "primary", UserClickedEdit),
+              html.div(
+                [
+                  attribute.class(
+                    "flex gap-2 items-center text-body-sm text-gray-500",
+                  ),
+                ],
+                [
+                  element.unsafe_raw_html(
+                    "",
+                    "div",
+                    [attribute.class("size-4")],
+                    icons.users,
+                  ),
+                  html.p(
+                    [
+                      attribute.class("flex-1"),
+                    ],
+                    [element.text("17 platser kvar")],
+                  ),
+                  // TODO: Calculate remaining spots based on attendees
+                ],
+              ),
+            ]),
+          ],
+        ),
+        html.div(
+          [
+            // Quick info
+            attribute.class("flex-1 grid grid-cols-2"),
+          ],
+          [
+            quick_info_tile(icons.clock, "Tid", [
+              // TODO: What about activities that span multiple days? What
+              // about activities that are tomorrow? Next week?
+              element.text(format_time_range(
+                activity.start_time,
+                activity.end_time,
+              )),
+            ]),
+            quick_info_tile(icons.pin, "Plats", [
+              element.text("Badbusstorget"),
+              // TODO: Mocked data
+            ]),
+          ],
+        ),
+        html.div([], [
+          html.p([attribute.class("text-body-m")], [
+            element.text(activity.description),
           ]),
-        ],
-        case model.editing {
-          False -> [
-            scout_button_action("Edit", "outlined", UserClickedEdit),
-            scout_button_action("Delete", "danger", UserClickedDelete),
-          ]
-          True -> [
-            scout_button_action("Save", "primary", UserSubmittedEditForm),
-            scout_button_action("Cancel", "outlined", UserClickedCancelEdit),
-          ]
-        },
-      ),
-    ]),
+        ]),
+      ],
+    ),
   ])
+  // scout_stack("column", "none", [
+  //   html.div([attribute.styles([#("padding", "var(--scout-spacing-m)")])], [
+  //     html.h1([], [element.text(activity.title)]),
+  //   ]),
+  //   html.div([attribute.styles([#("padding", "var(--scout-spacing-m)")])], [
+  //     case model.error {
+  //       Some(err) -> error_banner(err)
+  //       None -> element.none()
+  //     },
+  //     scout_card([
+  //       case model.editing {
+  //         False -> view_activity_read_only(activity)
+  //         True -> view_activity_edit_form(model)
+  //       },
+  //     ]),
+  //     html.div(
+  //       [
+  //         attribute.styles([
+  //           #("padding-top", "var(--scout-spacing-m)"),
+  //           #("display", "flex"),
+  //           #("gap", "var(--scout-spacing-s)"),
+  //         ]),
+  //       ],
+  //       case model.editing {
+  //         False -> [
+  //           scout_button_action("Edit", "outlined", UserClickedEdit),
+  //           scout_button_action("Delete", "danger", UserClickedDelete),
+  //         ]
+  //         True -> [
+  //           scout_button_action("Save", "primary", UserSubmittedEditForm),
+  //           scout_button_action("Cancel", "outlined", UserClickedCancelEdit),
+  //         ]
+  //       },
+  //     ),
+  //   ]),
+  // ])
+}
+
+fn quick_info_tile(
+  icon: String,
+  title: String,
+  content: List(Element(Msg)),
+) -> Element(Msg) {
+  html.div([attribute.class("flex flex-col")], [
+    html.div([attribute.class("flex items-center gap-1 text-gray-800")], [
+      component_icon(icon, "size-4"),
+      html.div([attribute.class("text-body-sm")], [
+        element.text(title),
+      ]),
+    ]),
+    html.div([], content),
+  ])
+}
+
+fn component_icon(icon: String, class: String) -> Element(Msg) {
+  element.unsafe_raw_html("", "div", [attribute.class(class)], icon)
 }
 
 fn view_activity_read_only(activity: Activity) -> Element(Msg) {
@@ -604,8 +689,8 @@ fn view_activity_read_only(activity: Activity) -> Element(Msg) {
       Some(n) -> int.to_string(n)
       None -> "No limit"
     }),
-    detail_row("Start time", format_timestamp(activity.start_time)),
-    detail_row("End time", format_timestamp(activity.end_time)),
+    detail_row("Start time", timestamp_to_time(activity.start_time)),
+    detail_row("End time", timestamp_to_time(activity.end_time)),
   ])
 }
 
@@ -768,6 +853,14 @@ fn timestamp_to_datetime_local(ts: timestamp.Timestamp) -> String {
   year <> "-" <> month <> "-" <> day <> "T" <> hours <> ":" <> minutes
 }
 
+/// Format a Timestamp as "HH:MM"
+fn timestamp_to_time(ts: timestamp.Timestamp) -> String {
+  let #(_, time) = timestamp.to_calendar(ts, calendar.local_offset())
+  let hours = pad2(time.hours)
+  let minutes = pad2(time.minutes)
+  hours <> ":" <> minutes
+}
+
 /// Parse a "YYYY-MM-DDTHH:MM" datetime-local value to unix seconds.
 fn datetime_local_to_unix_seconds(value: String) -> Int {
   // datetime-local format: YYYY-MM-DDTHH:MM
@@ -811,14 +904,9 @@ fn pad2(n: Int) -> String {
   }
 }
 
-fn format_timestamp(ts: timestamp.Timestamp) -> String {
-  timestamp_to_datetime_local(ts)
-  |> string.replace("T", " ")
-}
-
 fn format_time_range(
   start: timestamp.Timestamp,
   end: timestamp.Timestamp,
 ) -> String {
-  format_timestamp(start) <> " – " <> format_timestamp(end)
+  timestamp_to_time(start) <> " – " <> timestamp_to_time(end)
 }

@@ -101,7 +101,7 @@ pub fn spa_shell_page() -> Element(a) {
       html.script(
         [
           attribute.type_("module"),
-          attribute.src(base_path <> "/static/client.js"),
+          attribute.src(base_path <> "/static/client.dev.js"),
         ],
         "",
       ),
@@ -110,6 +110,10 @@ pub fn spa_shell_page() -> Element(a) {
         attribute.href(
           "https://cdn.jsdelivr.net/npm/@scouterna/ui-webc@3.2.0/dist/ui-webc/ui-webc.css",
         ),
+      ]),
+      html.link([
+        attribute.rel("stylesheet"),
+        attribute.href(base_path <> "/static/client.css"),
       ]),
       html.link([
         attribute.rel("preconnect"),
