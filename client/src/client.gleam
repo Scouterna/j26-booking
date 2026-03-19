@@ -545,7 +545,8 @@ fn view_activity_detail_loaded(model: Model, activity: Activity) -> Element(Msg)
             // TODO: Use proper coordinates.
             "https://local.j26.se/_services/map/preview.html?lat=55.979571&lng=14.130669&icon=badge-wc&variant=filled",
           ),
-          attribute.class("w-full h-full outline-none"),
+          attribute.class("w-full h-full outline-none pointer-events-none"),
+          attribute.loading("lazy"),
         ]),
       ],
     ),
