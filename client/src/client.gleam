@@ -536,14 +536,13 @@ fn view_activity_detail_loaded(model: Model, activity: Activity) -> Element(Msg)
     html.div(
       // Map
       [
-        attribute.class("h-28 border-b border-gray-200"),
+        attribute.class("sticky top-0 h-28"),
       ],
       [
         html.iframe([
           attribute.src(
-            // TODO: Don't use hardcodded domain.
             // TODO: Use proper coordinates.
-            "https://local.j26.se/_services/map/preview.html?lat=55.979571&lng=14.130669&icon=badge-wc&variant=filled",
+            "/_services/map/preview.html?lat=55.979571&lng=14.130669&icon=badge-wc&variant=filled",
           ),
           attribute.class("w-full h-full outline-none pointer-events-none"),
           attribute.loading("lazy"),
@@ -553,7 +552,9 @@ fn view_activity_detail_loaded(model: Model, activity: Activity) -> Element(Msg)
     html.div(
       // Content
       [
-        attribute.class("flex-1 flex flex-col p-4 gap-4"),
+        attribute.class(
+          "z-10 bg-white border-t border-gray-200 flex-1 flex flex-col p-4 gap-4",
+        ),
       ],
       [
         html.div(
@@ -562,7 +563,7 @@ fn view_activity_detail_loaded(model: Model, activity: Activity) -> Element(Msg)
             attribute.class("flex gap-4"),
           ],
           [
-            html.div([attribute.class("flex-1 flex items-center")], [
+            html.div([attribute.class("flex-1 flex pt-1")], [
               html.h1(
                 [
                   attribute.class("text-heading-xs"),
@@ -620,6 +621,89 @@ fn view_activity_detail_loaded(model: Model, activity: Activity) -> Element(Msg)
         html.div([], [
           html.p([attribute.class("text-body-m")], [
             element.text(activity.description),
+            html.br([]),
+            html.br([]),
+            element.text(
+              "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
+            ),
+            element.text(
+              "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
+            ),
+            element.text(
+              "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
+            ),
+            element.text(
+              "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
+            ),
+            element.text(
+              "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
+            ),
+            element.text(
+              "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
+            ),
+            element.text(
+              "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
+            ),
+            element.text(
+              "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
+            ),
+            element.text(
+              "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
+            ),
+            element.text(
+              "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
+            ),
+            element.text(
+              "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
+            ),
+            element.text(
+              "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
+            ),
+            element.text(
+              "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
+            ),
+            element.text(
+              "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
+            ),
+            element.text(
+              "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
+            ),
+            element.text(
+              "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
+            ),
+            element.text(
+              "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
+            ),
+            element.text(
+              "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
+            ),
+            element.text(
+              "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
+            ),
+            element.text(
+              "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
+            ),
+            element.text(
+              "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
+            ),
+            element.text(
+              "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
+            ),
+            element.text(
+              "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
+            ),
+            element.text(
+              "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
+            ),
+            element.text(
+              "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
+            ),
+            element.text(
+              "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
+            ),
+            element.text(
+              "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
+            ),
           ]),
         ]),
       ],
