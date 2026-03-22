@@ -107,10 +107,14 @@ fn init(_flags) -> #(Model, Effect(Msg)) {
       effect.batch([
         modem.init(OnRouteChange),
         fetch_activities(),
-        set_app_bar_title("Activities"),
+        set_app_bar_title("Aktiviteter"),
       ])
     ActivityDetail(id) ->
-      effect.batch([modem.init(OnRouteChange), fetch_activity(id)])
+      effect.batch([
+        modem.init(OnRouteChange),
+        fetch_activity(id),
+        // set_app_bar_title("Aktivitet"), // We set this later on ApiReturnedActivity(Ok(activity))
+      ])
     _ -> modem.init(OnRouteChange)
   }
 
@@ -150,7 +154,11 @@ fn update(model: Model, msg: Msg) -> #(Model, Effect(Msg)) {
       case route {
         ActivitiesList -> #(
           Model(..model, loading: True, editing: False),
-          effect.batch([fetch_activities(), set_app_bar_title("Activities")]),
+          effect.batch([
+            fetch_activities(),
+            // FIXME: Isn't this call to set_app_bar_title duplicated?
+            set_app_bar_title("Activities"),
+          ]),
         )
         ActivityDetail(id) -> #(
           Model(..model, loading: True, selected_activity: None, editing: False),
@@ -181,7 +189,7 @@ fn update(model: Model, msg: Msg) -> #(Model, Effect(Msg)) {
         form: form_from_activity(activity),
         loading: False,
       ),
-      effect.none(),
+      set_app_bar_title(activity.title),
     )
 
     ApiReturnedActivity(Error(_)) -> #(
