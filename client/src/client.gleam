@@ -10,7 +10,6 @@ import gleam/uri.{type Uri}
 import icons
 import lustre
 import lustre/attribute
-import lustre/dev/query
 import lustre/effect.{type Effect}
 import lustre/element.{type Element}
 import lustre/element/html
@@ -37,6 +36,7 @@ type Route {
   ActivitiesList
   ActivityNew
   ActivityDetail(id: String)
+  ActivityEdit(id: String)
   NotFound
 }
 
@@ -107,13 +107,13 @@ fn init(_flags) -> #(Model, Effect(Msg)) {
       effect.batch([
         modem.init(OnRouteChange),
         fetch_activities(),
-        set_app_bar_title("Aktiviteter"),
+        set_app_bar_title("Spontanaktiviteter"),
       ])
     ActivityDetail(id) ->
       effect.batch([
         modem.init(OnRouteChange),
         fetch_activity(id),
-        // set_app_bar_title("Aktivitet"), // We set this later on ApiReturnedActivity(Ok(activity))
+        set_app_bar_title("Aktivitet"),
       ])
     _ -> modem.init(OnRouteChange)
   }
@@ -156,18 +156,18 @@ fn update(model: Model, msg: Msg) -> #(Model, Effect(Msg)) {
           Model(..model, loading: True, editing: False),
           effect.batch([
             fetch_activities(),
-            // FIXME: Isn't this call to set_app_bar_title duplicated?
-            set_app_bar_title("Activities"),
+            set_app_bar_title("Spontanaktiviteter"),
           ]),
         )
         ActivityDetail(id) -> #(
           Model(..model, loading: True, selected_activity: None, editing: False),
-          fetch_activity(id),
+          effect.batch([fetch_activity(id), set_app_bar_title("Aktivitet")]),
         )
         ActivityNew -> #(
           Model(..model, form: empty_form(), editing: False),
-          effect.none(),
+          set_app_bar_title("Skapa aktivitet"),
         )
+        ActivityEdit(id) -> todo
         NotFound -> #(model, effect.none())
       }
     }
@@ -189,7 +189,7 @@ fn update(model: Model, msg: Msg) -> #(Model, Effect(Msg)) {
         form: form_from_activity(activity),
         loading: False,
       ),
-      set_app_bar_title(activity.title),
+      effect.none(),
     )
 
     ApiReturnedActivity(Error(_)) -> #(
@@ -377,6 +377,7 @@ fn view(model: Model) -> Element(Msg) {
   case model.route {
     ActivitiesList -> view_activities_list(model)
     ActivityNew -> view_activity_new(model)
+    ActivityEdit(id) -> todo
     ActivityDetail(_) -> view_activity_detail(model)
     NotFound -> view_not_found()
   }
