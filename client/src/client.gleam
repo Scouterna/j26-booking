@@ -1,8 +1,11 @@
+import g18n.{type Translator}
+import g18n/locale
 import gleam/dynamic/decode
 import gleam/int
 import gleam/json
 import gleam/list
 import gleam/option.{type Option, None, Some}
+import gleam/order
 import gleam/string
 import gleam/time/calendar
 import gleam/time/timestamp
@@ -59,6 +62,7 @@ type Model {
     form: ActivityForm,
     editing: Bool,
     error: Option(String),
+    translator: Translator,
   )
 }
 
@@ -91,6 +95,10 @@ fn init(_flags) -> #(Model, Effect(Msg)) {
     Error(_) -> ActivitiesList
   }
 
+  let assert Ok(locale) = locale.new("fr")
+  let translations = g18n.new_translations()
+  let en_translator = g18n.new_translator(locale, translations)
+
   let model =
     Model(
       route:,
@@ -100,6 +108,7 @@ fn init(_flags) -> #(Model, Effect(Msg)) {
       form: empty_form(),
       editing: False,
       error: None,
+      translator: en_translator,
     )
 
   let effects = case route {
@@ -616,10 +625,45 @@ fn view_activity_detail_loaded(model: Model, activity: Activity) -> Element(Msg)
             quick_info_tile(icons.clock, "Tid", [
               // TODO: What about activities that span multiple days? What
               // about activities that are tomorrow? Next week?
-              element.text(format_time_range(
-                activity.start_time,
-                activity.end_time,
-              )),
+              {
+                let start_calendar =
+                  timestamp.to_calendar(
+                    activity.start_time,
+                    calendar.utc_offset,
+                  )
+                let end_calendar =
+                  timestamp.to_calendar(activity.end_time, calendar.utc_offset)
+                case classify_interval(start_calendar, end_calendar) {
+                  SameDayDifferentTime ->
+                    element.text(
+                      g18n.format_date(
+                        model.translator,
+                        start_calendar.0,
+                        g18n.Medium,
+                      )
+                      <> " "
+                      <> g18n.format_time(
+                        model.translator,
+                        start_calendar.1,
+                        g18n.Short,
+                      )
+                      <> "-"
+                      <> g18n.format_time(
+                        model.translator,
+                        end_calendar.1,
+                        g18n.Short,
+                      ),
+                    )
+                  SameDaySameTime ->
+                    element.text(g18n.format_datetime(
+                      model.translator,
+                      start_calendar.0,
+                      start_calendar.1,
+                      g18n.Medium,
+                    ))
+                  DifferentDays -> todo
+                }
+              },
             ]),
             quick_info_tile(icons.pin, "Plats", [
               element.text("Badbusstorget"),
@@ -754,6 +798,27 @@ fn view_activity_detail_loaded(model: Model, activity: Activity) -> Element(Msg)
   //     ),
   //   ]),
   // ])
+}
+
+type IntervalClasses {
+  SameDayDifferentTime
+  SameDaySameTime
+  DifferentDays
+}
+
+fn classify_interval(
+  start_calendar: #(calendar.Date, calendar.TimeOfDay),
+  end_calendar: #(calendar.Date, calendar.TimeOfDay),
+) -> IntervalClasses {
+  let #(start_date, start_time) = start_calendar
+  let #(end_date, end_time) = end_calendar
+  let same_day = start_date == end_date
+  let same_time = start_time == end_time
+  case same_day, same_time {
+    True, True -> SameDaySameTime
+    True, False -> SameDayDifferentTime
+    _, _ -> DifferentDays
+  }
 }
 
 fn quick_info_tile(
