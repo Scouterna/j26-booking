@@ -24,6 +24,41 @@ import youid/uuid
 
 const api_prefix = "/_services/booking"
 
+// TRANSLATIONS ----------------------------------------------------------------
+
+fn english_translations() -> g18n.Translations {
+  g18n.new_translations()
+  |> g18n.add_translation("activity.loading", "Loading activity...")
+  |> g18n.add_translation("activity.not_found_title", "Not Found")
+  |> g18n.add_translation("activity.not_found_message", "Activity not found.")
+  |> g18n.add_translation("activity.book", "Book")
+  |> g18n.add_translation("activity.spots_remaining", "17 spots remaining")
+  |> g18n.add_translation("activity.time", "Time")
+  |> g18n.add_translation("activity.date_range_separator", "to")
+  |> g18n.add_translation("activity.location", "Location")
+  |> g18n.add_translation("app_bar.activities_list", "Activities")
+  |> g18n.add_translation("app_bar.activity_detail", "Activity")
+  |> g18n.add_translation("app_bar.activity_new", "Create activity")
+}
+
+fn swedish_translations() -> g18n.Translations {
+  g18n.new_translations()
+  |> g18n.add_translation("activity.loading", "Laddar aktivitet...")
+  |> g18n.add_translation("activity.not_found_title", "Hittades inte")
+  |> g18n.add_translation(
+    "activity.not_found_message",
+    "Aktiviteten hittades inte.",
+  )
+  |> g18n.add_translation("activity.book", "Boka")
+  |> g18n.add_translation("activity.spots_remaining", "17 platser kvar")
+  |> g18n.add_translation("activity.time", "Tid")
+  |> g18n.add_translation("activity.date_range_separator", "till")
+  |> g18n.add_translation("activity.location", "Plats")
+  |> g18n.add_translation("app_bar.activities_list", "Spontanaktiviteter")
+  |> g18n.add_translation("app_bar.activity_detail", "Aktivitet")
+  |> g18n.add_translation("app_bar.activity_new", "Skapa aktivitet")
+}
+
 // MAIN ------------------------------------------------------------------------
 
 pub fn main() {
@@ -95,9 +130,9 @@ fn init(_flags) -> #(Model, Effect(Msg)) {
     Error(_) -> ActivitiesList
   }
 
-  let assert Ok(locale) = locale.new("fr")
-  let translations = g18n.new_translations()
-  let en_translator = g18n.new_translator(locale, translations)
+  let assert Ok(locale) = locale.new("sv")
+  let translations = swedish_translations()
+  let translator = g18n.new_translator(locale, translations)
 
   let model =
     Model(
@@ -108,7 +143,7 @@ fn init(_flags) -> #(Model, Effect(Msg)) {
       form: empty_form(),
       editing: False,
       error: None,
-      translator: en_translator,
+      translator: translator,
     )
 
   let effects = case route {
@@ -116,13 +151,13 @@ fn init(_flags) -> #(Model, Effect(Msg)) {
       effect.batch([
         modem.init(OnRouteChange),
         fetch_activities(),
-        set_app_bar_title("Spontanaktiviteter"),
+        set_app_bar_title(g18n.translate(translator, "app_bar.activities_list")),
       ])
     ActivityDetail(id) ->
       effect.batch([
         modem.init(OnRouteChange),
         fetch_activity(id),
-        set_app_bar_title("Aktivitet"),
+        set_app_bar_title(g18n.translate(translator, "app_bar.activity_detail")),
       ])
     _ -> modem.init(OnRouteChange)
   }
@@ -165,16 +200,28 @@ fn update(model: Model, msg: Msg) -> #(Model, Effect(Msg)) {
           Model(..model, loading: True, editing: False),
           effect.batch([
             fetch_activities(),
-            set_app_bar_title("Spontanaktiviteter"),
+            set_app_bar_title(g18n.translate(
+              model.translator,
+              "app_bar.activities_list",
+            )),
           ]),
         )
         ActivityDetail(id) -> #(
           Model(..model, loading: True, selected_activity: None, editing: False),
-          effect.batch([fetch_activity(id), set_app_bar_title("Aktivitet")]),
+          effect.batch([
+            fetch_activity(id),
+            set_app_bar_title(g18n.translate(
+              model.translator,
+              "app_bar.activity_detail",
+            )),
+          ]),
         )
         ActivityNew -> #(
           Model(..model, form: empty_form(), editing: False),
-          set_app_bar_title("Skapa aktivitet"),
+          set_app_bar_title(g18n.translate(
+            model.translator,
+            "app_bar.activity_new",
+          )),
         )
         ActivityEdit(id) -> todo
         NotFound -> #(model, effect.none())
@@ -520,7 +567,7 @@ fn view_activity_detail(model: Model) -> Element(Msg) {
   case model.loading {
     True ->
       html.div([attribute.class("flex justify-center py-8")], [
-        scout_loader("Laddar aktivitet..."),
+        scout_loader(g18n.translate(model.translator, "activity.loading")),
       ])
     False ->
       case model.selected_activity {
@@ -536,12 +583,24 @@ fn view_activity_detail(model: Model) -> Element(Msg) {
                 ]),
               ],
               [
-                html.h1([], [element.text("Not Found")]),
+                html.h1([], [
+                  element.text(g18n.translate(
+                    model.translator,
+                    "activity.not_found_title",
+                  )),
+                ]),
               ],
             ),
             html.div(
               [attribute.styles([#("padding", "var(--scout-spacing-l)")])],
-              [html.p([], [element.text("Activity not found.")])],
+              [
+                html.p([], [
+                  element.text(g18n.translate(
+                    model.translator,
+                    "activity.not_found_message",
+                  )),
+                ]),
+              ],
             ),
           ])
         Some(activity) -> view_activity_detail_loaded(model, activity)
@@ -590,7 +649,11 @@ fn view_activity_detail_loaded(model: Model, activity: Activity) -> Element(Msg)
               ),
             ]),
             html.div([attribute.class("flex flex-col gap-1 items-end")], [
-              scout_button_action("Boka", "primary", UserClickedEdit),
+              scout_button_action(
+                g18n.translate(model.translator, "activity.book"),
+                "primary",
+                UserClickedEdit,
+              ),
               html.div(
                 [
                   attribute.class(
@@ -608,7 +671,12 @@ fn view_activity_detail_loaded(model: Model, activity: Activity) -> Element(Msg)
                     [
                       attribute.class("flex-1"),
                     ],
-                    [element.text("17 platser kvar")],
+                    [
+                      element.text(g18n.translate(
+                        model.translator,
+                        "activity.spots_remaining",
+                      )),
+                    ],
                   ),
                   // TODO: Calculate remaining spots based on attendees
                 ],
@@ -622,53 +690,25 @@ fn view_activity_detail_loaded(model: Model, activity: Activity) -> Element(Msg)
             attribute.class("flex-1 grid grid-cols-2"),
           ],
           [
-            quick_info_tile(icons.clock, "Tid", [
-              // TODO: What about activities that span multiple days? What
-              // about activities that are tomorrow? Next week?
-              {
-                let start_calendar =
-                  timestamp.to_calendar(
-                    activity.start_time,
-                    calendar.utc_offset,
-                  )
-                let end_calendar =
-                  timestamp.to_calendar(activity.end_time, calendar.utc_offset)
-                case classify_interval(start_calendar, end_calendar) {
-                  SameDayDifferentTime ->
-                    element.text(
-                      g18n.format_date(
-                        model.translator,
-                        start_calendar.0,
-                        g18n.Medium,
-                      )
-                      <> " "
-                      <> g18n.format_time(
-                        model.translator,
-                        start_calendar.1,
-                        g18n.Short,
-                      )
-                      <> "-"
-                      <> g18n.format_time(
-                        model.translator,
-                        end_calendar.1,
-                        g18n.Short,
-                      ),
-                    )
-                  SameDaySameTime ->
-                    element.text(g18n.format_datetime(
-                      model.translator,
-                      start_calendar.0,
-                      start_calendar.1,
-                      g18n.Medium,
-                    ))
-                  DifferentDays -> todo
-                }
-              },
-            ]),
-            quick_info_tile(icons.pin, "Plats", [
-              element.text("Badbusstorget"),
-              // TODO: Mocked data
-            ]),
+            quick_info_tile(
+              icons.clock,
+              g18n.translate(model.translator, "activity.time"),
+              [
+                view_time_interval(
+                  model,
+                  activity.start_time,
+                  activity.end_time,
+                ),
+              ],
+            ),
+            quick_info_tile(
+              icons.pin,
+              g18n.translate(model.translator, "activity.location"),
+              [
+                element.text("Badbusstorget"),
+                // TODO: Mocked data
+              ],
+            ),
           ],
         ),
         html.div([], [
@@ -818,6 +858,51 @@ fn classify_interval(
     True, True -> SameDaySameTime
     True, False -> SameDayDifferentTime
     _, _ -> DifferentDays
+  }
+}
+
+fn view_time_interval(
+  model: Model,
+  start: timestamp.Timestamp,
+  end: timestamp.Timestamp,
+) -> Element(Msg) {
+  let start_calendar = timestamp.to_calendar(start, calendar.utc_offset)
+  let end_calendar = timestamp.to_calendar(end, calendar.utc_offset)
+  let translator = model.translator
+  let format_date = fn(d) {
+    g18n.format_date(translator, d, g18n.Custom("EEEE d/M"))
+  }
+  let format_time = fn(tod) {
+    g18n.format_time(translator, tod, g18n.Custom("HH.mm"))
+  }
+  case classify_interval(start_calendar, end_calendar) {
+    SameDayDifferentTime ->
+      html.span([], [
+        element.text(format_date(start_calendar.0)),
+        html.br([]),
+        element.text(
+          format_time(start_calendar.1) <> " - " <> format_time(end_calendar.1),
+        ),
+      ])
+    SameDaySameTime ->
+      html.span([], [
+        element.text(format_date(start_calendar.0)),
+        html.br([]),
+        element.text(format_time(start_calendar.1)),
+      ])
+    DifferentDays -> {
+      let separator =
+        g18n.translate(model.translator, "activity.date_range_separator")
+      html.span([], [
+        element.text(format_date(start_calendar.0)),
+        html.br([]),
+        element.text(format_time(start_calendar.1) <> " " <> separator),
+        html.br([]),
+        element.text(format_date(end_calendar.0)),
+        html.br([]),
+        element.text(format_time(end_calendar.1)),
+      ])
+    }
   }
 }
 

@@ -8,7 +8,7 @@ packages = [
   { name = "envoy", version = "1.1.0", build_tools = ["gleam"], requirements = ["gleam_stdlib"], otp_app = "envoy", source = "hex", outer_checksum = "850DA9D29D2E5987735872A2B5C81035146D7FE19EFC486129E44440D03FD832" },
   { name = "exception", version = "2.1.0", build_tools = ["gleam"], requirements = ["gleam_stdlib"], otp_app = "exception", source = "hex", outer_checksum = "329D269D5C2A314F7364BD2711372B6F2C58FA6F39981572E5CA68624D291F8C" },
   { name = "filepath", version = "1.1.2", build_tools = ["gleam"], requirements = ["gleam_stdlib"], otp_app = "filepath", source = "hex", outer_checksum = "B06A9AF0BF10E51401D64B98E4B627F1D2E48C154967DA7AF4D0914780A6D40A" },
-  { name = "g18n", version = "3.1.1", build_tools = ["gleam"], requirements = ["gleam_community_maths", "gleam_json", "gleam_regexp", "gleam_stdlib", "gleam_time", "splitter", "trie_again"], otp_app = "g18n", source = "hex", outer_checksum = "B02594CD480BFD6C540252638BBA66B0E07AF165483DC56F1D5FFAED3FECC635" },
+  { name = "g18n", version = "3.1.1", build_tools = ["gleam"], requirements = ["gleam_community_maths", "gleam_json", "gleam_regexp", "gleam_stdlib", "gleam_time", "splitter", "trie_again"], source = "git", repo = "https://github.com/m4reko/g18n", commit = "6ccfa26195607d5056f1246c8e3268ff506eff56" },
   { name = "gleam_community_ansi", version = "1.4.4", build_tools = ["gleam"], requirements = ["gleam_community_colour", "gleam_regexp", "gleam_stdlib"], otp_app = "gleam_community_ansi", source = "hex", outer_checksum = "1B3AEA6074AB34D5F0674744F36DDC7290303A03295507E2DEC61EDD6F5777FE" },
   { name = "gleam_community_colour", version = "2.0.4", build_tools = ["gleam"], requirements = ["gleam_json", "gleam_stdlib"], otp_app = "gleam_community_colour", source = "hex", outer_checksum = "6DB4665555D7D2B27F0EA32EF47E8BEBC4303821765F9C73D483F38EE24894F0" },
   { name = "gleam_community_maths", version = "2.0.1", build_tools = ["gleam"], requirements = ["gleam_stdlib", "gleam_yielder"], otp_app = "gleam_community_maths", source = "hex", outer_checksum = "782BFD423BBE4475F32356981CBFD2DA47D424FE6E1F3156E85165246E6A79C7" },
@@ -53,7 +53,7 @@ packages = [
 ]
 
 [requirements]
-g18n = { version = ">= 3.1.1 and < 4.0.0" }
+g18n = { git = "https://github.com/m4reko/g18n", ref = "main" }
 gleam_json = { version = ">= 3.1.0 and < 4.0.0" }
 gleam_stdlib = { version = ">= 0.44.0 and < 2.0.0" }
 gleam_time = { version = ">= 1.7.0 and < 2.0.0" }
