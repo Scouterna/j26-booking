@@ -1,3 +1,4 @@
+import formal/form.{type Form}
 import g18n.{type Translator}
 import g18n/locale
 import gleam/dynamic/decode
@@ -5,7 +6,6 @@ import gleam/int
 import gleam/json
 import gleam/list
 import gleam/option.{type Option, None, Some}
-import gleam/order
 import gleam/string
 import gleam/time/calendar
 import gleam/time/timestamp
@@ -82,9 +82,9 @@ type ActivityForm {
   ActivityForm(
     title: String,
     description: String,
-    max_attendees: String,
-    start_time: String,
-    end_time: String,
+    max_attendees: Option(Int),
+    start_time: #(calendar.Date, calendar.TimeOfDay),
+    end_time: #(calendar.Date, calendar.TimeOfDay),
   )
 }
 
@@ -94,34 +94,45 @@ type Model {
     activities: List(Activity),
     selected_activity: Option(Activity),
     loading: Bool,
-    form: ActivityForm,
-    editing: Bool,
+    form: Form(ActivityForm),
     error: Option(String),
     translator: Translator,
   )
 }
 
-fn empty_form() -> ActivityForm {
-  ActivityForm(
-    title: "",
-    description: "",
-    max_attendees: "",
-    start_time: "",
-    end_time: "",
-  )
+fn activity_form() -> Form(ActivityForm) {
+  form.new({
+    use title <- form.field("title", form.parse_string |> form.check_not_empty)
+    use description <- form.field("description", form.parse_string)
+    use max_attendees <- form.field(
+      "max_attendees",
+      form.parse_optional(form.parse_int),
+    )
+    use start_time <- form.field("start_time", form.parse_date_time)
+    use end_time <- form.field("end_time", form.parse_date_time)
+    form.success(ActivityForm(
+      title:,
+      description:,
+      max_attendees:,
+      start_time:,
+      end_time:,
+    ))
+  })
 }
 
-fn form_from_activity(activity: Activity) -> ActivityForm {
-  ActivityForm(
-    title: activity.title,
-    description: activity.description,
-    max_attendees: case activity.max_attendees {
-      Some(n) -> int.to_string(n)
-      None -> ""
-    },
-    start_time: timestamp_to_datetime_local(activity.start_time),
-    end_time: timestamp_to_datetime_local(activity.end_time),
+fn form_from_activity(activity: Activity) -> Form(ActivityForm) {
+  activity_form()
+  |> form.add_string("title", activity.title)
+  |> form.add_string("description", activity.description)
+  |> form.add_string("max_attendees", case activity.max_attendees {
+    Some(n) -> int.to_string(n)
+    None -> ""
+  })
+  |> form.add_string(
+    "start_time",
+    timestamp_to_datetime_local(activity.start_time),
   )
+  |> form.add_string("end_time", timestamp_to_datetime_local(activity.end_time))
 }
 
 fn init(_flags) -> #(Model, Effect(Msg)) {
@@ -140,8 +151,7 @@ fn init(_flags) -> #(Model, Effect(Msg)) {
       activities: [],
       selected_activity: None,
       loading: True,
-      form: empty_form(),
-      editing: False,
+      form: activity_form(),
       error: None,
       translator: translator,
     )
@@ -176,15 +186,10 @@ type Msg {
   ApiCreatedActivity(Result(Activity, rsvp.Error))
   ApiUpdatedActivity(Result(Activity, rsvp.Error))
   ApiDeletedActivity(Result(Nil, rsvp.Error))
-  // Form field updates
-  UserUpdatedTitle(String)
-  UserUpdatedDescription(String)
-  UserUpdatedMaxAttendees(String)
-  UserUpdatedStartTime(String)
-  UserUpdatedEndTime(String)
+  // Form submissions
+  UserSubmittedCreateForm(Result(ActivityForm, Form(ActivityForm)))
+  UserSubmittedEditForm(Result(ActivityForm, Form(ActivityForm)))
   // User actions
-  UserSubmittedCreateForm
-  UserSubmittedEditForm
   UserClickedEdit
   UserClickedDelete
   UserClickedCancelEdit
@@ -197,7 +202,7 @@ fn update(model: Model, msg: Msg) -> #(Model, Effect(Msg)) {
       let model = Model(..model, route:, error: None)
       case route {
         ActivitiesList -> #(
-          Model(..model, loading: True, editing: False),
+          Model(..model, loading: True),
           effect.batch([
             fetch_activities(),
             set_app_bar_title(g18n.translate(
@@ -207,7 +212,7 @@ fn update(model: Model, msg: Msg) -> #(Model, Effect(Msg)) {
           ]),
         )
         ActivityDetail(id) -> #(
-          Model(..model, loading: True, selected_activity: None, editing: False),
+          Model(..model, loading: True, selected_activity: None),
           effect.batch([
             fetch_activity(id),
             set_app_bar_title(g18n.translate(
@@ -217,7 +222,7 @@ fn update(model: Model, msg: Msg) -> #(Model, Effect(Msg)) {
           ]),
         )
         ActivityNew -> #(
-          Model(..model, form: empty_form(), editing: False),
+          Model(..model, form: activity_form()),
           set_app_bar_title(g18n.translate(
             model.translator,
             "app_bar.activity_new",
@@ -268,7 +273,6 @@ fn update(model: Model, msg: Msg) -> #(Model, Effect(Msg)) {
         ..model,
         selected_activity: Some(activity),
         form: form_from_activity(activity),
-        editing: False,
         error: None,
       ),
       effect.none(),
@@ -289,51 +293,36 @@ fn update(model: Model, msg: Msg) -> #(Model, Effect(Msg)) {
       effect.none(),
     )
 
-    UserUpdatedTitle(value) -> #(
-      Model(..model, form: ActivityForm(..model.form, title: value)),
+    UserSubmittedCreateForm(Ok(activity_form)) -> #(
+      model,
+      create_activity(activity_form),
+    )
+
+    UserSubmittedCreateForm(Error(f)) -> #(
+      Model(..model, form: f),
       effect.none(),
     )
 
-    UserUpdatedDescription(value) -> #(
-      Model(..model, form: ActivityForm(..model.form, description: value)),
-      effect.none(),
-    )
-
-    UserUpdatedMaxAttendees(value) -> #(
-      Model(..model, form: ActivityForm(..model.form, max_attendees: value)),
-      effect.none(),
-    )
-
-    UserUpdatedStartTime(value) -> #(
-      Model(..model, form: ActivityForm(..model.form, start_time: value)),
-      effect.none(),
-    )
-
-    UserUpdatedEndTime(value) -> #(
-      Model(..model, form: ActivityForm(..model.form, end_time: value)),
-      effect.none(),
-    )
-
-    UserSubmittedCreateForm -> #(model, create_activity(model.form))
-
-    UserSubmittedEditForm ->
+    UserSubmittedEditForm(Ok(activity_form)) ->
       case model.selected_activity {
         Some(activity) -> #(
           model,
-          update_activity(uuid.to_string(activity.id), model.form),
+          update_activity(uuid.to_string(activity.id), activity_form),
         )
         None -> #(model, effect.none())
       }
 
-    UserClickedEdit -> #(Model(..model, editing: True), effect.none())
+    UserSubmittedEditForm(Error(f)) -> #(Model(..model, form: f), effect.none())
+
+    UserClickedEdit -> #(model, effect.none())
 
     UserClickedCancelEdit ->
       case model.selected_activity {
         Some(activity) -> #(
-          Model(..model, editing: False, form: form_from_activity(activity)),
+          Model(..model, form: form_from_activity(activity)),
           effect.none(),
         )
-        None -> #(Model(..model, editing: False), effect.none())
+        None -> #(model, effect.none())
       }
 
     UserClickedDelete ->
@@ -349,7 +338,7 @@ fn update(model: Model, msg: Msg) -> #(Model, Effect(Msg)) {
 @external(javascript, "./client_ffi.mjs", "post_message_to_parent")
 fn post_message_to_parent(type_: String, title: String) -> Nil
 
-pub fn set_app_bar_title(title: String) -> Effect(msg) {
+fn set_app_bar_title(title: String) -> Effect(msg) {
   effect.from(fn(_dispatch) { post_message_to_parent("j26:appBar", title) })
 }
 
@@ -367,20 +356,18 @@ fn fetch_activity(id: String) -> Effect(Msg) {
   )
 }
 
-fn create_activity(form: ActivityForm) -> Effect(Msg) {
-  let body = form_to_json(form)
+fn create_activity(af: ActivityForm) -> Effect(Msg) {
   rsvp.post(
     api_prefix <> "/api/activities",
-    body,
+    activity_form_to_json(af),
     rsvp.expect_json(model.activity_decoder(), ApiCreatedActivity),
   )
 }
 
-fn update_activity(id: String, form: ActivityForm) -> Effect(Msg) {
-  let body = form_to_json(form)
+fn update_activity(id: String, af: ActivityForm) -> Effect(Msg) {
   rsvp.put(
     api_prefix <> "/api/activities/" <> id,
-    body,
+    activity_form_to_json(af),
     rsvp.expect_json(model.activity_decoder(), ApiUpdatedActivity),
   )
 }
@@ -398,20 +385,26 @@ fn delete_activity(id: String) -> Effect(Msg) {
   )
 }
 
-fn form_to_json(form: ActivityForm) -> json.Json {
-  let max_attendees = case int.parse(form.max_attendees) {
-    Ok(n) -> json.int(n)
-    Error(_) -> json.null()
+fn activity_form_to_json(af: ActivityForm) -> json.Json {
+  let to_secs = fn(dt: #(calendar.Date, calendar.TimeOfDay)) -> Int {
+    let ts =
+      timestamp.from_calendar(
+        date: dt.0,
+        time: dt.1,
+        offset: calendar.local_offset(),
+      )
+    let #(secs, _) = timestamp.to_unix_seconds_and_nanoseconds(ts)
+    secs
   }
-  let start_secs = datetime_local_to_unix_seconds(form.start_time)
-  let end_secs = datetime_local_to_unix_seconds(form.end_time)
-
   json.object([
-    #("title", json.string(form.title)),
-    #("description", json.string(form.description)),
-    #("max_attendees", max_attendees),
-    #("start_time", json.int(start_secs)),
-    #("end_time", json.int(end_secs)),
+    #("title", json.string(af.title)),
+    #("description", json.string(af.description)),
+    #("max_attendees", case af.max_attendees {
+      Some(n) -> json.int(n)
+      None -> json.null()
+    }),
+    #("start_time", json.int(to_secs(af.start_time))),
+    #("end_time", json.int(to_secs(af.end_time))),
   ])
 }
 
@@ -513,6 +506,12 @@ fn view_activities_list(model: Model) -> Element(Msg) {
 }
 
 fn view_activity_new(model: Model) -> Element(Msg) {
+  let submitted = fn(values) {
+    model.form
+    |> form.add_values(values)
+    |> form.run
+    |> UserSubmittedCreateForm
+  }
   scout_stack("column", "none", [
     html.div([attribute.styles([#("padding", "var(--scout-spacing-m)")])], [
       html.h1([], [element.text("New Activity")]),
@@ -522,41 +521,38 @@ fn view_activity_new(model: Model) -> Element(Msg) {
         Some(err) -> error_banner(err)
         None -> element.none()
       },
-      scout_card([
-        scout_stack("column", "m", [
-          scout_field(
-            "Title",
-            scout_input("text", model.form.title, UserUpdatedTitle),
-          ),
-          scout_field(
-            "Description",
-            scout_input("text", model.form.description, UserUpdatedDescription),
-          ),
-          scout_field(
-            "Max attendees",
-            scout_input(
+      html.form([event.on_submit(submitted)], [
+        scout_card([
+          scout_stack("column", "m", [
+            scout_form_field(model.form, "Title", "text", "title"),
+            scout_form_field(model.form, "Description", "text", "description"),
+            scout_form_field(
+              model.form,
+              "Max attendees",
               "number",
-              model.form.max_attendees,
-              UserUpdatedMaxAttendees,
+              "max_attendees",
             ),
-          ),
-          scout_field(
-            "Start time",
-            scout_input(
+            scout_form_field(
+              model.form,
+              "Start time",
               "datetime-local",
-              model.form.start_time,
-              UserUpdatedStartTime,
+              "start_time",
             ),
-          ),
-          scout_field(
-            "End time",
-            scout_input(
+            scout_form_field(
+              model.form,
+              "End time",
               "datetime-local",
-              model.form.end_time,
-              UserUpdatedEndTime,
+              "end_time",
             ),
-          ),
-          scout_button_action("Create", "primary", UserSubmittedCreateForm),
+            element.element(
+              "scout-button",
+              [
+                attribute.attribute("variant", "primary"),
+                attribute.attribute("type", "submit"),
+              ],
+              [element.text("Create")],
+            ),
+          ]),
         ]),
       ]),
     ]),
@@ -946,27 +942,28 @@ fn detail_row(label: String, value: String) -> Element(Msg) {
 }
 
 fn view_activity_edit_form(model: Model) -> Element(Msg) {
-  scout_stack("column", "m", [
-    scout_field(
-      "Title",
-      scout_input("text", model.form.title, UserUpdatedTitle),
-    ),
-    scout_field(
-      "Description",
-      scout_input("text", model.form.description, UserUpdatedDescription),
-    ),
-    scout_field(
-      "Max attendees",
-      scout_input("number", model.form.max_attendees, UserUpdatedMaxAttendees),
-    ),
-    scout_field(
-      "Start time",
-      scout_input("datetime-local", model.form.start_time, UserUpdatedStartTime),
-    ),
-    scout_field(
-      "End time",
-      scout_input("datetime-local", model.form.end_time, UserUpdatedEndTime),
-    ),
+  let submitted = fn(values) {
+    model.form
+    |> form.add_values(values)
+    |> form.run
+    |> UserSubmittedEditForm
+  }
+  html.form([event.on_submit(submitted)], [
+    scout_stack("column", "m", [
+      scout_form_field(model.form, "Title", "text", "title"),
+      scout_form_field(model.form, "Description", "text", "description"),
+      scout_form_field(model.form, "Max attendees", "number", "max_attendees"),
+      scout_form_field(model.form, "Start time", "datetime-local", "start_time"),
+      scout_form_field(model.form, "End time", "datetime-local", "end_time"),
+      element.element(
+        "scout-button",
+        [
+          attribute.attribute("variant", "primary"),
+          attribute.attribute("type", "submit"),
+        ],
+        [element.text("Save")],
+      ),
+    ]),
   ])
 }
 
@@ -1009,19 +1006,36 @@ fn scout_field(label: String, child: Element(Msg)) -> Element(Msg) {
   element.element("scout-field", [attribute.attribute("label", label)], [child])
 }
 
-fn scout_input(
+fn scout_form_field(
+  f: Form(a),
+  label: String,
   input_type: String,
-  value: String,
-  on_input: fn(String) -> Msg,
+  name: String,
 ) -> Element(Msg) {
-  element.element(
-    "scout-input",
-    [
-      attribute.attribute("type", input_type),
-      attribute.attribute("value", value),
-      event.on_input(on_input),
-    ],
-    [],
+  let errors = form.field_error_messages(f, name)
+  scout_field(
+    label,
+    element.fragment([
+      element.element(
+        "scout-input",
+        [
+          attribute.attribute("type", input_type),
+          attribute.attribute("name", name),
+          attribute.attribute("value", form.field_value(f, name)),
+        ],
+        [],
+      ),
+      ..list.map(errors, fn(msg) {
+        html.small(
+          [
+            attribute.styles([
+              #("color", "var(--scout-color-danger-700, #c00)"),
+            ]),
+          ],
+          [element.text(msg)],
+        )
+      })
+    ]),
   )
 }
 
@@ -1103,41 +1117,6 @@ fn timestamp_to_time(ts: timestamp.Timestamp) -> String {
   let hours = pad2(time.hours)
   let minutes = pad2(time.minutes)
   hours <> ":" <> minutes
-}
-
-/// Parse a "YYYY-MM-DDTHH:MM" datetime-local value to unix seconds.
-fn datetime_local_to_unix_seconds(value: String) -> Int {
-  // datetime-local format: YYYY-MM-DDTHH:MM
-  // Append ":00" for seconds and local offset to make it RFC 3339 parseable
-  let rfc3339 = value <> ":00" <> local_offset_string()
-  case timestamp.parse_rfc3339(rfc3339) {
-    Ok(ts) -> {
-      let #(secs, _nanos) = timestamp.to_unix_seconds_and_nanoseconds(ts)
-      secs
-    }
-    Error(_) -> 0
-  }
-}
-
-/// Get the local UTC offset as a string like "+02:00" or "-05:00".
-fn local_offset_string() -> String {
-  let offset = calendar.local_offset()
-  let total_seconds = {
-    let #(secs, _nanos) =
-      timestamp.to_unix_seconds_and_nanoseconds(timestamp.add(
-        timestamp.unix_epoch,
-        offset,
-      ))
-    secs
-  }
-  let sign = case total_seconds >= 0 {
-    True -> "+"
-    False -> "-"
-  }
-  let abs_seconds = int.absolute_value(total_seconds)
-  let hours = abs_seconds / 3600
-  let minutes = { abs_seconds % 3600 } / 60
-  sign <> pad2(hours) <> ":" <> pad2(minutes)
 }
 
 fn pad2(n: Int) -> String {

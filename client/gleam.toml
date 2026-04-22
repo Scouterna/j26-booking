@@ -22,7 +22,8 @@ modem = ">= 2.1.2 and < 3.0.0"
 gleam_json = ">= 3.1.0 and < 4.0.0"
 gleam_time = ">= 1.7.0 and < 2.0.0"
 youid = ">= 1.5.1 and < 2.0.0"
-g18n = { git = "https://github.com/m4reko/g18n", ref = "main" }
+g18n = { git = "https://github.com/m4reko/g18n", ref = "feat/cldr-custom-date-tokens" }
+formal = ">= 3.0.1 and < 4.0.0"
 
 [dev-dependencies]
 gleeunit = ">= 1.0.0 and < 2.0.0"
