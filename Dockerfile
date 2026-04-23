@@ -2,7 +2,7 @@
 # Based on official Gleam deployment guide + Lustre fullstack docs
 
 ARG ERLANG_VERSION=28.3.1
-ARG GLEAM_VERSION=v1.14.0
+ARG GLEAM_VERSION=v1.15.4
 
 FROM ghcr.io/gleam-lang/gleam:${GLEAM_VERSION}-scratch AS gleam
 

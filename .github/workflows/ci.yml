@@ -1,0 +1,64 @@
+name: CI
+
+on:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  format:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref }}
+
+      - uses: erlef/setup-beam@v1
+        with:
+          otp-version: "28"
+          gleam-version: "1.15.4"
+          rebar3-version: "3"
+
+      - name: Format all packages
+        run: |
+          for pkg in shared server client; do
+            (cd "$pkg" && gleam format src test)
+          done
+
+      - name: Commit formatting changes
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add -A
+          if ! git diff --cached --quiet; then
+            git commit -m "style: auto-format Gleam code"
+            git push
+          fi
+
+  check:
+    needs: format
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        package: [shared, server, client]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref }}
+
+      - uses: erlef/setup-beam@v1
+        with:
+          otp-version: "28"
+          gleam-version: "1.15.4"
+          rebar3-version: "3"
+
+      - name: Type check
+        working-directory: ${{ matrix.package }}
+        run: gleam check
+
+      - name: Run tests
+        working-directory: ${{ matrix.package }}
+        run: gleam test
