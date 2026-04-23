@@ -32,7 +32,14 @@ fn english_translations() -> g18n.Translations {
   |> g18n.add_translation("activity.not_found_title", "Not Found")
   |> g18n.add_translation("activity.not_found_message", "Activity not found.")
   |> g18n.add_translation("activity.book", "Book")
-  |> g18n.add_translation("activity.spots_remaining", "17 spots remaining")
+  |> g18n.add_translation(
+    "activity.spots_remaining.one",
+    "{count} spot remaining",
+  )
+  |> g18n.add_translation(
+    "activity.spots_remaining.other",
+    "{count} spots remaining",
+  )
   |> g18n.add_translation("activity.time", "Time")
   |> g18n.add_translation("activity.date_range_separator", "to")
   |> g18n.add_translation("activity.location", "Location")
@@ -50,7 +57,11 @@ fn swedish_translations() -> g18n.Translations {
     "Aktiviteten hittades inte.",
   )
   |> g18n.add_translation("activity.book", "Boka")
-  |> g18n.add_translation("activity.spots_remaining", "17 platser kvar")
+  |> g18n.add_translation("activity.spots_remaining.one", "{count} plats kvar")
+  |> g18n.add_translation(
+    "activity.spots_remaining.other",
+    "{count} platser kvar",
+  )
   |> g18n.add_translation("activity.time", "Tid")
   |> g18n.add_translation("activity.date_range_separator", "till")
   |> g18n.add_translation("activity.location", "Plats")
@@ -650,33 +661,34 @@ fn view_activity_detail_loaded(model: Model, activity: Activity) -> Element(Msg)
                 "primary",
                 UserClickedEdit,
               ),
-              html.div(
-                [
-                  attribute.class(
-                    "flex gap-2 items-center text-body-sm text-gray-500",
-                  ),
-                ],
-                [
-                  element.unsafe_raw_html(
-                    "",
-                    "div",
-                    [attribute.class("size-4")],
-                    icons.users,
-                  ),
-                  html.p(
+              // TODO: Change button to "Spara" when no max attendees?
+              case activity.max_attendees {
+                Some(max_attendees) ->
+                  html.div(
                     [
-                      attribute.class("flex-1"),
+                      attribute.class(
+                        "flex gap-2 items-center text-body-sm text-gray-500",
+                      ),
                     ],
                     [
-                      element.text(g18n.translate(
-                        model.translator,
-                        "activity.spots_remaining",
-                      )),
+                      element.unsafe_raw_html(
+                        "",
+                        "div",
+                        [attribute.class("size-4")],
+                        icons.users,
+                      ),
+                      html.p([attribute.class("flex-1")], [
+                        element.text(g18n.translate_plural(
+                          model.translator,
+                          "activity.spots_remaining",
+                          max_attendees,
+                          // TODO: do real calculation based on bookings
+                        )),
+                      ]),
                     ],
-                  ),
-                  // TODO: Calculate remaining spots based on attendees
-                ],
-              ),
+                  )
+                None -> element.none()
+              },
             ]),
           ],
         ),
@@ -710,89 +722,6 @@ fn view_activity_detail_loaded(model: Model, activity: Activity) -> Element(Msg)
         html.div([], [
           html.p([attribute.class("text-body-m")], [
             element.text(activity.description),
-            html.br([]),
-            html.br([]),
-            element.text(
-              "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
-            ),
-            element.text(
-              "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
-            ),
-            element.text(
-              "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
-            ),
-            element.text(
-              "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
-            ),
-            element.text(
-              "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
-            ),
-            element.text(
-              "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
-            ),
-            element.text(
-              "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
-            ),
-            element.text(
-              "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
-            ),
-            element.text(
-              "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
-            ),
-            element.text(
-              "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
-            ),
-            element.text(
-              "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
-            ),
-            element.text(
-              "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
-            ),
-            element.text(
-              "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
-            ),
-            element.text(
-              "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
-            ),
-            element.text(
-              "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
-            ),
-            element.text(
-              "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
-            ),
-            element.text(
-              "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
-            ),
-            element.text(
-              "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
-            ),
-            element.text(
-              "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
-            ),
-            element.text(
-              "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
-            ),
-            element.text(
-              "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
-            ),
-            element.text(
-              "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
-            ),
-            element.text(
-              "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
-            ),
-            element.text(
-              "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
-            ),
-            element.text(
-              "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
-            ),
-            element.text(
-              "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
-            ),
-            element.text(
-              "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
-            ),
           ]),
         ]),
       ],
@@ -890,13 +819,17 @@ fn view_time_interval(
       let separator =
         g18n.translate(model.translator, "activity.date_range_separator")
       html.span([], [
-        element.text(format_date(start_calendar.0)),
+        element.text(
+          format_date(start_calendar.0)
+          <> " "
+          <> format_time(start_calendar.1)
+          <> " "
+          <> separator,
+        ),
         html.br([]),
-        element.text(format_time(start_calendar.1) <> " " <> separator),
-        html.br([]),
-        element.text(format_date(end_calendar.0)),
-        html.br([]),
-        element.text(format_time(end_calendar.1)),
+        element.text(
+          format_date(end_calendar.0) <> " " <> format_time(end_calendar.1),
+        ),
       ])
     }
   }
