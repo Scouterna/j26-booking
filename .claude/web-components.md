@@ -84,7 +84,6 @@ All components use the `scout-` prefix. Events prefixed with `_scout` are intern
 
 | Tag | Props | Slots | Events |
 |---|---|---|---|
-| `scout-stack` | `direction` (`row`/`column`), `gap-size` (`xs`/`s`/`m`/`l`/`xl`/`xxl`) | default | — |
 | `scout-card` | — | default | — |
 | `scout-divider` | — | — | — |
 

@@ -449,7 +449,7 @@ fn view(model: Model) -> Element(Msg) {
 }
 
 fn view_activities_list(model: Model) -> Element(Msg) {
-  scout_stack("column", "none", [
+  html.div([attribute.class("flex flex-col")], [
     html.div(
       [
         attribute.styles([
@@ -532,7 +532,7 @@ fn view_activity_new(model: Model) -> Element(Msg) {
     |> form.run
     |> UserSubmittedCreateForm
   }
-  scout_stack("column", "none", [
+  html.div([attribute.class("flex flex-col")], [
     html.div([attribute.styles([#("padding", "var(--scout-spacing-m)")])], [
       html.h1([], [element.text("New Activity")]),
     ]),
@@ -543,7 +543,7 @@ fn view_activity_new(model: Model) -> Element(Msg) {
       },
       html.form([event.on_submit(submitted)], [
         scout_card([
-          scout_stack("column", "m", [
+          html.div([attribute.class("flex flex-col gap-2")], [
             scout_form_field(model.form, "Title", "text", "title"),
             scout_form_field(model.form, "Description", "text", "description"),
             scout_form_field(
@@ -588,7 +588,7 @@ fn view_activity_detail(model: Model) -> Element(Msg) {
     False ->
       case model.selected_activity {
         None ->
-          scout_stack("column", "none", [
+          html.div([attribute.class("flex flex-col")], [
             html.div(
               [
                 attribute.styles([
@@ -731,42 +731,6 @@ fn view_activity_detail_loaded(model: Model, activity: Activity) -> Element(Msg)
       ],
     ),
   ])
-  // scout_stack("column", "none", [
-  //   html.div([attribute.styles([#("padding", "var(--scout-spacing-m)")])], [
-  //     html.h1([], [element.text(activity.title)]),
-  //   ]),
-  //   html.div([attribute.styles([#("padding", "var(--scout-spacing-m)")])], [
-  //     case model.error {
-  //       Some(err) -> error_banner(err)
-  //       None -> element.none()
-  //     },
-  //     scout_card([
-  //       case model.editing {
-  //         False -> view_activity_read_only(activity)
-  //         True -> view_activity_edit_form(model)
-  //       },
-  //     ]),
-  //     html.div(
-  //       [
-  //         attribute.styles([
-  //           #("padding-top", "var(--scout-spacing-m)"),
-  //           #("display", "flex"),
-  //           #("gap", "var(--scout-spacing-s)"),
-  //         ]),
-  //       ],
-  //       case model.editing {
-  //         False -> [
-  //           scout_button_action("Edit", "outlined", UserClickedEdit),
-  //           scout_button_action("Delete", "danger", UserClickedDelete),
-  //         ]
-  //         True -> [
-  //           scout_button_action("Save", "primary", UserSubmittedEditForm),
-  //           scout_button_action("Cancel", "outlined", UserClickedCancelEdit),
-  //         ]
-  //       },
-  //     ),
-  //   ]),
-  // ])
 }
 
 type IntervalClasses {
@@ -860,7 +824,7 @@ fn icon_component(icon: String, class: String) -> Element(Msg) {
 }
 
 fn view_not_found() -> Element(Msg) {
-  scout_stack("column", "none", [
+  html.div([attribute.class("flex flex-col")], [
     html.div([attribute.styles([#("padding", "var(--scout-spacing-m)")])], [
       html.h1([], [element.text("Not Found")]),
     ]),
@@ -874,21 +838,6 @@ fn view_not_found() -> Element(Msg) {
 }
 
 // COMPONENT WRAPPERS ----------------------------------------------------------
-
-fn scout_stack(
-  direction: String,
-  gap: String,
-  children: List(Element(Msg)),
-) -> Element(Msg) {
-  element.element(
-    "scout-stack",
-    [
-      attribute.attribute("direction", direction),
-      attribute.attribute("gap-size", gap),
-    ],
-    children,
-  )
-}
 
 fn scout_card(children: List(Element(Msg))) -> Element(Msg) {
   element.element("scout-card", [], children)
