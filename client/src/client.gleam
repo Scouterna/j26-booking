@@ -81,14 +81,6 @@ pub fn main() {
 
 // MODEL -----------------------------------------------------------------------
 
-type Route {
-  ActivitiesList
-  ActivityNew
-  ActivityDetail(id: String)
-  ActivityEdit(id: String)
-  NotFound
-}
-
 type ActivityForm {
   ActivityForm(
     title: String,
@@ -99,16 +91,32 @@ type ActivityForm {
   )
 }
 
-type Model {
-  Model(
-    route: Route,
-    activities: List(Activity),
-    selected_activity: Option(Activity),
-    loading: Bool,
+type RemoteData(a) {
+  Loading
+  Loaded(a)
+  Failed(String)
+}
+
+type EditState {
+  EditLoading
+  EditReady(
+    activity: Activity,
     form: Form(ActivityForm),
-    error: Option(String),
-    translator: Translator,
+    submit_error: Option(String),
   )
+  EditLoadFailed(String)
+}
+
+type Page {
+  ActivitiesListPage(state: RemoteData(List(Activity)))
+  ActivityNewPage(form: Form(ActivityForm), submit_error: Option(String))
+  ActivityDetailPage(id: String, state: RemoteData(Activity))
+  ActivityEditPage(id: String, state: EditState)
+  NotFoundPage
+}
+
+type Model {
+  Model(page: Page, translator: Translator)
 }
 
 fn activity_form() -> Form(ActivityForm) {
@@ -169,43 +177,30 @@ fn translator_for(lang: String) -> Translator {
   g18n.new_translator(chosen, translations)
 }
 
-fn app_bar_title(translator: Translator, route: Route) -> Option(String) {
-  case route {
-    ActivitiesList ->
+fn app_bar_title(translator: Translator, page: Page) -> Option(String) {
+  case page {
+    ActivitiesListPage(_) ->
       Some(g18n.translate(translator, "app_bar.activities_list"))
-    ActivityDetail(_) ->
+    ActivityDetailPage(_, _) ->
       Some(g18n.translate(translator, "app_bar.activity_detail"))
-    ActivityNew -> Some(g18n.translate(translator, "app_bar.activity_new"))
-    ActivityEdit(_) -> None
-    NotFound -> None
+    ActivityNewPage(_, _) ->
+      Some(g18n.translate(translator, "app_bar.activity_new"))
+    ActivityEditPage(_, _) -> None
+    NotFoundPage -> None
   }
 }
 
 fn init(_flags) -> #(Model, Effect(Msg)) {
-  let route = case modem.initial_uri() {
-    Ok(uri) -> uri_to_route(uri)
-    Error(_) -> ActivitiesList
+  let #(page, page_effect) = case modem.initial_uri() {
+    Ok(uri) -> uri_to_page(uri)
+    Error(_) -> #(ActivitiesListPage(Loading), fetch_activities())
   }
 
   let translator = translator_for(get_html_lang())
 
-  let model =
-    Model(
-      route:,
-      activities: [],
-      selected_activity: None,
-      loading: True,
-      form: activity_form(),
-      error: None,
-      translator: translator,
-    )
+  let model = Model(page:, translator:)
 
-  let route_effect = case route {
-    ActivitiesList -> fetch_activities()
-    ActivityDetail(id) -> fetch_activity(id)
-    _ -> effect.none()
-  }
-  let title_effect = case app_bar_title(translator, route) {
+  let title_effect = case app_bar_title(translator, page) {
     Some(title) -> set_app_bar_title(title)
     None -> effect.none()
   }
@@ -215,7 +210,7 @@ fn init(_flags) -> #(Model, Effect(Msg)) {
     effect.batch([
       modem.init(OnRouteChange),
       observe_lang(),
-      route_effect,
+      page_effect,
       title_effect,
     ]),
   )
@@ -246,133 +241,187 @@ type Msg {
 fn update(model: Model, msg: Msg) -> #(Model, Effect(Msg)) {
   case msg {
     OnRouteChange(uri) -> {
-      let route = uri_to_route(uri)
-      let model = Model(..model, route:, error: None)
-      let title_effect = case app_bar_title(model.translator, route) {
+      let #(page, page_effect) = uri_to_page(uri)
+      let title_effect = case app_bar_title(model.translator, page) {
         Some(title) -> set_app_bar_title(title)
         None -> effect.none()
       }
-      case route {
-        ActivitiesList -> #(
-          Model(..model, loading: True),
-          effect.batch([fetch_activities(), title_effect]),
-        )
-        ActivityDetail(id) -> #(
-          Model(..model, loading: True, selected_activity: None),
-          effect.batch([fetch_activity(id), title_effect]),
-        )
-        ActivityNew -> #(Model(..model, form: activity_form()), title_effect)
-        ActivityEdit(_id) -> todo
-        NotFound -> #(model, effect.none())
-      }
+      #(Model(..model, page:), effect.batch([page_effect, title_effect]))
     }
 
     LangChanged(lang) -> {
       let translator = translator_for(lang)
-      let model = Model(..model, translator:)
-      let title_effect = case app_bar_title(translator, model.route) {
+      let title_effect = case app_bar_title(translator, model.page) {
         Some(title) -> set_app_bar_title(title)
         None -> effect.none()
       }
-      #(model, title_effect)
+      #(Model(..model, translator:), title_effect)
     }
 
-    ApiReturnedActivities(Ok(activities)) -> #(
-      Model(..model, activities:, loading: False),
-      effect.none(),
-    )
+    ApiReturnedActivities(result) ->
+      case model.page {
+        ActivitiesListPage(Loading) -> {
+          let new_state = case result {
+            Ok(activities) -> Loaded(activities)
+            Error(_) -> Failed("Failed to load activities")
+          }
+          #(Model(..model, page: ActivitiesListPage(new_state)), effect.none())
+        }
+        _ -> #(model, effect.none())
+      }
 
-    ApiReturnedActivities(Error(_)) -> #(
-      Model(..model, loading: False, error: Some("Failed to load activities")),
-      effect.none(),
-    )
-
-    ApiReturnedActivity(Ok(activity)) -> #(
-      Model(
-        ..model,
-        selected_activity: Some(activity),
-        form: form_from_activity(activity),
-        loading: False,
-      ),
-      effect.none(),
-    )
-
-    ApiReturnedActivity(Error(_)) -> #(
-      Model(..model, loading: False, error: Some("Failed to load activity")),
-      effect.none(),
-    )
+    ApiReturnedActivity(result) ->
+      case model.page {
+        ActivityDetailPage(id, Loading) -> {
+          let new_state = case result {
+            Ok(activity) -> Loaded(activity)
+            Error(_) -> Failed("Failed to load activity")
+          }
+          #(
+            Model(..model, page: ActivityDetailPage(id, new_state)),
+            effect.none(),
+          )
+        }
+        ActivityEditPage(id, EditLoading) -> {
+          let new_state = case result {
+            Ok(activity) ->
+              EditReady(activity, form_from_activity(activity), None)
+            Error(_) -> EditLoadFailed("Failed to load activity")
+          }
+          #(
+            Model(..model, page: ActivityEditPage(id, new_state)),
+            effect.none(),
+          )
+        }
+        _ -> #(model, effect.none())
+      }
 
     ApiCreatedActivity(Ok(_)) -> #(
       model,
       modem.push(api_prefix <> "/activities", None, None),
     )
 
-    ApiCreatedActivity(Error(_)) -> #(
-      Model(..model, error: Some("Failed to create activity")),
-      effect.none(),
-    )
+    ApiCreatedActivity(Error(_)) ->
+      case model.page {
+        ActivityNewPage(form, _) -> #(
+          Model(
+            ..model,
+            page: ActivityNewPage(form, Some("Failed to create activity")),
+          ),
+          effect.none(),
+        )
+        _ -> #(model, effect.none())
+      }
 
-    ApiUpdatedActivity(Ok(activity)) -> #(
-      Model(
-        ..model,
-        selected_activity: Some(activity),
-        form: form_from_activity(activity),
-        error: None,
-      ),
-      effect.none(),
-    )
+    ApiUpdatedActivity(Ok(activity)) ->
+      case model.page {
+        ActivityEditPage(id, _) -> #(
+          Model(
+            ..model,
+            page: ActivityEditPage(
+              id,
+              EditReady(activity, form_from_activity(activity), None),
+            ),
+          ),
+          effect.none(),
+        )
+        _ -> #(model, effect.none())
+      }
 
-    ApiUpdatedActivity(Error(_)) -> #(
-      Model(..model, error: Some("Failed to update activity")),
-      effect.none(),
-    )
+    ApiUpdatedActivity(Error(_)) ->
+      case model.page {
+        ActivityEditPage(id, EditReady(activity, form, _)) -> #(
+          Model(
+            ..model,
+            page: ActivityEditPage(
+              id,
+              EditReady(activity, form, Some("Failed to update activity")),
+            ),
+          ),
+          effect.none(),
+        )
+        _ -> #(model, effect.none())
+      }
 
     ApiDeletedActivity(Ok(_)) -> #(
       model,
       modem.push(api_prefix <> "/activities", None, None),
     )
 
-    ApiDeletedActivity(Error(_)) -> #(
-      Model(..model, error: Some("Failed to delete activity")),
-      effect.none(),
-    )
+    ApiDeletedActivity(Error(_)) ->
+      case model.page {
+        ActivityEditPage(id, EditReady(activity, form, _)) -> #(
+          Model(
+            ..model,
+            page: ActivityEditPage(
+              id,
+              EditReady(activity, form, Some("Failed to delete activity")),
+            ),
+          ),
+          effect.none(),
+        )
+        _ -> #(model, effect.none())
+      }
 
     UserSubmittedCreateForm(Ok(activity_form)) -> #(
       model,
       create_activity(activity_form),
     )
 
-    UserSubmittedCreateForm(Error(f)) -> #(
-      Model(..model, form: f),
-      effect.none(),
-    )
-
-    UserSubmittedEditForm(Ok(activity_form)) ->
-      case model.selected_activity {
-        Some(activity) -> #(
-          model,
-          update_activity(uuid.to_string(activity.id), activity_form),
+    UserSubmittedCreateForm(Error(f)) ->
+      case model.page {
+        ActivityNewPage(_, submit_error) -> #(
+          Model(..model, page: ActivityNewPage(f, submit_error)),
+          effect.none(),
         )
-        None -> #(model, effect.none())
+        _ -> #(model, effect.none())
       }
 
-    UserSubmittedEditForm(Error(f)) -> #(Model(..model, form: f), effect.none())
+    UserSubmittedEditForm(Ok(activity_form)) ->
+      case model.page {
+        ActivityEditPage(id, EditReady(_, _, _)) -> #(
+          model,
+          update_activity(id, activity_form),
+        )
+        _ -> #(model, effect.none())
+      }
+
+    UserSubmittedEditForm(Error(f)) ->
+      case model.page {
+        ActivityEditPage(id, EditReady(activity, _, submit_error)) -> #(
+          Model(
+            ..model,
+            page: ActivityEditPage(id, EditReady(activity, f, submit_error)),
+          ),
+          effect.none(),
+        )
+        _ -> #(model, effect.none())
+      }
 
     UserClickedEdit -> #(model, effect.none())
 
     UserClickedCancelEdit ->
-      case model.selected_activity {
-        Some(activity) -> #(
-          Model(..model, form: form_from_activity(activity)),
+      case model.page {
+        ActivityEditPage(id, EditReady(activity, _, _)) -> #(
+          Model(
+            ..model,
+            page: ActivityEditPage(
+              id,
+              EditReady(activity, form_from_activity(activity), None),
+            ),
+          ),
           effect.none(),
         )
-        None -> #(model, effect.none())
+        _ -> #(model, effect.none())
       }
 
     UserClickedDelete ->
-      case model.selected_activity {
-        Some(activity) -> #(model, delete_activity(uuid.to_string(activity.id)))
-        None -> #(model, effect.none())
+      case model.page {
+        ActivityEditPage(id, EditReady(_, _, _)) -> #(
+          model,
+          delete_activity(id),
+        )
+        _ -> #(model, effect.none())
       }
   }
 }
@@ -466,29 +515,35 @@ fn activity_form_to_json(af: ActivityForm) -> json.Json {
 
 // ROUTING ---------------------------------------------------------------------
 
-fn uri_to_route(uri: Uri) -> Route {
+fn uri_to_page(uri: Uri) -> #(Page, Effect(Msg)) {
   case uri.path_segments(uri.path) |> list.drop(2) {
-    ["activities"] -> ActivitiesList
-    ["activities", "new"] -> ActivityNew
-    ["activities", id] -> ActivityDetail(id)
-    [] -> ActivitiesList
-    _ -> NotFound
+    ["activities"] | [] -> #(ActivitiesListPage(Loading), fetch_activities())
+    ["activities", "new"] -> #(
+      ActivityNewPage(activity_form(), None),
+      effect.none(),
+    )
+    ["activities", id] -> #(ActivityDetailPage(id, Loading), fetch_activity(id))
+    _ -> #(NotFoundPage, effect.none())
   }
 }
 
 // VIEW ------------------------------------------------------------------------
 
 fn view(model: Model) -> Element(Msg) {
-  case model.route {
-    ActivitiesList -> view_activities_list(model)
-    ActivityNew -> view_activity_new(model)
-    ActivityEdit(id) -> todo
-    ActivityDetail(_) -> view_activity_detail(model)
-    NotFound -> view_not_found()
+  case model.page {
+    ActivitiesListPage(state) -> view_activities_list(model.translator, state)
+    ActivityNewPage(form, submit_error) -> view_activity_new(form, submit_error)
+    ActivityDetailPage(_, state) ->
+      view_activity_detail(model.translator, state)
+    ActivityEditPage(_, _) -> todo
+    NotFoundPage -> view_not_found()
   }
 }
 
-fn view_activities_list(model: Model) -> Element(Msg) {
+fn view_activities_list(
+  translator: Translator,
+  state: RemoteData(List(Activity)),
+) -> Element(Msg) {
   html.div([attribute.class("flex flex-col")], [
     html.div(
       [
@@ -509,70 +564,62 @@ fn view_activities_list(model: Model) -> Element(Msg) {
         ),
       ],
     ),
-    case model.error {
-      Some(err) -> component.error_banner(err)
-      None -> element.none()
-    },
-    case model.loading {
-      True ->
+    case state {
+      Loading ->
         html.div([attribute.styles([#("padding", "var(--scout-spacing-l)")])], [
           component.scout_loader("Loading activities..."),
         ])
-      False ->
-        case list.is_empty(model.activities) {
-          True ->
-            html.div(
+      Failed(err) -> component.error_banner(err)
+      Loaded([]) ->
+        html.div(
+          [
+            attribute.styles([
+              #("padding", "var(--scout-spacing-l)"),
+              #("text-align", "center"),
+            ]),
+          ],
+          [
+            html.p([], [element.text("No activities yet.")]),
+            html.a(
               [
-                attribute.styles([
-                  #("padding", "var(--scout-spacing-l)"),
-                  #("text-align", "center"),
-                ]),
+                attribute.href(api_prefix <> "/activities/new"),
+                attribute.styles([#("text-decoration", "none")]),
               ],
-              [
-                html.p([], [element.text("No activities yet.")]),
-                html.a(
-                  [
-                    attribute.href(api_prefix <> "/activities/new"),
-                    attribute.styles([#("text-decoration", "none")]),
-                  ],
-                  [
-                    component.scout_button_el(
-                      "Create first activity",
-                      "primary",
-                    ),
-                  ],
-                ),
-              ],
+              [component.scout_button_el("Create first activity", "primary")],
+            ),
+          ],
+        )
+      Loaded(activities) ->
+        element.element("scout-list-view", [], {
+          use activity <- list.map(activities)
+          let id = uuid.to_string(activity.id)
+          let secondary =
+            format_time_range(
+              translator,
+              activity.start_time,
+              activity.end_time,
             )
-          False ->
-            element.element("scout-list-view", [], {
-              use activity <- list.map(model.activities)
-              let id = uuid.to_string(activity.id)
-              let secondary =
-                format_time_range(
-                  model.translator,
-                  activity.start_time,
-                  activity.end_time,
-                )
-              element.element(
-                "scout-list-view-item",
-                [
-                  attribute.attribute("type", "link"),
-                  attribute.attribute("primary", activity.title),
-                  attribute.attribute("secondary", secondary),
-                  attribute.href(api_prefix <> "/activities/" <> id),
-                ],
-                [],
-              )
-            })
-        }
+          element.element(
+            "scout-list-view-item",
+            [
+              attribute.attribute("type", "link"),
+              attribute.attribute("primary", activity.title),
+              attribute.attribute("secondary", secondary),
+              attribute.href(api_prefix <> "/activities/" <> id),
+            ],
+            [],
+          )
+        })
     },
   ])
 }
 
-fn view_activity_new(model: Model) -> Element(Msg) {
+fn view_activity_new(
+  form: Form(ActivityForm),
+  submit_error: Option(String),
+) -> Element(Msg) {
   let submitted = fn(values) {
-    model.form
+    form
     |> form.add_values(values)
     |> form.run
     |> UserSubmittedCreateForm
@@ -582,34 +629,34 @@ fn view_activity_new(model: Model) -> Element(Msg) {
       html.h1([], [element.text("New Activity")]),
     ]),
     html.div([attribute.styles([#("padding", "var(--scout-spacing-m)")])], [
-      case model.error {
+      case submit_error {
         Some(err) -> component.error_banner(err)
         None -> element.none()
       },
       html.form([event.on_submit(submitted)], [
         component.scout_card([
           html.div([attribute.class("flex flex-col gap-2")], [
-            component.scout_form_field(model.form, "Title", "text", "title"),
+            component.scout_form_field(form, "Title", "text", "title"),
             component.scout_form_field(
-              model.form,
+              form,
               "Description",
               "text",
               "description",
             ),
             component.scout_form_field(
-              model.form,
+              form,
               "Max attendees",
               "number",
               "max_attendees",
             ),
             component.scout_form_field(
-              model.form,
+              form,
               "Start time",
               "datetime-local",
               "start_time",
             ),
             component.scout_form_field(
-              model.form,
+              form,
               "End time",
               "datetime-local",
               "end_time",
@@ -629,55 +676,52 @@ fn view_activity_new(model: Model) -> Element(Msg) {
   ])
 }
 
-fn view_activity_detail(model: Model) -> Element(Msg) {
-  case model.loading {
-    True ->
+fn view_activity_detail(
+  translator: Translator,
+  state: RemoteData(Activity),
+) -> Element(Msg) {
+  case state {
+    Loading ->
       html.div([attribute.class("flex justify-center py-8")], [
-        component.scout_loader(g18n.translate(
-          model.translator,
-          "activity.loading",
-        )),
+        component.scout_loader(g18n.translate(translator, "activity.loading")),
       ])
-    False ->
-      case model.selected_activity {
-        None ->
-          html.div([attribute.class("flex flex-col")], [
-            html.div(
-              [
-                attribute.styles([
-                  #("display", "flex"),
-                  #("align-items", "center"),
-                  #("gap", "var(--scout-spacing-s)"),
-                  #("padding", "var(--scout-spacing-m)"),
-                ]),
-              ],
-              [
-                html.h1([], [
-                  element.text(g18n.translate(
-                    model.translator,
-                    "activity.not_found_title",
-                  )),
-                ]),
-              ],
-            ),
-            html.div(
-              [attribute.styles([#("padding", "var(--scout-spacing-l)")])],
-              [
-                html.p([], [
-                  element.text(g18n.translate(
-                    model.translator,
-                    "activity.not_found_message",
-                  )),
-                ]),
-              ],
-            ),
-          ])
-        Some(activity) -> view_activity_detail_loaded(model, activity)
-      }
+    Failed(_) ->
+      html.div([attribute.class("flex flex-col")], [
+        html.div(
+          [
+            attribute.styles([
+              #("display", "flex"),
+              #("align-items", "center"),
+              #("gap", "var(--scout-spacing-s)"),
+              #("padding", "var(--scout-spacing-m)"),
+            ]),
+          ],
+          [
+            html.h1([], [
+              element.text(g18n.translate(
+                translator,
+                "activity.not_found_title",
+              )),
+            ]),
+          ],
+        ),
+        html.div([attribute.styles([#("padding", "var(--scout-spacing-l)")])], [
+          html.p([], [
+            element.text(g18n.translate(
+              translator,
+              "activity.not_found_message",
+            )),
+          ]),
+        ]),
+      ])
+    Loaded(activity) -> view_activity_detail_loaded(translator, activity)
   }
 }
 
-fn view_activity_detail_loaded(model: Model, activity: Activity) -> Element(Msg) {
+fn view_activity_detail_loaded(
+  translator: Translator,
+  activity: Activity,
+) -> Element(Msg) {
   html.div([attribute.class("flex flex-col")], [
     html.div(
       // Map
@@ -719,7 +763,7 @@ fn view_activity_detail_loaded(model: Model, activity: Activity) -> Element(Msg)
             ]),
             html.div([attribute.class("flex flex-col gap-1 items-end")], [
               component.scout_button_action(
-                g18n.translate(model.translator, "activity.book"),
+                g18n.translate(translator, "activity.book"),
                 "primary",
                 UserClickedEdit,
               ),
@@ -736,7 +780,7 @@ fn view_activity_detail_loaded(model: Model, activity: Activity) -> Element(Msg)
                       component.icon(icons.users, "size-4"),
                       html.p([attribute.class("flex-1")], [
                         element.text(g18n.translate_plural(
-                          model.translator,
+                          translator,
                           "activity.spots_remaining",
                           max_attendees,
                           // TODO: do real calculation based on bookings
@@ -757,10 +801,10 @@ fn view_activity_detail_loaded(model: Model, activity: Activity) -> Element(Msg)
           [
             component.quick_info_tile(
               icons.clock,
-              g18n.translate(model.translator, "activity.time"),
+              g18n.translate(translator, "activity.time"),
               [
                 view_time_interval(
-                  model,
+                  translator,
                   activity.start_time,
                   activity.end_time,
                 ),
@@ -768,7 +812,7 @@ fn view_activity_detail_loaded(model: Model, activity: Activity) -> Element(Msg)
             ),
             component.quick_info_tile(
               icons.pin,
-              g18n.translate(model.translator, "activity.location"),
+              g18n.translate(translator, "activity.location"),
               [
                 element.text("Badbusstorget"),
                 // TODO: Mocked data
@@ -808,13 +852,12 @@ fn classify_interval(
 }
 
 fn view_time_interval(
-  model: Model,
+  translator: Translator,
   start: timestamp.Timestamp,
   end: timestamp.Timestamp,
 ) -> Element(Msg) {
   let start_calendar = timestamp.to_calendar(start, calendar.local_offset())
   let end_calendar = timestamp.to_calendar(end, calendar.local_offset())
-  let translator = model.translator
   let format_date = fn(d) {
     g18n.format_date(translator, d, g18n.Custom("EEEE d/M"))
   }
@@ -838,7 +881,7 @@ fn view_time_interval(
       ])
     DifferentDays -> {
       let separator =
-        g18n.translate(model.translator, "activity.date_range_separator")
+        g18n.translate(translator, "activity.date_range_separator")
       html.span([], [
         element.text(
           format_date(start_calendar.0)
