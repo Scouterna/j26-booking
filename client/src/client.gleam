@@ -141,9 +141,14 @@ fn form_from_activity(activity: Activity) -> Form(ActivityForm) {
   })
   |> form.add_string(
     "start_time",
-    timestamp_to_datetime_local(activity.start_time),
+    timestamp.to_rfc3339(activity.start_time, calendar.local_offset())
+      |> string.slice(0, 16),
   )
-  |> form.add_string("end_time", timestamp_to_datetime_local(activity.end_time))
+  |> form.add_string(
+    "end_time",
+    timestamp.to_rfc3339(activity.end_time, calendar.local_offset())
+      |> string.slice(0, 16),
+  )
 }
 
 fn init(_flags) -> #(Model, Effect(Msg)) {
@@ -499,7 +504,11 @@ fn view_activities_list(model: Model) -> Element(Msg) {
               use activity <- list.map(model.activities)
               let id = uuid.to_string(activity.id)
               let secondary =
-                format_time_range(activity.start_time, activity.end_time)
+                format_time_range(
+                  model.translator,
+                  activity.start_time,
+                  activity.end_time,
+                )
               element.element(
                 "scout-list-view-item",
                 [
@@ -850,51 +859,6 @@ fn icon_component(icon: String, class: String) -> Element(Msg) {
   element.unsafe_raw_html("", "div", [attribute.class(class)], icon)
 }
 
-fn view_activity_read_only(activity: Activity) -> Element(Msg) {
-  scout_stack("column", "m", [
-    detail_row("Description", activity.description),
-    detail_row("Max attendees", case activity.max_attendees {
-      Some(n) -> int.to_string(n)
-      None -> "No limit"
-    }),
-    detail_row("Start time", timestamp_to_time(activity.start_time)),
-    detail_row("End time", timestamp_to_time(activity.end_time)),
-  ])
-}
-
-fn detail_row(label: String, value: String) -> Element(Msg) {
-  scout_stack("column", "xs", [
-    html.strong([], [element.text(label)]),
-    html.p([attribute.styles([#("margin", "0")])], [element.text(value)]),
-  ])
-}
-
-fn view_activity_edit_form(model: Model) -> Element(Msg) {
-  let submitted = fn(values) {
-    model.form
-    |> form.add_values(values)
-    |> form.run
-    |> UserSubmittedEditForm
-  }
-  html.form([event.on_submit(submitted)], [
-    scout_stack("column", "m", [
-      scout_form_field(model.form, "Title", "text", "title"),
-      scout_form_field(model.form, "Description", "text", "description"),
-      scout_form_field(model.form, "Max attendees", "number", "max_attendees"),
-      scout_form_field(model.form, "Start time", "datetime-local", "start_time"),
-      scout_form_field(model.form, "End time", "datetime-local", "end_time"),
-      element.element(
-        "scout-button",
-        [
-          attribute.attribute("variant", "primary"),
-          attribute.attribute("type", "submit"),
-        ],
-        [element.text("Save")],
-      ),
-    ]),
-  ])
-}
-
 fn view_not_found() -> Element(Msg) {
   scout_stack("column", "none", [
     html.div([attribute.styles([#("padding", "var(--scout-spacing-m)")])], [
@@ -1028,36 +992,14 @@ fn error_banner(message: String) -> Element(Msg) {
 
 // HELPERS ---------------------------------------------------------------------
 
-/// Format a Timestamp as "YYYY-MM-DDTHH:MM" for datetime-local inputs.
-fn timestamp_to_datetime_local(ts: timestamp.Timestamp) -> String {
-  let #(date, time) = timestamp.to_calendar(ts, calendar.local_offset())
-  let year = int.to_string(date.year)
-  let month = date.month |> calendar.month_to_int |> pad2
-  let day = pad2(date.day)
-  let hours = pad2(time.hours)
-  let minutes = pad2(time.minutes)
-  year <> "-" <> month <> "-" <> day <> "T" <> hours <> ":" <> minutes
-}
-
-/// Format a Timestamp as "HH:MM"
-fn timestamp_to_time(ts: timestamp.Timestamp) -> String {
-  let #(_, time) = timestamp.to_calendar(ts, calendar.local_offset())
-  let hours = pad2(time.hours)
-  let minutes = pad2(time.minutes)
-  hours <> ":" <> minutes
-}
-
-fn pad2(n: Int) -> String {
-  let s = int.to_string(n)
-  case string.length(s) {
-    1 -> "0" <> s
-    _ -> s
-  }
-}
-
 fn format_time_range(
+  translator: g18n.Translator,
   start: timestamp.Timestamp,
   end: timestamp.Timestamp,
 ) -> String {
-  timestamp_to_time(start) <> " – " <> timestamp_to_time(end)
+  let fmt = fn(ts) {
+    let #(_, time) = timestamp.to_calendar(ts, calendar.local_offset())
+    g18n.format_time(translator, time, g18n.Short)
+  }
+  fmt(start) <> " – " <> fmt(end)
 }
