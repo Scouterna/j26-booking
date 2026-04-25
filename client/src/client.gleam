@@ -1,7 +1,7 @@
+import component
 import formal/form.{type Form}
 import g18n.{type Translator}
 import g18n/locale
-import gleam/dynamic/decode
 import gleam/int
 import gleam/json
 import gleam/list
@@ -505,18 +505,18 @@ fn view_activities_list(model: Model) -> Element(Msg) {
             attribute.href(api_prefix <> "/activities/new"),
             attribute.styles([#("text-decoration", "none")]),
           ],
-          [scout_button_icon("Create", "primary", "plus")],
+          [component.scout_button_icon("Create", "primary", "plus")],
         ),
       ],
     ),
     case model.error {
-      Some(err) -> error_banner(err)
+      Some(err) -> component.error_banner(err)
       None -> element.none()
     },
     case model.loading {
       True ->
         html.div([attribute.styles([#("padding", "var(--scout-spacing-l)")])], [
-          scout_loader("Loading activities..."),
+          component.scout_loader("Loading activities..."),
         ])
       False ->
         case list.is_empty(model.activities) {
@@ -535,7 +535,12 @@ fn view_activities_list(model: Model) -> Element(Msg) {
                     attribute.href(api_prefix <> "/activities/new"),
                     attribute.styles([#("text-decoration", "none")]),
                   ],
-                  [scout_button_el("Create first activity", "primary")],
+                  [
+                    component.scout_button_el(
+                      "Create first activity",
+                      "primary",
+                    ),
+                  ],
                 ),
               ],
             )
@@ -578,27 +583,32 @@ fn view_activity_new(model: Model) -> Element(Msg) {
     ]),
     html.div([attribute.styles([#("padding", "var(--scout-spacing-m)")])], [
       case model.error {
-        Some(err) -> error_banner(err)
+        Some(err) -> component.error_banner(err)
         None -> element.none()
       },
       html.form([event.on_submit(submitted)], [
-        scout_card([
+        component.scout_card([
           html.div([attribute.class("flex flex-col gap-2")], [
-            scout_form_field(model.form, "Title", "text", "title"),
-            scout_form_field(model.form, "Description", "text", "description"),
-            scout_form_field(
+            component.scout_form_field(model.form, "Title", "text", "title"),
+            component.scout_form_field(
+              model.form,
+              "Description",
+              "text",
+              "description",
+            ),
+            component.scout_form_field(
               model.form,
               "Max attendees",
               "number",
               "max_attendees",
             ),
-            scout_form_field(
+            component.scout_form_field(
               model.form,
               "Start time",
               "datetime-local",
               "start_time",
             ),
-            scout_form_field(
+            component.scout_form_field(
               model.form,
               "End time",
               "datetime-local",
@@ -623,7 +633,10 @@ fn view_activity_detail(model: Model) -> Element(Msg) {
   case model.loading {
     True ->
       html.div([attribute.class("flex justify-center py-8")], [
-        scout_loader(g18n.translate(model.translator, "activity.loading")),
+        component.scout_loader(g18n.translate(
+          model.translator,
+          "activity.loading",
+        )),
       ])
     False ->
       case model.selected_activity {
@@ -705,7 +718,7 @@ fn view_activity_detail_loaded(model: Model, activity: Activity) -> Element(Msg)
               ),
             ]),
             html.div([attribute.class("flex flex-col gap-1 items-end")], [
-              scout_button_action(
+              component.scout_button_action(
                 g18n.translate(model.translator, "activity.book"),
                 "primary",
                 UserClickedEdit,
@@ -720,7 +733,7 @@ fn view_activity_detail_loaded(model: Model, activity: Activity) -> Element(Msg)
                       ),
                     ],
                     [
-                      icon_component(icons.users, "size-4"),
+                      component.icon(icons.users, "size-4"),
                       html.p([attribute.class("flex-1")], [
                         element.text(g18n.translate_plural(
                           model.translator,
@@ -742,7 +755,7 @@ fn view_activity_detail_loaded(model: Model, activity: Activity) -> Element(Msg)
             attribute.class("flex-1 grid grid-cols-2"),
           ],
           [
-            quick_info_tile(
+            component.quick_info_tile(
               icons.clock,
               g18n.translate(model.translator, "activity.time"),
               [
@@ -753,7 +766,7 @@ fn view_activity_detail_loaded(model: Model, activity: Activity) -> Element(Msg)
                 ),
               ],
             ),
-            quick_info_tile(
+            component.quick_info_tile(
               icons.pin,
               g18n.translate(model.translator, "activity.location"),
               [
@@ -843,26 +856,6 @@ fn view_time_interval(
   }
 }
 
-fn quick_info_tile(
-  icon: String,
-  title: String,
-  content: List(Element(Msg)),
-) -> Element(Msg) {
-  html.div([attribute.class("flex flex-col")], [
-    html.div([attribute.class("flex items-center gap-1 text-gray-800")], [
-      icon_component(icon, "size-4"),
-      html.div([attribute.class("text-body-sm")], [
-        element.text(title),
-      ]),
-    ]),
-    html.div([], content),
-  ])
-}
-
-fn icon_component(icon: String, class: String) -> Element(Msg) {
-  element.unsafe_raw_html("", "div", [attribute.class(class)], icon)
-}
-
 fn view_not_found() -> Element(Msg) {
   html.div([attribute.class("flex flex-col")], [
     html.div([attribute.styles([#("padding", "var(--scout-spacing-m)")])], [
@@ -875,108 +868,6 @@ fn view_not_found() -> Element(Msg) {
       ]),
     ]),
   ])
-}
-
-// COMPONENT WRAPPERS ----------------------------------------------------------
-
-fn scout_card(children: List(Element(Msg))) -> Element(Msg) {
-  element.element("scout-card", [], children)
-}
-
-fn scout_field(label: String, child: Element(Msg)) -> Element(Msg) {
-  element.element("scout-field", [attribute.attribute("label", label)], [child])
-}
-
-fn scout_form_field(
-  f: Form(a),
-  label: String,
-  input_type: String,
-  name: String,
-) -> Element(Msg) {
-  let errors = form.field_error_messages(f, name)
-  scout_field(
-    label,
-    element.fragment([
-      element.element(
-        "scout-input",
-        [
-          attribute.attribute("type", input_type),
-          attribute.attribute("name", name),
-          attribute.attribute("value", form.field_value(f, name)),
-        ],
-        [],
-      ),
-      ..list.map(errors, fn(msg) {
-        html.small(
-          [
-            attribute.styles([
-              #("color", "var(--scout-color-danger-700, #c00)"),
-            ]),
-          ],
-          [element.text(msg)],
-        )
-      })
-    ]),
-  )
-}
-
-fn scout_button_action(text: String, variant: String, msg: Msg) -> Element(Msg) {
-  element.element(
-    "scout-button",
-    [
-      attribute.attribute("variant", variant),
-      event.on("scoutClick", decode.success(msg)),
-    ],
-    [element.text(text)],
-  )
-}
-
-fn scout_button_el(text: String, variant: String) -> Element(Msg) {
-  element.element("scout-button", [attribute.attribute("variant", variant)], [
-    element.text(text),
-  ])
-}
-
-fn scout_button_icon(
-  text: String,
-  variant: String,
-  icon: String,
-) -> Element(Msg) {
-  element.element(
-    "scout-button",
-    [
-      attribute.attribute("variant", variant),
-      attribute.attribute("icon", icon),
-      attribute.attribute("icon-only", ""),
-      attribute.attribute("aria-label", text),
-    ],
-    [],
-  )
-}
-
-fn scout_loader(text: String) -> Element(Msg) {
-  element.element(
-    "scout-loader",
-    [
-      attribute.attribute("text", text),
-      attribute.attribute("size", "base"),
-    ],
-    [],
-  )
-}
-
-fn error_banner(message: String) -> Element(Msg) {
-  html.div(
-    [
-      attribute.styles([
-        #("padding", "var(--scout-spacing-s) var(--scout-spacing-m)"),
-        #("background", "var(--scout-color-danger-100, #fee)"),
-        #("color", "var(--scout-color-danger-700, #c00)"),
-        #("border-radius", "var(--scout-radius-s, 4px)"),
-      ]),
-    ],
-    [element.text(message)],
-  )
 }
 
 // HELPERS ---------------------------------------------------------------------
