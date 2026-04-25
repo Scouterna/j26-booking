@@ -145,7 +145,7 @@ fn view(model: Model) -> Element(Msg) {
       attribute.styles([
         #("display", "flex"),
         #("flex-direction", "column"),
-        #("gap", "var(--scout-spacing-l)"),
+        #("gap", "var(--spacing-6)"),
       ]),
     ],
     [
@@ -176,7 +176,7 @@ fn counter_tab(count: String) -> Element(Msg) {
         attribute.styles([
           #("display", "flex"),
           #("flex-direction", "column"),
-          #("gap", "var(--scout-spacing-m)"),
+          #("gap", "var(--spacing-4)"),
         ]),
       ],
       [
@@ -186,7 +186,7 @@ fn counter_tab(count: String) -> Element(Msg) {
             attribute.styles([
               #("display", "flex"),
               #("flex-direction", "row"),
-              #("gap", "var(--scout-spacing-s)"),
+              #("gap", "var(--spacing-2)"),
             ]),
           ],
           [
@@ -206,7 +206,7 @@ fn form_tab(model: Model, greeting: String) -> Element(Msg) {
         attribute.styles([
           #("display", "flex"),
           #("flex-direction", "column"),
-          #("gap", "var(--scout-spacing-m)"),
+          #("gap", "var(--spacing-4)"),
         ]),
       ],
       [
@@ -229,7 +229,7 @@ fn misc_tab() -> Element(Msg) {
         attribute.styles([
           #("display", "flex"),
           #("flex-direction", "column"),
-          #("gap", "var(--scout-spacing-m)"),
+          #("gap", "var(--spacing-4)"),
         ]),
       ],
       [

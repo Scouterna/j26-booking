@@ -37,7 +37,7 @@ pub fn scout_form_field(
         html.small(
           [
             attribute.styles([
-              #("color", "var(--scout-color-danger-700, #c00)"),
+              #("color", "var(--color-text-danger-base)"),
             ]),
           ],
           [element.text(msg)],
@@ -100,10 +100,10 @@ pub fn error_banner(message: String) -> Element(msg) {
   html.div(
     [
       attribute.styles([
-        #("padding", "var(--scout-spacing-s) var(--scout-spacing-m)"),
-        #("background", "var(--scout-color-danger-100, #fee)"),
-        #("color", "var(--scout-color-danger-700, #c00)"),
-        #("border-radius", "var(--scout-radius-s, 4px)"),
+        #("padding", "var(--spacing-2) var(--spacing-4)"),
+        #("background", "var(--color-background-danger-base)"),
+        #("color", "var(--color-text-danger-base)"),
+        #("border-radius", "4px"),
       ]),
     ],
     [element.text(message)],

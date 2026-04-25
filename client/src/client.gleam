@@ -551,7 +551,7 @@ fn view_activities_list(
           #("display", "flex"),
           #("justify-content", "space-between"),
           #("align-items", "center"),
-          #("padding", "var(--scout-spacing-m)"),
+          #("padding", "var(--spacing-4)"),
         ]),
       ],
       [
@@ -566,7 +566,7 @@ fn view_activities_list(
     ),
     case state {
       Loading ->
-        html.div([attribute.styles([#("padding", "var(--scout-spacing-l)")])], [
+        html.div([attribute.styles([#("padding", "var(--spacing-6)")])], [
           component.scout_loader("Loading activities..."),
         ])
       Failed(err) -> component.error_banner(err)
@@ -574,7 +574,7 @@ fn view_activities_list(
         html.div(
           [
             attribute.styles([
-              #("padding", "var(--scout-spacing-l)"),
+              #("padding", "var(--spacing-6)"),
               #("text-align", "center"),
             ]),
           ],
@@ -625,10 +625,10 @@ fn view_activity_new(
     |> UserSubmittedCreateForm
   }
   html.div([attribute.class("flex flex-col")], [
-    html.div([attribute.styles([#("padding", "var(--scout-spacing-m)")])], [
+    html.div([attribute.styles([#("padding", "var(--spacing-4)")])], [
       html.h1([], [element.text("New Activity")]),
     ]),
-    html.div([attribute.styles([#("padding", "var(--scout-spacing-m)")])], [
+    html.div([attribute.styles([#("padding", "var(--spacing-4)")])], [
       case submit_error {
         Some(err) -> component.error_banner(err)
         None -> element.none()
@@ -692,8 +692,8 @@ fn view_activity_detail(
             attribute.styles([
               #("display", "flex"),
               #("align-items", "center"),
-              #("gap", "var(--scout-spacing-s)"),
-              #("padding", "var(--scout-spacing-m)"),
+              #("gap", "var(--spacing-2)"),
+              #("padding", "var(--spacing-4)"),
             ]),
           ],
           [
@@ -705,7 +705,7 @@ fn view_activity_detail(
             ]),
           ],
         ),
-        html.div([attribute.styles([#("padding", "var(--scout-spacing-l)")])], [
+        html.div([attribute.styles([#("padding", "var(--spacing-6)")])], [
           html.p([], [
             element.text(g18n.translate(
               translator,
@@ -901,10 +901,10 @@ fn view_time_interval(
 
 fn view_not_found() -> Element(Msg) {
   html.div([attribute.class("flex flex-col")], [
-    html.div([attribute.styles([#("padding", "var(--scout-spacing-m)")])], [
+    html.div([attribute.styles([#("padding", "var(--spacing-4)")])], [
       html.h1([], [element.text("Not Found")]),
     ]),
-    html.div([attribute.styles([#("padding", "var(--scout-spacing-l)")])], [
+    html.div([attribute.styles([#("padding", "var(--spacing-6)")])], [
       html.p([], [element.text("Page not found.")]),
       html.a([attribute.href(api_prefix <> "/activities")], [
         element.text("Go to activities"),
