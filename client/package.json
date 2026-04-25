@@ -4,6 +4,6 @@
     "@fontsource-variable/source-sans-3": "^5.2.9"
   },
   "devDependencies": {
-    "@scouterna/tailwind-theme": "^0.0.4"
+    "@scouterna/tailwind-theme": "^0.0.5"
   }
 }
