@@ -799,8 +799,8 @@ fn view_time_interval(
   start: timestamp.Timestamp,
   end: timestamp.Timestamp,
 ) -> Element(Msg) {
-  let start_calendar = timestamp.to_calendar(start, calendar.utc_offset)
-  let end_calendar = timestamp.to_calendar(end, calendar.utc_offset)
+  let start_calendar = timestamp.to_calendar(start, calendar.local_offset())
+  let end_calendar = timestamp.to_calendar(end, calendar.local_offset())
   let translator = model.translator
   let format_date = fn(d) {
     g18n.format_date(translator, d, g18n.Custom("EEEE d/M"))
