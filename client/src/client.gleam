@@ -671,12 +671,7 @@ fn view_activity_detail_loaded(model: Model, activity: Activity) -> Element(Msg)
                       ),
                     ],
                     [
-                      element.unsafe_raw_html(
-                        "",
-                        "div",
-                        [attribute.class("size-4")],
-                        icons.users,
-                      ),
+                      icon_component(icons.users, "size-4"),
                       html.p([attribute.class("flex-1")], [
                         element.text(g18n.translate_plural(
                           model.translator,
@@ -842,7 +837,7 @@ fn quick_info_tile(
 ) -> Element(Msg) {
   html.div([attribute.class("flex flex-col")], [
     html.div([attribute.class("flex items-center gap-1 text-gray-800")], [
-      component_icon(icon, "size-4"),
+      icon_component(icon, "size-4"),
       html.div([attribute.class("text-body-sm")], [
         element.text(title),
       ]),
@@ -851,7 +846,7 @@ fn quick_info_tile(
   ])
 }
 
-fn component_icon(icon: String, class: String) -> Element(Msg) {
+fn icon_component(icon: String, class: String) -> Element(Msg) {
   element.unsafe_raw_html("", "div", [attribute.class(class)], icon)
 }
 
