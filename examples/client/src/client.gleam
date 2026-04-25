@@ -60,21 +60,6 @@ fn scout_button(text: String, variant: String, msg: Msg) -> Element(Msg) {
   )
 }
 
-fn scout_stack(
-  direction: String,
-  gap: String,
-  children: List(Element(Msg)),
-) -> Element(Msg) {
-  element.element(
-    "scout-stack",
-    [
-      attribute.attribute("direction", direction),
-      attribute.attribute("gap-size", gap),
-    ],
-    children,
-  )
-}
-
 fn scout_field(label: String, child: Element(Msg)) -> Element(Msg) {
   element.element("scout-field", [attribute.attribute("label", label)], [child])
 }
@@ -155,69 +140,114 @@ fn view(model: Model) -> Element(Msg) {
     False -> model.name
   }
 
-  scout_stack("column", "l", [
-    // App bar
-    element.element(
-      "scout-app-bar",
-      [
-        attribute.attribute("title-text", "Web Component Demo"),
-      ],
-      [],
-    ),
-    // Tabs
-    scout_tabs(model.active_tab, ["Counter", "Form", "Misc"], TabChanged),
-    // Tab content
-    case model.active_tab {
-      0 -> counter_tab(count)
-      1 -> form_tab(model, greeting)
-      _ -> misc_tab()
-    },
-  ])
+  html.div(
+    [
+      attribute.styles([
+        #("display", "flex"),
+        #("flex-direction", "column"),
+        #("gap", "var(--scout-spacing-l)"),
+      ]),
+    ],
+    [
+      // App bar
+      element.element(
+        "scout-app-bar",
+        [
+          attribute.attribute("title-text", "Web Component Demo"),
+        ],
+        [],
+      ),
+      // Tabs
+      scout_tabs(model.active_tab, ["Counter", "Form", "Misc"], TabChanged),
+      // Tab content
+      case model.active_tab {
+        0 -> counter_tab(count)
+        1 -> form_tab(model, greeting)
+        _ -> misc_tab()
+      },
+    ],
+  )
 }
 
 fn counter_tab(count: String) -> Element(Msg) {
   scout_card([
-    scout_stack("column", "m", [
-      html.p([], [html.text("Count: " <> count)]),
-      scout_stack("row", "s", [
-        scout_button("-", "outlined", Decremented),
-        scout_button("+", "primary", Incremented),
-      ]),
-    ]),
+    html.div(
+      [
+        attribute.styles([
+          #("display", "flex"),
+          #("flex-direction", "column"),
+          #("gap", "var(--scout-spacing-m)"),
+        ]),
+      ],
+      [
+        html.p([], [html.text("Count: " <> count)]),
+        html.div(
+          [
+            attribute.styles([
+              #("display", "flex"),
+              #("flex-direction", "row"),
+              #("gap", "var(--scout-spacing-s)"),
+            ]),
+          ],
+          [
+            scout_button("-", "outlined", Decremented),
+            scout_button("+", "primary", Incremented),
+          ],
+        ),
+      ],
+    ),
   ])
 }
 
 fn form_tab(model: Model, greeting: String) -> Element(Msg) {
   scout_card([
-    scout_stack("column", "m", [
-      scout_field("Your name", scout_input(model.name, NameChanged)),
-      html.p([], [html.text("Hello, " <> greeting <> "!")]),
-      scout_checkbox("I agree to the terms", model.agreed, AgreedToggled),
-      case model.agreed {
-        True -> html.p([], [html.text("Thanks for agreeing!")])
-        False -> element.none()
-      },
-    ]),
+    html.div(
+      [
+        attribute.styles([
+          #("display", "flex"),
+          #("flex-direction", "column"),
+          #("gap", "var(--scout-spacing-m)"),
+        ]),
+      ],
+      [
+        scout_field("Your name", scout_input(model.name, NameChanged)),
+        html.p([], [html.text("Hello, " <> greeting <> "!")]),
+        scout_checkbox("I agree to the terms", model.agreed, AgreedToggled),
+        case model.agreed {
+          True -> html.p([], [html.text("Thanks for agreeing!")])
+          False -> element.none()
+        },
+      ],
+    ),
   ])
 }
 
 fn misc_tab() -> Element(Msg) {
   scout_card([
-    scout_stack("column", "m", [
-      scout_loader("Loading something..."),
-      element.element("scout-divider", [], []),
-      element.element(
-        "scout-link",
-        [
-          attribute.attribute("label", "Scouterna Storybook"),
-          attribute.attribute(
-            "href",
-            "https://scouterna.github.io/j26-components/?path=/docs/home--docs",
-          ),
-          attribute.attribute("target", "_blank"),
-        ],
-        [],
-      ),
-    ]),
+    html.div(
+      [
+        attribute.styles([
+          #("display", "flex"),
+          #("flex-direction", "column"),
+          #("gap", "var(--scout-spacing-m)"),
+        ]),
+      ],
+      [
+        scout_loader("Loading something..."),
+        element.element("scout-divider", [], []),
+        element.element(
+          "scout-link",
+          [
+            attribute.attribute("label", "Scouterna Storybook"),
+            attribute.attribute(
+              "href",
+              "https://scouterna.github.io/j26-components/?path=/docs/home--docs",
+            ),
+            attribute.attribute("target", "_blank"),
+          ],
+          [],
+        ),
+      ],
+    ),
   ])
 }

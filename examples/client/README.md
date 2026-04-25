@@ -7,7 +7,7 @@ See [Web Components Guide](../../.claude/web-components.md) for patterns and com
 ## Demonstrates
 
 - Lustre Model-View-Update with web component events
-- `scout-button`, `scout-input`, `scout-checkbox`, `scout-tabs`, `scout-card`, `scout-loader`, `scout-link`, `scout-divider`, `scout-app-bar`, `scout-field`, `scout-stack`
+- `scout-button`, `scout-input`, `scout-checkbox`, `scout-tabs`, `scout-card`, `scout-loader`, `scout-link`, `scout-divider`, `scout-app-bar`, `scout-field`
 - Custom event decoding (`scoutClick`, `scoutChange`, `scoutChecked`)
 - Controlled inputs (value in model, passed back as attribute)
 
