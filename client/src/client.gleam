@@ -151,15 +151,43 @@ fn form_from_activity(activity: Activity) -> Form(ActivityForm) {
   )
 }
 
+fn translator_for(lang: String) -> Translator {
+  let assert Ok(en) = locale.new("en")
+  let assert Ok(sv) = locale.new("sv")
+  let preferred = case locale.new(lang) {
+    Ok(l) -> [l]
+    Error(_) -> []
+  }
+  let chosen = case locale.negotiate_locale([en, sv], preferred) {
+    Ok(l) -> l
+    Error(_) -> sv
+  }
+  let translations = case locale.language(chosen) {
+    "en" -> english_translations()
+    _ -> swedish_translations()
+  }
+  g18n.new_translator(chosen, translations)
+}
+
+fn app_bar_title(translator: Translator, route: Route) -> Option(String) {
+  case route {
+    ActivitiesList ->
+      Some(g18n.translate(translator, "app_bar.activities_list"))
+    ActivityDetail(_) ->
+      Some(g18n.translate(translator, "app_bar.activity_detail"))
+    ActivityNew -> Some(g18n.translate(translator, "app_bar.activity_new"))
+    ActivityEdit(_) -> None
+    NotFound -> None
+  }
+}
+
 fn init(_flags) -> #(Model, Effect(Msg)) {
   let route = case modem.initial_uri() {
     Ok(uri) -> uri_to_route(uri)
     Error(_) -> ActivitiesList
   }
 
-  let assert Ok(locale) = locale.new("sv")
-  let translations = swedish_translations()
-  let translator = g18n.new_translator(locale, translations)
+  let translator = translator_for(get_html_lang())
 
   let model =
     Model(
@@ -172,23 +200,25 @@ fn init(_flags) -> #(Model, Effect(Msg)) {
       translator: translator,
     )
 
-  let effects = case route {
-    ActivitiesList ->
-      effect.batch([
-        modem.init(OnRouteChange),
-        fetch_activities(),
-        set_app_bar_title(g18n.translate(translator, "app_bar.activities_list")),
-      ])
-    ActivityDetail(id) ->
-      effect.batch([
-        modem.init(OnRouteChange),
-        fetch_activity(id),
-        set_app_bar_title(g18n.translate(translator, "app_bar.activity_detail")),
-      ])
-    _ -> modem.init(OnRouteChange)
+  let route_effect = case route {
+    ActivitiesList -> fetch_activities()
+    ActivityDetail(id) -> fetch_activity(id)
+    _ -> effect.none()
+  }
+  let title_effect = case app_bar_title(translator, route) {
+    Some(title) -> set_app_bar_title(title)
+    None -> effect.none()
   }
 
-  #(model, effects)
+  #(
+    model,
+    effect.batch([
+      modem.init(OnRouteChange),
+      observe_lang(),
+      route_effect,
+      title_effect,
+    ]),
+  )
 }
 
 // UPDATE ----------------------------------------------------------------------
@@ -196,6 +226,8 @@ fn init(_flags) -> #(Model, Effect(Msg)) {
 type Msg {
   // Routing
   OnRouteChange(Uri)
+  // Locale
+  LangChanged(String)
   // API responses
   ApiReturnedActivities(Result(List(Activity), rsvp.Error))
   ApiReturnedActivity(Result(Activity, rsvp.Error))
@@ -216,37 +248,33 @@ fn update(model: Model, msg: Msg) -> #(Model, Effect(Msg)) {
     OnRouteChange(uri) -> {
       let route = uri_to_route(uri)
       let model = Model(..model, route:, error: None)
+      let title_effect = case app_bar_title(model.translator, route) {
+        Some(title) -> set_app_bar_title(title)
+        None -> effect.none()
+      }
       case route {
         ActivitiesList -> #(
           Model(..model, loading: True),
-          effect.batch([
-            fetch_activities(),
-            set_app_bar_title(g18n.translate(
-              model.translator,
-              "app_bar.activities_list",
-            )),
-          ]),
+          effect.batch([fetch_activities(), title_effect]),
         )
         ActivityDetail(id) -> #(
           Model(..model, loading: True, selected_activity: None),
-          effect.batch([
-            fetch_activity(id),
-            set_app_bar_title(g18n.translate(
-              model.translator,
-              "app_bar.activity_detail",
-            )),
-          ]),
+          effect.batch([fetch_activity(id), title_effect]),
         )
-        ActivityNew -> #(
-          Model(..model, form: activity_form()),
-          set_app_bar_title(g18n.translate(
-            model.translator,
-            "app_bar.activity_new",
-          )),
-        )
-        ActivityEdit(id) -> todo
+        ActivityNew -> #(Model(..model, form: activity_form()), title_effect)
+        ActivityEdit(_id) -> todo
         NotFound -> #(model, effect.none())
       }
+    }
+
+    LangChanged(lang) -> {
+      let translator = translator_for(lang)
+      let model = Model(..model, translator:)
+      let title_effect = case app_bar_title(translator, model.route) {
+        Some(title) -> set_app_bar_title(title)
+        None -> effect.none()
+      }
+      #(model, title_effect)
     }
 
     ApiReturnedActivities(Ok(activities)) -> #(
@@ -354,8 +382,20 @@ fn update(model: Model, msg: Msg) -> #(Model, Effect(Msg)) {
 @external(javascript, "./client_ffi.mjs", "post_message_to_parent")
 fn post_message_to_parent(type_: String, title: String) -> Nil
 
+@external(javascript, "./client_ffi.mjs", "get_html_lang")
+fn get_html_lang() -> String
+
+@external(javascript, "./client_ffi.mjs", "observe_html_lang")
+fn observe_html_lang(callback: fn(String) -> Nil) -> Nil
+
 fn set_app_bar_title(title: String) -> Effect(msg) {
   effect.from(fn(_dispatch) { post_message_to_parent("j26:appBar", title) })
+}
+
+fn observe_lang() -> Effect(Msg) {
+  effect.from(fn(dispatch) {
+    observe_html_lang(fn(lang) { dispatch(LangChanged(lang)) })
+  })
 }
 
 fn fetch_activities() -> Effect(Msg) {
