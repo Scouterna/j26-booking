@@ -99,9 +99,7 @@ pub fn spa_shell_page() -> Element(a) {
       html.title([], "Jamboree 2026 Booking"),
       html.script(
         [
-          attribute.src(
-            "https://cdn.jsdelivr.net/npm/@scouterna/ui-webc@4.3.0/dist/esm/ui-webc.js",
-          ),
+          attribute.src(base_path <> "/static/ui-webc-patched/esm/ui-webc.js"),
           attribute.type_("module"),
         ],
         "",
@@ -116,7 +114,7 @@ pub fn spa_shell_page() -> Element(a) {
       html.link([
         attribute.rel("stylesheet"),
         attribute.href(
-          "https://cdn.jsdelivr.net/npm/@scouterna/ui-webc@4.3.0/dist/ui-webc/ui-webc.css",
+          base_path <> "/static/ui-webc-patched/ui-webc/ui-webc.css",
         ),
       ]),
       html.link([

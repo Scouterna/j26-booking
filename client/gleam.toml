@@ -30,12 +30,14 @@ gleeunit = ">= 1.0.0 and < 2.0.0"
 lustre_dev_tools = { git = "https://github.com/m4reko/lustre-dev-tools", ref = "main" }
 
 [tools.lustre.html]
+# Local patched ui-webc (PRs #116 + #117) for testing — revert to CDN once
+# those ship in a published version.
 stylesheets = [
-    { href = "https://cdn.jsdelivr.net/npm/@scouterna/ui-webc@4.3.0/dist/ui-webc/ui-webc.css" },
+    { href = "/_services/booking/static/ui-webc-patched/ui-webc/ui-webc.css" },
     { href = "https://fonts.googleapis.com/css2?family=Source+Sans+3:ital,wght@0,200..900;1,200..900&display=swap" },
 ]
 scripts = [
-    { src = "https://cdn.jsdelivr.net/npm/@scouterna/ui-webc@4.3.0/dist/esm/ui-webc.js", type = "module" },
+    { src = "/_services/booking/static/ui-webc-patched/esm/ui-webc.js", type = "module" },
 ]
 link = [
     { href = "https://fonts.googleapis.com", rel = "preconnect" },
@@ -47,4 +49,7 @@ no_html = true
 
 [tools.lustre.dev]
 base_path = "/_services/booking"
-proxy = { from = "/_services/booking/api", to = "http://localhost:8000/_services/booking/api" }
+proxy = [
+    { from = "/_services/booking/api", to = "http://localhost:8000/_services/booking/api" },
+    { from = "/_services/booking/static", to = "http://localhost:8000/_services/booking/static" },
+]
