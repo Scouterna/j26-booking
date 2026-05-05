@@ -89,6 +89,59 @@ This makes impossible states impossible — you can write separate update/view f
 
 A type alias (`type Model = Dict(String, Post)`) is also fine when appropriate.
 
+### Make invalid state unrepresentable
+
+Three patterns to keep the model honest. Each removes a category of "this combination shouldn't be possible but the type allows it."
+
+**Collapse loading/data/error triples.** Three independent fields representing one logical state machine let bogus combinations exist (`loading=True ∧ data=Some(...)`, `loading=False ∧ data=None ∧ error=None`, etc.).
+
+```gleam
+// Bad — three fields, many combinations, only some are valid
+Model(loading: Bool, data: Option(a), error: Option(String))
+
+// Good — one field, three variants, every value is valid
+type RemoteData(a) {
+  Loading
+  Loaded(a)
+  Failed(String)
+}
+```
+
+**Push per-route state into the route variant.** Top-level fields that are only meaningful on some routes leak across navigations and force defensive `case` checks in views.
+
+```gleam
+// Bad — form lives at the top level even on routes that never use it
+type Model {
+  Model(route: Route, activities: List(Activity), form: Form(F), ...)
+}
+
+// Good — each route carries exactly the state it needs
+type Page {
+  ListPage(state: RemoteData(List(Activity)))
+  NewPage(form: Form(F), submit_error: Option(String))
+  DetailPage(id: String, state: RemoteData(Activity))
+}
+type Model {
+  Model(page: Page, translator: Translator)
+}
+```
+
+A useful consequence: API result handlers must pattern-match on `model.page`, which naturally drops stale responses if the user has navigated away while a fetch was in flight.
+
+**Bind correlated fields in one constructor.** Fields that must agree (e.g. an entity and a form prefilled from it) belong in the same variant, not as siblings that can drift apart.
+
+```gleam
+// Bad — form and selected_activity can disagree
+Model(selected_activity: Option(Activity), form: Form(F), ...)
+
+// Good — both are populated together; one without the other is unrepresentable
+type EditState {
+  EditLoading
+  EditReady(activity: Activity, form: Form(F), submit_error: Option(String))
+  EditLoadFailed(String)
+}
+```
+
 ### Messages not actions
 
 Name messages using **Subject Verb Object** to describe who sent them and what happened:
