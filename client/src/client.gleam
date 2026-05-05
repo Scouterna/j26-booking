@@ -2,13 +2,16 @@ import component
 import formal/form.{type Form}
 import g18n.{type Translator}
 import g18n/locale
+import gleam/dict
+import gleam/dynamic/decode
 import gleam/int
 import gleam/json
 import gleam/list
 import gleam/option.{type Option, None, Some}
+import gleam/order
 import gleam/string
 import gleam/time/calendar
-import gleam/time/timestamp
+import gleam/time/timestamp.{type Timestamp}
 import gleam/uri.{type Uri}
 import icons
 import lustre
@@ -20,7 +23,7 @@ import lustre/event
 import modem
 import rsvp
 import shared/model.{type Activity}
-import youid/uuid
+import youid/uuid.{type Uuid}
 
 const api_prefix = "/_services/booking"
 
@@ -46,6 +49,23 @@ fn english_translations() -> g18n.Translations {
   |> g18n.add_translation("app_bar.activities_list", "Activities")
   |> g18n.add_translation("app_bar.activity_detail", "Activity")
   |> g18n.add_translation("app_bar.activity_new", "Create activity")
+  |> g18n.add_translation("activity.booked", "Booked!")
+  |> g18n.add_translation("list.search_placeholder", "Search")
+  |> g18n.add_translation("list.filter.all", "All")
+  |> g18n.add_translation("list.filter.booked", "Booked")
+  |> g18n.add_translation("list.filter.more", "More filters")
+  |> g18n.add_translation("list.filter.audience_label", "Target audience")
+  |> g18n.add_translation("list.filter.tags_label", "Tags")
+  |> g18n.add_translation("list.bucket.forenoon", "Morning")
+  |> g18n.add_translation("list.bucket.afternoon", "Afternoon")
+  |> g18n.add_translation("list.bucket.evening", "Evening")
+  |> g18n.add_translation("list.bucket.now_suffix", " (now)")
+  |> g18n.add_translation("list.bucket.now_label", "Now")
+  |> g18n.add_translation("list.day.any", "All days")
+  |> g18n.add_translation(
+    "list.empty_filtered",
+    "No activities match the filters.",
+  )
 }
 
 fn swedish_translations() -> g18n.Translations {
@@ -68,6 +88,23 @@ fn swedish_translations() -> g18n.Translations {
   |> g18n.add_translation("app_bar.activities_list", "Spontanaktiviteter")
   |> g18n.add_translation("app_bar.activity_detail", "Aktivitet")
   |> g18n.add_translation("app_bar.activity_new", "Skapa aktivitet")
+  |> g18n.add_translation("activity.booked", "Bokat!")
+  |> g18n.add_translation("list.search_placeholder", "Sök")
+  |> g18n.add_translation("list.filter.all", "Alla")
+  |> g18n.add_translation("list.filter.booked", "Bokade")
+  |> g18n.add_translation("list.filter.more", "Fler filter")
+  |> g18n.add_translation("list.filter.audience_label", "Målgrupp")
+  |> g18n.add_translation("list.filter.tags_label", "Taggar")
+  |> g18n.add_translation("list.bucket.forenoon", "Förmiddag")
+  |> g18n.add_translation("list.bucket.afternoon", "Eftermiddag")
+  |> g18n.add_translation("list.bucket.evening", "Kväll")
+  |> g18n.add_translation("list.bucket.now_suffix", " (nu)")
+  |> g18n.add_translation("list.bucket.now_label", "Nu")
+  |> g18n.add_translation("list.day.any", "Alla dagar")
+  |> g18n.add_translation(
+    "list.empty_filtered",
+    "Inga aktiviteter matchar filtren.",
+  )
 }
 
 // MAIN ------------------------------------------------------------------------
@@ -107,8 +144,35 @@ type EditState {
   EditLoadFailed(String)
 }
 
+type BookingFilter {
+  AllActivities
+  BookedOnly
+}
+
+type ListFilters {
+  ListFilters(
+    search: String,
+    booking: BookingFilter,
+    day: Option(calendar.Date),
+    more_open: Bool,
+    audiences: List(String),
+    tags: List(String),
+  )
+}
+
+fn default_filters() -> ListFilters {
+  ListFilters(
+    search: "",
+    booking: AllActivities,
+    day: None,
+    more_open: False,
+    audiences: [],
+    tags: [],
+  )
+}
+
 type Page {
-  ActivitiesListPage(state: RemoteData(List(Activity)))
+  ActivitiesListPage(state: RemoteData(List(Activity)), filters: ListFilters)
   ActivityNewPage(form: Form(ActivityForm), submit_error: Option(String))
   ActivityDetailPage(id: String, state: RemoteData(Activity))
   ActivityEditPage(id: String, state: EditState)
@@ -179,7 +243,7 @@ fn translator_for(lang: String) -> Translator {
 
 fn app_bar_title(translator: Translator, page: Page) -> Option(String) {
   case page {
-    ActivitiesListPage(_) ->
+    ActivitiesListPage(_, _) ->
       Some(g18n.translate(translator, "app_bar.activities_list"))
     ActivityDetailPage(_, _) ->
       Some(g18n.translate(translator, "app_bar.activity_detail"))
@@ -193,7 +257,10 @@ fn app_bar_title(translator: Translator, page: Page) -> Option(String) {
 fn init(_flags) -> #(Model, Effect(Msg)) {
   let #(page, page_effect) = case modem.initial_uri() {
     Ok(uri) -> uri_to_page(uri)
-    Error(_) -> #(ActivitiesListPage(Loading), fetch_activities())
+    Error(_) -> #(
+      ActivitiesListPage(Loading, default_filters()),
+      fetch_activities(),
+    )
   }
 
   let translator = translator_for(get_html_lang())
@@ -236,6 +303,13 @@ type Msg {
   UserClickedEdit
   UserClickedDelete
   UserClickedCancelEdit
+  // List page filters
+  UserSearchedActivities(String)
+  UserSelectedBookingFilter(BookingFilter)
+  UserSelectedDay(Option(calendar.Date))
+  UserToggledMoreFilters
+  UserToggledAudience(String)
+  UserToggledTag(String)
 }
 
 fn update(model: Model, msg: Msg) -> #(Model, Effect(Msg)) {
@@ -260,12 +334,15 @@ fn update(model: Model, msg: Msg) -> #(Model, Effect(Msg)) {
 
     ApiReturnedActivities(result) ->
       case model.page {
-        ActivitiesListPage(Loading) -> {
+        ActivitiesListPage(Loading, filters) -> {
           let new_state = case result {
             Ok(activities) -> Loaded(activities)
             Error(_) -> Failed("Failed to load activities")
           }
-          #(Model(..model, page: ActivitiesListPage(new_state)), effect.none())
+          #(
+            Model(..model, page: ActivitiesListPage(new_state, filters)),
+            effect.none(),
+          )
         }
         _ -> #(model, effect.none())
       }
@@ -423,6 +500,48 @@ fn update(model: Model, msg: Msg) -> #(Model, Effect(Msg)) {
         )
         _ -> #(model, effect.none())
       }
+
+    UserSearchedActivities(value) ->
+      update_filters(model, fn(f) { ListFilters(..f, search: value) })
+
+    UserSelectedBookingFilter(b) ->
+      update_filters(model, fn(f) { ListFilters(..f, booking: b) })
+
+    UserSelectedDay(d) ->
+      update_filters(model, fn(f) { ListFilters(..f, day: d) })
+
+    UserToggledMoreFilters ->
+      update_filters(model, fn(f) { ListFilters(..f, more_open: !f.more_open) })
+
+    UserToggledAudience(name) ->
+      update_filters(model, fn(f) {
+        ListFilters(..f, audiences: toggle_member(f.audiences, name))
+      })
+
+    UserToggledTag(name) ->
+      update_filters(model, fn(f) {
+        ListFilters(..f, tags: toggle_member(f.tags, name))
+      })
+  }
+}
+
+fn update_filters(
+  model: Model,
+  f: fn(ListFilters) -> ListFilters,
+) -> #(Model, Effect(Msg)) {
+  case model.page {
+    ActivitiesListPage(state, filters) -> #(
+      Model(..model, page: ActivitiesListPage(state, f(filters))),
+      effect.none(),
+    )
+    _ -> #(model, effect.none())
+  }
+}
+
+fn toggle_member(items: List(String), name: String) -> List(String) {
+  case list.contains(items, name) {
+    True -> list.filter(items, fn(i) { i != name })
+    False -> [name, ..items]
   }
 }
 
@@ -517,7 +636,10 @@ fn activity_form_to_json(af: ActivityForm) -> json.Json {
 
 fn uri_to_page(uri: Uri) -> #(Page, Effect(Msg)) {
   case uri.path_segments(uri.path) |> list.drop(2) {
-    ["activities"] | [] -> #(ActivitiesListPage(Loading), fetch_activities())
+    ["activities"] | [] -> #(
+      ActivitiesListPage(Loading, default_filters()),
+      fetch_activities(),
+    )
     ["activities", "new"] -> #(
       ActivityNewPage(activity_form(), None),
       effect.none(),
@@ -531,7 +653,8 @@ fn uri_to_page(uri: Uri) -> #(Page, Effect(Msg)) {
 
 fn view(model: Model) -> Element(Msg) {
   case model.page {
-    ActivitiesListPage(state) -> view_activities_list(model.translator, state)
+    ActivitiesListPage(state, filters) ->
+      view_activities_list(model.translator, state, filters)
     ActivityNewPage(form, submit_error) -> view_activity_new(form, submit_error)
     ActivityDetailPage(_, state) ->
       view_activity_detail(model.translator, state)
@@ -543,75 +666,310 @@ fn view(model: Model) -> Element(Msg) {
 fn view_activities_list(
   translator: Translator,
   state: RemoteData(List(Activity)),
+  filters: ListFilters,
 ) -> Element(Msg) {
-  html.div([attribute.class("flex flex-col")], [
-    html.div(
-      [
-        attribute.styles([
-          #("display", "flex"),
-          #("justify-content", "space-between"),
-          #("align-items", "center"),
-          #("padding", "var(--spacing-4)"),
-        ]),
-      ],
-      [
-        html.a(
-          [
-            attribute.href(api_prefix <> "/activities/new"),
-            attribute.styles([#("text-decoration", "none")]),
-          ],
-          [component.scout_button_icon("Create", "primary", "plus")],
-        ),
-      ],
-    ),
+  let t = fn(key) { g18n.translate(translator, key) }
+
+  html.div([attribute.class("flex flex-col gap-3 p-4")], [
+    view_list_top_bar(translator, filters, state),
+    case filters.more_open {
+      True -> view_more_filters_panel(translator, filters)
+      False -> element.none()
+    },
     case state {
-      Loading ->
-        html.div([attribute.styles([#("padding", "var(--spacing-6)")])], [
-          component.scout_loader("Loading activities..."),
-        ])
+      Loading -> component.scout_loader(t("activity.loading"))
       Failed(err) -> component.error_banner(err)
       Loaded([]) ->
-        html.div(
-          [
-            attribute.styles([
-              #("padding", "var(--spacing-6)"),
-              #("text-align", "center"),
-            ]),
-          ],
-          [
-            html.p([], [element.text("No activities yet.")]),
-            html.a(
-              [
-                attribute.href(api_prefix <> "/activities/new"),
-                attribute.styles([#("text-decoration", "none")]),
-              ],
-              [component.scout_button_el("Create first activity", "primary")],
-            ),
-          ],
-        )
-      Loaded(activities) ->
-        element.element("scout-list-view", [], {
-          use activity <- list.map(activities)
-          let id = uuid.to_string(activity.id)
-          let secondary =
-            format_time_range(
-              translator,
-              activity.start_time,
-              activity.end_time,
-            )
-          element.element(
-            "scout-list-view-item",
+        html.div([attribute.class("py-6 text-center flex flex-col gap-3")], [
+          html.p([], [element.text("No activities yet.")]),
+          html.a(
             [
-              attribute.attribute("type", "link"),
-              attribute.attribute("primary", activity.title),
-              attribute.attribute("secondary", secondary),
-              attribute.href(api_prefix <> "/activities/" <> id),
+              attribute.href(api_prefix <> "/activities/new"),
+              attribute.class("no-underline self-center"),
             ],
-            [],
-          )
-        })
+            [component.scout_button_el("Create first activity", "primary")],
+          ),
+        ])
+      Loaded(activities) ->
+        view_grouped_activities(translator, activities, filters)
     },
   ])
+}
+
+fn view_list_top_bar(
+  translator: Translator,
+  filters: ListFilters,
+  state: RemoteData(List(Activity)),
+) -> Element(Msg) {
+  let t = fn(key) { g18n.translate(translator, key) }
+  let dates = case state {
+    Loaded(activities) -> camp_dates(activities)
+    _ -> []
+  }
+  let booking_index = case filters.booking {
+    AllActivities -> 0
+    BookedOnly -> 1
+  }
+  html.div([attribute.class("flex flex-col gap-2")], [
+    component.scout_input_search(
+      filters.search,
+      t("list.search_placeholder"),
+      UserSearchedActivities,
+    ),
+    html.div([attribute.class("flex items-center gap-2")], [
+      component.scout_segmented_control(
+        booking_index,
+        [t("list.filter.all"), t("list.filter.booked")],
+        fn(idx) {
+          case idx {
+            0 -> UserSelectedBookingFilter(AllActivities)
+            _ -> UserSelectedBookingFilter(BookedOnly)
+          }
+        },
+      ),
+      view_day_select(translator, filters.day, dates),
+      component.filter_pill_icon(
+        t("list.filter.more"),
+        icons.filter,
+        filters.more_open,
+        UserToggledMoreFilters,
+      ),
+    ]),
+  ])
+}
+
+fn view_day_select(
+  translator: Translator,
+  selected: Option(calendar.Date),
+  dates: List(calendar.Date),
+) -> Element(Msg) {
+  let any_value = "__any__"
+  let selected_value = case selected {
+    None -> any_value
+    Some(date) -> date_to_iso(date)
+  }
+  let any_option =
+    html.option(
+      [
+        attribute.value(any_value),
+        attribute.selected(selected_value == any_value),
+      ],
+      g18n.translate(translator, "list.day.any"),
+    )
+  let date_options =
+    list.map(dates, fn(date) {
+      let value = date_to_iso(date)
+      let label = g18n.format_date(translator, date, g18n.Custom("EEEE d/M"))
+      html.option(
+        [attribute.value(value), attribute.selected(value == selected_value)],
+        label,
+      )
+    })
+  element.element(
+    "scout-select",
+    [
+      attribute.attribute("name", "day"),
+      attribute.attribute("value", selected_value),
+      event.on("scoutInputChange", {
+        use value <- decode.subfield(["detail", "value"], decode.string)
+        let new_day = case value {
+          "__any__" -> None
+          iso -> parse_date_iso(iso)
+        }
+        decode.success(UserSelectedDay(new_day))
+      }),
+    ],
+    [any_option, ..date_options],
+  )
+}
+
+fn view_more_filters_panel(
+  translator: Translator,
+  filters: ListFilters,
+) -> Element(Msg) {
+  let t = fn(key) { g18n.translate(translator, key) }
+  component.scout_card([
+    html.div([attribute.class("flex flex-col gap-3 p-2")], [
+      html.div([attribute.class("flex flex-col gap-2")], [
+        html.h4([attribute.class("text-body-sm font-semibold")], [
+          element.text(t("list.filter.audience_label")),
+        ]),
+        html.div(
+          [attribute.class("flex flex-wrap gap-2")],
+          list.map(audience_options(), fn(name) {
+            component.filter_chip(
+              name,
+              list.contains(filters.audiences, name),
+              UserToggledAudience(name),
+            )
+          }),
+        ),
+      ]),
+      html.div([attribute.class("flex flex-col gap-2")], [
+        html.h4([attribute.class("text-body-sm font-semibold")], [
+          element.text(t("list.filter.tags_label")),
+        ]),
+        html.div(
+          [attribute.class("flex flex-wrap gap-2")],
+          list.map(tag_options(), fn(name) {
+            component.filter_chip(
+              name,
+              list.contains(filters.tags, name),
+              UserToggledTag(name),
+            )
+          }),
+        ),
+      ]),
+    ]),
+  ])
+}
+
+fn view_grouped_activities(
+  translator: Translator,
+  activities: List(Activity),
+  filters: ListFilters,
+) -> Element(Msg) {
+  let t = fn(key) { g18n.translate(translator, key) }
+  let filtered =
+    apply_filters(activities, filters)
+    |> list.sort(fn(a, b) { timestamp.compare(a.start_time, b.start_time) })
+  case filtered {
+    [] ->
+      html.div(
+        [
+          attribute.class(
+            "py-12 px-6 text-center flex flex-col items-center gap-2 text-gray-500",
+          ),
+        ],
+        [
+          html.div([attribute.class("size-10 text-gray-400")], [
+            component.icon(icons.filter, "size-full"),
+          ]),
+          html.p([attribute.class("text-body-base")], [
+            element.text(t("list.empty_filtered")),
+          ]),
+        ],
+      )
+    _ -> {
+      let groups = group_by_date_bucket(filtered)
+      let now_ts = timestamp.system_time()
+      let today = date_of(now_ts)
+      let now_bucket = current_bucket()
+      html.div(
+        [attribute.class("flex flex-col gap-4")],
+        list.map(groups, fn(group) {
+          let #(#(date, bucket), items) = group
+          let is_current = date == today && bucket == now_bucket
+          view_section(translator, date, bucket, items, is_current)
+        }),
+      )
+    }
+  }
+}
+
+fn group_by_date_bucket(
+  activities: List(Activity),
+) -> List(#(#(calendar.Date, TimeBucket), List(Activity))) {
+  let key_for = fn(a: Activity) {
+    #(date_of(a.start_time), bucket_for(a.start_time))
+  }
+  let grouped = list.group(activities, by: key_for)
+  let key_compare = fn(a, b) {
+    let #(d1, b1) = a
+    let #(d2, b2) = b
+    case calendar.naive_date_compare(d1, d2) {
+      order.Eq -> int.compare(bucket_ordinal(b1), bucket_ordinal(b2))
+      other -> other
+    }
+  }
+  let keys = dict.keys(grouped) |> list.sort(key_compare)
+  list.map(keys, fn(key) {
+    let items =
+      dict.get(grouped, key)
+      |> result_unwrap_or([])
+      |> list.sort(fn(a, b) { timestamp.compare(a.start_time, b.start_time) })
+    #(key, items)
+  })
+}
+
+fn result_unwrap_or(r: Result(a, e), default: a) -> a {
+  case r {
+    Ok(v) -> v
+    Error(_) -> default
+  }
+}
+
+fn view_section(
+  translator: Translator,
+  date: calendar.Date,
+  bucket: TimeBucket,
+  activities: List(Activity),
+  is_current: Bool,
+) -> Element(Msg) {
+  let t = fn(key) { g18n.translate(translator, key) }
+  let bucket_label = t(bucket_translation_key(bucket))
+  let date_label = format_date_short(translator, date)
+  html.section([attribute.class("flex flex-col gap-2")], [
+    html.div([attribute.class("flex items-baseline gap-2 mt-2")], [
+      html.span(
+        [
+          attribute.class(
+            "text-xs font-semibold uppercase tracking-wider text-gray-500",
+          ),
+        ],
+        [element.text(bucket_label)],
+      ),
+      html.h2([attribute.class("text-body-base font-semibold text-gray-900")], [
+        element.text(date_label),
+      ]),
+      case is_current {
+        True ->
+          html.span(
+            [
+              attribute.class(
+                "text-xs font-bold uppercase tracking-wider rounded-full px-2 py-0.5 bg-blue-700 text-white",
+              ),
+            ],
+            [element.text(t("list.bucket.now_label"))],
+          )
+        False -> element.none()
+      },
+    ]),
+    html.div(
+      [attribute.class("flex flex-col gap-2")],
+      list.map(activities, fn(activity) {
+        view_activity_card(translator, date, activity)
+      }),
+    ),
+  ])
+}
+
+fn view_activity_card(
+  translator: Translator,
+  section_date: calendar.Date,
+  activity: Activity,
+) -> Element(Msg) {
+  let id = uuid.to_string(activity.id)
+  let time =
+    view_card_time(
+      translator,
+      activity.start_time,
+      activity.end_time,
+      section_date,
+    )
+  let location = mock_location(activity.id)
+  let spots = mock_spots_remaining(activity)
+  let spots_text =
+    g18n.translate_plural(translator, "activity.spots_remaining", spots)
+  component.activity_card(
+    api_prefix <> "/activities/" <> id,
+    activity.title,
+    mock_is_booked(activity.id),
+    g18n.translate(translator, "activity.booked"),
+    time,
+    location,
+    spots_text,
+  )
 }
 
 fn view_activity_new(
@@ -851,6 +1209,75 @@ fn classify_interval(
   }
 }
 
+fn format_date_short(translator: Translator, d: calendar.Date) -> String {
+  g18n.format_date(translator, d, g18n.Custom("EEEE d/M"))
+}
+
+fn format_clock(translator: Translator, tod: calendar.TimeOfDay) -> String {
+  g18n.format_time(translator, tod, g18n.Custom("HH.mm"))
+}
+
+/// Multi-line cross-day time with `to` separator, used by detail and list card
+/// when the activity spans multiple days.
+fn view_cross_day_interval(
+  translator: Translator,
+  start_calendar: #(calendar.Date, calendar.TimeOfDay),
+  end_calendar: #(calendar.Date, calendar.TimeOfDay),
+) -> Element(msg) {
+  let separator = g18n.translate(translator, "activity.date_range_separator")
+  html.span([], [
+    element.text(
+      format_date_short(translator, start_calendar.0)
+      <> " "
+      <> format_clock(translator, start_calendar.1)
+      <> " "
+      <> separator,
+    ),
+    html.br([]),
+    element.text(
+      format_date_short(translator, end_calendar.0)
+      <> " "
+      <> format_clock(translator, end_calendar.1),
+    ),
+  ])
+}
+
+/// Time element for the activity card. The section header already shows the
+/// start date, so we drop it here. Cross-day activities show only the end date
+/// with a `→` arrow, keeping the meta row tight and aligned with the same-day
+/// formats.
+fn view_card_time(
+  translator: Translator,
+  start: timestamp.Timestamp,
+  end: timestamp.Timestamp,
+  section_date: calendar.Date,
+) -> Element(msg) {
+  let start_calendar = timestamp.to_calendar(start, calendar.local_offset())
+  let end_calendar = timestamp.to_calendar(end, calendar.local_offset())
+  case classify_interval(start_calendar, end_calendar) {
+    SameDaySameTime -> element.text(format_clock(translator, start_calendar.1))
+    SameDayDifferentTime ->
+      element.text(
+        format_clock(translator, start_calendar.1)
+        <> " – "
+        <> format_clock(translator, end_calendar.1),
+      )
+    DifferentDays -> {
+      let start_clock = format_clock(translator, start_calendar.1)
+      let end_clock = format_clock(translator, end_calendar.1)
+      let end_date_short = format_date_short(translator, end_calendar.0)
+      case section_date == start_calendar.0 {
+        True ->
+          element.text(
+            start_clock <> " → " <> end_date_short <> " " <> end_clock,
+          )
+        False ->
+          view_cross_day_interval(translator, start_calendar, end_calendar)
+      }
+    }
+  }
+}
+
 fn view_time_interval(
   translator: Translator,
   start: timestamp.Timestamp,
@@ -858,44 +1285,25 @@ fn view_time_interval(
 ) -> Element(Msg) {
   let start_calendar = timestamp.to_calendar(start, calendar.local_offset())
   let end_calendar = timestamp.to_calendar(end, calendar.local_offset())
-  let format_date = fn(d) {
-    g18n.format_date(translator, d, g18n.Custom("EEEE d/M"))
-  }
-  let format_time = fn(tod) {
-    g18n.format_time(translator, tod, g18n.Custom("HH.mm"))
-  }
   case classify_interval(start_calendar, end_calendar) {
     SameDayDifferentTime ->
       html.span([], [
-        element.text(format_date(start_calendar.0)),
+        element.text(format_date_short(translator, start_calendar.0)),
         html.br([]),
         element.text(
-          format_time(start_calendar.1) <> " - " <> format_time(end_calendar.1),
+          format_clock(translator, start_calendar.1)
+          <> " - "
+          <> format_clock(translator, end_calendar.1),
         ),
       ])
     SameDaySameTime ->
       html.span([], [
-        element.text(format_date(start_calendar.0)),
+        element.text(format_date_short(translator, start_calendar.0)),
         html.br([]),
-        element.text(format_time(start_calendar.1)),
+        element.text(format_clock(translator, start_calendar.1)),
       ])
-    DifferentDays -> {
-      let separator =
-        g18n.translate(translator, "activity.date_range_separator")
-      html.span([], [
-        element.text(
-          format_date(start_calendar.0)
-          <> " "
-          <> format_time(start_calendar.1)
-          <> " "
-          <> separator,
-        ),
-        html.br([]),
-        element.text(
-          format_date(end_calendar.0) <> " " <> format_time(end_calendar.1),
-        ),
-      ])
-    }
+    DifferentDays ->
+      view_cross_day_interval(translator, start_calendar, end_calendar)
   }
 }
 
@@ -913,16 +1321,189 @@ fn view_not_found() -> Element(Msg) {
   ])
 }
 
-// HELPERS ---------------------------------------------------------------------
+// MOCK -----------------------------------------------------------------------
+// TODO: replace with real data once schema is extended with location, tags,
+// target audience, and bookings.
 
-fn format_time_range(
-  translator: g18n.Translator,
-  start: timestamp.Timestamp,
-  end: timestamp.Timestamp,
-) -> String {
-  let fmt = fn(ts) {
-    let #(_, time) = timestamp.to_calendar(ts, calendar.local_offset())
-    g18n.format_time(translator, time, g18n.Short)
+fn id_seed(id: Uuid) -> Int {
+  uuid.to_string(id)
+  |> string.to_utf_codepoints
+  |> list.fold(0, fn(acc, cp) { acc + string.utf_codepoint_to_int(cp) })
+}
+
+fn pick_at(items: List(a), seed: Int, default: a) -> a {
+  let n = list.length(items)
+  case n {
+    0 -> default
+    _ -> {
+      let idx = seed % n
+      case list.drop(items, idx) |> list.first {
+        Ok(value) -> value
+        Error(_) -> default
+      }
+    }
   }
-  fmt(start) <> " – " <> fmt(end)
+}
+
+const mock_locations: List(String) = [
+  "Badbusstorget", "Lägerelden", "Stora ängen", "Aktivitetstältet", "Hjärtat",
+]
+
+fn audience_options() -> List(String) {
+  ["Spårare", "Upptäckare", "Äventyrare", "Utmanare", "Rover"]
+}
+
+fn tag_options() -> List(String) {
+  ["Fysisk", "Badbuss", "Mat", "Skapande", "Lugn"]
+}
+
+fn mock_is_booked(id: Uuid) -> Bool {
+  id_seed(id) % 3 == 0
+}
+
+fn mock_location(id: Uuid) -> String {
+  pick_at(mock_locations, id_seed(id), "Badbusstorget")
+}
+
+fn mock_audiences(id: Uuid) -> List(String) {
+  let opts = audience_options()
+  let seed = id_seed(id)
+  let first = pick_at(opts, seed, "Spårare")
+  let second = pick_at(opts, seed / 7 + 1, "Utmanare")
+  case first == second {
+    True -> [first]
+    False -> [first, second]
+  }
+}
+
+fn mock_tags(id: Uuid) -> List(String) {
+  let opts = tag_options()
+  let seed = id_seed(id)
+  let first = pick_at(opts, seed / 3, "Fysisk")
+  let second = pick_at(opts, seed / 11 + 2, "Badbuss")
+  case first == second {
+    True -> [first]
+    False -> [first, second]
+  }
+}
+
+fn mock_spots_remaining(activity: Activity) -> Int {
+  case activity.max_attendees {
+    Some(max) -> {
+      let taken = id_seed(activity.id) % { max + 1 }
+      let remaining = max - taken
+      case remaining < 0 {
+        True -> 0
+        False -> remaining
+      }
+    }
+    None -> 0
+  }
+}
+
+// TIME BUCKETS ---------------------------------------------------------------
+
+type TimeBucket {
+  Forenoon
+  Afternoon
+  Evening
+}
+
+fn bucket_for(ts: Timestamp) -> TimeBucket {
+  let #(_, time) = timestamp.to_calendar(ts, calendar.local_offset())
+  case time.hours {
+    h if h < 12 -> Forenoon
+    h if h < 18 -> Afternoon
+    _ -> Evening
+  }
+}
+
+fn bucket_ordinal(b: TimeBucket) -> Int {
+  case b {
+    Forenoon -> 0
+    Afternoon -> 1
+    Evening -> 2
+  }
+}
+
+fn bucket_translation_key(bucket: TimeBucket) -> String {
+  case bucket {
+    Forenoon -> "list.bucket.forenoon"
+    Afternoon -> "list.bucket.afternoon"
+    Evening -> "list.bucket.evening"
+  }
+}
+
+fn current_bucket() -> TimeBucket {
+  bucket_for(timestamp.system_time())
+}
+
+// FILTERING ------------------------------------------------------------------
+
+fn date_of(ts: Timestamp) -> calendar.Date {
+  let #(date, _) = timestamp.to_calendar(ts, calendar.local_offset())
+  date
+}
+
+fn lists_intersect(a: List(String), b: List(String)) -> Bool {
+  list.any(a, fn(x) { list.contains(b, x) })
+}
+
+fn apply_filters(activities: List(Activity), f: ListFilters) -> List(Activity) {
+  let needle = string.lowercase(string.trim(f.search))
+  use activity <- list.filter(activities)
+  let title_match = case needle {
+    "" -> True
+    _ -> string.contains(string.lowercase(activity.title), needle)
+  }
+  let day_match = case f.day {
+    None -> True
+    Some(date) -> date_of(activity.start_time) == date
+  }
+  let audience_match = case f.audiences {
+    [] -> True
+    selected -> lists_intersect(mock_audiences(activity.id), selected)
+  }
+  let tag_match = case f.tags {
+    [] -> True
+    selected -> lists_intersect(mock_tags(activity.id), selected)
+  }
+  title_match && day_match && audience_match && tag_match
+}
+
+fn camp_dates(activities: List(Activity)) -> List(calendar.Date) {
+  activities
+  |> list.map(fn(a) { date_of(a.start_time) })
+  |> list.unique
+  |> list.sort(calendar.naive_date_compare)
+}
+
+fn date_to_iso(date: calendar.Date) -> String {
+  int.to_string(date.year)
+  <> "-"
+  <> pad2(calendar.month_to_int(date.month))
+  <> "-"
+  <> pad2(date.day)
+}
+
+fn pad2(n: Int) -> String {
+  case n < 10 {
+    True -> "0" <> int.to_string(n)
+    False -> int.to_string(n)
+  }
+}
+
+fn parse_date_iso(s: String) -> Option(calendar.Date) {
+  case string.split(s, "-") {
+    [y, m, d] ->
+      case int.parse(y), int.parse(m), int.parse(d) {
+        Ok(year), Ok(month_int), Ok(day) ->
+          case calendar.month_from_int(month_int) {
+            Ok(month) -> Some(calendar.Date(year:, month:, day:))
+            Error(_) -> None
+          }
+        _, _, _ -> None
+      }
+    _ -> None
+  }
 }
