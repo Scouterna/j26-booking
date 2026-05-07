@@ -30,13 +30,12 @@ gleeunit = ">= 1.0.0 and < 2.0.0"
 lustre_dev_tools = { git = "https://github.com/m4reko/lustre-dev-tools", ref = "main" }
 
 [tools.lustre.html]
-# Include Bootstrap in our project for simple styling.
 stylesheets = [
-    { href = "https://cdn.jsdelivr.net/npm/@scouterna/ui-webc@3.2.0/dist/ui-webc/ui-webc.css" },
+    { href = "https://cdn.jsdelivr.net/npm/@scouterna/ui-webc@4.3.0/dist/ui-webc/ui-webc.css" },
     { href = "https://fonts.googleapis.com/css2?family=Source+Sans+3:ital,wght@0,200..900;1,200..900&display=swap" },
 ]
 scripts = [
-    { src = "https://cdn.jsdelivr.net/npm/@scouterna/ui-webc@3.2.0/dist/esm/ui-webc.js", type = "module" },
+    { src = "https://cdn.jsdelivr.net/npm/@scouterna/ui-webc@4.3.0/dist/esm/ui-webc.js", type = "module" },
 ]
 link = [
     { href = "https://fonts.googleapis.com", rel = "preconnect" },
