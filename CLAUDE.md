@@ -104,9 +104,15 @@ Request → web.middleware → router.handle_request → handler
 
 ## Conventions
 
-- Follow Gleam conventions in `.claude/gleam-conventions.md` — language rules, patterns, and anti-patterns
-- Follow Lustre patterns in `.claude/lustre-guide.md` — MVU architecture, events, effects, state management
-- Follow web component patterns in `.claude/web-components.md` — using `@scouterna/ui-webc` components in Lustre
+Detailed conventions live as skills in `.claude/skills/` — they auto-trigger when relevant:
+
+- **gleam-conventions** — Gleam language rules, patterns, and anti-patterns
+- **lustre-guide** — Lustre MVU architecture, events, effects, state management
+- **web-components** — Using `@scouterna/ui-webc` components in Lustre
+- **squirrel-conventions** — SQL → Gleam codegen with Squirrel
+
+Quick-reference rules (skills above expand on these):
+
 - Always use qualified imports for functions (unqualified OK for types)
 - Annotate all function arguments and return types
 - Use `Result` for fallible functions, not `Option` or panics
