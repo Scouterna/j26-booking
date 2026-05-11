@@ -157,16 +157,18 @@ pub fn scout_segmented_control(
   value: Int,
   options: List(String),
   on_change: fn(Int) -> msg,
+  attrs: List(attribute.Attribute(msg)),
 ) -> Element(msg) {
   element.element(
     "scout-segmented-control",
     [
       attribute.attribute("value", int.to_string(value)),
-      attribute.attribute("size", "small"),
+      attribute.attribute("size", "large"),
       event.on("scoutChange", {
         use new_value <- decode.subfield(["detail", "value"], decode.int)
         decode.success(on_change(new_value))
       }),
+      ..attrs
     ],
     list.map(options, fn(label) {
       html.button([attribute.type_("button")], [element.text(label)])

@@ -726,14 +726,17 @@ fn view_list_top_bar(
             _ -> UserSelectedBookingFilter(BookedOnly)
           }
         },
+        [attribute.class("max-w-48")],
       ),
-      view_day_select(translator, filters.day, dates),
-      component.filter_pill_icon(
-        t("list.filter.more"),
-        icons.filter,
-        filters.more_open,
-        UserToggledMoreFilters,
-      ),
+      html.div([attribute.class("ml-auto flex items-center gap-2")], [
+        view_day_select(translator, filters.day, dates),
+        component.filter_pill_icon(
+          t("list.filter.more"),
+          icons.filter,
+          filters.more_open,
+          UserToggledMoreFilters,
+        ),
+      ]),
     ]),
   ])
 }
@@ -768,6 +771,7 @@ fn view_day_select(
   element.element(
     "scout-select",
     [
+      attribute.class("min-w-40"),
       attribute.attribute("name", "day"),
       attribute.attribute("value", selected_value),
       event.on("scoutInputChange", {
