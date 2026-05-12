@@ -33,6 +33,8 @@ fn handle_api_request(
     Put, ["activities", id] -> activities.update(req, id, ctx)
     Delete, ["activities", id] -> activities.delete(req, id, ctx)
     _, ["activities", _] -> wisp.method_not_allowed([Get, Put, Delete])
+    Get, ["bookings", "me"] -> booking.get_mine(req, ctx)
+    _, ["bookings", "me"] -> wisp.method_not_allowed([Get])
     Get, ["bookings", id] -> booking.get_one(req, id, ctx)
     Put, ["bookings", id] -> booking.update(req, id, ctx)
     Delete, ["bookings", id] -> booking.delete(req, id, ctx)

@@ -47,6 +47,20 @@ pub fn from_get_bookings_by_activity_row(
   )
 }
 
+pub fn from_get_bookings_by_user_row(row: sql.GetBookingsByUserRow) -> Booking {
+  Booking(
+    id: row.id,
+    user_id: row.user_id,
+    activity_id: row.activity_id,
+    booker_group_id: row.booker_group_id,
+    booker_group_name: row.booker_group_name,
+    group_free_text: row.group_free_text,
+    responsible_name: row.responsible_name,
+    phone_number: row.phone_number,
+    participant_count: row.participant_count,
+  )
+}
+
 pub fn from_update_booking_row(row: sql.UpdateBookingRow) -> Booking {
   Booking(
     id: row.id,

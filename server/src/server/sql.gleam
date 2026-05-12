@@ -634,6 +634,78 @@ OFFSET $3
   |> pog.execute(db)
 }
 
+/// A row you get from running the `get_bookings_by_user` query
+/// defined in `./src/server/sql/get_bookings_by_user.sql`.
+///
+/// > 🐿️ This type definition was generated automatically using v4.6.0 of the
+/// > [squirrel package](https://github.com/giacomocavalieri/squirrel).
+///
+pub type GetBookingsByUserRow {
+  GetBookingsByUserRow(
+    id: Uuid,
+    user_id: Uuid,
+    activity_id: Uuid,
+    booker_group_id: Int,
+    booker_group_name: String,
+    group_free_text: String,
+    responsible_name: String,
+    phone_number: String,
+    participant_count: Int,
+  )
+}
+
+/// Runs the `get_bookings_by_user` query
+/// defined in `./src/server/sql/get_bookings_by_user.sql`.
+///
+/// > 🐿️ This function was generated automatically using v4.6.0 of
+/// > the [squirrel package](https://github.com/giacomocavalieri/squirrel).
+///
+pub fn get_bookings_by_user(
+  db: pog.Connection,
+  arg_1: Uuid,
+) -> Result(pog.Returned(GetBookingsByUserRow), pog.QueryError) {
+  let decoder = {
+    use id <- decode.field(0, uuid_decoder())
+    use user_id <- decode.field(1, uuid_decoder())
+    use activity_id <- decode.field(2, uuid_decoder())
+    use booker_group_id <- decode.field(3, decode.int)
+    use booker_group_name <- decode.field(4, decode.string)
+    use group_free_text <- decode.field(5, decode.string)
+    use responsible_name <- decode.field(6, decode.string)
+    use phone_number <- decode.field(7, decode.string)
+    use participant_count <- decode.field(8, decode.int)
+    decode.success(GetBookingsByUserRow(
+      id:,
+      user_id:,
+      activity_id:,
+      booker_group_id:,
+      booker_group_name:,
+      group_free_text:,
+      responsible_name:,
+      phone_number:,
+      participant_count:,
+    ))
+  }
+
+  "SELECT id,
+    user_id,
+    activity_id,
+    booker_group_id,
+    booker_group_name,
+    group_free_text,
+    responsible_name,
+    phone_number,
+    participant_count
+FROM booking
+WHERE user_id = $1
+ORDER BY id;
+"
+  |> pog.query
+  |> pog.parameter(pog.text(uuid.to_string(arg_1)))
+  |> pog.returning(decoder)
+  |> pog.execute(db)
+}
+
 /// A row you get from running the `search_activities` query
 /// defined in `./src/server/sql/search_activities.sql`.
 ///

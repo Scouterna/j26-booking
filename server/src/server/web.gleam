@@ -58,8 +58,16 @@ pub fn middleware(
 }
 
 /// TODO: Should use the JWT verify keys to authenticate the request and populate the context with the authentication result.
-fn authenticate(req: Request, ctx: Context) -> Context {
-  ctx
+/// Currently hardcoded to a seeded user so the client can exercise bookings end-to-end before JWT auth is wired.
+fn authenticate(_req: Request, ctx: Context) -> Context {
+  Context(
+    ..ctx,
+    authentication_result: Authenticated(User(
+      user_id: "a1b2c3d4-e5f6-4a90-abcd-ef1234567890",
+      user_name: "Anna Svensson",
+      roles: CreateActivity,
+    )),
+  )
 }
 
 pub fn ensure_valid_query_param(

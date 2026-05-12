@@ -9,6 +9,7 @@ import gleam/json
 import gleam/list
 import gleam/option.{type Option, None, Some}
 import gleam/order
+import gleam/set.{type Set}
 import gleam/string
 import gleam/time/calendar
 import gleam/time/timestamp.{type Timestamp}
@@ -22,7 +23,7 @@ import lustre/element/html
 import lustre/event
 import modem
 import rsvp
-import shared/model.{type Activity}
+import shared/model.{type Activity, type Booking}
 import youid/uuid.{type Uuid}
 
 const api_prefix = "/_services/booking"
@@ -118,6 +119,14 @@ pub fn main() {
 
 // MODEL -----------------------------------------------------------------------
 
+pub type ActivityWithBookingStatus {
+  ActivityWithBookingStatus(activity: Activity, booked: Bool)
+}
+
+pub type ActivityWithBooking {
+  ActivityWithBooking(activity: Activity, booking: Booking)
+}
+
 type ActivityForm {
   ActivityForm(
     title: String,
@@ -172,15 +181,42 @@ fn default_filters() -> ListFilters {
 }
 
 type Page {
-  ActivitiesListPage(state: RemoteData(List(Activity)), filters: ListFilters)
+  ActivitiesListPage(
+    state: RemoteData(List(ActivityWithBookingStatus)),
+    filters: ListFilters,
+  )
   ActivityNewPage(form: Form(ActivityForm), submit_error: Option(String))
-  ActivityDetailPage(id: String, state: RemoteData(Activity))
+  ActivityDetailPage(id: String, state: RemoteData(ActivityWithBookingStatus))
   ActivityEditPage(id: String, state: EditState)
   NotFoundPage
 }
 
 type Model {
-  Model(page: Page, translator: Translator)
+  Model(page: Page, translator: Translator, my_bookings: List(Booking))
+}
+
+fn booked_set(bookings: List(Booking)) -> Set(Uuid) {
+  bookings |> list.map(fn(b) { b.activity_id }) |> set.from_list
+}
+
+fn wrap_activity(
+  activity: Activity,
+  bookings: List(Booking),
+) -> ActivityWithBookingStatus {
+  ActivityWithBookingStatus(
+    activity:,
+    booked: set.contains(booked_set(bookings), activity.id),
+  )
+}
+
+fn wrap_activities(
+  activities: List(Activity),
+  bookings: List(Booking),
+) -> List(ActivityWithBookingStatus) {
+  let booked = booked_set(bookings)
+  list.map(activities, fn(a) {
+    ActivityWithBookingStatus(activity: a, booked: set.contains(booked, a.id))
+  })
 }
 
 fn activity_form() -> Form(ActivityForm) {
@@ -265,7 +301,7 @@ fn init(_flags) -> #(Model, Effect(Msg)) {
 
   let translator = translator_for(get_html_lang())
 
-  let model = Model(page:, translator:)
+  let model = Model(page:, translator:, my_bookings: [])
 
   let title_effect = case app_bar_title(translator, page) {
     Some(title) -> set_app_bar_title(title)
@@ -278,6 +314,7 @@ fn init(_flags) -> #(Model, Effect(Msg)) {
       modem.init(OnRouteChange),
       observe_lang(),
       page_effect,
+      fetch_my_bookings(),
       title_effect,
     ]),
   )
@@ -293,6 +330,7 @@ type Msg {
   // API responses
   ApiReturnedActivities(Result(List(Activity), rsvp.Error))
   ApiReturnedActivity(Result(Activity, rsvp.Error))
+  ApiReturnedMyBookings(Result(List(Booking), rsvp.Error))
   ApiCreatedActivity(Result(Activity, rsvp.Error))
   ApiUpdatedActivity(Result(Activity, rsvp.Error))
   ApiDeletedActivity(Result(Nil, rsvp.Error))
@@ -336,7 +374,8 @@ fn update(model: Model, msg: Msg) -> #(Model, Effect(Msg)) {
       case model.page {
         ActivitiesListPage(Loading, filters) -> {
           let new_state = case result {
-            Ok(activities) -> Loaded(activities)
+            Ok(activities) ->
+              Loaded(wrap_activities(activities, model.my_bookings))
             Error(_) -> Failed("Failed to load activities")
           }
           #(
@@ -351,7 +390,7 @@ fn update(model: Model, msg: Msg) -> #(Model, Effect(Msg)) {
       case model.page {
         ActivityDetailPage(id, Loading) -> {
           let new_state = case result {
-            Ok(activity) -> Loaded(activity)
+            Ok(activity) -> Loaded(wrap_activity(activity, model.my_bookings))
             Error(_) -> Failed("Failed to load activity")
           }
           #(
@@ -372,6 +411,38 @@ fn update(model: Model, msg: Msg) -> #(Model, Effect(Msg)) {
         }
         _ -> #(model, effect.none())
       }
+
+    ApiReturnedMyBookings(result) -> {
+      let bookings = case result {
+        Ok(bs) -> bs
+        Error(_) -> model.my_bookings
+      }
+      let new_page = case model.page {
+        ActivitiesListPage(Loaded(activities_with_booking_status), filters) -> {
+          let activities =
+            list.map(
+              activities_with_booking_status,
+              fn(activity_with_booking_status) {
+                activity_with_booking_status.activity
+              },
+            )
+          ActivitiesListPage(
+            Loaded(wrap_activities(activities, bookings)),
+            filters,
+          )
+        }
+        ActivityDetailPage(id, Loaded(activity_with_booking_status)) ->
+          ActivityDetailPage(
+            id,
+            Loaded(wrap_activity(
+              activity_with_booking_status.activity,
+              bookings,
+            )),
+          )
+        other -> other
+      }
+      #(Model(..model, page: new_page, my_bookings: bookings), effect.none())
+    }
 
     ApiCreatedActivity(Ok(_)) -> #(
       model,
@@ -580,6 +651,13 @@ fn fetch_activity(id: String) -> Effect(Msg) {
   )
 }
 
+fn fetch_my_bookings() -> Effect(Msg) {
+  rsvp.get(
+    api_prefix <> "/api/bookings/me",
+    rsvp.expect_json(model.bookings_decoder(), ApiReturnedMyBookings),
+  )
+}
+
 fn create_activity(af: ActivityForm) -> Effect(Msg) {
   rsvp.post(
     api_prefix <> "/api/activities",
@@ -665,7 +743,7 @@ fn view(model: Model) -> Element(Msg) {
 
 fn view_activities_list(
   translator: Translator,
-  state: RemoteData(List(Activity)),
+  state: RemoteData(List(ActivityWithBookingStatus)),
   filters: ListFilters,
 ) -> Element(Msg) {
   let t = fn(key) { g18n.translate(translator, key) }
@@ -699,7 +777,7 @@ fn view_activities_list(
 fn view_list_top_bar(
   translator: Translator,
   filters: ListFilters,
-  state: RemoteData(List(Activity)),
+  state: RemoteData(List(ActivityWithBookingStatus)),
 ) -> Element(Msg) {
   let t = fn(key) { g18n.translate(translator, key) }
   let dates = case state {
@@ -830,13 +908,15 @@ fn view_more_filters_panel(
 
 fn view_grouped_activities(
   translator: Translator,
-  activities: List(Activity),
+  activities: List(ActivityWithBookingStatus),
   filters: ListFilters,
 ) -> Element(Msg) {
   let t = fn(key) { g18n.translate(translator, key) }
   let filtered =
     apply_filters(activities, filters)
-    |> list.sort(fn(a, b) { timestamp.compare(a.start_time, b.start_time) })
+    |> list.sort(fn(a, b) {
+      timestamp.compare(a.activity.start_time, b.activity.start_time)
+    })
   case filtered {
     [] ->
       html.div(
@@ -872,10 +952,13 @@ fn view_grouped_activities(
 }
 
 fn group_by_date_bucket(
-  activities: List(Activity),
-) -> List(#(#(calendar.Date, TimeBucket), List(Activity))) {
-  let key_for = fn(a: Activity) {
-    #(date_of(a.start_time), bucket_for(a.start_time))
+  activities: List(ActivityWithBookingStatus),
+) -> List(#(#(calendar.Date, TimeBucket), List(ActivityWithBookingStatus))) {
+  let key_for = fn(activity_with_booking_status: ActivityWithBookingStatus) {
+    #(
+      date_of(activity_with_booking_status.activity.start_time),
+      bucket_for(activity_with_booking_status.activity.start_time),
+    )
   }
   let grouped = list.group(activities, by: key_for)
   let key_compare = fn(a, b) {
@@ -891,7 +974,9 @@ fn group_by_date_bucket(
     let items =
       dict.get(grouped, key)
       |> result_unwrap_or([])
-      |> list.sort(fn(a, b) { timestamp.compare(a.start_time, b.start_time) })
+      |> list.sort(fn(a, b) {
+        timestamp.compare(a.activity.start_time, b.activity.start_time)
+      })
     #(key, items)
   })
 }
@@ -907,7 +992,7 @@ fn view_section(
   translator: Translator,
   date: calendar.Date,
   bucket: TimeBucket,
-  activities: List(Activity),
+  activities: List(ActivityWithBookingStatus),
   is_current: Bool,
 ) -> Element(Msg) {
   let t = fn(key) { g18n.translate(translator, key) }
@@ -941,8 +1026,8 @@ fn view_section(
     ]),
     html.div(
       [attribute.class("flex flex-col gap-2")],
-      list.map(activities, fn(activity) {
-        view_activity_card(translator, date, activity)
+      list.map(activities, fn(activity_with_booking_status) {
+        view_activity_card(translator, date, activity_with_booking_status)
       }),
     ),
   ])
@@ -951,8 +1036,9 @@ fn view_section(
 fn view_activity_card(
   translator: Translator,
   section_date: calendar.Date,
-  activity: Activity,
+  activity_with_booking_status: ActivityWithBookingStatus,
 ) -> Element(Msg) {
+  let activity = activity_with_booking_status.activity
   let id = uuid.to_string(activity.id)
   let time =
     view_card_time(
@@ -968,7 +1054,7 @@ fn view_activity_card(
   component.activity_card(
     api_prefix <> "/activities/" <> id,
     activity.title,
-    mock_is_booked(activity.id),
+    activity_with_booking_status.booked,
     g18n.translate(translator, "activity.booked"),
     time,
     location,
@@ -1040,7 +1126,7 @@ fn view_activity_new(
 
 fn view_activity_detail(
   translator: Translator,
-  state: RemoteData(Activity),
+  state: RemoteData(ActivityWithBookingStatus),
 ) -> Element(Msg) {
   case state {
     Loading ->
@@ -1076,7 +1162,11 @@ fn view_activity_detail(
           ]),
         ]),
       ])
-    Loaded(activity) -> view_activity_detail_loaded(translator, activity)
+    Loaded(activity_with_booking_status) ->
+      view_activity_detail_loaded(
+        translator,
+        activity_with_booking_status.activity,
+      )
   }
 }
 
@@ -1361,10 +1451,6 @@ fn tag_options() -> List(String) {
   ["Fysisk", "Badbuss", "Mat", "Skapande", "Lugn"]
 }
 
-fn mock_is_booked(id: Uuid) -> Bool {
-  id_seed(id) % 3 == 0
-}
-
 fn mock_location(id: Uuid) -> String {
   pick_at(mock_locations, id_seed(id), "Badbusstorget")
 }
@@ -1453,9 +1539,13 @@ fn lists_intersect(a: List(String), b: List(String)) -> Bool {
   list.any(a, fn(x) { list.contains(b, x) })
 }
 
-fn apply_filters(activities: List(Activity), f: ListFilters) -> List(Activity) {
+fn apply_filters(
+  activities: List(ActivityWithBookingStatus),
+  f: ListFilters,
+) -> List(ActivityWithBookingStatus) {
   let needle = string.lowercase(string.trim(f.search))
-  use activity <- list.filter(activities)
+  use activity_with_booking_status <- list.filter(activities)
+  let activity = activity_with_booking_status.activity
   let title_match = case needle {
     "" -> True
     _ -> string.contains(string.lowercase(activity.title), needle)
@@ -1463,6 +1553,10 @@ fn apply_filters(activities: List(Activity), f: ListFilters) -> List(Activity) {
   let day_match = case f.day {
     None -> True
     Some(date) -> date_of(activity.start_time) == date
+  }
+  let booked_match = case f.booking {
+    AllActivities -> True
+    BookedOnly -> activity_with_booking_status.booked
   }
   let audience_match = case f.audiences {
     [] -> True
@@ -1472,12 +1566,16 @@ fn apply_filters(activities: List(Activity), f: ListFilters) -> List(Activity) {
     [] -> True
     selected -> lists_intersect(mock_tags(activity.id), selected)
   }
-  title_match && day_match && audience_match && tag_match
+  title_match && day_match && booked_match && audience_match && tag_match
 }
 
-fn camp_dates(activities: List(Activity)) -> List(calendar.Date) {
+fn camp_dates(
+  activities: List(ActivityWithBookingStatus),
+) -> List(calendar.Date) {
   activities
-  |> list.map(fn(a) { date_of(a.start_time) })
+  |> list.map(fn(activity_with_booking_status) {
+    date_of(activity_with_booking_status.activity.start_time)
+  })
   |> list.unique
   |> list.sort(calendar.naive_date_compare)
 }
