@@ -1483,31 +1483,21 @@ fn camp_dates(activities: List(Activity)) -> List(calendar.Date) {
 }
 
 fn date_to_iso(date: calendar.Date) -> String {
-  int.to_string(date.year)
-  <> "-"
-  <> pad2(calendar.month_to_int(date.month))
-  <> "-"
-  <> pad2(date.day)
-}
-
-fn pad2(n: Int) -> String {
-  case n < 10 {
-    True -> "0" <> int.to_string(n)
-    False -> int.to_string(n)
-  }
+  timestamp.from_calendar(
+    date,
+    calendar.TimeOfDay(0, 0, 0, 0),
+    calendar.utc_offset,
+  )
+  |> timestamp.to_rfc3339(calendar.utc_offset)
+  |> string.slice(0, 10)
 }
 
 fn parse_date_iso(s: String) -> Option(calendar.Date) {
-  case string.split(s, "-") {
-    [y, m, d] ->
-      case int.parse(y), int.parse(m), int.parse(d) {
-        Ok(year), Ok(month_int), Ok(day) ->
-          case calendar.month_from_int(month_int) {
-            Ok(month) -> Some(calendar.Date(year:, month:, day:))
-            Error(_) -> None
-          }
-        _, _, _ -> None
-      }
-    _ -> None
+  case timestamp.parse_rfc3339(s <> "T00:00:00Z") {
+    Ok(ts) -> {
+      let #(date, _) = timestamp.to_calendar(ts, calendar.utc_offset)
+      Some(date)
+    }
+    Error(_) -> None
   }
 }
