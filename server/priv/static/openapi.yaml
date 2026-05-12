@@ -37,22 +37,28 @@ paths:
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Activity'
+                type: object
+                required:
+                  - activities
+                properties:
+                  activities:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Activity'
               example:
-                - id: "6f5e1d46-5f58-4e23-9a9d-8c2bfc2d22a0"
-                  title: "Campfire Songs"
-                  description: "An evening of classic scout songs around the campfire with marshmallows."
-                  max_attendees: 50
-                  start_time: 1752350400
-                  end_time: 1752357600
-                - id: "b4219a53-4746-4a09-8b4e-3e2ac0c3df11"
-                  title: "Orienteering Challenge"
-                  description: "Scouts navigate through the forest using only a compass and a map."
-                  max_attendees: 30
-                  start_time: 1752400800
-                  end_time: 1752411600
+                activities:
+                  - id: "6f5e1d46-5f58-4e23-9a9d-8c2bfc2d22a0"
+                    title: "Campfire Songs"
+                    description: "An evening of classic scout songs around the campfire with marshmallows."
+                    max_attendees: 50
+                    start_time: 1752350400
+                    end_time: 1752357600
+                  - id: "b4219a53-4746-4a09-8b4e-3e2ac0c3df11"
+                    title: "Orienteering Challenge"
+                    description: "Scouts navigate through the forest using only a compass and a map."
+                    max_attendees: 30
+                    start_time: 1752400800
+                    end_time: 1752411600
         '400':
           $ref: '#/components/responses/BadRequest'
         '500':
@@ -384,13 +390,19 @@ paths:
               example:
                 navigation:
                   - type: "group"
-                    id: "activities"
-                    label: "Activities"
+                    id: "group_booking"
+                    label: "booking.schedule.label"
                     children:
                       - type: "page"
-                        id: "list"
-                        label: "All Activities"
-                        href: "/activities"
+                        id: "page_all_activities"
+                        label: "booking.all_activities.label"
+                        icon: "campfire"
+                        path: "../activities"
+                      - type: "page"
+                        id: "page_my_schedule"
+                        label: "booking.my_schedule.label"
+                        icon: "calendar-event"
+                        path: "../"
 
 components:
   schemas:
@@ -574,11 +586,11 @@ components:
         id:
           type: string
           description: Unique identifier for the group
-          example: "activities"
+          example: "group_booking"
         label:
           type: string
-          description: Display label for the group
-          example: "Activities"
+          description: Display label or i18n key for the group
+          example: "booking.schedule.label"
         children:
           type: array
           description: Child navigation pages
@@ -592,7 +604,8 @@ components:
         - type
         - id
         - label
-        - href
+        - icon
+        - path
       properties:
         type:
           type: string
@@ -603,26 +616,19 @@ components:
         id:
           type: string
           description: Unique identifier for the page
-          example: "list"
+          example: "page_all_activities"
         label:
           type: string
-          description: Display label for the page
-          example: "All Activities"
-        href:
+          description: Display label or i18n key for the page
+          example: "booking.all_activities.label"
+        icon:
           type: string
-          description: URL path for the page
-          example: "/activities"
-
-    Error:
-      type: object
-      description: Error response
-      required:
-        - error
-      properties:
-        error:
+          description: Icon name for the page entry
+          example: "campfire"
+        path:
           type: string
-          description: Error message describing what went wrong
-          example: "Invalid request parameters"
+          description: URL path for the page (relative to the host application)
+          example: "../activities"
 
   parameters:
     ActivityId:
@@ -660,54 +666,47 @@ components:
       in: query
       required: false
       description: |
-        Sort order for results. Prefix with `-` for descending order.
-        Available fields: start_time, end_time, title
+        Sort field for results. Always ascending.
+        Available fields: title, start_time. Defaults to title.
       schema:
         type: string
         enum:
-          - start_time
-          - -start_time
-          - end_time
-          - -end_time
           - title
-          - -title
-      example: "-start_time"
+          - start_time
+      example: "start_time"
 
     PageParam:
       name: page
       in: query
       required: false
-      description: Page number for pagination (1-indexed)
+      description: Page number for pagination (0-indexed). Page size is 20.
       schema:
         type: integer
-        minimum: 1
-        default: 1
-      example: 1
+        minimum: 0
+        default: 0
+      example: 0
 
   responses:
     BadRequest:
       description: Bad request - invalid parameters or request body
       content:
-        application/json:
+        text/plain:
           schema:
-            $ref: '#/components/schemas/Error'
-          example:
-            error: "Invalid request parameters"
+            type: string
+          example: "Bad request: Invalid activity ID format"
 
     NotFound:
       description: Resource not found
       content:
-        application/json:
+        text/plain:
           schema:
-            $ref: '#/components/schemas/Error'
-          example:
-            error: "Activity not found"
+            type: string
+          example: "Not found"
 
     ServerError:
       description: Internal server error
       content:
-        application/json:
+        text/plain:
           schema:
-            $ref: '#/components/schemas/Error'
-          example:
-            error: "Internal server error"
+            type: string
+          example: "Internal server error"
