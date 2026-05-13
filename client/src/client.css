@@ -6,7 +6,6 @@ body {
   font-size: var(--text-body-base);
   line-height: 1.5;
   color: var(--color-text-base);
-  font-family: "Source Sans 3", sans-serif; --fontfamily-sans: "Source Sans 3", sans-serif;
 }
 
 .icon-tabler {
@@ -16,6 +15,6 @@ body {
 
 /* The active segment in scout-segmented-control gets a dark indicator behind
    it, so the slotted button text needs an inverted color. */
-scout-segmented-control button[aria-checked="true"] {
+/* scout-segmented-control button[aria-checked="true"] {
   color: var(--color-text-inverted-base, #fff);
-}
+} */

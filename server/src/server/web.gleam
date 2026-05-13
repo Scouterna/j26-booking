@@ -100,7 +100,7 @@ pub fn spa_shell_page() -> Element(a) {
       html.script(
         [
           attribute.src(
-            "https://cdn.jsdelivr.net/npm/@scouterna/ui-webc@4.3.0/dist/esm/ui-webc.js",
+            "https://cdn.jsdelivr.net/npm/@scouterna/ui-webc@4.3.4/dist/esm/ui-webc.js",
           ),
           attribute.type_("module"),
         ],
@@ -116,7 +116,7 @@ pub fn spa_shell_page() -> Element(a) {
       html.link([
         attribute.rel("stylesheet"),
         attribute.href(
-          "https://cdn.jsdelivr.net/npm/@scouterna/ui-webc@4.3.0/dist/ui-webc/ui-webc.css",
+          "https://cdn.jsdelivr.net/npm/@scouterna/ui-webc@4.3.4/dist/ui-webc/ui-webc.css",
         ),
       ]),
       html.link([
