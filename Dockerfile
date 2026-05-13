@@ -11,6 +11,9 @@ FROM ghcr.io/gleam-lang/gleam:${GLEAM_VERSION}-scratch AS gleam
 # ============================================================
 FROM erlang:${ERLANG_VERSION}-alpine AS server-base
 
+# git is required for gleam deps download when manifests contain git-sourced packages
+RUN apk add --no-cache git
+
 COPY --from=gleam /bin/gleam /bin/gleam
 
 WORKDIR /build
