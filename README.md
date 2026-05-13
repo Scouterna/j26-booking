@@ -49,3 +49,15 @@ docker compose up
 This starts PostgreSQL, runs migrations, and starts the server at http://localhost:8000.
 
 For detailed instructions, see the [server README](server/README.md) and [client README](client/README.md).
+
+## Maintenance
+
+### Bumping `@scouterna/ui-webc`
+
+The UI Web Components version is referenced in both `client/gleam.toml` (CDN URLs for dev/build) and `server/src/server/web.gleam` (CDN URLs in the SSR shell). Use the helper script to keep them in sync:
+
+```sh
+./bump-ui-webc.sh 4.3.5
+```
+
+The script updates the two CDN URLs in `client/gleam.toml` and the `ui_webc_version` constant in `server/src/server/web.gleam`. Review the diff and rebuild the client before committing.

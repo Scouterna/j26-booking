@@ -9,6 +9,8 @@ import ywt/verify_key.{type VerifyKey}
 
 pub const base_path = "/_services/booking"
 
+const scouterna_ui_webc_version = "4.3.4"
+
 pub type Permissions {
   CreateActivity
   DeleteActivity
@@ -100,7 +102,9 @@ pub fn spa_shell_page() -> Element(a) {
       html.script(
         [
           attribute.src(
-            "https://cdn.jsdelivr.net/npm/@scouterna/ui-webc@4.3.4/dist/esm/ui-webc.js",
+            "https://cdn.jsdelivr.net/npm/@scouterna/ui-webc@"
+            <> scouterna_ui_webc_version
+            <> "/dist/esm/ui-webc.js",
           ),
           attribute.type_("module"),
         ],
@@ -116,7 +120,9 @@ pub fn spa_shell_page() -> Element(a) {
       html.link([
         attribute.rel("stylesheet"),
         attribute.href(
-          "https://cdn.jsdelivr.net/npm/@scouterna/ui-webc@4.3.4/dist/ui-webc/ui-webc.css",
+          "https://cdn.jsdelivr.net/npm/@scouterna/ui-webc@"
+          <> scouterna_ui_webc_version
+          <> "/dist/ui-webc/ui-webc.css",
         ),
       ]),
       html.link([
