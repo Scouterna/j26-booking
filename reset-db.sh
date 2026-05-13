@@ -15,5 +15,5 @@ if [ "$confirmation" != "yes" ]; then
   exit 1
 fi
 
-psql "$DATABASE_URL" -c "DELETE FROM activity_user; DELETE FROM booking; DELETE FROM \"user\"; DELETE FROM activity;"
+psql "$DATABASE_URL" -c "DELETE FROM favourite; DELETE FROM activity_user; DELETE FROM booking; DELETE FROM \"user\"; DELETE FROM activity;"
 echo "All tables cleared."
