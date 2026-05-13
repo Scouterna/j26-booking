@@ -17,28 +17,12 @@ pub fn navigation() -> Response {
     #(
       "navigation",
       json.preprocessed_array([
-        json.object([
-          #("type", json.string("group")),
-          #("id", json.string("group_booking")),
-          #("label", json.string("booking.schedule.label")),
-          #(
-            "children",
-            json.preprocessed_array([
-              page(
-                "page_all_activities",
-                "booking.all_activities.label",
-                "campfire",
-                "../activities",
-              ),
-              page(
-                "page_my_schedule",
-                "booking.my_schedule.label",
-                "calendar-event",
-                "../",
-              ),
-            ]),
-          ),
-        ]),
+        page(
+          "page_activities",
+          "booking.activities.label",
+          "campfire",
+          "../activities",
+        ),
       ]),
     ),
   ])
