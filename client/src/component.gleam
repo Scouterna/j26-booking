@@ -232,18 +232,80 @@ pub fn filter_chip(label: String, selected: Bool, msg: msg) -> Element(msg) {
   )
 }
 
+pub type BadgeTone {
+  BadgeGreen
+  BadgePurple
+}
+
+/// Rounded, coloured pill used for status labels.
+/// Background uses the 100 shade; text uses the 600 shade.
+pub fn badge(tone: BadgeTone, label: String) -> Element(msg) {
+  let tone_classes = case tone {
+    BadgeGreen -> "text-(--color-green-600) bg-(--color-green-100)"
+    BadgePurple -> "text-(--color-purple-600) bg-(--color-purple-100)"
+  }
+  html.span(
+    [
+      attribute.class(
+        "inline-flex items-center rounded-full px-2 py-0.5 text-body-sm font-semibold "
+        <> tone_classes,
+      ),
+    ],
+    [element.text(label)],
+  )
+}
+
+pub type CardStatus {
+  StatusNone
+  StatusBooked(label: String)
+  StatusNeedsBooking(label: String)
+}
+
 pub fn activity_card(
   href: String,
   title: String,
-  is_booked: Bool,
-  booked_label: String,
-  time: Element(msg),
+  status: CardStatus,
+  favourited: Bool,
+  on_toggle_favourite: option_msg,
+  time: Element(option_msg),
   location: String,
   spots_remaining_text: String,
-) -> Element(msg) {
-  let booked_accent = case is_booked {
-    True -> " border-l-4 border-l-green-600"
-    False -> ""
+) -> Element(option_msg) {
+  let booked_accent = case status {
+    StatusBooked(_) -> " border-l-4 border-l-green-600"
+    _ -> ""
+  }
+  let heart_icon_svg = case favourited {
+    True -> icons.heart_filled
+    False -> icons.heart
+  }
+  let heart_locked = case status {
+    StatusBooked(_) -> True
+    _ -> False
+  }
+  let heart_btn = case heart_locked {
+    True ->
+      html.span(
+        [
+          attribute.class("p-1"),
+          attribute.styles([#("color", "var(--color-red-200)")]),
+        ],
+        [icon(heart_icon_svg, "size-6")],
+      )
+    False ->
+      html.button(
+        [
+          attribute.type_("button"),
+          attribute.class(
+            "p-1 cursor-pointer transition-colors bg-transparent border-0 text-(--color-red-400) hover:text-(--color-red-300)",
+          ),
+          attribute.attribute("aria-label", "Toggle favourite"),
+          event.on("click", decode.success(on_toggle_favourite))
+            |> event.stop_propagation
+            |> event.prevent_default,
+        ],
+        [icon(heart_icon_svg, "size-6")],
+      )
   }
   html.a(
     [
@@ -260,18 +322,7 @@ pub fn activity_card(
           html.h3([attribute.class("text-body-l font-semibold leading-tight")], [
             element.text(title),
           ]),
-          case is_booked {
-            True ->
-              html.span(
-                [
-                  attribute.class(
-                    "shrink-0 rounded-full bg-green-100 text-green-800 text-body-sm font-semibold px-2 py-0.5",
-                  ),
-                ],
-                [element.text(booked_label)],
-              )
-            False -> element.none()
-          },
+          heart_btn,
         ],
       ),
       html.dl(
@@ -297,6 +348,17 @@ pub fn activity_card(
           ]),
         ],
       ),
+      case status {
+        StatusBooked(label) ->
+          html.div([attribute.class("flex justify-end mt-1")], [
+            badge(BadgeGreen, label),
+          ])
+        StatusNeedsBooking(label) ->
+          html.div([attribute.class("flex justify-end mt-1")], [
+            badge(BadgePurple, label),
+          ])
+        StatusNone -> element.none()
+      },
     ],
   )
 }

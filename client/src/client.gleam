@@ -50,7 +50,18 @@ fn english_translations() -> g18n.Translations {
   |> g18n.add_translation("app_bar.activities_list", "Activities")
   |> g18n.add_translation("app_bar.activity_detail", "Activity")
   |> g18n.add_translation("app_bar.activity_new", "Create activity")
-  |> g18n.add_translation("activity.booked", "Booked!")
+  |> g18n.add_translation("activity.booked", "Booked")
+  |> g18n.add_translation("activity.needs_booking", "Needs booking")
+  |> g18n.add_translation("booking.responsible_name", "Responsible adult")
+  |> g18n.add_translation("booking.phone_number", "Phone number")
+  |> g18n.add_translation("booking.group_free_text", "Group / patrol")
+  |> g18n.add_translation("booking.participant_count", "Number of participants")
+  |> g18n.add_translation("booking.submit", "Save")
+  |> g18n.add_translation("booking.cancel", "Cancel")
+  |> g18n.add_translation("booking.submitting", "Saving booking...")
+  |> g18n.add_translation("booking.change", "Change booking")
+  |> g18n.add_translation("booking.unbook", "Cancel booking")
+  |> g18n.add_translation("booking.confirm_unbook", "Yes, cancel")
   |> g18n.add_translation("list.search_placeholder", "Search")
   |> g18n.add_translation("list.filter.all", "All")
   |> g18n.add_translation("list.filter.booked", "Booked")
@@ -89,7 +100,18 @@ fn swedish_translations() -> g18n.Translations {
   |> g18n.add_translation("app_bar.activities_list", "Spontanaktiviteter")
   |> g18n.add_translation("app_bar.activity_detail", "Aktivitet")
   |> g18n.add_translation("app_bar.activity_new", "Skapa aktivitet")
-  |> g18n.add_translation("activity.booked", "Bokat!")
+  |> g18n.add_translation("activity.booked", "Bokad")
+  |> g18n.add_translation("activity.needs_booking", "Behöver bokas")
+  |> g18n.add_translation("booking.responsible_name", "Ansvarig ledare")
+  |> g18n.add_translation("booking.phone_number", "Telefonnummer")
+  |> g18n.add_translation("booking.group_free_text", "Grupp / patrull")
+  |> g18n.add_translation("booking.participant_count", "Antal deltagare")
+  |> g18n.add_translation("booking.submit", "Spara")
+  |> g18n.add_translation("booking.cancel", "Avbryt")
+  |> g18n.add_translation("booking.submitting", "Sparar bokning...")
+  |> g18n.add_translation("booking.change", "Ändra bokning")
+  |> g18n.add_translation("booking.unbook", "Avboka")
+  |> g18n.add_translation("booking.confirm_unbook", "Ja, avboka")
   |> g18n.add_translation("list.search_placeholder", "Sök")
   |> g18n.add_translation("list.filter.all", "Alla")
   |> g18n.add_translation("list.filter.booked", "Bokade")
@@ -119,8 +141,8 @@ pub fn main() {
 
 // MODEL -----------------------------------------------------------------------
 
-pub type ActivityWithBookingStatus {
-  ActivityWithBookingStatus(activity: Activity, booked: Bool)
+pub type ActivityWithStatus {
+  ActivityWithStatus(activity: Activity, favourited: Bool, booked: Bool)
 }
 
 pub type ActivityWithBooking {
@@ -135,6 +157,32 @@ type ActivityForm {
     start_time: #(calendar.Date, calendar.TimeOfDay),
     end_time: #(calendar.Date, calendar.TimeOfDay),
   )
+}
+
+type BookingFormFields {
+  BookingFormFields(
+    group_free_text: String,
+    responsible_name: String,
+    phone_number: String,
+    participant_count: Int,
+  )
+}
+
+type BookingMode {
+  BookingNew
+  BookingEdit(booking_id: Uuid)
+}
+
+type BookingFormState {
+  BookingClosed
+  BookingOpen(
+    form: Form(BookingFormFields),
+    submit_error: Option(String),
+    mode: BookingMode,
+  )
+  BookingSubmitting(mode: BookingMode)
+  UnbookConfirming(booking_id: Uuid)
+  UnbookSubmitting(booking_id: Uuid)
 }
 
 type RemoteData(a) {
@@ -182,17 +230,26 @@ fn default_filters() -> ListFilters {
 
 type Page {
   ActivitiesListPage(
-    state: RemoteData(List(ActivityWithBookingStatus)),
+    state: RemoteData(List(ActivityWithStatus)),
     filters: ListFilters,
   )
   ActivityNewPage(form: Form(ActivityForm), submit_error: Option(String))
-  ActivityDetailPage(id: String, state: RemoteData(ActivityWithBookingStatus))
+  ActivityDetailPage(
+    id: String,
+    state: RemoteData(ActivityWithStatus),
+    booking: BookingFormState,
+  )
   ActivityEditPage(id: String, state: EditState)
   NotFoundPage
 }
 
 type Model {
-  Model(page: Page, translator: Translator, my_bookings: List(Booking))
+  Model(
+    page: Page,
+    translator: Translator,
+    my_bookings: List(Booking),
+    my_favourite_ids: Set(Uuid),
+  )
 }
 
 fn booked_set(bookings: List(Booking)) -> Set(Uuid) {
@@ -202,9 +259,11 @@ fn booked_set(bookings: List(Booking)) -> Set(Uuid) {
 fn wrap_activity(
   activity: Activity,
   bookings: List(Booking),
-) -> ActivityWithBookingStatus {
-  ActivityWithBookingStatus(
+  favourite_ids: Set(Uuid),
+) -> ActivityWithStatus {
+  ActivityWithStatus(
     activity:,
+    favourited: set.contains(favourite_ids, activity.id),
     booked: set.contains(booked_set(bookings), activity.id),
   )
 }
@@ -212,11 +271,89 @@ fn wrap_activity(
 fn wrap_activities(
   activities: List(Activity),
   bookings: List(Booking),
-) -> List(ActivityWithBookingStatus) {
+  favourite_ids: Set(Uuid),
+) -> List(ActivityWithStatus) {
   let booked = booked_set(bookings)
   list.map(activities, fn(a) {
-    ActivityWithBookingStatus(activity: a, booked: set.contains(booked, a.id))
+    ActivityWithStatus(
+      activity: a,
+      favourited: set.contains(favourite_ids, a.id),
+      booked: set.contains(booked, a.id),
+    )
   })
+}
+
+fn new_booking_form() -> Form(BookingFormFields) {
+  form.new({
+    use group_free_text <- form.field("group_free_text", form.parse_string)
+    use responsible_name <- form.field(
+      "responsible_name",
+      form.parse_string |> form.check_not_empty,
+    )
+    use phone_number <- form.field(
+      "phone_number",
+      form.parse_string |> form.check_not_empty,
+    )
+    use participant_count <- form.field("participant_count", form.parse_int)
+    form.success(BookingFormFields(
+      group_free_text:,
+      responsible_name:,
+      phone_number:,
+      participant_count:,
+    ))
+  })
+  |> form.add_string("participant_count", "1")
+}
+
+fn empty_booking_fields() -> BookingFormFields {
+  BookingFormFields(
+    group_free_text: "",
+    responsible_name: "",
+    phone_number: "",
+    participant_count: 1,
+  )
+}
+
+fn booking_form_from(b: Booking) -> Form(BookingFormFields) {
+  new_booking_form()
+  |> form.add_string("group_free_text", b.group_free_text)
+  |> form.add_string("responsible_name", b.responsible_name)
+  |> form.add_string("phone_number", b.phone_number)
+  |> form.add_string("participant_count", int.to_string(b.participant_count))
+}
+
+fn find_my_booking_for(
+  bookings: List(Booking),
+  activity_id: Uuid,
+) -> Option(Booking) {
+  case list.find(bookings, fn(b) { b.activity_id == activity_id }) {
+    Ok(b) -> Some(b)
+    Error(_) -> None
+  }
+}
+
+fn rederive_page_status(
+  model: Model,
+  bookings: List(Booking),
+  favourite_ids: Set(Uuid),
+) -> Model {
+  let new_page = case model.page {
+    ActivitiesListPage(Loaded(items), filters) -> {
+      let activities = list.map(items, fn(x) { x.activity })
+      ActivitiesListPage(
+        Loaded(wrap_activities(activities, bookings, favourite_ids)),
+        filters,
+      )
+    }
+    ActivityDetailPage(id, Loaded(item), booking) ->
+      ActivityDetailPage(
+        id,
+        Loaded(wrap_activity(item.activity, bookings, favourite_ids)),
+        booking,
+      )
+    other -> other
+  }
+  Model(..model, page: new_page)
 }
 
 fn activity_form() -> Form(ActivityForm) {
@@ -281,7 +418,7 @@ fn app_bar_title(translator: Translator, page: Page) -> Option(String) {
   case page {
     ActivitiesListPage(_, _) ->
       Some(g18n.translate(translator, "app_bar.activities_list"))
-    ActivityDetailPage(_, _) ->
+    ActivityDetailPage(_, _, _) ->
       Some(g18n.translate(translator, "app_bar.activity_detail"))
     ActivityNewPage(_, _) ->
       Some(g18n.translate(translator, "app_bar.activity_new"))
@@ -301,7 +438,8 @@ fn init(_flags) -> #(Model, Effect(Msg)) {
 
   let translator = translator_for(get_html_lang())
 
-  let model = Model(page:, translator:, my_bookings: [])
+  let model =
+    Model(page:, translator:, my_bookings: [], my_favourite_ids: set.new())
 
   let title_effect = case app_bar_title(translator, page) {
     Some(title) -> set_app_bar_title(title)
@@ -315,6 +453,7 @@ fn init(_flags) -> #(Model, Effect(Msg)) {
       observe_lang(),
       page_effect,
       fetch_my_bookings(),
+      fetch_my_favourites(),
       title_effect,
     ]),
   )
@@ -331,16 +470,29 @@ type Msg {
   ApiReturnedActivities(Result(List(Activity), rsvp.Error))
   ApiReturnedActivity(Result(Activity, rsvp.Error))
   ApiReturnedMyBookings(Result(List(Booking), rsvp.Error))
+  ApiReturnedMyFavourites(Result(List(Uuid), rsvp.Error))
   ApiCreatedActivity(Result(Activity, rsvp.Error))
   ApiUpdatedActivity(Result(Activity, rsvp.Error))
   ApiDeletedActivity(Result(Nil, rsvp.Error))
+  ApiCreatedBooking(Result(Booking, rsvp.Error))
+  ApiUpdatedBooking(Result(Booking, rsvp.Error))
+  ApiDeletedBooking(Uuid, Result(Nil, rsvp.Error))
+  ApiToggledFavourite(Uuid, Bool, Result(Nil, rsvp.Error))
   // Form submissions
   UserSubmittedCreateForm(Result(ActivityForm, Form(ActivityForm)))
   UserSubmittedEditForm(Result(ActivityForm, Form(ActivityForm)))
+  UserSubmittedBookingForm(Result(BookingFormFields, Form(BookingFormFields)))
   // User actions
   UserClickedEdit
   UserClickedDelete
   UserClickedCancelEdit
+  UserClickedBook
+  UserClickedCancelBooking
+  UserClickedChangeBooking
+  UserClickedUnbook
+  UserClickedConfirmUnbook
+  UserClickedCancelUnbook
+  UserToggledFavourite(Uuid)
   // List page filters
   UserSearchedActivities(String)
   UserSelectedBookingFilter(BookingFilter)
@@ -375,7 +527,11 @@ fn update(model: Model, msg: Msg) -> #(Model, Effect(Msg)) {
         ActivitiesListPage(Loading, filters) -> {
           let new_state = case result {
             Ok(activities) ->
-              Loaded(wrap_activities(activities, model.my_bookings))
+              Loaded(wrap_activities(
+                activities,
+                model.my_bookings,
+                model.my_favourite_ids,
+              ))
             Error(_) -> Failed("Failed to load activities")
           }
           #(
@@ -388,13 +544,18 @@ fn update(model: Model, msg: Msg) -> #(Model, Effect(Msg)) {
 
     ApiReturnedActivity(result) ->
       case model.page {
-        ActivityDetailPage(id, Loading) -> {
+        ActivityDetailPage(id, Loading, booking) -> {
           let new_state = case result {
-            Ok(activity) -> Loaded(wrap_activity(activity, model.my_bookings))
+            Ok(activity) ->
+              Loaded(wrap_activity(
+                activity,
+                model.my_bookings,
+                model.my_favourite_ids,
+              ))
             Error(_) -> Failed("Failed to load activity")
           }
           #(
-            Model(..model, page: ActivityDetailPage(id, new_state)),
+            Model(..model, page: ActivityDetailPage(id, new_state, booking)),
             effect.none(),
           )
         }
@@ -417,31 +578,29 @@ fn update(model: Model, msg: Msg) -> #(Model, Effect(Msg)) {
         Ok(bs) -> bs
         Error(_) -> model.my_bookings
       }
-      let new_page = case model.page {
-        ActivitiesListPage(Loaded(activities_with_booking_status), filters) -> {
-          let activities =
-            list.map(
-              activities_with_booking_status,
-              fn(activity_with_booking_status) {
-                activity_with_booking_status.activity
-              },
-            )
-          ActivitiesListPage(
-            Loaded(wrap_activities(activities, bookings)),
-            filters,
-          )
-        }
-        ActivityDetailPage(id, Loaded(activity_with_booking_status)) ->
-          ActivityDetailPage(
-            id,
-            Loaded(wrap_activity(
-              activity_with_booking_status.activity,
-              bookings,
-            )),
-          )
-        other -> other
+      #(
+        rederive_page_status(
+          Model(..model, my_bookings: bookings),
+          bookings,
+          model.my_favourite_ids,
+        ),
+        effect.none(),
+      )
+    }
+
+    ApiReturnedMyFavourites(result) -> {
+      let favourite_ids = case result {
+        Ok(ids) -> set.from_list(ids)
+        Error(_) -> model.my_favourite_ids
       }
-      #(Model(..model, page: new_page, my_bookings: bookings), effect.none())
+      #(
+        rederive_page_status(
+          Model(..model, my_favourite_ids: favourite_ids),
+          model.my_bookings,
+          favourite_ids,
+        ),
+        effect.none(),
+      )
     }
 
     ApiCreatedActivity(Ok(_)) -> #(
@@ -593,6 +752,298 @@ fn update(model: Model, msg: Msg) -> #(Model, Effect(Msg)) {
       update_filters(model, fn(f) {
         ListFilters(..f, tags: toggle_member(f.tags, name))
       })
+
+    UserToggledFavourite(activity_id) -> {
+      let is_booked = set.contains(booked_set(model.my_bookings), activity_id)
+      let is_fav = set.contains(model.my_favourite_ids, activity_id)
+      case is_booked {
+        True -> #(model, effect.none())
+        False -> {
+          let #(new_set, effect_) = case is_fav {
+            True -> #(
+              set.delete(model.my_favourite_ids, activity_id),
+              remove_favourite(activity_id),
+            )
+            False -> #(
+              set.insert(model.my_favourite_ids, activity_id),
+              add_favourite(activity_id),
+            )
+          }
+          #(
+            rederive_page_status(
+              Model(..model, my_favourite_ids: new_set),
+              model.my_bookings,
+              new_set,
+            ),
+            effect_,
+          )
+        }
+      }
+    }
+
+    ApiToggledFavourite(activity_id, intended_state, Error(_)) -> {
+      // Revert: intended_state was the optimistic value, so flip back.
+      let new_set = case intended_state {
+        True -> set.delete(model.my_favourite_ids, activity_id)
+        False -> set.insert(model.my_favourite_ids, activity_id)
+      }
+      #(
+        rederive_page_status(
+          Model(..model, my_favourite_ids: new_set),
+          model.my_bookings,
+          new_set,
+        ),
+        effect.none(),
+      )
+    }
+
+    ApiToggledFavourite(_, _, Ok(_)) -> #(model, effect.none())
+
+    UserClickedBook ->
+      case model.page {
+        ActivityDetailPage(id, Loaded(item), BookingClosed) ->
+          case item.booked, item.activity.max_attendees {
+            True, _ -> #(model, effect.none())
+            False, Some(_) -> #(
+              Model(
+                ..model,
+                page: ActivityDetailPage(
+                  id,
+                  Loaded(item),
+                  BookingOpen(new_booking_form(), None, BookingNew),
+                ),
+              ),
+              effect.none(),
+            )
+            False, None -> #(
+              Model(
+                ..model,
+                page: ActivityDetailPage(
+                  id,
+                  Loaded(item),
+                  BookingSubmitting(BookingNew),
+                ),
+              ),
+              create_booking(id, empty_booking_fields()),
+            )
+          }
+        _ -> #(model, effect.none())
+      }
+
+    UserClickedChangeBooking ->
+      case model.page {
+        ActivityDetailPage(id, Loaded(item), _) ->
+          case find_my_booking_for(model.my_bookings, item.activity.id) {
+            Some(booking) -> #(
+              Model(
+                ..model,
+                page: ActivityDetailPage(
+                  id,
+                  Loaded(item),
+                  BookingOpen(
+                    booking_form_from(booking),
+                    None,
+                    BookingEdit(booking.id),
+                  ),
+                ),
+              ),
+              effect.none(),
+            )
+            None -> #(model, effect.none())
+          }
+        _ -> #(model, effect.none())
+      }
+
+    UserClickedUnbook ->
+      case model.page {
+        ActivityDetailPage(id, Loaded(item), _) ->
+          case find_my_booking_for(model.my_bookings, item.activity.id) {
+            Some(booking) -> #(
+              Model(
+                ..model,
+                page: ActivityDetailPage(
+                  id,
+                  Loaded(item),
+                  UnbookConfirming(booking.id),
+                ),
+              ),
+              effect.none(),
+            )
+            None -> #(model, effect.none())
+          }
+        _ -> #(model, effect.none())
+      }
+
+    UserClickedCancelUnbook ->
+      case model.page {
+        ActivityDetailPage(id, state, _) -> #(
+          Model(..model, page: ActivityDetailPage(id, state, BookingClosed)),
+          effect.none(),
+        )
+        _ -> #(model, effect.none())
+      }
+
+    UserClickedConfirmUnbook ->
+      case model.page {
+        ActivityDetailPage(id, state, UnbookConfirming(booking_id)) -> #(
+          Model(
+            ..model,
+            page: ActivityDetailPage(id, state, UnbookSubmitting(booking_id)),
+          ),
+          delete_booking(booking_id),
+        )
+        _ -> #(model, effect.none())
+      }
+
+    UserClickedCancelBooking ->
+      case model.page {
+        ActivityDetailPage(id, state, _) -> #(
+          Model(..model, page: ActivityDetailPage(id, state, BookingClosed)),
+          effect.none(),
+        )
+        _ -> #(model, effect.none())
+      }
+
+    UserSubmittedBookingForm(Ok(fields)) ->
+      case model.page {
+        ActivityDetailPage(id, state, BookingOpen(_, _, mode)) -> {
+          let effect_ = case mode {
+            BookingNew -> create_booking(id, fields)
+            BookingEdit(booking_id) -> update_booking(booking_id, fields)
+          }
+          #(
+            Model(
+              ..model,
+              page: ActivityDetailPage(id, state, BookingSubmitting(mode)),
+            ),
+            effect_,
+          )
+        }
+        _ -> #(model, effect.none())
+      }
+
+    UserSubmittedBookingForm(Error(f)) ->
+      case model.page {
+        ActivityDetailPage(id, state, BookingOpen(_, _, mode)) -> #(
+          Model(
+            ..model,
+            page: ActivityDetailPage(id, state, BookingOpen(f, None, mode)),
+          ),
+          effect.none(),
+        )
+        _ -> #(model, effect.none())
+      }
+
+    ApiCreatedBooking(Ok(booking)) -> {
+      let bookings = [booking, ..model.my_bookings]
+      let favourite_ids =
+        set.insert(model.my_favourite_ids, booking.activity_id)
+      let new_model =
+        Model(..model, my_bookings: bookings, my_favourite_ids: favourite_ids)
+      let new_model = rederive_page_status(new_model, bookings, favourite_ids)
+      let new_page = case new_model.page {
+        ActivityDetailPage(id, state, _) ->
+          ActivityDetailPage(id, state, BookingClosed)
+        other -> other
+      }
+      #(Model(..new_model, page: new_page), effect.none())
+    }
+
+    ApiCreatedBooking(Error(_)) ->
+      case model.page {
+        ActivityDetailPage(id, state, BookingSubmitting(mode)) -> #(
+          Model(
+            ..model,
+            page: ActivityDetailPage(
+              id,
+              state,
+              BookingOpen(
+                new_booking_form(),
+                Some("Failed to create booking"),
+                mode,
+              ),
+            ),
+          ),
+          effect.none(),
+        )
+        ActivityDetailPage(id, state, _) -> #(
+          Model(..model, page: ActivityDetailPage(id, state, BookingClosed)),
+          effect.none(),
+        )
+        _ -> #(model, effect.none())
+      }
+
+    ApiUpdatedBooking(Ok(booking)) -> {
+      let bookings =
+        list.map(model.my_bookings, fn(b) {
+          case b.id == booking.id {
+            True -> booking
+            False -> b
+          }
+        })
+      let new_model =
+        rederive_page_status(
+          Model(..model, my_bookings: bookings),
+          bookings,
+          model.my_favourite_ids,
+        )
+      let new_page = case new_model.page {
+        ActivityDetailPage(id, state, _) ->
+          ActivityDetailPage(id, state, BookingClosed)
+        other -> other
+      }
+      #(Model(..new_model, page: new_page), effect.none())
+    }
+
+    ApiUpdatedBooking(Error(_)) ->
+      case model.page {
+        ActivityDetailPage(id, state, BookingSubmitting(mode)) -> #(
+          Model(
+            ..model,
+            page: ActivityDetailPage(
+              id,
+              state,
+              BookingOpen(
+                new_booking_form(),
+                Some("Failed to update booking"),
+                mode,
+              ),
+            ),
+          ),
+          effect.none(),
+        )
+        ActivityDetailPage(id, state, _) -> #(
+          Model(..model, page: ActivityDetailPage(id, state, BookingClosed)),
+          effect.none(),
+        )
+        _ -> #(model, effect.none())
+      }
+
+    ApiDeletedBooking(booking_id, Ok(_)) -> {
+      let bookings =
+        list.filter(model.my_bookings, fn(b) { b.id != booking_id })
+      let new_model =
+        rederive_page_status(
+          Model(..model, my_bookings: bookings),
+          bookings,
+          model.my_favourite_ids,
+        )
+      let new_page = case new_model.page {
+        ActivityDetailPage(id, state, _) ->
+          ActivityDetailPage(id, state, BookingClosed)
+        other -> other
+      }
+      #(Model(..new_model, page: new_page), effect.none())
+    }
+
+    ApiDeletedBooking(_, Error(_)) ->
+      case model.page {
+        ActivityDetailPage(id, state, _) -> #(
+          Model(..model, page: ActivityDetailPage(id, state, BookingClosed)),
+          effect.none(),
+        )
+        _ -> #(model, effect.none())
+      }
   }
 }
 
@@ -656,6 +1107,101 @@ fn fetch_my_bookings() -> Effect(Msg) {
     api_prefix <> "/api/bookings/me",
     rsvp.expect_json(model.bookings_decoder(), ApiReturnedMyBookings),
   )
+}
+
+fn fetch_my_favourites() -> Effect(Msg) {
+  let decoder = {
+    use favourites <- decode.field(
+      "favourites",
+      decode.list(favourite_id_decoder()),
+    )
+    decode.success(favourites)
+  }
+  rsvp.get(
+    api_prefix <> "/api/favourites/me",
+    rsvp.expect_json(decoder, ApiReturnedMyFavourites),
+  )
+}
+
+fn favourite_id_decoder() -> decode.Decoder(Uuid) {
+  use activity_id_str <- decode.field("activity_id", decode.string)
+  case uuid.from_string(activity_id_str) {
+    Ok(id) -> decode.success(id)
+    Error(_) -> decode.failure(uuid.v7(), "valid UUID for activity_id")
+  }
+}
+
+fn add_favourite(activity_id: Uuid) -> Effect(Msg) {
+  rsvp.put(
+    api_prefix
+      <> "/api/activities/"
+      <> uuid.to_string(activity_id)
+      <> "/favourite",
+    json.null(),
+    rsvp.expect_any_response(fn(result) {
+      case result {
+        Ok(_) -> ApiToggledFavourite(activity_id, True, Ok(Nil))
+        Error(err) -> ApiToggledFavourite(activity_id, True, Error(err))
+      }
+    }),
+  )
+}
+
+fn remove_favourite(activity_id: Uuid) -> Effect(Msg) {
+  rsvp.delete(
+    api_prefix
+      <> "/api/activities/"
+      <> uuid.to_string(activity_id)
+      <> "/favourite",
+    json.null(),
+    rsvp.expect_any_response(fn(result) {
+      case result {
+        Ok(_) -> ApiToggledFavourite(activity_id, False, Ok(Nil))
+        Error(err) -> ApiToggledFavourite(activity_id, False, Error(err))
+      }
+    }),
+  )
+}
+
+fn create_booking(
+  activity_id: String,
+  fields: BookingFormFields,
+) -> Effect(Msg) {
+  rsvp.post(
+    api_prefix <> "/api/activities/" <> activity_id <> "/bookings",
+    booking_form_to_json(fields),
+    rsvp.expect_json(model.booking_decoder(), ApiCreatedBooking),
+  )
+}
+
+fn update_booking(booking_id: Uuid, fields: BookingFormFields) -> Effect(Msg) {
+  rsvp.put(
+    api_prefix <> "/api/bookings/" <> uuid.to_string(booking_id),
+    booking_form_to_json(fields),
+    rsvp.expect_json(model.booking_decoder(), ApiUpdatedBooking),
+  )
+}
+
+fn delete_booking(booking_id: Uuid) -> Effect(Msg) {
+  rsvp.delete(
+    api_prefix <> "/api/bookings/" <> uuid.to_string(booking_id),
+    json.null(),
+    rsvp.expect_any_response(fn(result) {
+      case result {
+        Ok(_) -> ApiDeletedBooking(booking_id, Ok(Nil))
+        Error(err) -> ApiDeletedBooking(booking_id, Error(err))
+      }
+    }),
+  )
+}
+
+fn booking_form_to_json(fields: BookingFormFields) -> json.Json {
+  json.object([
+    #("group_free_text", json.string(fields.group_free_text)),
+    #("responsible_name", json.string(fields.responsible_name)),
+    #("phone_number", json.string(fields.phone_number)),
+    #("participant_count", json.int(fields.participant_count)),
+  ])
 }
 
 fn create_activity(af: ActivityForm) -> Effect(Msg) {
@@ -722,7 +1268,10 @@ fn uri_to_page(uri: Uri) -> #(Page, Effect(Msg)) {
       ActivityNewPage(activity_form(), None),
       effect.none(),
     )
-    ["activities", id] -> #(ActivityDetailPage(id, Loading), fetch_activity(id))
+    ["activities", id] -> #(
+      ActivityDetailPage(id, Loading, BookingClosed),
+      fetch_activity(id),
+    )
     _ -> #(NotFoundPage, effect.none())
   }
 }
@@ -734,8 +1283,8 @@ fn view(model: Model) -> Element(Msg) {
     ActivitiesListPage(state, filters) ->
       view_activities_list(model.translator, state, filters)
     ActivityNewPage(form, submit_error) -> view_activity_new(form, submit_error)
-    ActivityDetailPage(_, state) ->
-      view_activity_detail(model.translator, state)
+    ActivityDetailPage(_, state, booking) ->
+      view_activity_detail(model.translator, state, booking)
     ActivityEditPage(_, _) -> todo
     NotFoundPage -> view_not_found()
   }
@@ -743,7 +1292,7 @@ fn view(model: Model) -> Element(Msg) {
 
 fn view_activities_list(
   translator: Translator,
-  state: RemoteData(List(ActivityWithBookingStatus)),
+  state: RemoteData(List(ActivityWithStatus)),
   filters: ListFilters,
 ) -> Element(Msg) {
   let t = fn(key) { g18n.translate(translator, key) }
@@ -777,7 +1326,7 @@ fn view_activities_list(
 fn view_list_top_bar(
   translator: Translator,
   filters: ListFilters,
-  state: RemoteData(List(ActivityWithBookingStatus)),
+  state: RemoteData(List(ActivityWithStatus)),
 ) -> Element(Msg) {
   let t = fn(key) { g18n.translate(translator, key) }
   let dates = case state {
@@ -788,6 +1337,7 @@ fn view_list_top_bar(
     AllActivities -> 0
     BookedOnly -> 1
   }
+  // TODO: Add bg-white correctly here
   html.div([attribute.class("flex flex-col gap-2")], [
     component.scout_input_search(
       filters.search,
@@ -908,7 +1458,7 @@ fn view_more_filters_panel(
 
 fn view_grouped_activities(
   translator: Translator,
-  activities: List(ActivityWithBookingStatus),
+  activities: List(ActivityWithStatus),
   filters: ListFilters,
 ) -> Element(Msg) {
   let t = fn(key) { g18n.translate(translator, key) }
@@ -952,9 +1502,9 @@ fn view_grouped_activities(
 }
 
 fn group_by_date_bucket(
-  activities: List(ActivityWithBookingStatus),
-) -> List(#(#(calendar.Date, TimeBucket), List(ActivityWithBookingStatus))) {
-  let key_for = fn(activity_with_booking_status: ActivityWithBookingStatus) {
+  activities: List(ActivityWithStatus),
+) -> List(#(#(calendar.Date, TimeBucket), List(ActivityWithStatus))) {
+  let key_for = fn(activity_with_booking_status: ActivityWithStatus) {
     #(
       date_of(activity_with_booking_status.activity.start_time),
       bucket_for(activity_with_booking_status.activity.start_time),
@@ -992,7 +1542,7 @@ fn view_section(
   translator: Translator,
   date: calendar.Date,
   bucket: TimeBucket,
-  activities: List(ActivityWithBookingStatus),
+  activities: List(ActivityWithStatus),
   is_current: Bool,
 ) -> Element(Msg) {
   let t = fn(key) { g18n.translate(translator, key) }
@@ -1036,9 +1586,9 @@ fn view_section(
 fn view_activity_card(
   translator: Translator,
   section_date: calendar.Date,
-  activity_with_booking_status: ActivityWithBookingStatus,
+  item: ActivityWithStatus,
 ) -> Element(Msg) {
-  let activity = activity_with_booking_status.activity
+  let activity = item.activity
   let id = uuid.to_string(activity.id)
   let time =
     view_card_time(
@@ -1051,11 +1601,22 @@ fn view_activity_card(
   let spots = mock_spots_remaining(activity)
   let spots_text =
     g18n.translate_plural(translator, "activity.spots_remaining", spots)
+  let status = case item.booked, activity.max_attendees {
+    True, _ ->
+      component.StatusBooked(g18n.translate(translator, "activity.booked"))
+    False, Some(_) ->
+      component.StatusNeedsBooking(g18n.translate(
+        translator,
+        "activity.needs_booking",
+      ))
+    False, None -> component.StatusNone
+  }
   component.activity_card(
     api_prefix <> "/activities/" <> id,
     activity.title,
-    activity_with_booking_status.booked,
-    g18n.translate(translator, "activity.booked"),
+    status,
+    item.favourited,
+    UserToggledFavourite(activity.id),
     time,
     location,
     spots_text,
@@ -1126,7 +1687,8 @@ fn view_activity_new(
 
 fn view_activity_detail(
   translator: Translator,
-  state: RemoteData(ActivityWithBookingStatus),
+  state: RemoteData(ActivityWithStatus),
+  booking: BookingFormState,
 ) -> Element(Msg) {
   case state {
     Loading ->
@@ -1162,18 +1724,42 @@ fn view_activity_detail(
           ]),
         ]),
       ])
-    Loaded(activity_with_booking_status) ->
-      view_activity_detail_loaded(
-        translator,
-        activity_with_booking_status.activity,
-      )
+    Loaded(item) -> view_activity_detail_loaded(translator, item, booking)
   }
 }
 
 fn view_activity_detail_loaded(
   translator: Translator,
-  activity: Activity,
+  item: ActivityWithStatus,
+  booking: BookingFormState,
 ) -> Element(Msg) {
+  let activity = item.activity
+  let heart_icon = case item.favourited {
+    True -> icons.heart_filled
+    False -> icons.heart
+  }
+  let heart_btn = case item.booked {
+    True ->
+      html.span(
+        [
+          attribute.class("p-1"),
+          attribute.styles([#("color", "var(--color-red-200)")]),
+        ],
+        [component.icon(heart_icon, "size-6")],
+      )
+    False ->
+      html.button(
+        [
+          attribute.type_("button"),
+          attribute.class(
+            "p-1 cursor-pointer transition-colors bg-transparent border-0 text-(--color-red-400) hover:text-(--color-red-300)",
+          ),
+          attribute.attribute("aria-label", "Toggle favourite"),
+          event.on_click(UserToggledFavourite(activity.id)),
+        ],
+        [component.icon(heart_icon, "size-6")],
+      )
+  }
   html.div([attribute.class("flex flex-col")], [
     html.div(
       // Map
@@ -1205,21 +1791,42 @@ fn view_activity_detail_loaded(
             attribute.class("flex gap-4"),
           ],
           [
-            html.div([attribute.class("flex-1 flex pt-1")], [
+            html.div([attribute.class("flex-1 flex pt-1 min-w-0")], [
               html.h1(
                 [
-                  attribute.class("text-heading-xs"),
+                  attribute.class(
+                    "text-heading-xs hyphens-auto break-words text-balance min-w-0",
+                  ),
                 ],
                 [element.text(activity.title)],
               ),
             ]),
-            html.div([attribute.class("flex flex-col gap-1 items-end")], [
-              component.scout_button_action(
-                g18n.translate(translator, "activity.book"),
-                "primary",
-                UserClickedEdit,
-              ),
-              // TODO: Change button to "Spara" when no max attendees?
+            html.div([attribute.class("flex flex-col gap-2 items-end")], [
+              {
+                let #(primary, secondary) =
+                  view_detail_actions(
+                    translator,
+                    activity,
+                    item.booked,
+                    booking,
+                  )
+                // Mobile: primary on its own row, secondary + heart on a second
+                // row. Desktop (sm+): inline together, right-aligned.
+                html.div(
+                  [
+                    attribute.class(
+                      "flex flex-col items-end gap-2 sm:flex-row sm:items-center sm:flex-wrap sm:justify-end",
+                    ),
+                  ],
+                  [
+                    primary,
+                    html.div([attribute.class("flex items-center gap-2")], [
+                      secondary,
+                      heart_btn,
+                    ]),
+                  ],
+                )
+              },
               case activity.max_attendees {
                 Some(max_attendees) ->
                   html.div(
@@ -1277,9 +1884,148 @@ fn view_activity_detail_loaded(
             element.text(activity.description),
           ]),
         ]),
+        view_booking_form_section(translator, booking),
       ],
     ),
   ])
+}
+
+/// Splits the detail-page actions into a `#(primary, secondary)` pair so the
+/// caller can place the secondary element next to the heart and the primary
+/// element on its own row on mobile.
+fn view_detail_actions(
+  translator: Translator,
+  activity: Activity,
+  booked: Bool,
+  booking: BookingFormState,
+) -> #(Element(Msg), Element(Msg)) {
+  case booked, booking {
+    // While the booking form is open or submitting, hide the action row —
+    // the form itself provides Submit/Cancel.
+    _, BookingOpen(_, _, _) -> #(element.none(), element.none())
+    _, BookingSubmitting(_) -> #(element.none(), element.none())
+
+    // Booked activity: ask the user to confirm before deleting their booking.
+    True, UnbookConfirming(_) -> #(
+      component.scout_button_action(
+        g18n.translate(translator, "booking.confirm_unbook"),
+        "danger",
+        UserClickedConfirmUnbook,
+      ),
+      component.scout_button_action(
+        g18n.translate(translator, "booking.cancel"),
+        "outlined",
+        UserClickedCancelUnbook,
+      ),
+    )
+
+    True, UnbookSubmitting(_) -> #(
+      component.scout_loader(g18n.translate(translator, "booking.submitting")),
+      element.none(),
+    )
+
+    // Booked, no special state: offer "Ändra bokning" + "Avboka".
+    True, BookingClosed -> #(
+      component.scout_button_action(
+        g18n.translate(translator, "booking.change"),
+        "primary",
+        UserClickedChangeBooking,
+      ),
+      component.scout_button_action(
+        g18n.translate(translator, "booking.unbook"),
+        "danger",
+        UserClickedUnbook,
+      ),
+    )
+
+    // Not booked: only the "Boka" button if the activity has capacity.
+    False, _ ->
+      case activity.max_attendees {
+        Some(_) -> #(
+          component.scout_button_action(
+            g18n.translate(translator, "activity.book"),
+            "primary",
+            UserClickedBook,
+          ),
+          element.none(),
+        )
+        None -> #(element.none(), element.none())
+      }
+  }
+}
+
+fn view_booking_form_section(
+  translator: Translator,
+  booking: BookingFormState,
+) -> Element(Msg) {
+  case booking {
+    BookingClosed -> element.none()
+    UnbookConfirming(_) -> element.none()
+    UnbookSubmitting(_) -> element.none()
+    BookingSubmitting(_) ->
+      html.div([attribute.class("flex justify-center py-4")], [
+        component.scout_loader(g18n.translate(translator, "booking.submitting")),
+      ])
+    BookingOpen(form, submit_error, _) -> {
+      let submitted = fn(values) {
+        form
+        |> form.add_values(values)
+        |> form.run
+        |> UserSubmittedBookingForm
+      }
+      html.form([event.on_submit(submitted)], [
+        component.scout_card([
+          html.div([attribute.class("flex flex-col gap-2")], [
+            case submit_error {
+              Some(err) -> component.error_banner(err)
+              None -> element.none()
+            },
+            component.scout_form_field(
+              form,
+              g18n.translate(translator, "booking.responsible_name"),
+              "text",
+              "responsible_name",
+            ),
+            component.scout_form_field(
+              form,
+              g18n.translate(translator, "booking.phone_number"),
+              "tel",
+              "phone_number",
+            ),
+            component.scout_form_field(
+              form,
+              g18n.translate(translator, "booking.group_free_text"),
+              "text",
+              "group_free_text",
+            ),
+            component.scout_form_field(
+              form,
+              g18n.translate(translator, "booking.participant_count"),
+              "number",
+              "participant_count",
+            ),
+            html.div([attribute.class("flex gap-2 justify-end")], [
+              component.scout_button_action(
+                g18n.translate(translator, "booking.cancel"),
+                "outlined",
+                UserClickedCancelBooking,
+              ),
+              element.element(
+                "scout-button",
+                [
+                  attribute.attribute("variant", "primary"),
+                  attribute.attribute("type", "submit"),
+                ],
+                [
+                  element.text(g18n.translate(translator, "booking.submit")),
+                ],
+              ),
+            ]),
+          ]),
+        ]),
+      ])
+    }
+  }
 }
 
 type IntervalClasses {
@@ -1540,9 +2286,9 @@ fn lists_intersect(a: List(String), b: List(String)) -> Bool {
 }
 
 fn apply_filters(
-  activities: List(ActivityWithBookingStatus),
+  activities: List(ActivityWithStatus),
   f: ListFilters,
-) -> List(ActivityWithBookingStatus) {
+) -> List(ActivityWithStatus) {
   let needle = string.lowercase(string.trim(f.search))
   use activity_with_booking_status <- list.filter(activities)
   let activity = activity_with_booking_status.activity
@@ -1569,9 +2315,7 @@ fn apply_filters(
   title_match && day_match && booked_match && audience_match && tag_match
 }
 
-fn camp_dates(
-  activities: List(ActivityWithBookingStatus),
-) -> List(calendar.Date) {
+fn camp_dates(activities: List(ActivityWithStatus)) -> List(calendar.Date) {
   activities
   |> list.map(fn(activity_with_booking_status) {
     date_of(activity_with_booking_status.activity.start_time)

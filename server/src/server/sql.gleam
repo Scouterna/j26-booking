@@ -10,6 +10,41 @@ import gleam/time/timestamp.{type Timestamp}
 import pog
 import youid/uuid.{type Uuid}
 
+/// A row you get from running the `count_favourites_by_activity` query
+/// defined in `./src/server/sql/count_favourites_by_activity.sql`.
+///
+/// > 🐿️ This type definition was generated automatically using v4.6.0 of the
+/// > [squirrel package](https://github.com/giacomocavalieri/squirrel).
+///
+pub type CountFavouritesByActivityRow {
+  CountFavouritesByActivityRow(favourite_count: Int)
+}
+
+/// Runs the `count_favourites_by_activity` query
+/// defined in `./src/server/sql/count_favourites_by_activity.sql`.
+///
+/// > 🐿️ This function was generated automatically using v4.6.0 of
+/// > the [squirrel package](https://github.com/giacomocavalieri/squirrel).
+///
+pub fn count_favourites_by_activity(
+  db: pog.Connection,
+  arg_1: Uuid,
+) -> Result(pog.Returned(CountFavouritesByActivityRow), pog.QueryError) {
+  let decoder = {
+    use favourite_count <- decode.field(0, decode.int)
+    decode.success(CountFavouritesByActivityRow(favourite_count:))
+  }
+
+  "SELECT COUNT(*) AS favourite_count
+FROM favourite
+WHERE activity_id = $1
+"
+  |> pog.query
+  |> pog.parameter(pog.text(uuid.to_string(arg_1)))
+  |> pog.returning(decoder)
+  |> pog.execute(db)
+}
+
 /// A row you get from running the `create_activity_with_max_attendees` query
 /// defined in `./src/server/sql/create_activity_with_max_attendees.sql`.
 ///
@@ -251,6 +286,49 @@ RETURNING id,
   |> pog.execute(db)
 }
 
+/// A row you get from running the `create_favourite` query
+/// defined in `./src/server/sql/create_favourite.sql`.
+///
+/// > 🐿️ This type definition was generated automatically using v4.6.0 of the
+/// > [squirrel package](https://github.com/giacomocavalieri/squirrel).
+///
+pub type CreateFavouriteRow {
+  CreateFavouriteRow(id: Uuid, user_id: Uuid, activity_id: Uuid)
+}
+
+/// Runs the `create_favourite` query
+/// defined in `./src/server/sql/create_favourite.sql`.
+///
+/// > 🐿️ This function was generated automatically using v4.6.0 of
+/// > the [squirrel package](https://github.com/giacomocavalieri/squirrel).
+///
+pub fn create_favourite(
+  db: pog.Connection,
+  arg_1: Uuid,
+  arg_2: Uuid,
+  arg_3: Uuid,
+) -> Result(pog.Returned(CreateFavouriteRow), pog.QueryError) {
+  let decoder = {
+    use id <- decode.field(0, uuid_decoder())
+    use user_id <- decode.field(1, uuid_decoder())
+    use activity_id <- decode.field(2, uuid_decoder())
+    decode.success(CreateFavouriteRow(id:, user_id:, activity_id:))
+  }
+
+  "INSERT INTO favourite (id, user_id, activity_id)
+VALUES ($1, $2, $3) ON CONFLICT (user_id, activity_id) DO NOTHING
+RETURNING id,
+    user_id,
+    activity_id
+"
+  |> pog.query
+  |> pog.parameter(pog.text(uuid.to_string(arg_1)))
+  |> pog.parameter(pog.text(uuid.to_string(arg_2)))
+  |> pog.parameter(pog.text(uuid.to_string(arg_3)))
+  |> pog.returning(decoder)
+  |> pog.execute(db)
+}
+
 /// A row you get from running the `delete_activity` query
 /// defined in `./src/server/sql/delete_activity.sql`.
 ///
@@ -316,6 +394,44 @@ RETURNING id
 "
   |> pog.query
   |> pog.parameter(pog.text(uuid.to_string(arg_1)))
+  |> pog.returning(decoder)
+  |> pog.execute(db)
+}
+
+/// A row you get from running the `delete_favourite` query
+/// defined in `./src/server/sql/delete_favourite.sql`.
+///
+/// > 🐿️ This type definition was generated automatically using v4.6.0 of the
+/// > [squirrel package](https://github.com/giacomocavalieri/squirrel).
+///
+pub type DeleteFavouriteRow {
+  DeleteFavouriteRow(id: Uuid)
+}
+
+/// Runs the `delete_favourite` query
+/// defined in `./src/server/sql/delete_favourite.sql`.
+///
+/// > 🐿️ This function was generated automatically using v4.6.0 of
+/// > the [squirrel package](https://github.com/giacomocavalieri/squirrel).
+///
+pub fn delete_favourite(
+  db: pog.Connection,
+  arg_1: Uuid,
+  arg_2: Uuid,
+) -> Result(pog.Returned(DeleteFavouriteRow), pog.QueryError) {
+  let decoder = {
+    use id <- decode.field(0, uuid_decoder())
+    decode.success(DeleteFavouriteRow(id:))
+  }
+
+  "DELETE FROM favourite
+WHERE user_id = $1
+    AND activity_id = $2
+RETURNING id
+"
+  |> pog.query
+  |> pog.parameter(pog.text(uuid.to_string(arg_1)))
+  |> pog.parameter(pog.text(uuid.to_string(arg_2)))
   |> pog.returning(decoder)
   |> pog.execute(db)
 }
@@ -556,6 +672,45 @@ WHERE id = $1
   |> pog.execute(db)
 }
 
+/// A row you get from running the `get_booking_by_user_and_activity` query
+/// defined in `./src/server/sql/get_booking_by_user_and_activity.sql`.
+///
+/// > 🐿️ This type definition was generated automatically using v4.6.0 of the
+/// > [squirrel package](https://github.com/giacomocavalieri/squirrel).
+///
+pub type GetBookingByUserAndActivityRow {
+  GetBookingByUserAndActivityRow(id: Uuid)
+}
+
+/// Runs the `get_booking_by_user_and_activity` query
+/// defined in `./src/server/sql/get_booking_by_user_and_activity.sql`.
+///
+/// > 🐿️ This function was generated automatically using v4.6.0 of
+/// > the [squirrel package](https://github.com/giacomocavalieri/squirrel).
+///
+pub fn get_booking_by_user_and_activity(
+  db: pog.Connection,
+  arg_1: Uuid,
+  arg_2: Uuid,
+) -> Result(pog.Returned(GetBookingByUserAndActivityRow), pog.QueryError) {
+  let decoder = {
+    use id <- decode.field(0, uuid_decoder())
+    decode.success(GetBookingByUserAndActivityRow(id:))
+  }
+
+  "SELECT id
+FROM booking
+WHERE user_id = $1
+    AND activity_id = $2
+LIMIT 1
+"
+  |> pog.query
+  |> pog.parameter(pog.text(uuid.to_string(arg_1)))
+  |> pog.parameter(pog.text(uuid.to_string(arg_2)))
+  |> pog.returning(decoder)
+  |> pog.execute(db)
+}
+
 /// A row you get from running the `get_bookings_by_activity` query
 /// defined in `./src/server/sql/get_bookings_by_activity.sql`.
 ///
@@ -699,6 +854,46 @@ pub fn get_bookings_by_user(
 FROM booking
 WHERE user_id = $1
 ORDER BY id;
+"
+  |> pog.query
+  |> pog.parameter(pog.text(uuid.to_string(arg_1)))
+  |> pog.returning(decoder)
+  |> pog.execute(db)
+}
+
+/// A row you get from running the `get_favourites_by_user` query
+/// defined in `./src/server/sql/get_favourites_by_user.sql`.
+///
+/// > 🐿️ This type definition was generated automatically using v4.6.0 of the
+/// > [squirrel package](https://github.com/giacomocavalieri/squirrel).
+///
+pub type GetFavouritesByUserRow {
+  GetFavouritesByUserRow(id: Uuid, user_id: Uuid, activity_id: Uuid)
+}
+
+/// Runs the `get_favourites_by_user` query
+/// defined in `./src/server/sql/get_favourites_by_user.sql`.
+///
+/// > 🐿️ This function was generated automatically using v4.6.0 of
+/// > the [squirrel package](https://github.com/giacomocavalieri/squirrel).
+///
+pub fn get_favourites_by_user(
+  db: pog.Connection,
+  arg_1: Uuid,
+) -> Result(pog.Returned(GetFavouritesByUserRow), pog.QueryError) {
+  let decoder = {
+    use id <- decode.field(0, uuid_decoder())
+    use user_id <- decode.field(1, uuid_decoder())
+    use activity_id <- decode.field(2, uuid_decoder())
+    decode.success(GetFavouritesByUserRow(id:, user_id:, activity_id:))
+  }
+
+  "SELECT id,
+    user_id,
+    activity_id
+FROM favourite
+WHERE user_id = $1
+ORDER BY id
 "
   |> pog.query
   |> pog.parameter(pog.text(uuid.to_string(arg_1)))

@@ -5,6 +5,7 @@ import lustre/element.{type Element}
 import lustre/element/html
 import pog
 import wisp.{type Request, type Response}
+import youid/uuid.{type Uuid}
 import ywt/verify_key.{type VerifyKey}
 
 pub const base_path = "/_services/booking"
@@ -72,6 +73,24 @@ fn authenticate(_req: Request, ctx: Context) -> Context {
   )
 }
 
+/// Resolve the authenticated user's UUID from the request context.
+///
+/// Calls `next` with the parsed `Uuid` when the request carries a valid
+/// authentication result, otherwise short-circuits with a 401 response.
+pub fn with_authenticated_user(
+  ctx: Context,
+  next: fn(Uuid) -> Response,
+) -> Response {
+  case ctx.authentication_result {
+    Authenticated(user) ->
+      case uuid.from_string(user.user_id) {
+        Ok(user_id) -> next(user_id)
+        Error(_) -> wisp.internal_server_error()
+      }
+    NotAuthenticated | InvalidToken -> wisp.response(401)
+  }
+}
+
 pub fn ensure_valid_query_param(
   in request_query: List(#(String, String)),
   with_name parameter_name: String,
@@ -91,7 +110,7 @@ pub fn ensure_valid_query_param(
 }
 
 pub fn spa_shell_page() -> Element(a) {
-  html.html([attribute.attribute("lang", "en")], [
+  html.html([attribute.attribute("lang", "sv")], [
     html.head([], [
       html.meta([attribute.charset("UTF-8")]),
       html.meta([

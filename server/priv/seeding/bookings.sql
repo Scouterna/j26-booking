@@ -79,3 +79,12 @@ VALUES ('6f5e1d46-5f58-4e23-9a9d-8c2bfc2d22a0', 'c3d4e5f6-a7b8-4c12-8def-1234567
     ('b4219a53-4746-4a09-8b4e-3e2ac0c3df11', 'c3d4e5f6-a7b8-4c12-8def-123456789012'),
     ('fa3825ab-8bc1-4f59-9100-2cc6aeb3d219', 'c3d4e5f6-a7b8-4c12-8def-123456789012')
 ON CONFLICT (activity_id, user_id) DO NOTHING;
+
+-- Booking implies favourite. Seed favourites for every seeded booking so that
+-- the heart and "Booked!" state stay consistent. Idempotent via the unique
+-- constraint on (user_id, activity_id).
+INSERT INTO favourite (id, user_id, activity_id)
+SELECT gen_random_uuid(),
+    user_id,
+    activity_id
+FROM booking ON CONFLICT (user_id, activity_id) DO NOTHING;

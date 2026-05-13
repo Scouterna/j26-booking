@@ -1,6 +1,15 @@
 @import "tailwindcss";
 @import "@scouterna/tailwind-theme";
 
+/* The scouterna theme resets `--color-*: initial`, which strips Tailwind's
+ * built-in palette. Re-introduce the purple shades we use here so we can
+ * reference them via Tailwind's arbitrary syntax, e.g. `text-(--color-purple-600)`.
+ * Values copied from Tailwind v4's default purple palette. */
+:root {
+  --color-purple-100: oklch(0.946 0.033 307.174);
+  --color-purple-600: oklch(0.558 0.288 302.321);
+}
+
 body {
   font-family: "Source Sans 3 Variable", sans-serif;
   font-size: var(--text-body-base);
@@ -12,9 +21,3 @@ body {
   width: 100%;
   height: 100%;
 }
-
-/* The active segment in scout-segmented-control gets a dark indicator behind
-   it, so the slotted button text needs an inverted color. */
-/* scout-segmented-control button[aria-checked="true"] {
-  color: var(--color-text-inverted-base, #fff);
-} */

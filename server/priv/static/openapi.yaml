@@ -17,6 +17,8 @@ tags:
     description: Manage booking activities
   - name: Bookings
     description: Manage bookings for activities
+  - name: Favourites
+    description: Manage the authenticated user's favourite activities
   - name: Configuration
     description: Application configuration
 
@@ -373,6 +375,100 @@ paths:
         '500':
           $ref: '#/components/responses/ServerError'
 
+  /activities/{activity_id}/favourite:
+    put:
+      tags:
+        - Favourites
+      summary: Favourite an activity
+      description: |
+        Mark an activity as favourited for the authenticated user. Idempotent — calling
+        this on an already-favourited activity is a no-op success.
+      operationId: putFavourite
+      parameters:
+        - $ref: '#/components/parameters/ActivityIdPath'
+      responses:
+        '200':
+          description: Favourite created or already exists
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Favourite'
+              example:
+                id: "ff000001-0000-4000-8000-000000000001"
+                user_id: "a1b2c3d4-e5f6-4a90-abcd-ef1234567890"
+                activity_id: "6f5e1d46-5f58-4e23-9a9d-8c2bfc2d22a0"
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          description: Unauthenticated
+        '500':
+          $ref: '#/components/responses/ServerError'
+
+    delete:
+      tags:
+        - Favourites
+      summary: Remove favourite
+      description: |
+        Un-favourite an activity. Returns 409 Conflict if the user has booked this
+        activity — a booking implicitly favourites the activity, and the favourite
+        cannot be removed while the booking exists.
+      operationId: deleteFavourite
+      parameters:
+        - $ref: '#/components/parameters/ActivityIdPath'
+      responses:
+        '204':
+          description: Favourite removed
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          description: Unauthenticated
+        '404':
+          description: No favourite existed for this activity
+        '409':
+          description: Cannot unfavourite a booked activity
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                example:
+                  error: "Cannot unfavourite a booked activity"
+        '500':
+          $ref: '#/components/responses/ServerError'
+
+  /favourites/me:
+    get:
+      tags:
+        - Favourites
+      summary: List my favourites
+      description: Retrieve the authenticated user's favourite activities.
+      operationId: listMyFavourites
+      responses:
+        '200':
+          description: Successfully retrieved favourites
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - favourites
+                properties:
+                  favourites:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Favourite'
+              example:
+                favourites:
+                  - id: "ff000001-0000-4000-8000-000000000001"
+                    user_id: "a1b2c3d4-e5f6-4a90-abcd-ef1234567890"
+                    activity_id: "6f5e1d46-5f58-4e23-9a9d-8c2bfc2d22a0"
+        '401':
+          description: Unauthenticated
+        '500':
+          $ref: '#/components/responses/ServerError'
+
   /app-config:
     get:
       tags:
@@ -498,6 +594,30 @@ components:
           type: integer
           description: Number of participants
           example: 12
+
+    Favourite:
+      type: object
+      description: Represents a favourite (interest) for an activity
+      required:
+        - id
+        - user_id
+        - activity_id
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Unique identifier for the favourite
+          example: "ff000001-0000-4000-8000-000000000001"
+        user_id:
+          type: string
+          format: uuid
+          description: ID of the user who favourited the activity
+          example: "a1b2c3d4-e5f6-4a90-abcd-ef1234567890"
+        activity_id:
+          type: string
+          format: uuid
+          description: ID of the favourited activity
+          example: "6f5e1d46-5f58-4e23-9a9d-8c2bfc2d22a0"
 
     BookingInput:
       type: object

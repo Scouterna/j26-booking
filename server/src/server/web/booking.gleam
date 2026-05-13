@@ -46,6 +46,7 @@ pub fn create(
   ctx: web.Context,
 ) -> Response {
   use <- wisp.require_method(req, Post)
+  use user_id <- web.with_authenticated_user(ctx)
   use activity_id <- given.ok(uuid.from_string(activity_id_str), fn(_) {
     wisp.bad_request("Invalid activity ID format")
   })
@@ -54,9 +55,6 @@ pub fn create(
     wisp.bad_request("Invalid JSON payload")
   })
   let id = uuid.v7()
-  // TODO: Get user_id from JWT authentication
-  let assert Ok(user_id) =
-    uuid.from_string("a1b2c3d4-e5f6-4a90-abcd-ef1234567890")
   // TODO: Get booker_group_id and booker_group_name from JWT
   let booker_group_id = 0
   let booker_group_name = "TODO: from JWT"
@@ -82,6 +80,16 @@ pub fn create(
     Ok(pog.Returned(_, [])) -> wisp.internal_server_error()
     Ok(pog.Returned(_, [row, ..])) -> {
       let created_booking = booking.from_create_booking_row(row)
+      // Auto-favourite on booking. Idempotent via ON CONFLICT DO NOTHING.
+      case
+        sql.create_favourite(ctx.db_connection, uuid.v7(), user_id, activity_id)
+      {
+        Error(error) ->
+          wisp.log_error(
+            "Auto-favourite failed after booking: " <> string.inspect(error),
+          )
+        Ok(_) -> Nil
+      }
       let location =
         web.base_path <> "/api/bookings/" <> uuid.to_string(created_booking.id)
       wisp.json_response(
@@ -117,30 +125,20 @@ pub fn get_one(req: Request, id: String, ctx: web.Context) -> Response {
 
 pub fn get_mine(req: Request, ctx: web.Context) -> Response {
   use <- wisp.require_method(req, Get)
-  case ctx.authentication_result {
-    web.Authenticated(user) ->
-      case uuid.from_string(user.user_id) {
-        Ok(user_id) ->
-          case sql.get_bookings_by_user(ctx.db_connection, user_id) {
-            Error(error) -> {
-              wisp.log_error("QueryError " <> string.inspect(error))
-              wisp.internal_server_error()
-            }
-            Ok(pog.Returned(_, rows)) -> {
-              let bookings =
-                rows |> list.map(booking.from_get_bookings_by_user_row)
-              wisp.json_response(
-                json.object([
-                  #("bookings", json.array(bookings, booking.to_json)),
-                ])
-                  |> json.to_string,
-                200,
-              )
-            }
-          }
-        Error(_) -> wisp.json_response("{\"bookings\":[]}", 200)
-      }
-    _ -> wisp.json_response("{\"bookings\":[]}", 200)
+  use user_id <- web.with_authenticated_user(ctx)
+  case sql.get_bookings_by_user(ctx.db_connection, user_id) {
+    Error(error) -> {
+      wisp.log_error("QueryError " <> string.inspect(error))
+      wisp.internal_server_error()
+    }
+    Ok(pog.Returned(_, rows)) -> {
+      let bookings = rows |> list.map(booking.from_get_bookings_by_user_row)
+      wisp.json_response(
+        json.object([#("bookings", json.array(bookings, booking.to_json))])
+          |> json.to_string,
+        200,
+      )
+    }
   }
 }
 

@@ -131,3 +131,37 @@ pub fn bookings_decoder() -> decode.Decoder(List(Booking)) {
   use bookings <- decode.field("bookings", decode.list(booking_decoder()))
   decode.success(bookings)
 }
+
+pub type Favourite {
+  Favourite(id: Uuid, user_id: Uuid, activity_id: Uuid)
+}
+
+/// Decode a Favourite from API JSON.
+/// Expects id, user_id, activity_id as string (UUID).
+pub fn favourite_decoder() -> decode.Decoder(Favourite) {
+  use id_str <- decode.field("id", decode.string)
+  use user_id_str <- decode.field("user_id", decode.string)
+  use activity_id_str <- decode.field("activity_id", decode.string)
+  case
+    uuid.from_string(id_str),
+    uuid.from_string(user_id_str),
+    uuid.from_string(activity_id_str)
+  {
+    Ok(id), Ok(user_id), Ok(activity_id) ->
+      decode.success(Favourite(id:, user_id:, activity_id:))
+    _, _, _ ->
+      decode.failure(
+        Favourite(id: uuid.v7(), user_id: uuid.v7(), activity_id: uuid.v7()),
+        "valid UUID strings for id, user_id, activity_id",
+      )
+  }
+}
+
+/// Decode a list of favourites from the API response `{"favourites": [...]}`.
+pub fn favourites_decoder() -> decode.Decoder(List(Favourite)) {
+  use favourites <- decode.field(
+    "favourites",
+    decode.list(favourite_decoder()),
+  )
+  decode.success(favourites)
+}
