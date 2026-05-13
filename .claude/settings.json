@@ -6,7 +6,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": ".claude/hooks/block-generated.sh"
+            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/block-generated.sh"
           }
         ]
       }
@@ -17,7 +17,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": ".claude/hooks/gleam-format.sh"
+            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/gleam-format.sh"
           }
         ]
       }
