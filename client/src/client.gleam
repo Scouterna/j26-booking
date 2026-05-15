@@ -64,7 +64,7 @@ fn english_translations() -> g18n.Translations {
   |> g18n.add_translation("booking.confirm_unbook", "Yes, cancel")
   |> g18n.add_translation("list.search_placeholder", "Search")
   |> g18n.add_translation("list.filter.all", "All")
-  |> g18n.add_translation("list.filter.booked", "Booked")
+  |> g18n.add_translation("list.filter.favourites", "Favourites")
   |> g18n.add_translation("list.filter.more", "More filters")
   |> g18n.add_translation("list.filter.audience_label", "Target audience")
   |> g18n.add_translation("list.filter.tags_label", "Tags")
@@ -114,7 +114,7 @@ fn swedish_translations() -> g18n.Translations {
   |> g18n.add_translation("booking.confirm_unbook", "Ja, avboka")
   |> g18n.add_translation("list.search_placeholder", "Sök")
   |> g18n.add_translation("list.filter.all", "Alla")
-  |> g18n.add_translation("list.filter.booked", "Bokade")
+  |> g18n.add_translation("list.filter.favourites", "Favoriter")
   |> g18n.add_translation("list.filter.more", "Fler filter")
   |> g18n.add_translation("list.filter.audience_label", "Målgrupp")
   |> g18n.add_translation("list.filter.tags_label", "Taggar")
@@ -201,15 +201,15 @@ type EditState {
   EditLoadFailed(String)
 }
 
-type BookingFilter {
+type FavouriteFilter {
   AllActivities
-  BookedOnly
+  FavouritesOnly
 }
 
 type ListFilters {
   ListFilters(
     search: String,
-    booking: BookingFilter,
+    favourite: FavouriteFilter,
     day: Option(calendar.Date),
     more_open: Bool,
     audiences: List(String),
@@ -220,7 +220,7 @@ type ListFilters {
 fn default_filters() -> ListFilters {
   ListFilters(
     search: "",
-    booking: AllActivities,
+    favourite: AllActivities,
     day: None,
     more_open: False,
     audiences: [],
@@ -495,7 +495,7 @@ type Msg {
   UserToggledFavourite(Uuid)
   // List page filters
   UserSearchedActivities(String)
-  UserSelectedBookingFilter(BookingFilter)
+  UserSelectedFavouriteFilter(FavouriteFilter)
   UserSelectedDay(Option(calendar.Date))
   UserToggledMoreFilters
   UserToggledAudience(String)
@@ -734,8 +734,8 @@ fn update(model: Model, msg: Msg) -> #(Model, Effect(Msg)) {
     UserSearchedActivities(value) ->
       update_filters(model, fn(f) { ListFilters(..f, search: value) })
 
-    UserSelectedBookingFilter(b) ->
-      update_filters(model, fn(f) { ListFilters(..f, booking: b) })
+    UserSelectedFavouriteFilter(f) ->
+      update_filters(model, fn(filters) { ListFilters(..filters, favourite: f) })
 
     UserSelectedDay(d) ->
       update_filters(model, fn(f) { ListFilters(..f, day: d) })
@@ -1333,9 +1333,9 @@ fn view_list_top_bar(
     Loaded(activities) -> camp_dates(activities)
     _ -> []
   }
-  let booking_index = case filters.booking {
+  let favourite_index = case filters.favourite {
     AllActivities -> 0
-    BookedOnly -> 1
+    FavouritesOnly -> 1
   }
   // TODO: Add bg-white correctly here
   html.div([attribute.class("flex flex-col gap-2")], [
@@ -1346,12 +1346,12 @@ fn view_list_top_bar(
     ),
     html.div([attribute.class("flex items-center gap-2")], [
       component.scout_segmented_control(
-        booking_index,
-        [t("list.filter.all"), t("list.filter.booked")],
+        favourite_index,
+        [t("list.filter.all"), t("list.filter.favourites")],
         fn(idx) {
           case idx {
-            0 -> UserSelectedBookingFilter(AllActivities)
-            _ -> UserSelectedBookingFilter(BookedOnly)
+            0 -> UserSelectedFavouriteFilter(AllActivities)
+            _ -> UserSelectedFavouriteFilter(FavouritesOnly)
           }
         },
         [attribute.class("max-w-48")],
@@ -2300,9 +2300,9 @@ fn apply_filters(
     None -> True
     Some(date) -> date_of(activity.start_time) == date
   }
-  let booked_match = case f.booking {
+  let favourite_match = case f.favourite {
     AllActivities -> True
-    BookedOnly -> activity_with_booking_status.booked
+    FavouritesOnly -> activity_with_booking_status.favourited
   }
   let audience_match = case f.audiences {
     [] -> True
@@ -2312,7 +2312,7 @@ fn apply_filters(
     [] -> True
     selected -> lists_intersect(mock_tags(activity.id), selected)
   }
-  title_match && day_match && booked_match && audience_match && tag_match
+  title_match && day_match && favourite_match && audience_match && tag_match
 }
 
 fn camp_dates(activities: List(ActivityWithStatus)) -> List(calendar.Date) {
