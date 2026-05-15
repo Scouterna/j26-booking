@@ -1598,9 +1598,13 @@ fn view_activity_card(
       section_date,
     )
   let location = mock_location(activity.id)
-  let spots = mock_spots_remaining(activity)
-  let spots_text =
-    g18n.translate_plural(translator, "activity.spots_remaining", spots)
+  let spots_text = case activity.max_attendees {
+    Some(_) -> {
+      let spots = mock_spots_remaining(activity)
+      Some(g18n.translate_plural(translator, "activity.spots_remaining", spots))
+    }
+    None -> None
+  }
   let status = case item.booked, activity.max_attendees {
     True, _ ->
       component.StatusBooked(g18n.translate(translator, "activity.booked"))

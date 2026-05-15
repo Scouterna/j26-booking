@@ -2,6 +2,7 @@ import formal/form.{type Form}
 import gleam/dynamic/decode
 import gleam/int
 import gleam/list
+import gleam/option.{type Option, None, Some}
 import lustre/attribute
 import lustre/element.{type Element}
 import lustre/element/html
@@ -269,7 +270,7 @@ pub fn activity_card(
   on_toggle_favourite: option_msg,
   time: Element(option_msg),
   location: String,
-  spots_remaining_text: String,
+  spots_remaining_text: Option(String),
 ) -> Element(option_msg) {
   let booked_accent = case status {
     StatusBooked(_) -> " border-l-4 border-l-green-600"
@@ -331,22 +332,27 @@ pub fn activity_card(
             "grid grid-cols-[auto_1fr] gap-x-2 gap-y-1 text-body-sm text-gray-700 m-0",
           ),
         ],
-        [
-          html.dt([attribute.class("flex items-center text-gray-500")], [
-            icon(icons.clock, "size-4"),
-          ]),
-          html.dd([attribute.class("m-0")], [time]),
-          html.dt([attribute.class("flex items-center text-gray-500")], [
-            icon(icons.pin, "size-4"),
-          ]),
-          html.dd([attribute.class("m-0")], [element.text(location)]),
-          html.dt([attribute.class("flex items-center text-gray-500")], [
-            icon(icons.users, "size-4"),
-          ]),
-          html.dd([attribute.class("m-0")], [
-            element.text(spots_remaining_text),
-          ]),
-        ],
+        list.flatten([
+          [
+            html.dt([attribute.class("flex items-center text-gray-500")], [
+              icon(icons.clock, "size-4"),
+            ]),
+            html.dd([attribute.class("m-0")], [time]),
+            html.dt([attribute.class("flex items-center text-gray-500")], [
+              icon(icons.pin, "size-4"),
+            ]),
+            html.dd([attribute.class("m-0")], [element.text(location)]),
+          ],
+          case spots_remaining_text {
+            Some(text) -> [
+              html.dt([attribute.class("flex items-center text-gray-500")], [
+                icon(icons.users, "size-4"),
+              ]),
+              html.dd([attribute.class("m-0")], [element.text(text)]),
+            ]
+            None -> []
+          },
+        ]),
       ),
       case status {
         StatusBooked(label) ->
