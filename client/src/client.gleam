@@ -510,7 +510,11 @@ fn update(model: Model, msg: Msg) -> #(Model, Effect(Msg)) {
         Some(title) -> set_app_bar_title(title)
         None -> effect.none()
       }
-      #(Model(..model, page:), effect.batch([page_effect, title_effect]))
+      let nav_effect = notify_navigation(uri)
+      #(
+        Model(..model, page:),
+        effect.batch([page_effect, title_effect, nav_effect]),
+      )
     }
 
     LangChanged(lang) -> {
@@ -1069,8 +1073,11 @@ fn toggle_member(items: List(String), name: String) -> List(String) {
 
 // EFFECTS ---------------------------------------------------------------------
 
-@external(javascript, "./client_ffi.mjs", "post_message_to_parent")
-fn post_message_to_parent(type_: String, title: String) -> Nil
+@external(javascript, "./client_ffi.mjs", "post_app_bar_title")
+fn post_app_bar_title(title: String) -> Nil
+
+@external(javascript, "./client_ffi.mjs", "post_navigation")
+fn post_navigation(url: String) -> Nil
 
 @external(javascript, "./client_ffi.mjs", "get_html_lang")
 fn get_html_lang() -> String
@@ -1079,7 +1086,19 @@ fn get_html_lang() -> String
 fn observe_html_lang(callback: fn(String) -> Nil) -> Nil
 
 fn set_app_bar_title(title: String) -> Effect(msg) {
-  effect.from(fn(_dispatch) { post_message_to_parent("j26:appBar", title) })
+  effect.from(fn(_dispatch) { post_app_bar_title(title) })
+}
+
+fn notify_navigation(u: Uri) -> Effect(msg) {
+  effect.from(fn(_dispatch) { post_navigation(relative_url(u)) })
+}
+
+/// Drops scheme, userinfo, host, and port from a URI, leaving just the
+/// path / query / fragment — what the parent frame needs to mirror an
+/// in-iframe SPA navigation.
+pub fn relative_url(u: Uri) -> String {
+  uri.Uri(..u, scheme: None, userinfo: None, host: None, port: None)
+  |> uri.to_string
 }
 
 fn observe_lang() -> Effect(Msg) {

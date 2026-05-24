@@ -1,5 +1,15 @@
-export function post_message_to_parent(type, title) {
-  window.parent.postMessage({ type, title }, window.location.origin);
+export function post_app_bar_title(title) {
+  window.parent.postMessage(
+    { type: "j26:appBar", title },
+    window.location.origin,
+  );
+}
+
+export function post_navigation(url) {
+  window.parent.postMessage(
+    { type: "j26:navigate", url },
+    window.location.origin,
+  );
 }
 
 function html_element() {
