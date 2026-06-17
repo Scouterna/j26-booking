@@ -1356,36 +1356,42 @@ fn view_list_top_bar(
     AllActivities -> 0
     FavouritesOnly -> 1
   }
-  // TODO: Add bg-white correctly here
-  html.div([attribute.class("flex flex-col gap-2")], [
-    component.scout_input_search(
-      filters.search,
-      t("list.search_placeholder"),
-      UserSearchedActivities,
-    ),
-    html.div([attribute.class("flex items-center gap-2")], [
-      component.scout_segmented_control(
-        favourite_index,
-        [t("list.filter.all"), t("list.filter.favourites")],
-        fn(idx) {
-          case idx {
-            0 -> UserSelectedFavouriteFilter(AllActivities)
-            _ -> UserSelectedFavouriteFilter(FavouritesOnly)
-          }
-        },
-        [attribute.class("max-w-48")],
+  html.div(
+    [
+      attribute.class(
+        "flex flex-col gap-2 bg-white rounded-lg border border-gray-200 p-3",
       ),
-      html.div([attribute.class("ml-auto flex items-center gap-2")], [
-        view_day_select(translator, filters.day, dates),
-        component.filter_pill_icon(
-          t("list.filter.more"),
-          icons.filter,
-          filters.more_open,
-          UserToggledMoreFilters,
+    ],
+    [
+      component.scout_input_search(
+        filters.search,
+        t("list.search_placeholder"),
+        UserSearchedActivities,
+      ),
+      html.div([attribute.class("flex items-center gap-2")], [
+        component.scout_segmented_control(
+          favourite_index,
+          [t("list.filter.all"), t("list.filter.favourites")],
+          fn(idx) {
+            case idx {
+              0 -> UserSelectedFavouriteFilter(AllActivities)
+              _ -> UserSelectedFavouriteFilter(FavouritesOnly)
+            }
+          },
+          [attribute.class("max-w-48")],
         ),
+        html.div([attribute.class("ml-auto flex items-center gap-2")], [
+          view_day_select(translator, filters.day, dates),
+          component.filter_pill_icon(
+            t("list.filter.more"),
+            icons.filter,
+            filters.more_open,
+            UserToggledMoreFilters,
+          ),
+        ]),
       ]),
-    ]),
-  ])
+    ],
+  )
 }
 
 fn view_day_select(
