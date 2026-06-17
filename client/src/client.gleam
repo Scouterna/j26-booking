@@ -1217,10 +1217,7 @@ fn remove_favourite(activity_id: Uuid) -> Effect(Msg) {
   )
 }
 
-fn create_booking(
-  activity_id: String,
-  fields: BookingFormFields,
-) -> Effect(Msg) {
+fn create_booking(activity_id: String, fields: BookingFormFields) -> Effect(Msg) {
   rsvp.post(
     api_prefix <> "/api/activities/" <> activity_id <> "/bookings",
     booking_form_to_json(fields),
