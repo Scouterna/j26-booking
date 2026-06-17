@@ -273,10 +273,6 @@ pub fn activity_card(
   location: String,
   spots_remaining_text: Option(String),
 ) -> Element(option_msg) {
-  let booked_accent = case status {
-    StatusBooked(_) -> " border-l-4 border-l-green-600"
-    _ -> ""
-  }
   let heart_icon_svg = case favourited {
     True -> icons.heart_filled
     False -> icons.heart
@@ -309,63 +305,65 @@ pub fn activity_card(
         [icon(heart_icon_svg, "size-6")],
       )
   }
+  let status_badge = case status {
+    StatusBooked(label) -> badge(BadgeGreen, label)
+    StatusNeedsBooking(label) -> badge(BadgePurple, label)
+    StatusNone -> element.none()
+  }
+  // Whole card is a link; scout-card supplies the surface (white, rounded,
+  // padded). Shadow + hover live on the anchor so the affordance survives the
+  // shadow-DOM boundary, with the radius matched to scout-card's.
   html.a(
     [
       attribute.href(href),
       attribute.class(
-        "block no-underline text-current rounded-lg border border-gray-200 bg-white px-4 py-3 transition-shadow shadow-sm hover:shadow-md active:shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
-        <> booked_accent,
+        "block no-underline text-current transition-shadow shadow-sm hover:shadow-md active:shadow-sm rounded-[var(--spacing-6)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500",
       ),
     ],
     [
-      html.div(
-        [attribute.class("flex items-start justify-between gap-3 mb-2")],
-        [
-          html.h3([attribute.class("text-body-l font-semibold leading-tight")], [
-            element.text(title),
+      scout_card([
+        html.div([attribute.class("flex flex-col gap-2")], [
+          // Header: title, status badge and heart share one row.
+          html.div([attribute.class("flex items-start gap-3")], [
+            html.h3(
+              [
+                attribute.class(
+                  "flex-1 min-w-0 text-body-l font-semibold leading-tight break-words",
+                ),
+              ],
+              [element.text(title)],
+            ),
+            html.div([attribute.class("shrink-0 flex items-center gap-2")], [
+              status_badge,
+              heart_btn,
+            ]),
           ]),
-          heart_btn,
-        ],
-      ),
-      html.dl(
-        [
-          attribute.class(
-            "grid grid-cols-[auto_1fr] gap-x-2 gap-y-1 text-body-sm text-gray-700 m-0",
+          // Meta: time and place (plus spots when capped) on a single row.
+          html.div(
+            [
+              attribute.class(
+                "flex flex-wrap items-center gap-x-4 gap-y-1 text-body-sm text-gray-700",
+              ),
+            ],
+            list.flatten([
+              [card_meta(icons.clock, time)],
+              [card_meta(icons.pin, element.text(location))],
+              case spots_remaining_text {
+                Some(text) -> [card_meta(icons.users, element.text(text))]
+                None -> []
+              },
+            ]),
           ),
-        ],
-        list.flatten([
-          [
-            html.dt([attribute.class("flex items-center text-gray-500")], [
-              icon(icons.clock, "size-4"),
-            ]),
-            html.dd([attribute.class("m-0")], [time]),
-            html.dt([attribute.class("flex items-center text-gray-500")], [
-              icon(icons.pin, "size-4"),
-            ]),
-            html.dd([attribute.class("m-0")], [element.text(location)]),
-          ],
-          case spots_remaining_text {
-            Some(text) -> [
-              html.dt([attribute.class("flex items-center text-gray-500")], [
-                icon(icons.users, "size-4"),
-              ]),
-              html.dd([attribute.class("m-0")], [element.text(text)]),
-            ]
-            None -> []
-          },
         ]),
-      ),
-      case status {
-        StatusBooked(label) ->
-          html.div([attribute.class("flex justify-end mt-1")], [
-            badge(BadgeGreen, label),
-          ])
-        StatusNeedsBooking(label) ->
-          html.div([attribute.class("flex justify-end mt-1")], [
-            badge(BadgePurple, label),
-          ])
-        StatusNone -> element.none()
-      },
+      ]),
     ],
   )
+}
+
+/// One icon + value pair on the card's single-row meta line.
+fn card_meta(icon_svg: String, child: Element(msg)) -> Element(msg) {
+  html.span([attribute.class("inline-flex items-center gap-1")], [
+    icon(icon_svg, "size-4 text-gray-500"),
+    child,
+  ])
 }
