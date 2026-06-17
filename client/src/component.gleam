@@ -143,6 +143,7 @@ pub fn scout_input_search(
     "scout-input",
     [
       attribute.attribute("type", "search"),
+      attribute.attribute("icon", icons.search),
       attribute.attribute("value", value),
       attribute.attribute("placeholder", placeholder),
       event.on_input(on_input),
