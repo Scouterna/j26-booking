@@ -263,6 +263,52 @@ pub type CardStatus {
   StatusNeedsBooking(label: String)
 }
 
+/// Favourite toggle rendered as an outlined, icon-only round button.
+/// `locked` (e.g. an activity the user has booked) renders a non-interactive,
+/// muted heart. `in_link` stops the click from triggering an enclosing `<a>`.
+pub fn heart_button(
+  favourited: Bool,
+  locked: Bool,
+  on_toggle: msg,
+  in_link: Bool,
+) -> Element(msg) {
+  let svg = case favourited {
+    True -> icons.heart_filled
+    False -> icons.heart
+  }
+  case locked {
+    True ->
+      html.span(
+        [
+          attribute.class(
+            "inline-flex p-1.5 rounded-full border border-gray-200 text-(--color-red-200)",
+          ),
+        ],
+        [icon(svg, "size-5")],
+      )
+    False -> {
+      let on_click_attr = case in_link {
+        True ->
+          event.on("click", decode.success(on_toggle))
+          |> event.stop_propagation
+          |> event.prevent_default
+        False -> event.on_click(on_toggle)
+      }
+      html.button(
+        [
+          attribute.type_("button"),
+          attribute.class(
+            "inline-flex p-1.5 rounded-full border border-gray-300 cursor-pointer transition-colors bg-transparent text-(--color-red-400) hover:bg-(--color-red-100) hover:text-(--color-red-300)",
+          ),
+          attribute.attribute("aria-label", "Toggle favourite"),
+          on_click_attr,
+        ],
+        [icon(svg, "size-5")],
+      )
+    }
+  }
+}
+
 pub fn activity_card(
   href: String,
   title: String,
@@ -273,38 +319,12 @@ pub fn activity_card(
   location: String,
   spots_remaining_text: Option(String),
 ) -> Element(option_msg) {
-  let heart_icon_svg = case favourited {
-    True -> icons.heart_filled
-    False -> icons.heart
-  }
   let heart_locked = case status {
     StatusBooked(_) -> True
     _ -> False
   }
-  let heart_btn = case heart_locked {
-    True ->
-      html.span(
-        [
-          attribute.class("p-1"),
-          attribute.styles([#("color", "var(--color-red-200)")]),
-        ],
-        [icon(heart_icon_svg, "size-6")],
-      )
-    False ->
-      html.button(
-        [
-          attribute.type_("button"),
-          attribute.class(
-            "p-1 cursor-pointer transition-colors bg-transparent border-0 text-(--color-red-400) hover:text-(--color-red-300)",
-          ),
-          attribute.attribute("aria-label", "Toggle favourite"),
-          event.on("click", decode.success(on_toggle_favourite))
-            |> event.stop_propagation
-            |> event.prevent_default,
-        ],
-        [icon(heart_icon_svg, "size-6")],
-      )
-  }
+  let heart_btn =
+    heart_button(favourited, heart_locked, on_toggle_favourite, True)
   let status_badge = case status {
     StatusBooked(label) -> badge(BadgeGreen, label)
     StatusNeedsBooking(label) -> badge(BadgePurple, label)

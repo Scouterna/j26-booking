@@ -1793,32 +1793,13 @@ fn view_activity_detail_loaded(
   booking: BookingFormState,
 ) -> Element(Msg) {
   let activity = item.activity
-  let heart_icon = case item.favourited {
-    True -> icons.heart_filled
-    False -> icons.heart
-  }
-  let heart_btn = case item.booked {
-    True ->
-      html.span(
-        [
-          attribute.class("p-1"),
-          attribute.styles([#("color", "var(--color-red-200)")]),
-        ],
-        [component.icon(heart_icon, "size-6")],
-      )
-    False ->
-      html.button(
-        [
-          attribute.type_("button"),
-          attribute.class(
-            "p-1 cursor-pointer transition-colors bg-transparent border-0 text-(--color-red-400) hover:text-(--color-red-300)",
-          ),
-          attribute.attribute("aria-label", "Toggle favourite"),
-          event.on_click(UserToggledFavourite(activity.id)),
-        ],
-        [component.icon(heart_icon, "size-6")],
-      )
-  }
+  let heart_btn =
+    component.heart_button(
+      item.favourited,
+      item.booked,
+      UserToggledFavourite(activity.id),
+      False,
+    )
   html.div([attribute.class("flex flex-col")], [
     html.div(
       // Map
