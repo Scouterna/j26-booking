@@ -32,9 +32,18 @@ docker compose up db migrate
 # 3. (Optional) Seed example data
 ./seed.sh
 
-# 4. Build client and start the server
-./dev.sh  # Sources .env.sh, builds client, starts server on http://localhost:8000
+# 4. Install client JS dependencies and build the client bundle
+cd client
+gleam run -m lustre/dev add bun tailwind          # vendors bun + tailwind into client/.lustre/bin
+.lustre/bin/*/bun install                         # installs JS deps (e.g. @scouterna/tailwind-theme)
+gleam run -m lustre/dev build --outdir=../server/priv/static
+cd ..
+
+# 5. Start the dev servers
+./dev.sh  # Sources .env.sh, starts the client dev server + API server on http://localhost:8000
 ```
+
+> **Note:** `dev.sh` does **not** build the client bundle — it runs `lustre/dev start` (client hot-reload) and the API server. The API server serves `server/priv/static/client.js`, so build it first (step 4) after any pull. The vendored `bun` (`client/.lustre/bin/*/bun`) is the same binary the [Dockerfile](Dockerfile) uses, so no global `bun`/`node` install is required.
 
 > **Note:** Docker exposes PostgreSQL on port **5433** to avoid conflicts with any local Postgres instance. The `DATABASE_URL` in `.env.sh.template` already reflects this.
 
