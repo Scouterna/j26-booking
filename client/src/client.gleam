@@ -64,6 +64,9 @@ fn english_translations() -> g18n.Translations {
   |> g18n.add_translation("booking.confirm_unbook", "Yes, cancel")
   |> g18n.add_translation("list.search_placeholder", "Search")
   |> g18n.add_translation("list.filter.all", "All")
+  |> g18n.add_translation("list.tab.activities", "Activities")
+  |> g18n.add_translation("list.tab.badbuss", "Swim bus")
+  |> g18n.add_translation("list.tab.climbing_wall", "Climbing wall")
   |> g18n.add_translation("list.filter.favourites", "Favourites")
   |> g18n.add_translation("list.filter.more", "More filters")
   |> g18n.add_translation("list.filter.audience_label", "Target audience")
@@ -114,6 +117,9 @@ fn swedish_translations() -> g18n.Translations {
   |> g18n.add_translation("booking.confirm_unbook", "Ja, avboka")
   |> g18n.add_translation("list.search_placeholder", "Sök")
   |> g18n.add_translation("list.filter.all", "Alla")
+  |> g18n.add_translation("list.tab.activities", "Aktiviteter")
+  |> g18n.add_translation("list.tab.badbuss", "Badbuss")
+  |> g18n.add_translation("list.tab.climbing_wall", "Klättervägg")
   |> g18n.add_translation("list.filter.favourites", "Favoriter")
   |> g18n.add_translation("list.filter.more", "Fler filter")
   |> g18n.add_translation("list.filter.audience_label", "Målgrupp")
@@ -201,15 +207,17 @@ type EditState {
   EditLoadFailed(String)
 }
 
-type FavouriteFilter {
-  AllActivities
-  FavouritesOnly
+type ListTab {
+  TabAll
+  // Placeholder categories: label-only tabs, no data model yet.
+  TabCategory(String)
+  TabFavourites
 }
 
 type ListFilters {
   ListFilters(
     search: String,
-    favourite: FavouriteFilter,
+    tab: ListTab,
     day: Option(calendar.Date),
     more_open: Bool,
     audiences: List(String),
@@ -220,12 +228,37 @@ type ListFilters {
 fn default_filters() -> ListFilters {
   ListFilters(
     search: "",
-    favourite: AllActivities,
+    tab: TabAll,
     day: None,
     more_open: False,
     audiences: [],
     tags: [],
   )
+}
+
+/// Tabs in display order; index is used for the segmented control.
+fn list_tabs() -> List(ListTab) {
+  [
+    TabAll,
+    TabCategory("list.tab.badbuss"),
+    TabCategory("list.tab.climbing_wall"),
+    TabFavourites,
+  ]
+}
+
+fn tab_index(tab: ListTab) -> Int {
+  let indexed = list.index_map(list_tabs(), fn(t, i) { #(t, i) })
+  case list.find(indexed, fn(pair) { pair.0 == tab }) {
+    Ok(#(_, i)) -> i
+    Error(_) -> 0
+  }
+}
+
+fn tab_from_index(index: Int) -> ListTab {
+  case list.drop(list_tabs(), index) {
+    [tab, ..] -> tab
+    [] -> TabAll
+  }
 }
 
 type Page {
@@ -495,7 +528,7 @@ type Msg {
   UserToggledFavourite(Uuid)
   // List page filters
   UserSearchedActivities(String)
-  UserSelectedFavouriteFilter(FavouriteFilter)
+  UserSelectedTab(Int)
   UserSelectedDay(Option(calendar.Date))
   UserToggledMoreFilters
   UserToggledAudience(String)
@@ -738,8 +771,10 @@ fn update(model: Model, msg: Msg) -> #(Model, Effect(Msg)) {
     UserSearchedActivities(value) ->
       update_filters(model, fn(f) { ListFilters(..f, search: value) })
 
-    UserSelectedFavouriteFilter(f) ->
-      update_filters(model, fn(filters) { ListFilters(..filters, favourite: f) })
+    UserSelectedTab(index) ->
+      update_filters(model, fn(filters) {
+        ListFilters(..filters, tab: tab_from_index(index))
+      })
 
     UserSelectedDay(d) ->
       update_filters(model, fn(f) { ListFilters(..f, day: d) })
@@ -1352,10 +1387,7 @@ fn view_list_top_bar(
     Loaded(activities) -> camp_dates(activities)
     _ -> []
   }
-  let favourite_index = case filters.favourite {
-    AllActivities -> 0
-    FavouritesOnly -> 1
-  }
+  let tab_labels = list.map(list_tabs(), fn(tab) { tab_label(translator, tab) })
   html.div(
     [
       attribute.class(
@@ -1363,35 +1395,36 @@ fn view_list_top_bar(
       ),
     ],
     [
+      component.scout_segmented_control(
+        tab_index(filters.tab),
+        tab_labels,
+        UserSelectedTab,
+        [attribute.class("w-full")],
+      ),
       component.scout_input_search(
         filters.search,
         t("list.search_placeholder"),
         UserSearchedActivities,
       ),
       html.div([attribute.class("flex items-center gap-2")], [
-        component.scout_segmented_control(
-          favourite_index,
-          [t("list.filter.all"), t("list.filter.favourites")],
-          fn(idx) {
-            case idx {
-              0 -> UserSelectedFavouriteFilter(AllActivities)
-              _ -> UserSelectedFavouriteFilter(FavouritesOnly)
-            }
-          },
-          [attribute.class("max-w-48")],
+        view_day_select(translator, filters.day, dates),
+        component.filter_pill_icon(
+          t("list.filter.more"),
+          icons.filter,
+          filters.more_open,
+          UserToggledMoreFilters,
         ),
-        html.div([attribute.class("ml-auto flex items-center gap-2")], [
-          view_day_select(translator, filters.day, dates),
-          component.filter_pill_icon(
-            t("list.filter.more"),
-            icons.filter,
-            filters.more_open,
-            UserToggledMoreFilters,
-          ),
-        ]),
       ]),
     ],
   )
+}
+
+fn tab_label(translator: Translator, tab: ListTab) -> String {
+  case tab {
+    TabAll -> g18n.translate(translator, "list.tab.activities")
+    TabCategory(key) -> g18n.translate(translator, key)
+    TabFavourites -> g18n.translate(translator, "list.filter.favourites")
+  }
 }
 
 fn view_day_select(
@@ -1424,7 +1457,7 @@ fn view_day_select(
   element.element(
     "scout-select",
     [
-      attribute.class("min-w-40"),
+      attribute.class("flex-1 min-w-0"),
       attribute.attribute("name", "day"),
       attribute.attribute("value", selected_value),
       event.on("scoutInputChange", {
@@ -2329,9 +2362,10 @@ fn apply_filters(
     None -> True
     Some(date) -> date_of(activity.start_time) == date
   }
-  let favourite_match = case f.favourite {
-    AllActivities -> True
-    FavouritesOnly -> activity_with_booking_status.favourited
+  let favourite_match = case f.tab {
+    TabFavourites -> activity_with_booking_status.favourited
+    // TODO: filter by category once a real category data model exists.
+    TabAll | TabCategory(_) -> True
   }
   let audience_match = case f.audiences {
     [] -> True
