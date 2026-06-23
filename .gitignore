@@ -99,6 +99,9 @@ $RECYCLE.BIN/
 .env.sh
 .playwright-mcp
 
+# Gleam build output (in case a command is run from the repo root)
+/build
+
 # j26 mcp
 .j26
 .j26.local.yaml

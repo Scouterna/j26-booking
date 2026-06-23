@@ -1,5 +1,6 @@
 /build
 node_modules/
+package-lock.json
 .lustre/
 dist/
 erl_crash.dump

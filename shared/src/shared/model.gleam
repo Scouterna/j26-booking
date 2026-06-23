@@ -159,9 +159,6 @@ pub fn favourite_decoder() -> decode.Decoder(Favourite) {
 
 /// Decode a list of favourites from the API response `{"favourites": [...]}`.
 pub fn favourites_decoder() -> decode.Decoder(List(Favourite)) {
-  use favourites <- decode.field(
-    "favourites",
-    decode.list(favourite_decoder()),
-  )
+  use favourites <- decode.field("favourites", decode.list(favourite_decoder()))
   decode.success(favourites)
 }
