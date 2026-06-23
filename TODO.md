@@ -4,6 +4,6 @@
 - [ ] Make sure booking form is split from activity details (also shown clearly on long descriptions)
 - [x] modem is not triggered properly for route changes (back button in wrapper app is not working due to this probably)
 - [x] Add outlined or icon only button around all heart buttons.
-- [ ] Refactor so that bookings and favourites are fetched in one api call which returns only valid states (Booked(Booking), Favourited, None)
+- [in progress] Refactor so that bookings and favourites are fetched in one api call which returns only valid states (Booked(Booking), Favourited, None)
 - [x] Add white background behind filters
 - [x] Add search icon in search bar
