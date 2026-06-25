@@ -356,7 +356,7 @@ pub fn activity_card(
               ],
               [element.text(title)],
             ),
-            html.div([attribute.class("shrink-0 flex items-center gap-2")], [
+            html.div([attribute.class("shrink-0 flex items-start gap-2")], [
               status_badge,
               heart_btn,
             ]),
