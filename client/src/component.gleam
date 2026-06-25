@@ -276,35 +276,38 @@ pub fn heart_button(
     True -> icons.heart_filled
     False -> icons.heart
   }
+  // Mirror the filter pill: same icon-only scout-button chrome, primary when
+  // active (favourited) and outlined otherwise.
+  let variant = case favourited {
+    True -> "primary"
+    False -> "outlined"
+  }
+  let base_attrs = [
+    attribute.attribute("variant", variant),
+    attribute.attribute("size", "small"),
+    attribute.attribute("icon", svg),
+    attribute.attribute("icon-only", ""),
+    attribute.attribute("aria-label", "Toggle favourite"),
+  ]
   case locked {
     True ->
-      html.span(
-        [
-          attribute.class(
-            "inline-flex p-1.5 rounded-full border border-gray-200 text-(--color-red-200)",
-          ),
-        ],
-        [icon(svg, "size-5")],
+      element.element(
+        "scout-button",
+        [attribute.attribute("disabled", ""), ..base_attrs],
+        [],
       )
     False -> {
-      let on_click_attr = case in_link {
+      // scout-button emits scoutClick but lets the native click keep bubbling,
+      // so inside the card link we listen for the native click to stop it from
+      // following the link; elsewhere the dedicated scoutClick event is enough.
+      let click = case in_link {
         True ->
           event.on("click", decode.success(on_toggle))
           |> event.stop_propagation
           |> event.prevent_default
-        False -> event.on_click(on_toggle)
+        False -> event.on("scoutClick", decode.success(on_toggle))
       }
-      html.button(
-        [
-          attribute.type_("button"),
-          attribute.class(
-            "inline-flex p-1.5 rounded-full border border-gray-300 cursor-pointer transition-colors bg-transparent text-(--color-red-400) hover:bg-(--color-red-100) hover:text-(--color-red-300)",
-          ),
-          attribute.attribute("aria-label", "Toggle favourite"),
-          on_click_attr,
-        ],
-        [icon(svg, "size-5")],
-      )
+      element.element("scout-button", [click, ..base_attrs], [])
     }
   }
 }
