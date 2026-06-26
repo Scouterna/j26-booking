@@ -154,11 +154,11 @@ pub fn main() {
 
 /// A list-view row: a slim activity summary paired with the current user's
 /// status for it. Built at view time from the summary cache + status dict.
-type CardItem {
+pub type CardItem {
   CardItem(summary: ActivitySummary, status: ActivityStatus)
 }
 
-fn to_card_items(
+pub fn to_card_items(
   summaries: List(ActivitySummary),
   statuses: Dict(Uuid, ActivityStatus),
 ) -> List(CardItem) {
@@ -167,7 +167,10 @@ fn to_card_items(
 
 /// The user's status for one activity; `NotInterested` when absent from the
 /// (sparse) status dict.
-fn status_of(statuses: Dict(Uuid, ActivityStatus), id: Uuid) -> ActivityStatus {
+pub fn status_of(
+  statuses: Dict(Uuid, ActivityStatus),
+  id: Uuid,
+) -> ActivityStatus {
   case dict.get(statuses, id) {
     Ok(status) -> status
     Error(_) -> NotInterested
@@ -175,21 +178,21 @@ fn status_of(statuses: Dict(Uuid, ActivityStatus), id: Uuid) -> ActivityStatus {
 }
 
 /// Booked activities count as favourited too (the heart stays filled/locked).
-fn is_favourited(status: ActivityStatus) -> Bool {
+pub fn is_favourited(status: ActivityStatus) -> Bool {
   case status {
     Booked(_) | Favourited -> True
     NotInterested -> False
   }
 }
 
-fn is_booked(status: ActivityStatus) -> Bool {
+pub fn is_booked(status: ActivityStatus) -> Bool {
   case status {
     Booked(_) -> True
     Favourited | NotInterested -> False
   }
 }
 
-fn booking_of(status: ActivityStatus) -> Option(Booking) {
+pub fn booking_of(status: ActivityStatus) -> Option(Booking) {
   case status {
     Booked(booking) -> Some(booking)
     Favourited | NotInterested -> None
@@ -199,14 +202,14 @@ fn booking_of(status: ActivityStatus) -> Option(Booking) {
 /// The list endpoint backing a browse selection. Tabs map to a source; the
 /// Favourites tab's `SourceFavourites` only hydrates the cache + drives loading
 /// state — its membership is derived from `statuses`, not from this list.
-type ActivityListSource {
+pub type ActivityListSource {
   SourceActivities
   SourceSwimBus
   SourceClimbingWall
   SourceFavourites
 }
 
-type ActivityForm {
+pub type ActivityForm {
   ActivityForm(
     title: String,
     description: String,
@@ -216,7 +219,7 @@ type ActivityForm {
   )
 }
 
-type BookingFormFields {
+pub type BookingFormFields {
   BookingFormFields(
     group_free_text: String,
     responsible_name: String,
@@ -225,12 +228,12 @@ type BookingFormFields {
   )
 }
 
-type BookingMode {
+pub type BookingMode {
   BookingNew
   BookingEdit(booking_id: Uuid)
 }
 
-type BookingFormState {
+pub type BookingFormState {
   BookingClosed
   BookingOpen(
     form: Form(BookingFormFields),
@@ -242,14 +245,14 @@ type BookingFormState {
   UnbookSubmitting(booking_id: Uuid)
 }
 
-type RemoteData(a) {
+pub type RemoteData(a) {
   NotAsked
   Loading
   Loaded(a)
   Failed(String)
 }
 
-type EditState {
+pub type EditState {
   EditReady(
     activity: Activity,
     form: Form(ActivityForm),
@@ -257,14 +260,14 @@ type EditState {
   )
 }
 
-type ActivitiesFilterTab {
+pub type ActivitiesFilterTab {
   TabActivities
   TabSwimBus
   TabClimbingWall
   TabFavourites
 }
 
-type ListFilters {
+pub type ListFilters {
   ListFilters(
     search: String,
     tab: ActivitiesFilterTab,
@@ -275,7 +278,7 @@ type ListFilters {
   )
 }
 
-fn default_filters() -> ListFilters {
+pub fn default_filters() -> ListFilters {
   ListFilters(
     search: "",
     tab: TabActivities,
@@ -291,7 +294,7 @@ fn list_tabs() -> List(ActivitiesFilterTab) {
   [TabActivities, TabSwimBus, TabClimbingWall, TabFavourites]
 }
 
-fn tab_index(tab: ActivitiesFilterTab) -> Int {
+pub fn tab_index(tab: ActivitiesFilterTab) -> Int {
   let indexed = list.index_map(list_tabs(), fn(t, i) { #(t, i) })
   case list.find(indexed, fn(pair) { pair.0 == tab }) {
     Ok(#(_, i)) -> i
@@ -299,14 +302,14 @@ fn tab_index(tab: ActivitiesFilterTab) -> Int {
   }
 }
 
-fn tab_from_index(index: Int) -> ActivitiesFilterTab {
+pub fn tab_from_index(index: Int) -> ActivitiesFilterTab {
   case list.drop(list_tabs(), index) {
     [tab, ..] -> tab
     [] -> TabActivities
   }
 }
 
-type Page {
+pub type Page {
   ActivitiesListPage(filters: ListFilters)
   ActivityNewPage(form: Form(ActivityForm), submit_error: Option(String))
   ActivityDetailPage(id: Uuid, booking: BookingFormState)
@@ -314,7 +317,7 @@ type Page {
   NotFoundPage
 }
 
-type Model {
+pub type Model {
   Model(
     page: Page,
     translator: Translator,
@@ -337,7 +340,7 @@ type Model {
   )
 }
 
-fn tab_source(tab: ActivitiesFilterTab) -> ActivityListSource {
+pub fn tab_source(tab: ActivitiesFilterTab) -> ActivityListSource {
   case tab {
     TabActivities -> SourceActivities
     TabSwimBus -> SourceSwimBus
@@ -348,7 +351,7 @@ fn tab_source(tab: ActivitiesFilterTab) -> ActivityListSource {
 
 /// The fetch-state `RemoteData` backing a source (the per-tab id window, or the
 /// favourited fetch). Used to decide lazy loading and render the tab's state.
-fn source_remote(
+pub fn source_remote(
   model: Model,
   source: ActivityListSource,
 ) -> RemoteData(List(Uuid)) {
@@ -360,7 +363,7 @@ fn source_remote(
   }
 }
 
-fn set_source_remote(
+pub fn set_source_remote(
   model: Model,
   source: ActivityListSource,
   remote: RemoteData(List(Uuid)),
@@ -375,7 +378,7 @@ fn set_source_remote(
 
 /// Lazily load a source: if never fetched, mark it `Loading` and fire the
 /// fetch; otherwise leave the cache untouched (instant tab switch).
-fn ensure_source_loaded(
+pub fn ensure_source_loaded(
   model: Model,
   source: ActivityListSource,
 ) -> #(Model, Effect(Msg)) {
@@ -389,7 +392,7 @@ fn ensure_source_loaded(
 /// their id window through the entity cache (dropping ids not yet cached).
 /// Favourites derives membership from the complete `statuses` map; its
 /// `favourited` fetch only supplies hydration + loading/error state.
-fn tab_summaries(
+pub fn tab_summaries(
   model: Model,
   tab: ActivitiesFilterTab,
 ) -> RemoteData(List(ActivitySummary)) {
@@ -429,7 +432,7 @@ fn tab_summaries(
 }
 
 /// Merge a list response into the entity cache (overwrite on overlap).
-fn hydrate(
+pub fn hydrate(
   store: Dict(Uuid, ActivitySummary),
   items: List(ActivitySummary),
 ) -> Dict(Uuid, ActivitySummary) {
@@ -483,7 +486,7 @@ fn map_loaded(
 }
 
 /// Prepend an id to a loaded id window (no-op while not loaded; dedups).
-fn prepend_id(
+pub fn prepend_id(
   remote: RemoteData(List(Uuid)),
   id: Uuid,
 ) -> RemoteData(List(Uuid)) {
@@ -495,7 +498,7 @@ fn prepend_id(
 }
 
 /// Drop an id from a loaded id window (no-op while not loaded).
-fn remove_id(
+pub fn remove_id(
   remote: RemoteData(List(Uuid)),
   id: Uuid,
 ) -> RemoteData(List(Uuid)) {
@@ -582,7 +585,7 @@ fn form_from_activity(activity: Activity) -> Form(ActivityForm) {
   )
 }
 
-fn translator_for(lang: String) -> Translator {
+pub fn translator_for(lang: String) -> Translator {
   let assert Ok(en) = locale.new("en")
   let assert Ok(sv) = locale.new("sv")
   let preferred = case locale.new(lang) {
@@ -656,7 +659,7 @@ fn init(_flags) -> #(Model, Effect(Msg)) {
 
 // UPDATE ----------------------------------------------------------------------
 
-type Msg {
+pub type Msg {
   // Routing
   OnRouteChange(Uri)
   // Locale
@@ -700,7 +703,7 @@ type Msg {
   UserToggledTag(String)
 }
 
-fn update(model: Model, msg: Msg) -> #(Model, Effect(Msg)) {
+pub fn update(model: Model, msg: Msg) -> #(Model, Effect(Msg)) {
   case msg {
     OnRouteChange(uri) -> {
       let #(page, page_effect) = uri_to_page(uri, model.details)
@@ -1235,7 +1238,7 @@ fn update_filters(
   }
 }
 
-fn toggle_member(items: List(String), name: String) -> List(String) {
+pub fn toggle_member(items: List(String), name: String) -> List(String) {
   case list.contains(items, name) {
     True -> list.filter(items, fn(i) { i != name })
     False -> [name, ..items]
@@ -1439,7 +1442,7 @@ fn activity_form_to_json(af: ActivityForm) -> json.Json {
 
 // ROUTING ---------------------------------------------------------------------
 
-fn uri_to_page(
+pub fn uri_to_page(
   uri: Uri,
   details: Dict(Uuid, RemoteData(Activity)),
 ) -> #(Page, Effect(Msg)) {
@@ -2249,13 +2252,13 @@ fn view_booking_form_section(
   }
 }
 
-type IntervalClasses {
+pub type IntervalClasses {
   SameDayDifferentTime
   SameDaySameTime
   DifferentDays
 }
 
-fn classify_interval(
+pub fn classify_interval(
   start_calendar: #(calendar.Date, calendar.TimeOfDay),
   end_calendar: #(calendar.Date, calendar.TimeOfDay),
 ) -> IntervalClasses {
@@ -2506,7 +2509,7 @@ fn lists_intersect(a: List(String), b: List(String)) -> Bool {
   list.any(a, fn(x) { list.contains(b, x) })
 }
 
-fn apply_filters(items: List(CardItem), f: ListFilters) -> List(CardItem) {
+pub fn apply_filters(items: List(CardItem), f: ListFilters) -> List(CardItem) {
   let needle = string.lowercase(string.trim(f.search))
   use item <- list.filter(items)
   let summary = item.summary
