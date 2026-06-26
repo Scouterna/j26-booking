@@ -1,7 +1,6 @@
 import given
-import gleam/http.{Delete, Get, Put}
+import gleam/http.{Delete, Put}
 import gleam/json
-import gleam/list
 import gleam/string
 import pog
 import server/model/favourite
@@ -10,7 +9,11 @@ import server/web
 import wisp.{type Request, type Response}
 import youid/uuid
 
-pub fn put(req: Request, activity_id_str: String, ctx: web.Context) -> Response {
+pub fn put(
+  req: Request,
+  activity_id_str: String,
+  ctx: web.Context,
+) -> Response {
   use <- wisp.require_method(req, Put)
   use user_id <- web.with_authenticated_user(ctx)
   use activity_id <- given.ok(uuid.from_string(activity_id_str), fn(_) {
@@ -82,28 +85,5 @@ pub fn delete(
         Ok(pog.Returned(_, [])) -> wisp.not_found()
         Ok(pog.Returned(_, [_, ..])) -> wisp.no_content()
       }
-  }
-}
-
-pub fn get_mine(req: Request, ctx: web.Context) -> Response {
-  use <- wisp.require_method(req, Get)
-  use user_id <- web.with_authenticated_user(ctx)
-
-  case sql.get_favourites_by_user(ctx.db_connection, user_id) {
-    Error(error) -> {
-      wisp.log_error("QueryError " <> string.inspect(error))
-      wisp.internal_server_error()
-    }
-    Ok(pog.Returned(_, rows)) -> {
-      let favourites =
-        rows |> list.map(favourite.from_get_favourites_by_user_row)
-      wisp.json_response(
-        json.object([
-          #("favourites", json.array(favourites, favourite.to_json)),
-        ])
-          |> json.to_string,
-        200,
-      )
-    }
   }
 }

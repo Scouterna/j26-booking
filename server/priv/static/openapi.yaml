@@ -28,11 +28,13 @@ paths:
       tags:
         - Activities
       summary: List activities
-      description: Retrieve a paginated list of activities with optional sorting.
+      description: |
+        Retrieve the full activity catalogue as slim summaries (without
+        `description`), with optional sorting. The list is not paginated — the
+        client fetches and caches all activities once at startup.
       operationId: listActivities
       parameters:
         - $ref: '#/components/parameters/SortParam'
-        - $ref: '#/components/parameters/PageParam'
       responses:
         '200':
           description: Successfully retrieved activities
@@ -46,18 +48,16 @@ paths:
                   activities:
                     type: array
                     items:
-                      $ref: '#/components/schemas/Activity'
+                      $ref: '#/components/schemas/ActivitySummary'
               example:
                 activities:
                   - id: "6f5e1d46-5f58-4e23-9a9d-8c2bfc2d22a0"
                     title: "Campfire Songs"
-                    description: "An evening of classic scout songs around the campfire with marshmallows."
                     max_attendees: 50
                     start_time: 1752350400
                     end_time: 1752357600
                   - id: "b4219a53-4746-4a09-8b4e-3e2ac0c3df11"
                     title: "Orienteering Challenge"
-                    description: "Scouts navigate through the forest using only a compass and a map."
                     max_attendees: 30
                     start_time: 1752400800
                     end_time: 1752411600
@@ -438,32 +438,48 @@ paths:
         '500':
           $ref: '#/components/responses/ServerError'
 
-  /favourites/me:
+  /statuses/me:
     get:
       tags:
         - Favourites
-      summary: List my favourites
-      description: Retrieve the authenticated user's favourite activities.
-      operationId: listMyFavourites
+      summary: List my activity statuses
+      description: |
+        Retrieve the authenticated user's bookings and favourites merged into a
+        single sparse list. Only activities the user has booked or favourited
+        are returned; `booked` dominates `favourited`, so an activity that is
+        both appears once with status `booked`. Activities absent from the list
+        have no status for the user.
+      operationId: listMyStatuses
       responses:
         '200':
-          description: Successfully retrieved favourites
+          description: Successfully retrieved statuses
           content:
             application/json:
               schema:
                 type: object
                 required:
-                  - favourites
+                  - statuses
                 properties:
-                  favourites:
+                  statuses:
                     type: array
                     items:
-                      $ref: '#/components/schemas/Favourite'
+                      $ref: '#/components/schemas/ActivityStatusEntry'
               example:
-                favourites:
-                  - id: "ff000001-0000-4000-8000-000000000001"
-                    user_id: "a1b2c3d4-e5f6-4a90-abcd-ef1234567890"
-                    activity_id: "6f5e1d46-5f58-4e23-9a9d-8c2bfc2d22a0"
+                statuses:
+                  - activity_id: "6f5e1d46-5f58-4e23-9a9d-8c2bfc2d22a0"
+                    status: "booked"
+                    booking:
+                      id: "aa000001-0000-4000-8000-000000000001"
+                      user_id: "a1b2c3d4-e5f6-4a90-abcd-ef1234567890"
+                      activity_id: "6f5e1d46-5f58-4e23-9a9d-8c2bfc2d22a0"
+                      booker_group_id: 0
+                      booker_group_name: "Patrull Räven"
+                      group_free_text: "Vi är glada!"
+                      responsible_name: "Anna Svensson"
+                      phone_number: "+46701234567"
+                      participant_count: 5
+                  - activity_id: "b4219a53-4746-4a09-8b4e-3e2ac0c3df11"
+                    status: "favourited"
         '401':
           description: Unauthenticated
         '500':
@@ -540,6 +556,66 @@ components:
           format: int64
           description: End time as Unix timestamp in seconds
           example: 1752357600
+
+    ActivitySummary:
+      type: object
+      description: Slim activity for list views (omits description)
+      required:
+        - id
+        - title
+        - start_time
+        - end_time
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Unique identifier for the activity
+          example: "6f5e1d46-5f58-4e23-9a9d-8c2bfc2d22a0"
+        title:
+          type: string
+          description: Title of the activity
+          example: "Campfire Songs"
+        max_attendees:
+          type: integer
+          nullable: true
+          description: Maximum number of attendees (null for unlimited)
+          example: 50
+        start_time:
+          type: integer
+          format: int64
+          description: Start time as Unix timestamp in seconds
+          example: 1752350400
+        end_time:
+          type: integer
+          format: int64
+          description: End time as Unix timestamp in seconds
+          example: 1752357600
+
+    ActivityStatusEntry:
+      type: object
+      description: |
+        The authenticated user's status for one activity. `status` is either
+        `booked` (with the embedded `booking`) or `favourited`.
+      required:
+        - activity_id
+        - status
+      properties:
+        activity_id:
+          type: string
+          format: uuid
+          description: ID of the activity this status refers to
+          example: "6f5e1d46-5f58-4e23-9a9d-8c2bfc2d22a0"
+        status:
+          type: string
+          enum:
+            - booked
+            - favourited
+          description: The user's relationship to the activity
+          example: "booked"
+        booking:
+          allOf:
+            - $ref: '#/components/schemas/Booking'
+          description: The user's booking. Present only when status is `booked`.
 
     Booking:
       type: object

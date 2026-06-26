@@ -901,6 +901,110 @@ ORDER BY id
   |> pog.execute(db)
 }
 
+/// A row you get from running the `list_activities_by_start_time` query
+/// defined in `./src/server/sql/list_activities_by_start_time.sql`.
+///
+/// > 🐿️ This type definition was generated automatically using v4.6.0 of the
+/// > [squirrel package](https://github.com/giacomocavalieri/squirrel).
+///
+pub type ListActivitiesByStartTimeRow {
+  ListActivitiesByStartTimeRow(
+    id: Uuid,
+    title: String,
+    description: String,
+    max_attendees: Option(Int),
+    start_time: Timestamp,
+    end_time: Timestamp,
+  )
+}
+
+/// Runs the `list_activities_by_start_time` query
+/// defined in `./src/server/sql/list_activities_by_start_time.sql`.
+///
+/// > 🐿️ This function was generated automatically using v4.6.0 of
+/// > the [squirrel package](https://github.com/giacomocavalieri/squirrel).
+///
+pub fn list_activities_by_start_time(
+  db: pog.Connection,
+) -> Result(pog.Returned(ListActivitiesByStartTimeRow), pog.QueryError) {
+  let decoder = {
+    use id <- decode.field(0, uuid_decoder())
+    use title <- decode.field(1, decode.string)
+    use description <- decode.field(2, decode.string)
+    use max_attendees <- decode.field(3, decode.optional(decode.int))
+    use start_time <- decode.field(4, pog.timestamp_decoder())
+    use end_time <- decode.field(5, pog.timestamp_decoder())
+    decode.success(ListActivitiesByStartTimeRow(
+      id:,
+      title:,
+      description:,
+      max_attendees:,
+      start_time:,
+      end_time:,
+    ))
+  }
+
+  "SELECT *
+FROM activity
+ORDER BY start_time ASC;
+"
+  |> pog.query
+  |> pog.returning(decoder)
+  |> pog.execute(db)
+}
+
+/// A row you get from running the `list_activities_by_title` query
+/// defined in `./src/server/sql/list_activities_by_title.sql`.
+///
+/// > 🐿️ This type definition was generated automatically using v4.6.0 of the
+/// > [squirrel package](https://github.com/giacomocavalieri/squirrel).
+///
+pub type ListActivitiesByTitleRow {
+  ListActivitiesByTitleRow(
+    id: Uuid,
+    title: String,
+    description: String,
+    max_attendees: Option(Int),
+    start_time: Timestamp,
+    end_time: Timestamp,
+  )
+}
+
+/// Runs the `list_activities_by_title` query
+/// defined in `./src/server/sql/list_activities_by_title.sql`.
+///
+/// > 🐿️ This function was generated automatically using v4.6.0 of
+/// > the [squirrel package](https://github.com/giacomocavalieri/squirrel).
+///
+pub fn list_activities_by_title(
+  db: pog.Connection,
+) -> Result(pog.Returned(ListActivitiesByTitleRow), pog.QueryError) {
+  let decoder = {
+    use id <- decode.field(0, uuid_decoder())
+    use title <- decode.field(1, decode.string)
+    use description <- decode.field(2, decode.string)
+    use max_attendees <- decode.field(3, decode.optional(decode.int))
+    use start_time <- decode.field(4, pog.timestamp_decoder())
+    use end_time <- decode.field(5, pog.timestamp_decoder())
+    decode.success(ListActivitiesByTitleRow(
+      id:,
+      title:,
+      description:,
+      max_attendees:,
+      start_time:,
+      end_time:,
+    ))
+  }
+
+  "SELECT *
+FROM activity
+ORDER BY title ASC;
+"
+  |> pog.query
+  |> pog.returning(decoder)
+  |> pog.execute(db)
+}
+
 /// A row you get from running the `search_activities` query
 /// defined in `./src/server/sql/search_activities.sql`.
 ///

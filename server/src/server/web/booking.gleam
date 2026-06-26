@@ -123,25 +123,6 @@ pub fn get_one(req: Request, id: String, ctx: web.Context) -> Response {
   }
 }
 
-pub fn get_mine(req: Request, ctx: web.Context) -> Response {
-  use <- wisp.require_method(req, Get)
-  use user_id <- web.with_authenticated_user(ctx)
-  case sql.get_bookings_by_user(ctx.db_connection, user_id) {
-    Error(error) -> {
-      wisp.log_error("QueryError " <> string.inspect(error))
-      wisp.internal_server_error()
-    }
-    Ok(pog.Returned(_, rows)) -> {
-      let bookings = rows |> list.map(booking.from_get_bookings_by_user_row)
-      wisp.json_response(
-        json.object([#("bookings", json.array(bookings, booking.to_json))])
-          |> json.to_string,
-        200,
-      )
-    }
-  }
-}
-
 pub fn get_by_activity(
   req: Request,
   activity_id_str: String,

@@ -109,7 +109,11 @@ pub fn ensure_valid_query_param(
   next(value)
 }
 
-pub fn spa_shell_page() -> Element(a) {
+pub fn spa_shell_page(logged_in: Bool) -> Element(a) {
+  let logged_in_attr = case logged_in {
+    True -> "true"
+    False -> "false"
+  }
   html.html([attribute.attribute("lang", "sv")], [
     html.head([], [
       html.meta([attribute.charset("UTF-8")]),
@@ -171,9 +175,26 @@ pub fn spa_shell_page() -> Element(a) {
           #("font-family", "Source Sans 3, sans-serif"),
         ]),
       ],
-      [html.div([attribute.id("app")], [])],
+      [
+        html.div(
+          [
+            attribute.id("app"),
+            attribute.attribute("data-logged-in", logged_in_attr),
+          ],
+          [],
+        ),
+      ],
     ),
   ])
+}
+
+/// Whether the request carries a valid authenticated session. Read by the SPA
+/// shell to decide whether to fetch per-user status on startup.
+pub fn is_authenticated(ctx: Context) -> Bool {
+  case ctx.authentication_result {
+    Authenticated(_) -> True
+    NotAuthenticated | InvalidToken -> False
+  }
 }
 
 pub fn api_documentation_page() -> Element(a) {

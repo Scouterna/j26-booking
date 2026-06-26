@@ -5,6 +5,7 @@ import server/web/activities
 import server/web/app_config
 import server/web/booking
 import server/web/favourite
+import server/web/status
 import wisp.{type Request, type Response}
 
 pub fn handle_request(req: Request, ctx: Context) -> Response {
@@ -12,7 +13,7 @@ pub fn handle_request(req: Request, ctx: Context) -> Response {
   case wisp.path_segments(req) {
     ["_services", "booking", "api", ..rest] ->
       handle_api_request(req, ctx, rest)
-    _ -> spa_shell()
+    _ -> spa_shell(ctx)
   }
 }
 
@@ -39,10 +40,8 @@ fn handle_api_request(
     Put, ["activities", id] -> activities.update(req, id, ctx)
     Delete, ["activities", id] -> activities.delete(req, id, ctx)
     _, ["activities", _] -> wisp.method_not_allowed([Get, Put, Delete])
-    Get, ["bookings", "me"] -> booking.get_mine(req, ctx)
-    _, ["bookings", "me"] -> wisp.method_not_allowed([Get])
-    Get, ["favourites", "me"] -> favourite.get_mine(req, ctx)
-    _, ["favourites", "me"] -> wisp.method_not_allowed([Get])
+    Get, ["statuses", "me"] -> status.get_mine(req, ctx)
+    _, ["statuses", "me"] -> wisp.method_not_allowed([Get])
     Get, ["bookings", id] -> booking.get_one(req, id, ctx)
     Put, ["bookings", id] -> booking.update(req, id, ctx)
     Delete, ["bookings", id] -> booking.delete(req, id, ctx)
@@ -55,8 +54,8 @@ fn handle_api_request(
   }
 }
 
-fn spa_shell() -> Response {
-  web.spa_shell_page()
+fn spa_shell(ctx: Context) -> Response {
+  web.spa_shell_page(web.is_authenticated(ctx))
   |> element.to_string
   |> wisp.html_response(200)
 }

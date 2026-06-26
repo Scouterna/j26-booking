@@ -2,17 +2,14 @@ import given
 import gleam/dynamic/decode
 import gleam/float
 import gleam/http.{Delete, Get, Post, Put}
-import gleam/int
 import gleam/json
 import gleam/list
 import gleam/option.{type Option, None, Some}
-import gleam/result
 import gleam/string
 import gleam/time/timestamp
 import pog
 import server/model/activity
 import server/sql
-import server/utils
 import server/web
 import shared/model
 import wisp.{type Request, type Response}
@@ -22,10 +19,6 @@ type SortQueryParams {
   Title
   StartTime
 }
-
-const default_page = 0
-
-const page_size = 20
 
 const default_sort = Title
 
@@ -37,7 +30,7 @@ fn parse_sort(value: String) -> Result(SortQueryParams, Nil) {
   }
 }
 
-fn response_from_db_activities_page(
+fn response_from_db_activity_summaries(
   query_result: Result(pog.Returned(a), pog.QueryError),
   to_activity: fn(a) -> model.Activity,
 ) -> Response {
@@ -49,7 +42,9 @@ fn response_from_db_activities_page(
     Ok(pog.Returned(_, rows)) -> {
       let activities = rows |> list.map(to_activity)
       wisp.json_response(
-        json.object([#("activities", json.array(activities, activity.to_json))])
+        json.object([
+          #("activities", json.array(activities, activity.summary_to_json)),
+        ])
           |> json.to_string,
         200,
       )
@@ -57,6 +52,9 @@ fn response_from_db_activities_page(
   }
 }
 
+/// Returns the full activity catalogue as slim summaries (no `description`).
+/// The client caches the whole list once at startup, so this endpoint is
+/// unpaginated; `sort` is still honoured.
 pub fn get_page(req: Request, ctx: web.Context) -> Response {
   use <- wisp.require_method(req, Get)
   let request_query = wisp.get_query(req)
@@ -69,26 +67,16 @@ pub fn get_page(req: Request, ctx: web.Context) -> Response {
     else_respond_with: "Invalid sort parameter. Allowed values: title, start_time",
   )
 
-  use page <- web.ensure_valid_query_param(
-    in: request_query,
-    with_name: "page",
-    if_missing_return: default_page,
-    using: fn(i) { int.parse(i) |> result.try(utils.ensure_non_negative) },
-    else_respond_with: "Invalid page parameter. Must be a non-negative integer",
-  )
-
-  let limit = page_size
-  let offset = page * page_size
   case sort {
     StartTime ->
-      response_from_db_activities_page(
-        sql.get_activities_by_start_time(ctx.db_connection, limit, offset),
-        activity.from_get_activities_by_start_time_row,
+      response_from_db_activity_summaries(
+        sql.list_activities_by_start_time(ctx.db_connection),
+        activity.from_list_activities_by_start_time_row,
       )
     Title ->
-      response_from_db_activities_page(
-        sql.get_activities_by_title(ctx.db_connection, limit, offset),
-        activity.from_get_activities_by_title_row,
+      response_from_db_activity_summaries(
+        sql.list_activities_by_title(ctx.db_connection),
+        activity.from_list_activities_by_title_row,
       )
   }
 }
