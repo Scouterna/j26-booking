@@ -13,7 +13,7 @@ pub fn handle_request(req: Request, ctx: Context) -> Response {
   case wisp.path_segments(req) {
     ["_services", "booking", "api", ..rest] ->
       handle_api_request(req, ctx, rest)
-    _ -> spa_shell(ctx)
+    _ -> spa_shell()
   }
 }
 
@@ -54,8 +54,8 @@ fn handle_api_request(
   }
 }
 
-fn spa_shell(ctx: Context) -> Response {
-  web.spa_shell_page(web.is_authenticated(ctx))
+fn spa_shell() -> Response {
+  web.spa_shell_page()
   |> element.to_string
   |> wisp.html_response(200)
 }

@@ -311,12 +311,13 @@ type Model {
   Model(
     page: Page,
     translator: Translator,
-    logged_in: Bool,
     // Full activity catalogue (slim summaries), fetched once at startup.
     summaries: RemoteData(List(ActivitySummary)),
     // Full activities (with description), fetched lazily per detail view.
     details: Dict(Uuid, RemoteData(Activity)),
-    // Sparse: present key => Booked/Favourited. Absent => NotInterested.
+    // Sparse: present key => Booked/Favourited. Absent => NotInterested
+    // (also the state for anonymous users: `/api/statuses/me` 401s and the
+    // dict stays empty).
     statuses: Dict(Uuid, ActivityStatus),
   )
 }
@@ -504,7 +505,6 @@ fn app_bar_title(translator: Translator, page: Page) -> Option(String) {
 }
 
 fn init(_flags) -> #(Model, Effect(Msg)) {
-  let logged_in = get_logged_in()
   let translator = translator_for(get_html_lang())
 
   let #(page, page_effect) = case modem.initial_uri() {
@@ -516,7 +516,6 @@ fn init(_flags) -> #(Model, Effect(Msg)) {
     Model(
       page:,
       translator:,
-      logged_in:,
       summaries: Loading,
       details: seed_detail_loading(dict.new(), page),
       statuses: dict.new(),
@@ -527,11 +526,6 @@ fn init(_flags) -> #(Model, Effect(Msg)) {
     None -> effect.none()
   }
 
-  let status_effect = case logged_in {
-    True -> fetch_statuses()
-    False -> effect.none()
-  }
-
   #(
     model,
     effect.batch([
@@ -539,7 +533,8 @@ fn init(_flags) -> #(Model, Effect(Msg)) {
       observe_lang(),
       fetch_summaries(),
       page_effect,
-      status_effect,
+      // Always attempt; a 401 (anonymous user) leaves the status dict empty.
+      fetch_statuses(),
       title_effect,
     ]),
   )
@@ -815,25 +810,21 @@ fn update(model: Model, msg: Msg) -> #(Model, Effect(Msg)) {
     )
 
     UserToggledFavourite(activity_id) ->
-      // Only logged-in users have favourites; ignore otherwise.
-      case model.logged_in {
-        False -> #(model, effect.none())
-        True ->
-          case status_of(model.statuses, activity_id) {
-            // Booked => heart is locked; can't unfavourite.
-            Booked(_) -> #(model, effect.none())
-            Favourited -> #(
-              Model(..model, statuses: dict.delete(model.statuses, activity_id)),
-              remove_favourite(activity_id),
-            )
-            NotInterested -> #(
-              Model(
-                ..model,
-                statuses: dict.insert(model.statuses, activity_id, Favourited),
-              ),
-              add_favourite(activity_id),
-            )
-          }
+      case status_of(model.statuses, activity_id) {
+        // Booked => heart is locked; can't unfavourite.
+        Booked(_) -> #(model, effect.none())
+        Favourited -> #(
+          Model(..model, statuses: dict.delete(model.statuses, activity_id)),
+          remove_favourite(activity_id),
+        )
+        // Optimistic; a 401 for an anonymous user reverts via ApiToggledFavourite.
+        NotInterested -> #(
+          Model(
+            ..model,
+            statuses: dict.insert(model.statuses, activity_id, Favourited),
+          ),
+          add_favourite(activity_id),
+        )
       }
 
     ApiToggledFavourite(activity_id, intended_favourited, Error(_)) -> {
@@ -1099,9 +1090,6 @@ fn post_navigation(url: String) -> Nil
 
 @external(javascript, "./client_ffi.mjs", "get_html_lang")
 fn get_html_lang() -> String
-
-@external(javascript, "./client_ffi.mjs", "get_logged_in")
-fn get_logged_in() -> Bool
 
 @external(javascript, "./client_ffi.mjs", "observe_html_lang")
 fn observe_html_lang(callback: fn(String) -> Nil) -> Nil

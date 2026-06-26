@@ -22,10 +22,6 @@ export function get_html_lang() {
   return html_element().lang || "";
 }
 
-export function get_logged_in() {
-  return document.getElementById("app")?.dataset?.loggedIn === "true";
-}
-
 export function observe_html_lang(callback) {
   const html = html_element();
   const observer = new MutationObserver(() => {
