@@ -394,21 +394,27 @@ fn tab_summaries(
   tab: ActivitiesFilterTab,
 ) -> RemoteData(List(ActivitySummary)) {
   case tab {
-    TabFavourites ->
-      case model.favourited {
-        NotAsked -> NotAsked
-        Loading -> Loading
-        Failed(err) -> Failed(err)
-        Loaded(_) ->
-          Loaded(
-            model.statuses
-            |> dict.keys
-            |> list.filter(fn(id) {
-              is_favourited(status_of(model.statuses, id))
-            })
-            |> list.filter_map(fn(id) { dict.get(model.activities, id) }),
-          )
+    TabFavourites -> {
+      // Membership is derived from the complete `statuses` map; the `favourited`
+      // fetch only supplies hydration (summaries for fav/booked items not yet in
+      // the cache, e.g. swim-bus/climbing-wall slots) + the first-load state.
+      let derived =
+        model.statuses
+        |> dict.keys
+        |> list.filter(fn(id) { is_favourited(status_of(model.statuses, id)) })
+        |> list.filter_map(fn(id) { dict.get(model.activities, id) })
+      case derived, model.favourited {
+        // Nothing cached to render yet — reflect the fetch state.
+        [], NotAsked -> NotAsked
+        [], Loading -> Loading
+        [], Failed(err) -> Failed(err)
+        // We can already render from the cache. Show it and let any refetch
+        // hydrate in the background instead of blanking the list with a blocking
+        // spinner — which, on slow networks, reads as a failed load when
+        // re-entering Favourites after a favourite/booking change.
+        _, _ -> Loaded(derived)
       }
+    }
     _ ->
       case source_remote(model, tab_source(tab)) {
         NotAsked -> NotAsked
