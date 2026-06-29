@@ -26,6 +26,10 @@ fn handle_api_request(
     Get, ["activities"] -> activities.get_page(req, ctx)
     Post, ["activities"] -> activities.create(req, ctx)
     _, ["activities"] -> wisp.method_not_allowed([Get, Post])
+    Get, ["swim-bus-activities"] -> activities.get_swim_bus(req, ctx)
+    _, ["swim-bus-activities"] -> wisp.method_not_allowed([Get])
+    Get, ["climbing-wall-activities"] -> activities.get_climbing_wall(req, ctx)
+    _, ["climbing-wall-activities"] -> wisp.method_not_allowed([Get])
     Get, ["activities", activity_id, "bookings"] ->
       booking.get_by_activity(req, activity_id, ctx)
     Post, ["activities", activity_id, "bookings"] ->

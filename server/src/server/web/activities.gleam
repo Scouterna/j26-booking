@@ -81,6 +81,24 @@ pub fn get_page(req: Request, ctx: web.Context) -> Response {
   }
 }
 
+/// Returns all swim bus slots as slim summaries, ordered by start time.
+pub fn get_swim_bus(req: Request, ctx: web.Context) -> Response {
+  use <- wisp.require_method(req, Get)
+  response_from_db_activity_summaries(
+    sql.list_swim_bus_activities(ctx.db_connection),
+    activity.from_list_swim_bus_activities_row,
+  )
+}
+
+/// Returns all climbing wall slots as slim summaries, ordered by start time.
+pub fn get_climbing_wall(req: Request, ctx: web.Context) -> Response {
+  use <- wisp.require_method(req, Get)
+  response_from_db_activity_summaries(
+    sql.list_climbing_wall_activities(ctx.db_connection),
+    activity.from_list_climbing_wall_activities_row,
+  )
+}
+
 pub fn get_one(req: Request, id: String, ctx: web.Context) -> Response {
   use <- wisp.require_method(req, Get)
   use activity_id <- given.ok(uuid.from_string(id), fn(_) {

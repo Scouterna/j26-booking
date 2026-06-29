@@ -152,6 +152,7 @@ activity {
   int[null] max_attendees
   timestamp start_time
   timestamp end_time
+  text[null] recurring_activity_kind "slug: swim-bus | climbing-wall"
 }
 
 booking {

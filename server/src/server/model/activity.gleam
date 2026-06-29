@@ -106,6 +106,32 @@ pub fn from_list_activities_by_start_time_row(
   )
 }
 
+pub fn from_list_swim_bus_activities_row(
+  row: sql.ListSwimBusActivitiesRow,
+) -> Activity {
+  Activity(
+    id: row.id,
+    title: row.title,
+    description: row.description,
+    max_attendees: row.max_attendees,
+    start_time: row.start_time,
+    end_time: row.end_time,
+  )
+}
+
+pub fn from_list_climbing_wall_activities_row(
+  row: sql.ListClimbingWallActivitiesRow,
+) -> Activity {
+  Activity(
+    id: row.id,
+    title: row.title,
+    description: row.description,
+    max_attendees: row.max_attendees,
+    start_time: row.start_time,
+    end_time: row.end_time,
+  )
+}
+
 pub fn from_update_activity_with_max_attendees_row(
   row: sql.UpdateActivityWithMaxAttendeesRow,
 ) -> Activity {

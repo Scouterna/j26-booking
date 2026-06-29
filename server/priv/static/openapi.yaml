@@ -103,6 +103,60 @@ paths:
         '500':
           $ref: '#/components/responses/ServerError'
 
+  /swim-bus-activities:
+    get:
+      tags:
+        - Activities
+      summary: List swim bus slots
+      description: |
+        Retrieve all swim bus (badbuss) slots as slim summaries (without
+        `description`), ordered by start time. These are bookable slots of the
+        recurring "swim-bus" kind. Not paginated.
+      operationId: listSwimBusActivities
+      responses:
+        '200':
+          description: Successfully retrieved swim bus slots
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - activities
+                properties:
+                  activities:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ActivitySummary'
+        '500':
+          $ref: '#/components/responses/ServerError'
+
+  /climbing-wall-activities:
+    get:
+      tags:
+        - Activities
+      summary: List climbing wall slots
+      description: |
+        Retrieve all climbing wall (klättervägg) slots as slim summaries
+        (without `description`), ordered by start time. These are bookable slots
+        of the recurring "climbing-wall" kind. Not paginated.
+      operationId: listClimbingWallActivities
+      responses:
+        '200':
+          description: Successfully retrieved climbing wall slots
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - activities
+                properties:
+                  activities:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ActivitySummary'
+        '500':
+          $ref: '#/components/responses/ServerError'
+
   /activities/{id}:
     get:
       tags:

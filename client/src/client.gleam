@@ -19,6 +19,7 @@ import lustre/attribute
 import lustre/effect.{type Effect}
 import lustre/element.{type Element}
 import lustre/element/html
+import lustre/element/keyed
 import lustre/event
 import modem
 import rsvp
@@ -247,8 +248,8 @@ type EditState {
 
 type ListTab {
   TabAll
-  // Placeholder categories: label-only tabs, no data model yet.
-  TabCategory(String)
+  TabSwimBus
+  TabClimbingWall
   TabFavourites
 }
 
@@ -276,12 +277,7 @@ fn default_filters() -> ListFilters {
 
 /// Tabs in display order; index is used for the segmented control.
 fn list_tabs() -> List(ListTab) {
-  [
-    TabAll,
-    TabCategory("list.tab.badbuss"),
-    TabCategory("list.tab.climbing_wall"),
-    TabFavourites,
-  ]
+  [TabAll, TabSwimBus, TabClimbingWall, TabFavourites]
 }
 
 fn tab_index(tab: ListTab) -> Int {
@@ -784,9 +780,20 @@ fn update(model: Model, msg: Msg) -> #(Model, Effect(Msg)) {
       update_filters(model, fn(f) { ListFilters(..f, search: value) })
 
     UserSelectedTab(index) ->
-      update_filters(model, fn(filters) {
-        ListFilters(..filters, tab: tab_from_index(index))
-      })
+      case model.page {
+        ActivitiesListPage(filters) -> {
+          let tab = tab_from_index(index)
+          #(
+            Model(
+              ..model,
+              page: ActivitiesListPage(ListFilters(..filters, tab:)),
+              summaries: Loading,
+            ),
+            fetch_for_tab(tab),
+          )
+        }
+        _ -> #(model, effect.none())
+      }
 
     UserSelectedDay(d) ->
       update_filters(model, fn(f) { ListFilters(..f, day: d) })
@@ -804,10 +811,13 @@ fn update(model: Model, msg: Msg) -> #(Model, Effect(Msg)) {
         ListFilters(..f, tags: toggle_member(f.tags, name))
       })
 
-    UserClickedRetryLoad -> #(
-      Model(..model, summaries: Loading),
-      fetch_summaries(),
-    )
+    UserClickedRetryLoad -> {
+      let tab = case model.page {
+        ActivitiesListPage(filters) -> filters.tab
+        _ -> TabAll
+      }
+      #(Model(..model, summaries: Loading), fetch_for_tab(tab))
+    }
 
     UserToggledFavourite(activity_id) ->
       case status_of(model.statuses, activity_id) {
@@ -1116,11 +1126,26 @@ fn observe_lang() -> Effect(Msg) {
   })
 }
 
-fn fetch_summaries() -> Effect(Msg) {
+fn fetch_summaries_at(path: String) -> Effect(Msg) {
   rsvp.get(
-    api_prefix <> "/api/activities",
+    api_prefix <> path,
     rsvp.expect_json(model.activity_summaries_decoder(), ApiReturnedSummaries),
   )
+}
+
+fn fetch_summaries() -> Effect(Msg) {
+  fetch_summaries_at("/api/activities")
+}
+
+/// The list endpoint backing each tab. All and Favourites both load the full
+/// catalogue (Favourites filters it client-side); the category tabs load their
+/// dedicated server-side filtered list.
+fn fetch_for_tab(tab: ListTab) -> Effect(Msg) {
+  case tab {
+    TabSwimBus -> fetch_summaries_at("/api/swim-bus-activities")
+    TabClimbingWall -> fetch_summaries_at("/api/climbing-wall-activities")
+    TabAll | TabFavourites -> fetch_summaries_at("/api/activities")
+  }
 }
 
 fn fetch_activity(id: Uuid) -> Effect(Msg) {
@@ -1394,13 +1419,23 @@ fn view_list_top_bar(
         t("list.search_placeholder"),
         UserSearchedActivities,
       ),
-      html.div([attribute.class("flex items-center gap-2")], [
-        view_day_select(translator, filters.day, dates),
-        component.filter_pill_icon(
-          t("list.filter.more"),
-          icons.filter,
-          filters.more_open,
-          UserToggledMoreFilters,
+      // Key the day select by its date set: `scout-select` consumes its own
+      // `<option>` children, so reconciling them in place desyncs Lustre's DOM
+      // when the list changes (e.g. switching tabs). A content-derived key makes
+      // Lustre replace the whole element instead.
+      keyed.div([attribute.class("flex items-center gap-2")], [
+        #(
+          "day-select-" <> string.join(list.map(dates, date_to_iso), ","),
+          view_day_select(translator, filters.day, dates),
+        ),
+        #(
+          "more-filters",
+          component.filter_pill_icon(
+            t("list.filter.more"),
+            icons.filter,
+            filters.more_open,
+            UserToggledMoreFilters,
+          ),
         ),
       ]),
     ],
@@ -1410,7 +1445,8 @@ fn view_list_top_bar(
 fn tab_label(translator: Translator, tab: ListTab) -> String {
   case tab {
     TabAll -> g18n.translate(translator, "list.tab.activities")
-    TabCategory(key) -> g18n.translate(translator, key)
+    TabSwimBus -> g18n.translate(translator, "list.tab.badbuss")
+    TabClimbingWall -> g18n.translate(translator, "list.tab.climbing_wall")
     TabFavourites -> g18n.translate(translator, "list.filter.favourites")
   }
 }
@@ -2336,8 +2372,9 @@ fn apply_filters(items: List(CardItem), f: ListFilters) -> List(CardItem) {
   }
   let favourite_match = case f.tab {
     TabFavourites -> is_favourited(item.status)
-    // TODO: filter by category once a real category data model exists.
-    TabAll | TabCategory(_) -> True
+    // Category lists are filtered server-side via dedicated endpoints, so the
+    // loaded summaries already match the selected tab.
+    TabAll | TabSwimBus | TabClimbingWall -> True
   }
   let audience_match = case f.audiences {
     [] -> True

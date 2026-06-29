@@ -195,3 +195,88 @@ VALUES (
         '2025-07-15 10:00:00',
         '2025-07-15 12:00:00'
     );
+
+-- Återkommande specialaktiviteter: badbuss & klättervägg.
+-- Många bokningsbara tider som delar titel/beskrivning men varierar i
+-- tid och antal platser. Identifieras av recurring_activity_kind (slug).
+INSERT INTO activity (
+        id,
+        title,
+        description,
+        max_attendees,
+        start_time,
+        end_time,
+        recurring_activity_kind
+    )
+VALUES (
+        '0198a000-0000-7000-8000-000000000001',
+        'Badbuss',
+        'Buss till badplatsen och tillbaka. Begränsat antal platser per avgång.',
+        30,
+        '2025-07-12 09:00:00',
+        '2025-07-12 12:00:00',
+        'swim-bus'
+    ),
+    (
+        '0198a000-0000-7000-8000-000000000002',
+        'Badbuss',
+        'Buss till badplatsen och tillbaka. Begränsat antal platser per avgång.',
+        30,
+        '2025-07-12 13:00:00',
+        '2025-07-12 16:00:00',
+        'swim-bus'
+    ),
+    (
+        '0198a000-0000-7000-8000-000000000003',
+        'Badbuss',
+        'Buss till badplatsen och tillbaka. Begränsat antal platser per avgång.',
+        40,
+        '2025-07-13 09:00:00',
+        '2025-07-13 12:00:00',
+        'swim-bus'
+    ),
+    (
+        '0198a000-0000-7000-8000-000000000004',
+        'Badbuss',
+        'Buss till badplatsen och tillbaka. Begränsat antal platser per avgång.',
+        40,
+        '2025-07-13 13:00:00',
+        '2025-07-13 16:00:00',
+        'swim-bus'
+    ),
+    (
+        '0198b000-0000-7000-8000-000000000001',
+        'Klättervägg',
+        'Prova på klättring med instruktör och säkerhetsutrustning.',
+        12,
+        '2025-07-12 10:00:00',
+        '2025-07-12 11:00:00',
+        'climbing-wall'
+    ),
+    (
+        '0198b000-0000-7000-8000-000000000002',
+        'Klättervägg',
+        'Prova på klättring med instruktör och säkerhetsutrustning.',
+        12,
+        '2025-07-12 11:00:00',
+        '2025-07-12 12:00:00',
+        'climbing-wall'
+    ),
+    (
+        '0198b000-0000-7000-8000-000000000003',
+        'Klättervägg',
+        'Prova på klättring med instruktör och säkerhetsutrustning.',
+        12,
+        '2025-07-13 10:00:00',
+        '2025-07-13 11:00:00',
+        'climbing-wall'
+    ),
+    (
+        '0198b000-0000-7000-8000-000000000004',
+        'Klättervägg',
+        'Prova på klättring med instruktör och säkerhetsutrustning.',
+        8,
+        '2025-07-13 11:00:00',
+        '2025-07-13 12:00:00',
+        'climbing-wall'
+    );

@@ -450,6 +450,7 @@ pub type GetActivitiesByStartTimeRow {
     max_attendees: Option(Int),
     start_time: Timestamp,
     end_time: Timestamp,
+    recurring_activity_kind: Option(String),
   )
 }
 
@@ -471,6 +472,10 @@ pub fn get_activities_by_start_time(
     use max_attendees <- decode.field(3, decode.optional(decode.int))
     use start_time <- decode.field(4, pog.timestamp_decoder())
     use end_time <- decode.field(5, pog.timestamp_decoder())
+    use recurring_activity_kind <- decode.field(
+      6,
+      decode.optional(decode.string),
+    )
     decode.success(GetActivitiesByStartTimeRow(
       id:,
       title:,
@@ -478,6 +483,7 @@ pub fn get_activities_by_start_time(
       max_attendees:,
       start_time:,
       end_time:,
+      recurring_activity_kind:,
     ))
   }
 
@@ -506,6 +512,7 @@ pub type GetActivitiesByTitleRow {
     max_attendees: Option(Int),
     start_time: Timestamp,
     end_time: Timestamp,
+    recurring_activity_kind: Option(String),
   )
 }
 
@@ -527,6 +534,10 @@ pub fn get_activities_by_title(
     use max_attendees <- decode.field(3, decode.optional(decode.int))
     use start_time <- decode.field(4, pog.timestamp_decoder())
     use end_time <- decode.field(5, pog.timestamp_decoder())
+    use recurring_activity_kind <- decode.field(
+      6,
+      decode.optional(decode.string),
+    )
     decode.success(GetActivitiesByTitleRow(
       id:,
       title:,
@@ -534,6 +545,7 @@ pub fn get_activities_by_title(
       max_attendees:,
       start_time:,
       end_time:,
+      recurring_activity_kind:,
     ))
   }
 
@@ -562,6 +574,7 @@ pub type GetActivityRow {
     max_attendees: Option(Int),
     start_time: Timestamp,
     end_time: Timestamp,
+    recurring_activity_kind: Option(String),
   )
 }
 
@@ -582,6 +595,10 @@ pub fn get_activity(
     use max_attendees <- decode.field(3, decode.optional(decode.int))
     use start_time <- decode.field(4, pog.timestamp_decoder())
     use end_time <- decode.field(5, pog.timestamp_decoder())
+    use recurring_activity_kind <- decode.field(
+      6,
+      decode.optional(decode.string),
+    )
     decode.success(GetActivityRow(
       id:,
       title:,
@@ -589,6 +606,7 @@ pub fn get_activity(
       max_attendees:,
       start_time:,
       end_time:,
+      recurring_activity_kind:,
     ))
   }
 
@@ -915,6 +933,7 @@ pub type ListActivitiesByStartTimeRow {
     max_attendees: Option(Int),
     start_time: Timestamp,
     end_time: Timestamp,
+    recurring_activity_kind: Option(String),
   )
 }
 
@@ -934,6 +953,10 @@ pub fn list_activities_by_start_time(
     use max_attendees <- decode.field(3, decode.optional(decode.int))
     use start_time <- decode.field(4, pog.timestamp_decoder())
     use end_time <- decode.field(5, pog.timestamp_decoder())
+    use recurring_activity_kind <- decode.field(
+      6,
+      decode.optional(decode.string),
+    )
     decode.success(ListActivitiesByStartTimeRow(
       id:,
       title:,
@@ -941,6 +964,7 @@ pub fn list_activities_by_start_time(
       max_attendees:,
       start_time:,
       end_time:,
+      recurring_activity_kind:,
     ))
   }
 
@@ -967,6 +991,7 @@ pub type ListActivitiesByTitleRow {
     max_attendees: Option(Int),
     start_time: Timestamp,
     end_time: Timestamp,
+    recurring_activity_kind: Option(String),
   )
 }
 
@@ -986,6 +1011,10 @@ pub fn list_activities_by_title(
     use max_attendees <- decode.field(3, decode.optional(decode.int))
     use start_time <- decode.field(4, pog.timestamp_decoder())
     use end_time <- decode.field(5, pog.timestamp_decoder())
+    use recurring_activity_kind <- decode.field(
+      6,
+      decode.optional(decode.string),
+    )
     decode.success(ListActivitiesByTitleRow(
       id:,
       title:,
@@ -993,12 +1022,131 @@ pub fn list_activities_by_title(
       max_attendees:,
       start_time:,
       end_time:,
+      recurring_activity_kind:,
     ))
   }
 
   "SELECT *
 FROM activity
 ORDER BY title ASC;
+"
+  |> pog.query
+  |> pog.returning(decoder)
+  |> pog.execute(db)
+}
+
+/// A row you get from running the `list_climbing_wall_activities` query
+/// defined in `./src/server/sql/list_climbing_wall_activities.sql`.
+///
+/// > 🐿️ This type definition was generated automatically using v4.6.0 of the
+/// > [squirrel package](https://github.com/giacomocavalieri/squirrel).
+///
+pub type ListClimbingWallActivitiesRow {
+  ListClimbingWallActivitiesRow(
+    id: Uuid,
+    title: String,
+    description: String,
+    max_attendees: Option(Int),
+    start_time: Timestamp,
+    end_time: Timestamp,
+    recurring_activity_kind: Option(String),
+  )
+}
+
+/// Runs the `list_climbing_wall_activities` query
+/// defined in `./src/server/sql/list_climbing_wall_activities.sql`.
+///
+/// > 🐿️ This function was generated automatically using v4.6.0 of
+/// > the [squirrel package](https://github.com/giacomocavalieri/squirrel).
+///
+pub fn list_climbing_wall_activities(
+  db: pog.Connection,
+) -> Result(pog.Returned(ListClimbingWallActivitiesRow), pog.QueryError) {
+  let decoder = {
+    use id <- decode.field(0, uuid_decoder())
+    use title <- decode.field(1, decode.string)
+    use description <- decode.field(2, decode.string)
+    use max_attendees <- decode.field(3, decode.optional(decode.int))
+    use start_time <- decode.field(4, pog.timestamp_decoder())
+    use end_time <- decode.field(5, pog.timestamp_decoder())
+    use recurring_activity_kind <- decode.field(
+      6,
+      decode.optional(decode.string),
+    )
+    decode.success(ListClimbingWallActivitiesRow(
+      id:,
+      title:,
+      description:,
+      max_attendees:,
+      start_time:,
+      end_time:,
+      recurring_activity_kind:,
+    ))
+  }
+
+  "SELECT *
+FROM activity
+WHERE recurring_activity_kind = 'climbing-wall'
+ORDER BY start_time ASC;
+"
+  |> pog.query
+  |> pog.returning(decoder)
+  |> pog.execute(db)
+}
+
+/// A row you get from running the `list_swim_bus_activities` query
+/// defined in `./src/server/sql/list_swim_bus_activities.sql`.
+///
+/// > 🐿️ This type definition was generated automatically using v4.6.0 of the
+/// > [squirrel package](https://github.com/giacomocavalieri/squirrel).
+///
+pub type ListSwimBusActivitiesRow {
+  ListSwimBusActivitiesRow(
+    id: Uuid,
+    title: String,
+    description: String,
+    max_attendees: Option(Int),
+    start_time: Timestamp,
+    end_time: Timestamp,
+    recurring_activity_kind: Option(String),
+  )
+}
+
+/// Runs the `list_swim_bus_activities` query
+/// defined in `./src/server/sql/list_swim_bus_activities.sql`.
+///
+/// > 🐿️ This function was generated automatically using v4.6.0 of
+/// > the [squirrel package](https://github.com/giacomocavalieri/squirrel).
+///
+pub fn list_swim_bus_activities(
+  db: pog.Connection,
+) -> Result(pog.Returned(ListSwimBusActivitiesRow), pog.QueryError) {
+  let decoder = {
+    use id <- decode.field(0, uuid_decoder())
+    use title <- decode.field(1, decode.string)
+    use description <- decode.field(2, decode.string)
+    use max_attendees <- decode.field(3, decode.optional(decode.int))
+    use start_time <- decode.field(4, pog.timestamp_decoder())
+    use end_time <- decode.field(5, pog.timestamp_decoder())
+    use recurring_activity_kind <- decode.field(
+      6,
+      decode.optional(decode.string),
+    )
+    decode.success(ListSwimBusActivitiesRow(
+      id:,
+      title:,
+      description:,
+      max_attendees:,
+      start_time:,
+      end_time:,
+      recurring_activity_kind:,
+    ))
+  }
+
+  "SELECT *
+FROM activity
+WHERE recurring_activity_kind = 'swim-bus'
+ORDER BY start_time ASC;
 "
   |> pog.query
   |> pog.returning(decoder)
@@ -1019,6 +1167,7 @@ pub type SearchActivitiesRow {
     max_attendees: Option(Int),
     start_time: Timestamp,
     end_time: Timestamp,
+    recurring_activity_kind: Option(String),
   )
 }
 
@@ -1038,6 +1187,10 @@ pub fn search_activities(
     use max_attendees <- decode.field(3, decode.optional(decode.int))
     use start_time <- decode.field(4, pog.timestamp_decoder())
     use end_time <- decode.field(5, pog.timestamp_decoder())
+    use recurring_activity_kind <- decode.field(
+      6,
+      decode.optional(decode.string),
+    )
     decode.success(SearchActivitiesRow(
       id:,
       title:,
@@ -1045,6 +1198,7 @@ pub fn search_activities(
       max_attendees:,
       start_time:,
       end_time:,
+      recurring_activity_kind:,
     ))
   }
 
