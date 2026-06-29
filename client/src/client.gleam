@@ -68,7 +68,7 @@ fn english_translations() -> g18n.Translations {
   |> g18n.add_translation("list.search_placeholder", "Search")
   |> g18n.add_translation("list.filter.all", "All")
   |> g18n.add_translation("list.tab.activities", "Activities")
-  |> g18n.add_translation("list.tab.badbuss", "Swim bus")
+  |> g18n.add_translation("list.tab.swim_bus", "Swim bus")
   |> g18n.add_translation("list.tab.climbing_wall", "Climbing wall")
   |> g18n.add_translation("list.filter.favourites", "Favourites")
   |> g18n.add_translation("list.filter.more", "More filters")
@@ -122,7 +122,7 @@ fn swedish_translations() -> g18n.Translations {
   |> g18n.add_translation("list.search_placeholder", "Sök")
   |> g18n.add_translation("list.filter.all", "Alla")
   |> g18n.add_translation("list.tab.activities", "Aktiviteter")
-  |> g18n.add_translation("list.tab.badbuss", "Badbuss")
+  |> g18n.add_translation("list.tab.swim_bus", "Badbuss")
   |> g18n.add_translation("list.tab.climbing_wall", "Klättervägg")
   |> g18n.add_translation("list.filter.favourites", "Favoriter")
   |> g18n.add_translation("list.filter.more", "Fler filter")
@@ -196,6 +196,16 @@ fn booking_of(status: ActivityStatus) -> Option(Booking) {
   }
 }
 
+/// The list endpoint backing a browse selection. Tabs map to a source; the
+/// Favourites tab's `SourceFavourites` only hydrates the cache + drives loading
+/// state — its membership is derived from `statuses`, not from this list.
+type ActivityListSource {
+  SourceActivities
+  SourceSwimBus
+  SourceClimbingWall
+  SourceFavourites
+}
+
 type ActivityForm {
   ActivityForm(
     title: String,
@@ -233,6 +243,7 @@ type BookingFormState {
 }
 
 type RemoteData(a) {
+  NotAsked
   Loading
   Loaded(a)
   Failed(String)
@@ -246,8 +257,8 @@ type EditState {
   )
 }
 
-type ListTab {
-  TabAll
+type ActivitiesFilterTab {
+  TabActivities
   TabSwimBus
   TabClimbingWall
   TabFavourites
@@ -256,7 +267,7 @@ type ListTab {
 type ListFilters {
   ListFilters(
     search: String,
-    tab: ListTab,
+    tab: ActivitiesFilterTab,
     day: Option(calendar.Date),
     more_open: Bool,
     audiences: List(String),
@@ -267,7 +278,7 @@ type ListFilters {
 fn default_filters() -> ListFilters {
   ListFilters(
     search: "",
-    tab: TabAll,
+    tab: TabActivities,
     day: None,
     more_open: False,
     audiences: [],
@@ -276,11 +287,11 @@ fn default_filters() -> ListFilters {
 }
 
 /// Tabs in display order; index is used for the segmented control.
-fn list_tabs() -> List(ListTab) {
-  [TabAll, TabSwimBus, TabClimbingWall, TabFavourites]
+fn list_tabs() -> List(ActivitiesFilterTab) {
+  [TabActivities, TabSwimBus, TabClimbingWall, TabFavourites]
 }
 
-fn tab_index(tab: ListTab) -> Int {
+fn tab_index(tab: ActivitiesFilterTab) -> Int {
   let indexed = list.index_map(list_tabs(), fn(t, i) { #(t, i) })
   case list.find(indexed, fn(pair) { pair.0 == tab }) {
     Ok(#(_, i)) -> i
@@ -288,10 +299,10 @@ fn tab_index(tab: ListTab) -> Int {
   }
 }
 
-fn tab_from_index(index: Int) -> ListTab {
+fn tab_from_index(index: Int) -> ActivitiesFilterTab {
   case list.drop(list_tabs(), index) {
     [tab, ..] -> tab
-    [] -> TabAll
+    [] -> TabActivities
   }
 }
 
@@ -307,8 +318,16 @@ type Model {
   Model(
     page: Page,
     translator: Translator,
-    // Full activity catalogue (slim summaries), fetched once at startup.
-    summaries: RemoteData(List(ActivitySummary)),
+    // Entity cache: one slim summary per activity, hydrated/overwritten by
+    // EVERY list response (browse pages, swim-bus, climbing-wall, favourited).
+    activities: Dict(Uuid, ActivitySummary),
+    // Ordered id windows per browse tab — define each tab's membership + order.
+    activities_ids: RemoteData(List(Uuid)),
+    swim_bus_ids: RemoteData(List(Uuid)),
+    climbing_wall_ids: RemoteData(List(Uuid)),
+    // Drives the Favourites tab's /api/favourited-activities fetch state and
+    // cache hydration. Membership is DERIVED from `statuses`, not this list.
+    favourited: RemoteData(List(Uuid)),
     // Full activities (with description), fetched lazily per detail view.
     details: Dict(Uuid, RemoteData(Activity)),
     // Sparse: present key => Booked/Favourited. Absent => NotInterested
@@ -316,6 +335,99 @@ type Model {
     // dict stays empty).
     statuses: Dict(Uuid, ActivityStatus),
   )
+}
+
+fn tab_source(tab: ActivitiesFilterTab) -> ActivityListSource {
+  case tab {
+    TabActivities -> SourceActivities
+    TabSwimBus -> SourceSwimBus
+    TabClimbingWall -> SourceClimbingWall
+    TabFavourites -> SourceFavourites
+  }
+}
+
+/// The fetch-state `RemoteData` backing a source (the per-tab id window, or the
+/// favourited fetch). Used to decide lazy loading and render the tab's state.
+fn source_remote(
+  model: Model,
+  source: ActivityListSource,
+) -> RemoteData(List(Uuid)) {
+  case source {
+    SourceActivities -> model.activities_ids
+    SourceSwimBus -> model.swim_bus_ids
+    SourceClimbingWall -> model.climbing_wall_ids
+    SourceFavourites -> model.favourited
+  }
+}
+
+fn set_source_remote(
+  model: Model,
+  source: ActivityListSource,
+  remote: RemoteData(List(Uuid)),
+) -> Model {
+  case source {
+    SourceActivities -> Model(..model, activities_ids: remote)
+    SourceSwimBus -> Model(..model, swim_bus_ids: remote)
+    SourceClimbingWall -> Model(..model, climbing_wall_ids: remote)
+    SourceFavourites -> Model(..model, favourited: remote)
+  }
+}
+
+/// Lazily load a source: if never fetched, mark it `Loading` and fire the
+/// fetch; otherwise leave the cache untouched (instant tab switch).
+fn ensure_source_loaded(
+  model: Model,
+  source: ActivityListSource,
+) -> #(Model, Effect(Msg)) {
+  case source_remote(model, source) {
+    NotAsked -> #(set_source_remote(model, source, Loading), fetch_list(source))
+    Loading | Loaded(_) | Failed(_) -> #(model, effect.none())
+  }
+}
+
+/// Resolves a tab into the `RemoteData` of summaries to render. Browse tabs map
+/// their id window through the entity cache (dropping ids not yet cached).
+/// Favourites derives membership from the complete `statuses` map; its
+/// `favourited` fetch only supplies hydration + loading/error state.
+fn tab_summaries(
+  model: Model,
+  tab: ActivitiesFilterTab,
+) -> RemoteData(List(ActivitySummary)) {
+  case tab {
+    TabFavourites ->
+      case model.favourited {
+        NotAsked -> NotAsked
+        Loading -> Loading
+        Failed(err) -> Failed(err)
+        Loaded(_) ->
+          Loaded(
+            model.statuses
+            |> dict.keys
+            |> list.filter(fn(id) {
+              is_favourited(status_of(model.statuses, id))
+            })
+            |> list.filter_map(fn(id) { dict.get(model.activities, id) }),
+          )
+      }
+    _ ->
+      case source_remote(model, tab_source(tab)) {
+        NotAsked -> NotAsked
+        Loading -> Loading
+        Failed(err) -> Failed(err)
+        Loaded(ids) ->
+          Loaded(
+            list.filter_map(ids, fn(id) { dict.get(model.activities, id) }),
+          )
+      }
+  }
+}
+
+/// Merge a list response into the entity cache (overwrite on overlap).
+fn hydrate(
+  store: Dict(Uuid, ActivitySummary),
+  items: List(ActivitySummary),
+) -> Dict(Uuid, ActivitySummary) {
+  list.fold(items, store, fn(acc, s) { dict.insert(acc, s.id, s) })
 }
 
 /// The cached detail for an activity, defaulting to `Loading` while a fetch is
@@ -360,34 +472,29 @@ fn map_loaded(
 ) -> RemoteData(List(a)) {
   case remote {
     Loaded(items) -> Loaded(f(items))
-    Loading | Failed(_) -> remote
+    NotAsked | Loading | Failed(_) -> remote
   }
 }
 
-/// Insert or replace a summary in the catalogue cache (no-op while loading).
-fn upsert_summary(
-  summaries: RemoteData(List(ActivitySummary)),
-  summary: ActivitySummary,
-) -> RemoteData(List(ActivitySummary)) {
-  use items <- map_loaded(summaries)
-  case list.any(items, fn(x) { x.id == summary.id }) {
-    True ->
-      list.map(items, fn(x) {
-        case x.id == summary.id {
-          True -> summary
-          False -> x
-        }
-      })
-    False -> [summary, ..items]
-  }
-}
-
-fn remove_summary(
-  summaries: RemoteData(List(ActivitySummary)),
+/// Prepend an id to a loaded id window (no-op while not loaded; dedups).
+fn prepend_id(
+  remote: RemoteData(List(Uuid)),
   id: Uuid,
-) -> RemoteData(List(ActivitySummary)) {
-  use items <- map_loaded(summaries)
-  list.filter(items, fn(x) { x.id != id })
+) -> RemoteData(List(Uuid)) {
+  use ids <- map_loaded(remote)
+  case list.contains(ids, id) {
+    True -> ids
+    False -> [id, ..ids]
+  }
+}
+
+/// Drop an id from a loaded id window (no-op while not loaded).
+fn remove_id(
+  remote: RemoteData(List(Uuid)),
+  id: Uuid,
+) -> RemoteData(List(Uuid)) {
+  use ids <- map_loaded(remote)
+  list.filter(ids, fn(x) { x != id })
 }
 
 fn new_booking_form() -> Form(BookingFormFields) {
@@ -512,7 +619,12 @@ fn init(_flags) -> #(Model, Effect(Msg)) {
     Model(
       page:,
       translator:,
-      summaries: Loading,
+      activities: dict.new(),
+      // Default tab loads immediately; other sources load lazily on first open.
+      activities_ids: Loading,
+      swim_bus_ids: NotAsked,
+      climbing_wall_ids: NotAsked,
+      favourited: NotAsked,
       details: seed_detail_loading(dict.new(), page),
       statuses: dict.new(),
     )
@@ -527,7 +639,7 @@ fn init(_flags) -> #(Model, Effect(Msg)) {
     effect.batch([
       modem.init(OnRouteChange),
       observe_lang(),
-      fetch_summaries(),
+      fetch_list(SourceActivities),
       page_effect,
       // Always attempt; a 401 (anonymous user) leaves the status dict empty.
       fetch_statuses(),
@@ -544,7 +656,10 @@ type Msg {
   // Locale
   LangChanged(String)
   // API responses
-  ApiReturnedSummaries(Result(List(ActivitySummary), rsvp.Error))
+  ApiReturnedActivityList(
+    ActivityListSource,
+    Result(List(ActivitySummary), rsvp.Error),
+  )
   ApiReturnedActivity(Uuid, Result(Activity, rsvp.Error))
   ApiReturnedStatuses(Result(List(ActivityStatusEntry), rsvp.Error))
   ApiCreatedActivity(Result(Activity, rsvp.Error))
@@ -604,13 +719,19 @@ fn update(model: Model, msg: Msg) -> #(Model, Effect(Msg)) {
       #(Model(..model, translator:), title_effect)
     }
 
-    ApiReturnedSummaries(result) -> {
-      let summaries = case result {
-        Ok(items) -> Loaded(items)
-        Error(_) -> Failed("Failed to load activities")
-      }
-      #(Model(..model, summaries:), effect.none())
+    ApiReturnedActivityList(source, Ok(items)) -> {
+      let activities = hydrate(model.activities, items)
+      let ids = list.map(items, fn(s) { s.id })
+      #(
+        set_source_remote(Model(..model, activities:), source, Loaded(ids)),
+        effect.none(),
+      )
     }
+
+    ApiReturnedActivityList(source, Error(_)) -> #(
+      set_source_remote(model, source, Failed("Failed to load activities")),
+      effect.none(),
+    )
 
     ApiReturnedActivity(id, result) -> {
       let entry = case result {
@@ -637,7 +758,17 @@ fn update(model: Model, msg: Msg) -> #(Model, Effect(Msg)) {
     ApiCreatedActivity(Ok(activity)) -> #(
       Model(
         ..model,
-        summaries: upsert_summary(model.summaries, to_summary(activity)),
+        activities: dict.insert(
+          model.activities,
+          activity.id,
+          to_summary(activity),
+        ),
+        // Show it immediately in the all-activities window. The kind is
+        // server-internal, so we can't tell if it belongs to a special tab —
+        // invalidate those windows so they refetch on next open.
+        activities_ids: prepend_id(model.activities_ids, activity.id),
+        swim_bus_ids: NotAsked,
+        climbing_wall_ids: NotAsked,
         details: dict.insert(model.details, activity.id, Loaded(activity)),
       ),
       modem.push(api_prefix <> "/activities", None, None),
@@ -667,7 +798,11 @@ fn update(model: Model, msg: Msg) -> #(Model, Effect(Msg)) {
       #(
         Model(
           ..model,
-          summaries: upsert_summary(model.summaries, to_summary(activity)),
+          activities: dict.insert(
+            model.activities,
+            activity.id,
+            to_summary(activity),
+          ),
           details: dict.insert(model.details, activity.id, Loaded(activity)),
           page:,
         ),
@@ -693,7 +828,11 @@ fn update(model: Model, msg: Msg) -> #(Model, Effect(Msg)) {
     ApiDeletedActivity(id, Ok(_)) -> #(
       Model(
         ..model,
-        summaries: remove_summary(model.summaries, id),
+        activities: dict.delete(model.activities, id),
+        activities_ids: remove_id(model.activities_ids, id),
+        swim_bus_ids: remove_id(model.swim_bus_ids, id),
+        climbing_wall_ids: remove_id(model.climbing_wall_ids, id),
+        favourited: remove_id(model.favourited, id),
         details: dict.delete(model.details, id),
         statuses: dict.delete(model.statuses, id),
       ),
@@ -783,13 +922,14 @@ fn update(model: Model, msg: Msg) -> #(Model, Effect(Msg)) {
       case model.page {
         ActivitiesListPage(filters) -> {
           let tab = tab_from_index(index)
+          let #(model, fetch_effect) =
+            ensure_source_loaded(model, tab_source(tab))
           #(
             Model(
               ..model,
               page: ActivitiesListPage(ListFilters(..filters, tab:)),
-              summaries: Loading,
             ),
-            fetch_for_tab(tab),
+            fetch_effect,
           )
         }
         _ -> #(model, effect.none())
@@ -814,9 +954,10 @@ fn update(model: Model, msg: Msg) -> #(Model, Effect(Msg)) {
     UserClickedRetryLoad -> {
       let tab = case model.page {
         ActivitiesListPage(filters) -> filters.tab
-        _ -> TabAll
+        _ -> TabActivities
       }
-      #(Model(..model, summaries: Loading), fetch_for_tab(tab))
+      let source = tab_source(tab)
+      #(set_source_remote(model, source, Loading), fetch_list(source))
     }
 
     UserToggledFavourite(activity_id) ->
@@ -828,10 +969,13 @@ fn update(model: Model, msg: Msg) -> #(Model, Effect(Msg)) {
           remove_favourite(activity_id),
         )
         // Optimistic; a 401 for an anonymous user reverts via ApiToggledFavourite.
+        // Invalidate the favourited window so the next Favourites open refetches
+        // and hydrates this newly-relevant summary.
         NotInterested -> #(
           Model(
             ..model,
             statuses: dict.insert(model.statuses, activity_id, Favourited),
+            favourited: NotAsked,
           ),
           add_favourite(activity_id),
         )
@@ -989,7 +1133,9 @@ fn update(model: Model, msg: Msg) -> #(Model, Effect(Msg)) {
         ActivityDetailPage(id, _) -> ActivityDetailPage(id, BookingClosed)
         other -> other
       }
-      #(Model(..model, statuses:, page:), effect.none())
+      // Booking auto-favourites server-side, so invalidate the favourited
+      // window to pick up this newly-relevant summary on next Favourites open.
+      #(Model(..model, statuses:, page:, favourited: NotAsked), effect.none())
     }
 
     ApiCreatedBooking(Error(_)) ->
@@ -1126,26 +1272,22 @@ fn observe_lang() -> Effect(Msg) {
   })
 }
 
-fn fetch_summaries_at(path: String) -> Effect(Msg) {
-  rsvp.get(
-    api_prefix <> path,
-    rsvp.expect_json(model.activity_summaries_decoder(), ApiReturnedSummaries),
-  )
-}
-
-fn fetch_summaries() -> Effect(Msg) {
-  fetch_summaries_at("/api/activities")
-}
-
-/// The list endpoint backing each tab. All and Favourites both load the full
-/// catalogue (Favourites filters it client-side); the category tabs load their
-/// dedicated server-side filtered list.
-fn fetch_for_tab(tab: ListTab) -> Effect(Msg) {
-  case tab {
-    TabSwimBus -> fetch_summaries_at("/api/swim-bus-activities")
-    TabClimbingWall -> fetch_summaries_at("/api/climbing-wall-activities")
-    TabAll | TabFavourites -> fetch_summaries_at("/api/activities")
+fn list_source_path(source: ActivityListSource) -> String {
+  case source {
+    SourceActivities -> "/api/activities"
+    SourceSwimBus -> "/api/swim-bus-activities"
+    SourceClimbingWall -> "/api/climbing-wall-activities"
+    SourceFavourites -> "/api/favourited-activities"
   }
+}
+
+fn fetch_list(source: ActivityListSource) -> Effect(Msg) {
+  rsvp.get(
+    api_prefix <> list_source_path(source),
+    rsvp.expect_json(model.activity_summaries_decoder(), fn(result) {
+      ApiReturnedActivityList(source, result)
+    }),
+  )
 }
 
 fn fetch_activity(id: Uuid) -> Effect(Msg) {
@@ -1327,7 +1469,7 @@ fn view(model: Model) -> Element(Msg) {
     ActivitiesListPage(filters) ->
       view_activities_list(
         model.translator,
-        model.summaries,
+        tab_summaries(model, filters.tab),
         model.statuses,
         filters,
       )
@@ -1359,7 +1501,7 @@ fn view_activities_list(
       False -> element.none()
     },
     case summaries {
-      Loading -> component.scout_loader(t("activity.loading"))
+      NotAsked | Loading -> component.scout_loader(t("activity.loading"))
       Failed(err) ->
         html.div([attribute.class("py-6 flex flex-col items-center gap-3")], [
           component.error_banner(err),
@@ -1442,10 +1584,10 @@ fn view_list_top_bar(
   )
 }
 
-fn tab_label(translator: Translator, tab: ListTab) -> String {
+fn tab_label(translator: Translator, tab: ActivitiesFilterTab) -> String {
   case tab {
-    TabAll -> g18n.translate(translator, "list.tab.activities")
-    TabSwimBus -> g18n.translate(translator, "list.tab.badbuss")
+    TabActivities -> g18n.translate(translator, "list.tab.activities")
+    TabSwimBus -> g18n.translate(translator, "list.tab.swim_bus")
     TabClimbingWall -> g18n.translate(translator, "list.tab.climbing_wall")
     TabFavourites -> g18n.translate(translator, "list.filter.favourites")
   }
@@ -1782,7 +1924,7 @@ fn view_activity_detail(
   booking: BookingFormState,
 ) -> Element(Msg) {
   case state {
-    Loading ->
+    NotAsked | Loading ->
       html.div([attribute.class("flex justify-center py-8")], [
         component.scout_loader(g18n.translate(translator, "activity.loading")),
       ])
@@ -2370,12 +2512,9 @@ fn apply_filters(items: List(CardItem), f: ListFilters) -> List(CardItem) {
     None -> True
     Some(date) -> date_of(summary.start_time) == date
   }
-  let favourite_match = case f.tab {
-    TabFavourites -> is_favourited(item.status)
-    // Category lists are filtered server-side via dedicated endpoints, so the
-    // loaded summaries already match the selected tab.
-    TabAll | TabSwimBus | TabClimbingWall -> True
-  }
+  // Membership (tab/favourites) is resolved upstream via the source id windows
+  // and the statuses-derived favourites set, so every tab is pass-through on
+  // status here; only search + day + the mock facets filter client-side.
   let audience_match = case f.audiences {
     [] -> True
     selected -> lists_intersect(mock_audiences(summary.id), selected)
@@ -2384,7 +2523,7 @@ fn apply_filters(items: List(CardItem), f: ListFilters) -> List(CardItem) {
     [] -> True
     selected -> lists_intersect(mock_tags(summary.id), selected)
   }
-  title_match && day_match && favourite_match && audience_match && tag_match
+  title_match && day_match && audience_match && tag_match
 }
 
 fn camp_dates(summaries: List(ActivitySummary)) -> List(calendar.Date) {

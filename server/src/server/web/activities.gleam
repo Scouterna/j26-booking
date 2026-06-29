@@ -99,6 +99,19 @@ pub fn get_climbing_wall(req: Request, ctx: web.Context) -> Response {
   )
 }
 
+/// Returns the authenticated user's favourited and booked activities as slim
+/// summaries, ordered by start time. Used to hydrate the client's entity cache
+/// with favourites the user may not have browsed to yet; membership of the
+/// Favourites tab is derived from `/api/statuses/me`, not from this list.
+pub fn get_favourited(req: Request, ctx: web.Context) -> Response {
+  use <- wisp.require_method(req, Get)
+  use user_id <- web.with_authenticated_user(ctx)
+  response_from_db_activity_summaries(
+    sql.list_favourited_activities(ctx.db_connection, user_id),
+    activity.from_list_favourited_activities_row,
+  )
+}
+
 pub fn get_one(req: Request, id: String, ctx: web.Context) -> Response {
   use <- wisp.require_method(req, Get)
   use activity_id <- given.ok(uuid.from_string(id), fn(_) {

@@ -30,6 +30,8 @@ fn handle_api_request(
     _, ["swim-bus-activities"] -> wisp.method_not_allowed([Get])
     Get, ["climbing-wall-activities"] -> activities.get_climbing_wall(req, ctx)
     _, ["climbing-wall-activities"] -> wisp.method_not_allowed([Get])
+    Get, ["favourited-activities"] -> activities.get_favourited(req, ctx)
+    _, ["favourited-activities"] -> wisp.method_not_allowed([Get])
     Get, ["activities", activity_id, "bookings"] ->
       booking.get_by_activity(req, activity_id, ctx)
     Post, ["activities", activity_id, "bookings"] ->

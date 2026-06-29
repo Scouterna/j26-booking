@@ -157,6 +157,37 @@ paths:
         '500':
           $ref: '#/components/responses/ServerError'
 
+  /favourited-activities:
+    get:
+      tags:
+        - Favourites
+      summary: List my favourited and booked activities
+      description: |
+        Retrieve the authenticated user's favourited and booked activities as
+        slim summaries (without `description`), ordered by start time. Used to
+        hydrate the client's activity cache with favourites the user may not
+        have browsed to; Favourites tab membership is derived from
+        `/statuses/me`, not from this list. Not paginated.
+      operationId: listFavouritedActivities
+      responses:
+        '200':
+          description: Successfully retrieved favourited and booked activities
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - activities
+                properties:
+                  activities:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ActivitySummary'
+        '401':
+          description: Unauthenticated
+        '500':
+          $ref: '#/components/responses/ServerError'
+
   /activities/{id}:
     get:
       tags:

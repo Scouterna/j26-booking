@@ -1094,6 +1094,68 @@ ORDER BY start_time ASC;
   |> pog.execute(db)
 }
 
+/// A row you get from running the `list_favourited_activities` query
+/// defined in `./src/server/sql/list_favourited_activities.sql`.
+///
+/// > 🐿️ This type definition was generated automatically using v4.6.0 of the
+/// > [squirrel package](https://github.com/giacomocavalieri/squirrel).
+///
+pub type ListFavouritedActivitiesRow {
+  ListFavouritedActivitiesRow(
+    id: Uuid,
+    title: String,
+    description: String,
+    max_attendees: Option(Int),
+    start_time: Timestamp,
+    end_time: Timestamp,
+    recurring_activity_kind: Option(String),
+  )
+}
+
+/// Runs the `list_favourited_activities` query
+/// defined in `./src/server/sql/list_favourited_activities.sql`.
+///
+/// > 🐿️ This function was generated automatically using v4.6.0 of
+/// > the [squirrel package](https://github.com/giacomocavalieri/squirrel).
+///
+pub fn list_favourited_activities(
+  db: pog.Connection,
+  arg_1: Uuid,
+) -> Result(pog.Returned(ListFavouritedActivitiesRow), pog.QueryError) {
+  let decoder = {
+    use id <- decode.field(0, uuid_decoder())
+    use title <- decode.field(1, decode.string)
+    use description <- decode.field(2, decode.string)
+    use max_attendees <- decode.field(3, decode.optional(decode.int))
+    use start_time <- decode.field(4, pog.timestamp_decoder())
+    use end_time <- decode.field(5, pog.timestamp_decoder())
+    use recurring_activity_kind <- decode.field(
+      6,
+      decode.optional(decode.string),
+    )
+    decode.success(ListFavouritedActivitiesRow(
+      id:,
+      title:,
+      description:,
+      max_attendees:,
+      start_time:,
+      end_time:,
+      recurring_activity_kind:,
+    ))
+  }
+
+  "SELECT DISTINCT activity.*
+FROM activity
+WHERE activity.id IN (SELECT activity_id FROM favourite WHERE user_id = $1)
+   OR activity.id IN (SELECT activity_id FROM booking WHERE user_id = $1)
+ORDER BY activity.start_time ASC;
+"
+  |> pog.query
+  |> pog.parameter(pog.text(uuid.to_string(arg_1)))
+  |> pog.returning(decoder)
+  |> pog.execute(db)
+}
+
 /// A row you get from running the `list_swim_bus_activities` query
 /// defined in `./src/server/sql/list_swim_bus_activities.sql`.
 ///
