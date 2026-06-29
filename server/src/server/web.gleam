@@ -91,6 +91,19 @@ pub fn with_authenticated_user(
   }
 }
 
+/// Reads and discards the request body, then calls `next`.
+///
+/// Body-less endpoints (e.g. the favourite/booking/activity PUT and DELETE
+/// handlers) must still drain any body a client sends. mist exposes the body as
+/// a lazy reader and does not auto-drain it; an unread body stays buffered on
+/// the socket and, on a keep-alive connection, gets parsed as the start of the
+/// next request — corrupting it ("Received malformed HTTP request") and crashing
+/// the connection handler. Draining here keeps the connection in sync.
+pub fn discard_body(req: Request, next: fn() -> Response) -> Response {
+  let _ = wisp.read_body_bits(req)
+  next()
+}
+
 pub fn ensure_valid_query_param(
   in request_query: List(#(String, String)),
   with_name parameter_name: String,

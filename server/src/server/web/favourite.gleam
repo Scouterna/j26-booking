@@ -15,6 +15,7 @@ pub fn put(
   ctx: web.Context,
 ) -> Response {
   use <- wisp.require_method(req, Put)
+  use <- web.discard_body(req)
   use user_id <- web.with_authenticated_user(ctx)
   use activity_id <- given.ok(uuid.from_string(activity_id_str), fn(_) {
     wisp.bad_request("Invalid activity ID format")
@@ -52,6 +53,7 @@ pub fn delete(
   ctx: web.Context,
 ) -> Response {
   use <- wisp.require_method(req, Delete)
+  use <- web.discard_body(req)
   use user_id <- web.with_authenticated_user(ctx)
   use activity_id <- given.ok(uuid.from_string(activity_id_str), fn(_) {
     wisp.bad_request("Invalid activity ID format")
