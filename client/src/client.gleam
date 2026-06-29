@@ -1319,7 +1319,7 @@ fn add_favourite(activity_id: Uuid) -> Effect(Msg) {
       <> uuid.to_string(activity_id)
       <> "/favourite",
     json.null(),
-    rsvp.expect_any_response(fn(result) {
+    rsvp.expect_ok_response(fn(result) {
       case result {
         Ok(_) -> ApiToggledFavourite(activity_id, True, Ok(Nil))
         Error(err) -> ApiToggledFavourite(activity_id, True, Error(err))
@@ -1335,7 +1335,7 @@ fn remove_favourite(activity_id: Uuid) -> Effect(Msg) {
       <> uuid.to_string(activity_id)
       <> "/favourite",
     json.null(),
-    rsvp.expect_any_response(fn(result) {
+    rsvp.expect_ok_response(fn(result) {
       case result {
         Ok(_) -> ApiToggledFavourite(activity_id, False, Ok(Nil))
         Error(err) -> ApiToggledFavourite(activity_id, False, Error(err))
@@ -1367,7 +1367,7 @@ fn delete_booking(activity_id: Uuid, booking_id: Uuid) -> Effect(Msg) {
   rsvp.delete(
     api_prefix <> "/api/bookings/" <> uuid.to_string(booking_id),
     json.null(),
-    rsvp.expect_any_response(fn(result) {
+    rsvp.expect_ok_response(fn(result) {
       case result {
         Ok(_) -> ApiDeletedBooking(activity_id, booking_id, Ok(Nil))
         Error(err) -> ApiDeletedBooking(activity_id, booking_id, Error(err))
@@ -1405,7 +1405,7 @@ fn delete_activity(id: Uuid) -> Effect(Msg) {
   rsvp.delete(
     api_prefix <> "/api/activities/" <> uuid.to_string(id),
     json.null(),
-    rsvp.expect_any_response(fn(result) {
+    rsvp.expect_ok_response(fn(result) {
       case result {
         Ok(_) -> ApiDeletedActivity(id, Ok(Nil))
         Error(err) -> ApiDeletedActivity(id, Error(err))
