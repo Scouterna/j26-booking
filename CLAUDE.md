@@ -14,16 +14,23 @@ Booking application for Jamboree 2026. Gleam fullstack monorepo with Lustre.
 ## Commands
 
 ```sh
-# Full dev workflow (from repo root)
-./dev.sh                     # Build client + start server (sources .env.sh if present)
+# Run the app (from repo root; both source .env.sh if present)
+./start.sh                   # Build client.js + start server. PREFER THIS to run/verify the app
+./dev.sh                     # Client dev server (hot reload, :1234) + server (:8000), both at once
 ./seed.sh                    # Seed database
 
+# Use ./start.sh unless you specifically need hot reload — it builds the client
+# bundle into server/priv/static/ and serves the real app on :8000. ./dev.sh
+# runs the lustre dev server on :1234 (hot reload) alongside the backend on :8000.
+
 # Server (run from server/)
-gleam run                    # Start web server on port 8000
+gleam run                    # Start web server on port 8000 (no client build; use start.sh instead)
 gleam test                   # Run tests
 gleam format                 # Format code (ALWAYS run before committing)
 gleam run -m squirrel        # Regenerate sql.gleam from SQL files
-gleam run -m cigogne last    # Apply latest database migration
+gleam run -m cigogne up      # Apply the next pending migration (NOT `last`)
+gleam run -m cigogne all     # Apply all pending migrations
+gleam run -m cigogne down    # Roll back the last migration
 
 # Client (run from client/)
 gleam run -m lustre/dev start  # Dev server with hot reload
@@ -74,7 +81,7 @@ Request → web.middleware → router.handle_request → handler
 ### Database Workflow
 
 1. Add migration SQL to `server/priv/migrations/`
-2. Apply with `gleam run -m cigogne last`
+2. Apply with `gleam run -m cigogne up` (one migration) or `gleam run -m cigogne all` (all pending); roll back with `gleam run -m cigogne down`
 3. Add query SQL files to `server/src/server/sql/`
 4. Regenerate with `gleam run -m squirrel` (creates `sql.gleam`)
 
