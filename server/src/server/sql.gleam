@@ -970,6 +970,7 @@ pub fn list_activities_by_start_time(
 
   "SELECT *
 FROM activity
+WHERE recurring_activity_kind IS NULL
 ORDER BY start_time ASC;
 "
   |> pog.query
@@ -1028,6 +1029,7 @@ pub fn list_activities_by_title(
 
   "SELECT *
 FROM activity
+WHERE recurring_activity_kind IS NULL
 ORDER BY title ASC;
 "
   |> pog.query

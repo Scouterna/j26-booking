@@ -29,9 +29,9 @@ paths:
         - Activities
       summary: List activities
       description: |
-        Retrieve the full activity catalogue as slim summaries (without
-        `description`), with optional sorting. The list is not paginated — the
-        client fetches and caches all activities once at startup.
+        Retrieve ordinary activities as slim summaries (without `description`),
+        with optional sorting. Excludes recurring-kind slots (swim bus, climbing
+        wall), which have their own endpoints. Not paginated.
       operationId: listActivities
       parameters:
         - $ref: '#/components/parameters/SortParam'

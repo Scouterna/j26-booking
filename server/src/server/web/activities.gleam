@@ -52,9 +52,9 @@ fn response_from_db_activity_summaries(
   }
 }
 
-/// Returns the full activity catalogue as slim summaries (no `description`).
-/// The client caches the whole list once at startup, so this endpoint is
-/// unpaginated; `sort` is still honoured.
+/// Returns ordinary activities as slim summaries (no `description`), excluding
+/// recurring-kind slots (swim bus, climbing wall) which have their own
+/// endpoints. Unpaginated; `sort` is honoured.
 pub fn get_page(req: Request, ctx: web.Context) -> Response {
   use <- wisp.require_method(req, Get)
   let request_query = wisp.get_query(req)
