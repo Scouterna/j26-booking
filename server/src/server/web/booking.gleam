@@ -202,7 +202,7 @@ pub fn update(req: Request, id: String, ctx: web.Context) -> Response {
 
 pub fn delete(req: Request, id: String, ctx: web.Context) -> Response {
   use <- wisp.require_method(req, Delete)
-  use <- web.discard_body(req)
+  web.discard_body(req)
   use booking_id <- given.ok(uuid.from_string(id), fn(_) {
     wisp.bad_request("Invalid booking ID format")
   })
