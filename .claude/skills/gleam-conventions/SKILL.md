@@ -1,6 +1,6 @@
 ---
 name: gleam-conventions
-description: Gleam language conventions, patterns, and anti-patterns for the j26-booking codebase. Covers naming (snake_case, qualified imports, x_to_y conversion functions, try_ prefix), function annotations, Result vs Option, descriptive error type design, making invalid states impossible, module organization, and anti-patterns like panicking in libraries, dynamic FFI, and category theory overuse. Use this whenever writing or editing any Gleam code in the project (.gleam files in server/, client/, shared/, or examples/) — even small changes — to ensure consistency. Trigger on Gleam code, gleam.toml, or any reference to error handling, module structure, import style, or naming conventions.
+description: Use this skill whenever you author or edit a .gleam file in the j26-booking repo (server/, client/, shared/, examples/) — including small edits and questions about naming, imports, error types, custom types, or module structure. Do not rely on your own Gleam instincts: this project enforces specific conventions that differ from default Gleam style, and code that skips them (wrong function names, unqualified imports, Option instead of Result, missing annotations, bool fields that should be custom types, prematurely fragmented modules) is inconsistent and fails review. Consult it before deciding how to name a function (snake_case, x_to_y conversions, try_ prefix), whether to import qualified or unqualified, how to design an error type, whether a value should be a Result or Option, how to model state so invalid states are impossible, when to use the sans-io or builder pattern, and where Gleam source belongs (src vs dev vs test). Also covers anti-patterns: abbreviations, fragmented modules, panicking in libraries, dynamic FFI, check-then-assert, catch-all case patterns, namespace pollution, and category theory overuse. This is about writing Gleam source code — not SQL/Squirrel queries, gleam build/compiler/dependency errors, CI configuration, deployment, or general functional-programming concept questions.
 ---
 
 # Gleam Conventions, Patterns, and Anti-patterns
@@ -54,18 +54,18 @@ their return type.
 
 ```gleam
 // Good
-fn calculate_total(amounts: List(Float), service_charge: Float) -> Float {
-  list.fold(amounts, 0, int.add) * service_charge
+fn calculate_total(amounts: List(Int), service_charge: Int) -> Int {
+  int.sum(amounts) * service_charge
 }
 
 // Bad
 fn calculate_total(amounts, service_charge) {
-  list.fold(amounts, 0, int.add) * service_charge
+  int.sum(amounts) * service_charge
 }
 
 // Bad: missing return annotation
-fn calculate_total(amounts: List(Float), service_charge: Float) {
-  list.fold(amounts, 0, int.add) * service_charge
+fn calculate_total(amounts: List(Int), service_charge: Int) {
+  int.sum(amounts) * service_charge
 }
 ```
 
@@ -92,7 +92,7 @@ pub fn first(list: List(a)) -> Result(a, Nil) {
   }
 }
 
-// Bad: options
+// Bad: returns an option
 pub fn first(list: List(a)) -> option.Option(a) {
   case list {
     [item, ..] -> option.Some(item)
@@ -100,8 +100,8 @@ pub fn first(list: List(a)) -> option.Option(a) {
   }
 }
 
-// Bad: panics/exceptions
-pub fn first(list: List(a)) -> Result(a, Nil) {
+// Bad: panics on failure
+pub fn first(list: List(a)) -> a {
   case list {
     [item, ..] -> item
     _ -> panic as "cannot get first of empty list"
@@ -143,7 +143,11 @@ let json: Json = build_json()
 let j_s_o_n: JSON = build_j_s_o_n()
 ```
 
-### Name conversion functions as prescribed
+It may be tempting to ignore this convention and use the name `JSON`, but this
+will result in the BEAM code generated from the Gleam code using the name
+`j_s_o_n`.
+
+### Conventional conversion function naming
 
 When naming a function that converts from one type to another, use the convention `x_to_y`.
 
@@ -170,6 +174,17 @@ pub fn to_string(id: Identifier) -> String
 pub fn identifier_to_string(id: Identifier) -> String
 ```
 
+Functions are used with a module qualifier, so the name of the module clarifies
+what the input value is:
+
+```gleam
+import my_app/identifier.{type Identifier}
+
+pub fn run(id: Identifier) -> String {
+  identifier.to_string(id)
+}
+```
+
 If there is a name for the encoding, format, or variant used in the conversion
 function, then use that in the name of the function.
 
@@ -192,14 +207,21 @@ pub fn round(data: Float) -> Int
 pub fn float_to_int(data: Float) -> Int
 ```
 
-### Name short-circuiting result functions as prescribed
+### Conventional fallible function naming
 
 Functions that return results should be given a name that is appropriate for
 the domain and the operation they perform.
 
+```gleam
+// Good
+pub fn parse_json(input: String) -> Result(Json, ParseError)
+pub fn enqueue(job: BackgroundJob) -> Result(Nil, EnqueueError)
+```
+
 If the function is a special result-handling version of an existing function
-that short-circuits when there is an error, then the `try_` prefix can be used,
-so long as there is not a more appropriate domain-specific name.
+that returns-early when there is an error, then the `try_` prefix can be used,
+so long as there is not a more appropriate domain-specific name. Names based on
+design patterns or abstract concepts should be avoided.
 
 ```gleam
 pub fn map(list: List(a), f: fn(a) -> b) -> List(b)
@@ -219,26 +241,88 @@ pub fn monadic_bind(
 
 ### Use the core libraries
 
-Use these shared foundation packages rather than replicating their functionality:
+The Gleam core team maintain several packages that are to be used as a shared
+foundation for other Gleam libraries and applications.
 
-- `gleam_stdlib`, `gleam_time`, `gleam_http`, `gleam_erlang`, `gleam_otp`, `gleam_javascript`
+- [`gleam_stdlib`](https://hexdocs.pm/gleam_stdlib)
+- [`gleam_time`](https://hexdocs.pm/gleam_time)
+- [`gleam_json`](https://hexdocs.pm/gleam_json)
+- [`gleam_http`](https://hexdocs.pm/gleam_http)
+- [`gleam_erlang`](https://hexdocs.pm/gleam_erlang)
+- [`gleam_otp`](https://hexdocs.pm/gleam_otp)
+- [`gleam_javascript`](https://hexdocs.pm/gleam_javascript)
+
+This shared foundation makes it easier for related Gleam packages to work
+together, and helps avoid common problems that the design of the packages
+guard against.
+
+Do not replicate functionality provided by these packages. e.g. Do not create a
+new time type instead of using `gleam_time`'s `Timestamp`.
+
+### Keep development tool config in `gleam.toml`
+
+The `gleam` command line program provides most the functionality that we need
+for Gleam development, but there may still be occasions where additional
+tooling is desired. For example, a security scanner, or a licence compliance
+checker.
+
+If these tools are to be configured via a file, that file should be
+`gleam.toml`, with configuration going under the `tools.$TOOL_NAME` key prefix.
+
+```toml
+name = "thingy"
+version = "1.0.0"
+
+[dependencies]
+gleam_stdlib = "<= 1.0.0 and < 2.0.0"
+
+[tools.lustre.dev]
+host = "0.0.0.0"
+
+[tools.lustre.build]
+minify = true
+outdir = "../server/priv/static"
+```
+
+Do not use dedicated configuration files such as `my-tool.toml`, or
+`config/my-tool.yaml`.
+
+Dynamic configuration can be read from environment variables or provided as
+command line arguments.
 
 ### Use the correct source code directory
 
-- `src` — Application/library code. Can import from `dependencies` and `src/` only.
-- `test` — Test code. Can import from any dependencies and any directory.
-- `dev` — Development helpers. Can import from any dependencies and any directory.
+Gleam's build tool offers 3 directories for source code, `src`, `dev`, `test`.
+Each directory has a different purpose.
+
+`src` is for code to be included in application or library itself. Code in this
+directory can import modules from `dependencies` and `src/`, but not
+`dev_dependencies`, `dev/`, or `test/`.
+
+`test` is for code that tests the package, such as automated unit and
+integration tests. Code in this directory can import modules from any
+dependencies and any directory.
+
+`dev` is for any additional code used in development, such as code generators
+and helper scripts. Code in this directory can import modules from any
+dependencies and any directory.
 
 ## Patterns
 
 ### Design descriptive errors
 
-Design error variants to describe what the error was in terms of your business
-domain. Each variant should hold additional information about the error instance.
+When creating an error type, design the variants to describe what the error was
+in terms of your business domain. Each variant should hold additional
+information about the error instance, to aid debugging or with creation of
+helpful error messages.
+
+If the error was caused by a lower-level error, e.g. being unable to load
+application data due to failing to read a file, then that lower error can be
+one of the fields of the higher error.
 
 ```gleam
 // Good
-pub type NotesError {
+pub type NoteBookError {
   NoteAlreadyExists(path: String)
   NoteCouldNotBeCreated(path: String, reason: simplifile.FileError)
   NoteCouldNotBeRead(path: String, reason: simplifile.FileError)
@@ -249,6 +333,8 @@ pub type NotesError {
 pub type NotesError {
   NoteAlreadyExists
   NoteCouldNotBeCreated
+  NoteCouldNotBeRead
+  NoteInvalidFrontmatter
 }
 
 // Bad: Designed around dependencies, not business domain
@@ -260,50 +346,488 @@ pub type NotesError {
 
 ### Comment liberally
 
-Comments explain both _what_ the code does and _why_. Adding comments does not
-mean the code itself can be written in an unclear way.
+Comments are a very effective way to make code easier to understand. This is
+especially valuable for projects with more than one programmer, or projects
+that are expected read and edited over longer periods of time.
+
+Comments can explain both _what_ the code does as well as _why_ the code does
+what it does. Often the reader could determine _what_ without the aid of the
+comment, but that may not be the case for unfamiliar readers or if the code is
+later determined to have a bug, so what it does and what the writer intended it
+to do do not match.
+
+```gleam
+pub fn classify_file_content(content: String) -> FileOrigin {
+  let likely_generated =
+    // In newer versions of squirrel this is always at the beginning of the
+    // file and it would be enough to check for this comment to establish if
+    // a file is generated or not...
+    string.contains(
+      content,
+      "> 🐿️ This module was generated automatically using",
+    )
+    // ...but in older versions that module comment is not present! So we
+    // need to check if there's any function generated by squirrel.
+    || string.contains(
+      content,
+      "> 🐿️ This function was generated automatically using",
+    )
+
+  case likely_generated {
+    True -> LikelyGenerated
+    False -> NotGenerated
+  }
+}
+```
+
+Adding comments does not mean the code itself can be written in an unclear way,
+and having well written code doesn't mean that comments are not a valuable
+addition.
 
 ### Make invalid states impossible
 
-Use Gleam's type system to precisely model your domain so invalid data cannot
-be constructed.
+Gleam's type system and custom types enable Gleam programmers to precisely
+model their domain in their code. Types definitions that sufficiently encode
+the business rules can make it impossible to construct invalid data, removing
+many types of bugs, and turning the type definitions into documentation for the
+business logic.
+
+For example, say we are making a website, and the visitors to that website can
+be logged in users, or they can be guests. All logged in users have an email
+address and a database id. This could be represented like so:
 
 ```gleam
-// Good
-pub type Visitor {
-  LoggedInUser(id: Int, email: String)
-  Guest
-}
-
-// Bad: allows invalid states (id without email)
 pub type Visitor {
   Visitor(id: Option(Int), email: Option(String))
 }
 ```
 
+If the visitor is logged in, then both the optional fields would be set. If the
+visitor is a guest, then both would be unset.
+
+```gleam
+let logged_in_user = Visitor(id: Some(123), email: Some("hi@example.com"))
+let guest = Visitor(id: None, email: None)
+```
+
+However, this data structure can be constructed with just an email, or just an
+id, both states being invalid according to our business rules!
+
+```gleam
+let invalid = Visitor(id: Some(123), email: None)
+```
+
+A better design would ensure that both the id and the email are present at the
+same time, making the invalid states impossible.
+
+```gleam
+pub type Visitor {
+  LoggedInUser(id: Int, email: String)
+  Guest
+}
+```
+
+Richard Feldman has an excellent talk on this pattern which can be viewed
+[on youtube](https://www.youtube.com/watch?v=IcgmSRJHu_8).
+
+### Replace bools with custom types
+
+The bool type can be useful for representing data with 2 possible states,
+however, there are some drawbacks to this:
+
+- `Bool`, `True`, and `False` have no meaning without context, making it easier
+  to misunderstand what values represent.
+- The bool type will be used for many unrelated pieces of data, so it is
+  possible to mistake one bool value for another without a type error to
+  prevent the mistake.
+- If a third state is required in future then bool can no longer be used, and a
+  larger refactoring will be needed. It may be tempting to use a second bool,
+  but that results in 4 states, and a third bool results in 8 states.
+  Combinations of bools can be especially unclear.
+
+```gleam
+pub type SchoolPerson {
+  SchoolPerson(name: String, is_student: Bool)
+}
+```
+
+Consider defining and using descriptive custom types instead, as they avoid
+these issues.
+
+```gleam
+pub type SchoolPerson {
+  SchoolPerson(name: String, role: Role)
+}
+
+pub type Role {
+  Student
+  Teacher
+}
+```
+
+### The sans-io pattern
+
+The sans-io pattern is a way of designing API clients, SDKs, and similar
+packages so that they do not depend on any particular HTTP client. Instead it
+gives responsibility to the library user for sending HTTP requests, etc.
+With this pattern the user has full control over HTTP sending, so they can use
+it on any target, inside any structure or framework, they can add rate limiting
+or retries, or anything else they might need.
+
+To implement the pattern structure your code so that each API action has a pair
+of functions: One that constructs a HTTP request, and another that takes a HTTP
+response and returns the resulting data.
+
+```gleam
+import gleam/http/request.{type Request}
+import gleam/http/response.{type Response}
+
+/// Construct a request for the create-user endpoint.
+pub fn create_user_request(name: String) -> Request(String) {
+  request.new()
+  |> request.set_method(Post)
+  |> request.set_host("example.com")
+  |> request.set_body(json.to_string(json.object([#("name", name)])))
+  |> request.prepend_header("accept", "application/json")
+  |> request.prepend_header("content-type", "application/json")
+}
+
+/// Parse a response from the create-user endpoint.
+pub fn create_user_response(response: Response(String)) -> Result(User, ApiError) {
+  case response.status {
+    201 -> Ok(User(name: response.body))
+    409 -> Error(UserNameAlreadyInUse)
+    429 -> Error(RateLimitWasHit)
+    code -> Error(GotUnexpectedResponse(code, response.body))
+  }
+}
+```
+
+This is not the same as taking a HTTP-sending function as an argument. That
+design means that only HTTP clients that conform to that type can be used,
+which is very limiting. Most notably, it would mean that the library cannot be
+used on both the Erlang and the JavaScript targets, as one will be using a
+promise type, while the other will not.
+
+### The builder pattern
+
+The builder pattern is a flexible way to create records with multiple optional
+fields, often used for configuration.
+
+```gleam
+// Usage
+button.new(text: "Continue")
+|> button.colour("green")
+|> button.large
+|> button.to_html
+```
+
+Any required fields can be taken as arguments by the function that starts the
+builder pipeline, the remaining fields being set to default values.
+
+```gleam
+pub type Button {
+  Button(text: String, colour: String, classes: Set(String))
+}
+
+pub fn new(text text: String) -> Button {
+  Button(text:, colour: "pink", classes: set.new())
+}
+```
+
+In this example the `Button` type is not opaque, so the record can be
+constructed and manipulated directly. Other times you may wish to make it
+opaque and force the builder functions to be used, which could be for
+validation or data integrity reasons.
+
+Builder functions take the builder value as an argument and return a new
+version of it with one or more fields changed.
+
+```gleam
+pub fn colour(button: Button, value: String) -> Button {
+  Button(..button, colour: value)
+}
+```
+
+Builder functions do not need to only set a field to a value taken as an
+argument, they can perform any logic to construct the data. Often it is helpful
+to have convenience functions for common uses, and possibly have the users of
+the code construct the builder record directly if they need full control.
+
+```gleam
+pub fn large(button: Button) -> Button {
+  let classes = button.classes |> set.delete("small") |> set.insert("large")
+  Button(..button, classes:)
+}
+```
+
 ## Anti-patterns
+
+### Abbreviations
+
+Using shortened names can save a few keystrokes when typing, but they greatly
+hinder code reading and understanding. Abbreviations are ambiguous, so the
+reader has to guess what they are short for, and often they will get it wrong.
+This is especially likely if you are working with people with different
+backgrounds or from different cultures.
+
+Always write names in full.
+
+```gleam
+// Bad
+let cap = 5
+let off = 0
+let cnt = proc_dat(ss)
+
+// Good
+let capacity = 5
+let offset = 0
+let continuation = process_data(session)
+```
 
 ### Fragmented modules
 
-Do not prematurely split up modules. Focus on the business domain and making
-the best API. Large modules are not inherently a problem.
+Do not prematurely split up modules into multiple smaller modules, and do not
+view large modules as a problem. Instead focus on the business domain and
+making the best API for the users of the code.
+
+An API that is split over many modules is harder to understand and requires
+more boilerplate to use than one well designed module, and it becomes more
+challenging to hide internal implementation details when they have to be
+exposed for other modules to use.
+
+Multiple modules also encourages the creation of a much larger number of
+functions and types, with overlapping functionality between modules. The larger
+the API the more difficult it is to understand and to work with. The best APIs
+are small and focused.
+
+If you are having trouble with import cycles, or if multiple modules need to be
+imported to perform a simple task with your code, then it may be a sign that
+you have split up code that should be a single module.
+
+Evan Czaplicki's talk ["The life of a file"](https://www.youtube.com/watch?v=XpDsk374LDE)
+has a wealth of information on this topic.
+
+```gleam
+// Bad
+import my_library/client
+import my_library/config
+import my_library/decode
+import my_library/error
+import my_library/parser
+import my_library/types
+
+// Good
+import my_library
+```
+
+This anti-pattern is especially common with AI-generated code. If you are using
+AI in your coding pay extra attention to this rule.
 
 ### Panicking in libraries
 
-Libraries must not panic — always return `Result` types.
+Libraries must not panic, so they should not use `panic` or `let assert`.
+
+Panicking instead of returning a result takes control away from the users of
+the library, preventing them from being able to handle errors. A library does
+not know the context in which it is used, so it is impossible for the author of
+a library to know if it acceptable to panic, so they never can.
+
+The one exception to this rule is for libraries _about_ OTP, the BEAM
+application framework. OTP has non-local handling through supervision trees, so
+there may be some circumstances in which it is appropriate to panic, providing
+they have a suitably designed supervision tree. The library author would
+benefit from having a strong understanding of OTP system to identify when this
+is a good option.
 
 ### Global namespace pollution
 
-Place modules within a uniquely named directory matching the package name.
+Gleam has a global module namespace, a property inherited from the BEAM
+ecosystem. If two packages each define a module with the same name then a
+project adding both packages as dependencies will fail to compile.
+
+To avoid this problem packages should define their own namespace by placing
+their modules within a uniquely named directory. This name should match the
+name of the package. For example, the package `lustre` places its modules in
+`src/lustre/`.
+
+```sh
+# Good
+src/
+├── my_package.gleam
+└── my_package/
+    ├── distribution.gleam
+    └── inventory.gleam
+
+# Bad
+src/
+├── distribution.gleam
+├── inventory.gleam
+└── my_package.gleam
+```
 
 ### Namespace trespassing
 
-Do not place modules within a top-level directory that belongs to a different package.
+Other packages should not place their modules within a top-level directory that
+belongs to a different package. Trespassing in someone else's module
+namespace can result in compilation errors due to module collisions, and
+confusing code where it is unclear where modules come from.
+
+For example, I must not place my modules within `src/lustre/`, even if I am
+making a package intended to be used with the `lustre` package.
+
+The maintainers of the `lustre` package may choose to reuse the `src/lustre/`
+directory in other Lustre-related packages that they also own.
+
+### Grouping by design pattern
+
+When splitting your code into modules always design the boundaries in your
+system around your business domain and what would be the best API for the users
+of the code. This means never using design patterns or abstract code constructs
+as the basis for boundaries within the project.
+
+```gleam
+// Bad: kind grouping
+import app/constants
+import app/functions
+import app/types
+import app/utilities
+
+// Bad: category theory grouping
+import app/functors
+import app/monads
+import app/monoids
+import app/semigroups
+
+// Bad: design pattern grouping
+import app/controllers/user_controller
+import app/decorator/user_decorator
+import app/model/user_mode
+import app/services/user_service
+import app/views/user_view
+
+// Good: business domain grouping
+import app/stock
+import app/billing
+```
+
+### Check-then-assert
+
+Check-then-assert is a pattern common in procedural languages where one
+performs a check that a value is in some desired state, and then performs
+some action afterwards with the knowledge that it is in the desired state. This
+is an anti-pattern in functional languages like Gleam, and it should never be
+done.
+
+Instead use pattern matching or functions such as `result.try` and `result.map`
+to handle data that could be in some other state. These patterns take advantage
+of the type system to ensure that there are no mistakes coming from a
+disconnect between the checking and the using, and they can have performance
+benefits too.
+
+```gleam
+// Bad: check then assert
+case result.is_ok(data) {
+  True -> {
+    let assert Ok(value) = data
+    process(value)
+  }
+  False -> data
+}
+
+// Bad: check then assert with `use`
+use <- bool.guard(when: result.is_error(data), return: data)
+let assert Ok(value) = data
+process(data)
+
+// Good: pattern matching
+case data {
+  Ok(value) -> process(value)
+  Error(e) -> Error(e)
+}
+
+// Good: combinators
+data |> result.try(process)
+
+// Good: combinators with `use`
+use value <- result.try(value)
+process(value)
+```
 
 ### Using dynamic with FFI
 
-Never use `Dynamic` for FFI types. Create new opaque types instead.
+When using code written in other languages there will be some arguments and
+return values that cannot be represented with the Gleam type system. For
+example, an Erlang function could take an int or a float as its argument.
+
+Never use the `gleam/dynamic` module's `Dynamic` type to represent these types.
+
+The dynamic type represents _any_ type of data, meaning it is valid to pass any
+value at all to that function, which is not correct and will cause runtime
+errors. Instead create a new type that represents exactly the expected type.
+
+```gleam
+// Good
+pub type Buffer
+
+pub fn byte_size(data: Buffer) -> Int
+
+// Bad
+import gleam/dynamic.{type Dynamic}
+
+pub fn byte_size(data: Dynamic) -> Int
+```
+
+### Match all variants
+
+Gleam's exhaustiveness checking of case expressions ensures that when you
+change your data model all your code is updated appropriately before it
+compiled again.
+
+If the final pattern of a case expression is one that matches any value, then
+this refactoring assistance is effectively disabled for new additions, and the
+compiler will not be able to help you update your code. This makes it easy to
+introduce bugs due to old logic no longer being correct, so avoid catch-all
+patterns where possible.
+
+```gleam
+// Bad: assumes all other variants are teachers
+case role {
+  Student -> handle_student()
+  _ -> handle_teacher()
+}
+
+// Good: cannot silently become incorrect
+case role {
+  Student -> handle_student()
+  Teacher -> handle_teacher()
+}
+```
 
 ### Category theory overuse
 
-Avoid complex category theory abstractions. Solve specific problems with specific solutions.
+Avoid creation of complex category theory based abstractions.
+
+Gleam does not have the ergonomics to make these abstractions easy to work
+with, nor the compiler and runtime optimisations required to erase the
+significant runtime overhead they introduce. Complex abstractions typically
+introduce a high cognitive overhead to the code, running contrary to Gleam's
+simple, concrete, and approachable programming style.
+
+Solve specific problems with specific solutions.
+
+```gleam
+// Bad: abstract style
+pub fn sum(
+  data: a,
+  monoid: Monoid(a),
+  catamorphism: Catamorphism(a, b),
+) -> b {
+  catamorphism.apply(data, monoid.empty, monoid.append)
+}
+
+// Good: concrete style
+pub fn total_cost(costs: List(Int)) -> Int {
+  int.sum(costs)
+}
+```
