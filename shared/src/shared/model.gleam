@@ -1,8 +1,21 @@
+import gleam/dict.{type Dict}
 import gleam/dynamic/decode
 import gleam/float
+import gleam/int
 import gleam/option.{type Option, None}
 import gleam/time/timestamp.{type Timestamp}
 import youid/uuid.{type Uuid}
+
+/// Decode a UUID from a JSON string, failing the decoder on a malformed value.
+/// The placeholder passed to `decode.failure` is never surfaced — it only fixes
+/// the decoder's type — so a fresh v7 UUID is a fine sentinel.
+fn uuid_from_string_decoder() -> decode.Decoder(Uuid) {
+  use raw <- decode.then(decode.string)
+  case uuid.from_string(raw) {
+    Ok(id) -> decode.success(id)
+    Error(_) -> decode.failure(uuid.v7(), "valid UUID string")
+  }
+}
 
 pub type Activity {
   Activity(
@@ -273,4 +286,108 @@ pub fn activity_statuses_decoder() -> decode.Decoder(List(ActivityStatusEntry)) 
     decode.list(activity_status_entry_decoder()),
   )
   decode.success(statuses)
+}
+
+/// A single open interval within a day, e.g. `09:00`–`12:00`. Times are kept as
+/// `HH:MM` strings since they are only ever displayed, never computed with.
+pub type TimeRange {
+  TimeRange(from: String, to: String)
+}
+
+/// A location's opening hours, keyed by ISO date (`YYYY-MM-DD`). Each date maps
+/// to the intervals the location is open that day; a missing date means closed.
+pub type OpeningHours =
+  Dict(String, List(TimeRange))
+
+pub type Location {
+  Location(
+    id: Uuid,
+    name: String,
+    name_en: String,
+    description: String,
+    description_en: String,
+    icon_name: String,
+    color: String,
+    latitude: Float,
+    longitude: Float,
+    opening_hours: OpeningHours,
+    /// Ids of the tags applied to this location; resolve to full tags via
+    /// `/api/location-tags`.
+    tags: List(Uuid),
+  )
+}
+
+fn time_range_decoder() -> decode.Decoder(TimeRange) {
+  use from <- decode.field("from", decode.string)
+  use to <- decode.field("to", decode.string)
+  decode.success(TimeRange(from:, to:))
+}
+
+/// Decode opening hours from the API/DB JSON object
+/// `{"YYYY-MM-DD": [{"from": "09:00", "to": "12:00"}]}`.
+pub fn opening_hours_decoder() -> decode.Decoder(OpeningHours) {
+  decode.dict(decode.string, decode.list(time_range_decoder()))
+}
+
+/// Coordinates serialise as JSON numbers; accept both float and int forms.
+fn coordinate_decoder() -> decode.Decoder(Float) {
+  decode.one_of(decode.float, [decode.int |> decode.map(int.to_float)])
+}
+
+/// Decode a Location from API JSON. Expects id and tag ids as UUID strings,
+/// coordinates as numbers, and opening_hours as a date-keyed object.
+pub fn location_decoder() -> decode.Decoder(Location) {
+  use id <- decode.field("id", uuid_from_string_decoder())
+  use name <- decode.field("name", decode.string)
+  use name_en <- decode.field("name_en", decode.string)
+  use description <- decode.field("description", decode.string)
+  use description_en <- decode.field("description_en", decode.string)
+  use icon_name <- decode.field("icon_name", decode.string)
+  use color <- decode.field("color", decode.string)
+  use latitude <- decode.field("latitude", coordinate_decoder())
+  use longitude <- decode.field("longitude", coordinate_decoder())
+  use opening_hours <- decode.field("opening_hours", opening_hours_decoder())
+  use tags <- decode.field("tags", decode.list(uuid_from_string_decoder()))
+  decode.success(Location(
+    id:,
+    name:,
+    name_en:,
+    description:,
+    description_en:,
+    icon_name:,
+    color:,
+    latitude:,
+    longitude:,
+    opening_hours:,
+    tags:,
+  ))
+}
+
+/// Decode a list of locations from the API response `{"locations": [...]}`.
+pub fn locations_decoder() -> decode.Decoder(List(Location)) {
+  use locations <- decode.field("locations", decode.list(location_decoder()))
+  decode.success(locations)
+}
+
+pub type LocationTag {
+  LocationTag(id: Uuid, name: String, name_en: String, icon_name: String)
+}
+
+/// Decode a LocationTag from API JSON. Expects id as a UUID string.
+pub fn location_tag_decoder() -> decode.Decoder(LocationTag) {
+  use id <- decode.field("id", uuid_from_string_decoder())
+  use name <- decode.field("name", decode.string)
+  use name_en <- decode.field("name_en", decode.string)
+  use icon_name <- decode.field("icon_name", decode.string)
+  decode.success(LocationTag(id:, name:, name_en:, icon_name:))
+}
+
+/// Decode a list of location tags from the API response
+/// `{"location_tags": [...]}`.
+pub fn location_tags_decoder() -> decode.Decoder(List(LocationTag)) {
+  use location_tags <- decode.field(
+    "location_tags",
+    decode.list(location_tag_decoder()),
+  )
+  decode.success(location_tags)
 }

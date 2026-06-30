@@ -1158,6 +1158,161 @@ ORDER BY activity.start_time ASC;
   |> pog.execute(db)
 }
 
+/// A row you get from running the `list_location_tag_links` query
+/// defined in `./src/server/sql/list_location_tag_links.sql`.
+///
+/// > 🐿️ This type definition was generated automatically using v4.6.0 of the
+/// > [squirrel package](https://github.com/giacomocavalieri/squirrel).
+///
+pub type ListLocationTagLinksRow {
+  ListLocationTagLinksRow(location_id: Uuid, location_tag_id: Uuid)
+}
+
+/// Lists every location-to-tag link. Joined to locations in the handler to embed
+/// each location's tag ids without an array aggregation.
+///
+/// > 🐿️ This function was generated automatically using v4.6.0 of
+/// > the [squirrel package](https://github.com/giacomocavalieri/squirrel).
+///
+pub fn list_location_tag_links(
+  db: pog.Connection,
+) -> Result(pog.Returned(ListLocationTagLinksRow), pog.QueryError) {
+  let decoder = {
+    use location_id <- decode.field(0, uuid_decoder())
+    use location_tag_id <- decode.field(1, uuid_decoder())
+    decode.success(ListLocationTagLinksRow(location_id:, location_tag_id:))
+  }
+
+  "-- Lists every location-to-tag link. Joined to locations in the handler to embed
+-- each location's tag ids without an array aggregation.
+SELECT location_id,
+    location_tag_id
+FROM location_tag_location;
+"
+  |> pog.query
+  |> pog.returning(decoder)
+  |> pog.execute(db)
+}
+
+/// A row you get from running the `list_location_tags` query
+/// defined in `./src/server/sql/list_location_tags.sql`.
+///
+/// > 🐿️ This type definition was generated automatically using v4.6.0 of the
+/// > [squirrel package](https://github.com/giacomocavalieri/squirrel).
+///
+pub type ListLocationTagsRow {
+  ListLocationTagsRow(
+    id: Uuid,
+    name: String,
+    name_en: String,
+    icon_name: String,
+  )
+}
+
+/// Lists all location tags ordered by name.
+///
+/// > 🐿️ This function was generated automatically using v4.6.0 of
+/// > the [squirrel package](https://github.com/giacomocavalieri/squirrel).
+///
+pub fn list_location_tags(
+  db: pog.Connection,
+) -> Result(pog.Returned(ListLocationTagsRow), pog.QueryError) {
+  let decoder = {
+    use id <- decode.field(0, uuid_decoder())
+    use name <- decode.field(1, decode.string)
+    use name_en <- decode.field(2, decode.string)
+    use icon_name <- decode.field(3, decode.string)
+    decode.success(ListLocationTagsRow(id:, name:, name_en:, icon_name:))
+  }
+
+  "-- Lists all location tags ordered by name.
+SELECT id,
+    name,
+    name_en,
+    icon_name
+FROM location_tag
+ORDER BY name ASC;
+"
+  |> pog.query
+  |> pog.returning(decoder)
+  |> pog.execute(db)
+}
+
+/// A row you get from running the `list_locations` query
+/// defined in `./src/server/sql/list_locations.sql`.
+///
+/// > 🐿️ This type definition was generated automatically using v4.6.0 of the
+/// > [squirrel package](https://github.com/giacomocavalieri/squirrel).
+///
+pub type ListLocationsRow {
+  ListLocationsRow(
+    id: Uuid,
+    name: String,
+    name_en: String,
+    description: String,
+    description_en: String,
+    icon_name: String,
+    color: String,
+    latitude: Float,
+    longitude: Float,
+    opening_hours: String,
+  )
+}
+
+/// Lists all locations ordered by name. `opening_hours` is returned as a JSON
+/// string (cast from jsonb) for the model layer to parse.
+///
+/// > 🐿️ This function was generated automatically using v4.6.0 of
+/// > the [squirrel package](https://github.com/giacomocavalieri/squirrel).
+///
+pub fn list_locations(
+  db: pog.Connection,
+) -> Result(pog.Returned(ListLocationsRow), pog.QueryError) {
+  let decoder = {
+    use id <- decode.field(0, uuid_decoder())
+    use name <- decode.field(1, decode.string)
+    use name_en <- decode.field(2, decode.string)
+    use description <- decode.field(3, decode.string)
+    use description_en <- decode.field(4, decode.string)
+    use icon_name <- decode.field(5, decode.string)
+    use color <- decode.field(6, decode.string)
+    use latitude <- decode.field(7, decode.float)
+    use longitude <- decode.field(8, decode.float)
+    use opening_hours <- decode.field(9, decode.string)
+    decode.success(ListLocationsRow(
+      id:,
+      name:,
+      name_en:,
+      description:,
+      description_en:,
+      icon_name:,
+      color:,
+      latitude:,
+      longitude:,
+      opening_hours:,
+    ))
+  }
+
+  "-- Lists all locations ordered by name. `opening_hours` is returned as a JSON
+-- string (cast from jsonb) for the model layer to parse.
+SELECT id,
+    name,
+    name_en,
+    description,
+    description_en,
+    icon_name,
+    color,
+    latitude,
+    longitude,
+    opening_hours::text AS opening_hours
+FROM location
+ORDER BY name ASC;
+"
+  |> pog.query
+  |> pog.returning(decoder)
+  |> pog.execute(db)
+}
+
 /// A row you get from running the `list_swim_bus_activities` query
 /// defined in `./src/server/sql/list_swim_bus_activities.sql`.
 ///

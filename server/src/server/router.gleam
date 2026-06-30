@@ -5,6 +5,7 @@ import server/web/activities
 import server/web/app_config
 import server/web/booking
 import server/web/favourite
+import server/web/location
 import server/web/status
 import wisp.{type Request, type Response}
 
@@ -52,6 +53,10 @@ fn handle_api_request(
     Put, ["bookings", id] -> booking.update(req, id, ctx)
     Delete, ["bookings", id] -> booking.delete(req, id, ctx)
     _, ["bookings", _] -> wisp.method_not_allowed([Get, Put, Delete])
+    Get, ["locations"] -> location.get_all(req, ctx)
+    _, ["locations"] -> wisp.method_not_allowed([Get])
+    Get, ["location-tags"] -> location.get_tags(req, ctx)
+    _, ["location-tags"] -> wisp.method_not_allowed([Get])
     Get, ["app-config"] -> app_config.navigation()
     _, ["app-config"] -> wisp.method_not_allowed([Get])
     Get, ["docs"] -> api_documentation()
