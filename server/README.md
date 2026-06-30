@@ -153,6 +153,7 @@ activity {
   timestamp start_time
   timestamp end_time
   text[null] recurring_activity_kind "slug: swim-bus | climbing-wall"
+  uuid[null] location_id FK "_not initial scope_"
 }
 
 booking {
@@ -175,28 +176,34 @@ activity_user {
 }
 
 location {
-  uuid id PK,FK
+  uuid id PK
   text name
   text name_en
   text description
   text description_en
-  uuid category "How do we solve subcategories/tags?
-  Toilet -> Handicap toilet"
-  text[null] icon_name "Not MVP.
-  Overrides category icon."
+  text icon_name
+  text color
   float8 latitude
   float8 longitude
+  jsonb opening_hours "{ \"YYYY-MM-DD\": [{ from, to }] }"
 }
 
-location_category {
-  uuid id PK,FK
+location_tag_location {
+  uuid location_tag_id PK,FK
+  uuid location_id PK,FK
+}
+
+location_tag {
+  uuid id PK
   text name
   text name_en
   text icon_name
 }
 
-activity }o--|| location : happens_at
-location }o--|| location_category : has
+location ||--o{ location_tag_location : tagged
+location_tag ||--o{ location_tag_location : tags
+
+activity }o--o| location : "happens_at (not initial scope)"
 
 
 activity ||--o{ activity_user : organized_by
