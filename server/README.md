@@ -184,6 +184,7 @@ location {
   text description
   text description_en
   text icon_name
+  text icon_variant
   text color
   float8 latitude
   float8 longitude
@@ -200,6 +201,7 @@ location_tag {
   text name
   text name_en
   text icon_name
+  text icon_variant
 }
 
 location ||--o{ location_tag_location : tagged

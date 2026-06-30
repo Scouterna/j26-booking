@@ -5,6 +5,7 @@ INSERT INTO location (
         description,
         description_en,
         icon_name,
+        icon_variant,
         color,
         latitude,
         longitude,
@@ -17,6 +18,7 @@ VALUES (
         'Information och hjälp för deltagare.',
         'Information and help for participants.',
         'tabler-badge-wc',
+        'filled',
         '#2563eb',
         55.979798511431689,
         14.134385999313892,
@@ -37,24 +39,27 @@ VALUES (
         'Sjukvård och första hjälpen dygnet runt.',
         'Medical care and first aid around the clock.',
         'tabler-first-aid-kit',
+        'outline',
         '#dc2626',
         55.980512,
         14.135702,
         '{}'::jsonb
     );
 
-INSERT INTO location_tag (id, name, name_en, icon_name)
+INSERT INTO location_tag (id, name, name_en, icon_name, icon_variant)
 VALUES (
         '0190f3a1-2d3e-7f40-ab51-6c7d8e9f0a1b',
         'Service',
         'Service',
-        'tabler-info-circle'
+        'tabler-info-circle',
+        'outline'
     ),
     (
         '0190f3a1-4f50-7162-cd73-8e9f0a1b2c3d',
         'Sjukvård',
         'Medical',
-        'tabler-heartbeat'
+        'tabler-heartbeat',
+        'filled'
     );
 
 INSERT INTO location_tag_location (location_tag_id, location_id)

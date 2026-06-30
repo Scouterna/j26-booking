@@ -1206,6 +1206,7 @@ pub type ListLocationTagsRow {
     name: String,
     name_en: String,
     icon_name: String,
+    icon_variant: String,
   )
 }
 
@@ -1222,14 +1223,22 @@ pub fn list_location_tags(
     use name <- decode.field(1, decode.string)
     use name_en <- decode.field(2, decode.string)
     use icon_name <- decode.field(3, decode.string)
-    decode.success(ListLocationTagsRow(id:, name:, name_en:, icon_name:))
+    use icon_variant <- decode.field(4, decode.string)
+    decode.success(ListLocationTagsRow(
+      id:,
+      name:,
+      name_en:,
+      icon_name:,
+      icon_variant:,
+    ))
   }
 
   "-- Lists all location tags ordered by name.
 SELECT id,
     name,
     name_en,
-    icon_name
+    icon_name,
+    icon_variant
 FROM location_tag
 ORDER BY name ASC;
 "
@@ -1252,6 +1261,7 @@ pub type ListLocationsRow {
     description: String,
     description_en: String,
     icon_name: String,
+    icon_variant: String,
     color: String,
     latitude: Float,
     longitude: Float,
@@ -1275,10 +1285,11 @@ pub fn list_locations(
     use description <- decode.field(3, decode.string)
     use description_en <- decode.field(4, decode.string)
     use icon_name <- decode.field(5, decode.string)
-    use color <- decode.field(6, decode.string)
-    use latitude <- decode.field(7, decode.float)
-    use longitude <- decode.field(8, decode.float)
-    use opening_hours <- decode.field(9, decode.string)
+    use icon_variant <- decode.field(6, decode.string)
+    use color <- decode.field(7, decode.string)
+    use latitude <- decode.field(8, decode.float)
+    use longitude <- decode.field(9, decode.float)
+    use opening_hours <- decode.field(10, decode.string)
     decode.success(ListLocationsRow(
       id:,
       name:,
@@ -1286,6 +1297,7 @@ pub fn list_locations(
       description:,
       description_en:,
       icon_name:,
+      icon_variant:,
       color:,
       latitude:,
       longitude:,
@@ -1301,6 +1313,7 @@ SELECT id,
     description,
     description_en,
     icon_name,
+    icon_variant,
     color,
     latitude,
     longitude,

@@ -635,6 +635,7 @@ paths:
                     description: "Information och hjälp för deltagare."
                     description_en: "Information and help for participants."
                     icon_name: "tabler-badge-wc"
+                    icon_variant: "filled"
                     color: "#2563eb"
                     latitude: 55.979798511431689
                     longitude: 14.134385999313892
@@ -676,6 +677,7 @@ paths:
                     name: "Service"
                     name_en: "Service"
                     icon_name: "tabler-info-circle"
+                    icon_variant: "outline"
         '500':
           $ref: '#/components/responses/ServerError'
 
@@ -868,6 +870,7 @@ components:
         - description
         - description_en
         - icon_name
+        - icon_variant
         - color
         - latitude
         - longitude
@@ -899,6 +902,10 @@ components:
           type: string
           description: Name of the icon representing the location
           example: "tabler-badge-wc"
+        icon_variant:
+          type: string
+          description: Icon style variant, e.g. "outline" or "filled"
+          example: "outline"
         color:
           type: string
           description: Hex colour used for the location marker
@@ -964,6 +971,7 @@ components:
         - name
         - name_en
         - icon_name
+        - icon_variant
       properties:
         id:
           type: string
@@ -982,6 +990,10 @@ components:
           type: string
           description: Name of the icon representing the tag
           example: "tabler-info-circle"
+        icon_variant:
+          type: string
+          description: Icon style variant, e.g. "outline" or "filled"
+          example: "outline"
 
     BookingInput:
       type: object

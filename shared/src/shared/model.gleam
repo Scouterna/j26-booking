@@ -307,6 +307,8 @@ pub type Location {
     description: String,
     description_en: String,
     icon_name: String,
+    /// Icon style variant, e.g. `outline` or `filled`.
+    icon_variant: String,
     color: String,
     latitude: Float,
     longitude: Float,
@@ -343,6 +345,7 @@ pub fn location_decoder() -> decode.Decoder(Location) {
   use description <- decode.field("description", decode.string)
   use description_en <- decode.field("description_en", decode.string)
   use icon_name <- decode.field("icon_name", decode.string)
+  use icon_variant <- decode.field("icon_variant", decode.string)
   use color <- decode.field("color", decode.string)
   use latitude <- decode.field("latitude", coordinate_decoder())
   use longitude <- decode.field("longitude", coordinate_decoder())
@@ -355,6 +358,7 @@ pub fn location_decoder() -> decode.Decoder(Location) {
     description:,
     description_en:,
     icon_name:,
+    icon_variant:,
     color:,
     latitude:,
     longitude:,
@@ -370,7 +374,14 @@ pub fn locations_decoder() -> decode.Decoder(List(Location)) {
 }
 
 pub type LocationTag {
-  LocationTag(id: Uuid, name: String, name_en: String, icon_name: String)
+  LocationTag(
+    id: Uuid,
+    name: String,
+    name_en: String,
+    icon_name: String,
+    /// Icon style variant, e.g. `outline` or `filled`.
+    icon_variant: String,
+  )
 }
 
 /// Decode a LocationTag from API JSON. Expects id as a UUID string.
@@ -379,7 +390,8 @@ pub fn location_tag_decoder() -> decode.Decoder(LocationTag) {
   use name <- decode.field("name", decode.string)
   use name_en <- decode.field("name_en", decode.string)
   use icon_name <- decode.field("icon_name", decode.string)
-  decode.success(LocationTag(id:, name:, name_en:, icon_name:))
+  use icon_variant <- decode.field("icon_variant", decode.string)
+  decode.success(LocationTag(id:, name:, name_en:, icon_name:, icon_variant:))
 }
 
 /// Decode a list of location tags from the API response

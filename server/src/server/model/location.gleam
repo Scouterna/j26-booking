@@ -23,6 +23,7 @@ pub fn from_list_locations_row(
     description: row.description,
     description_en: row.description_en,
     icon_name: row.icon_name,
+    icon_variant: row.icon_variant,
     color: row.color,
     latitude: row.latitude,
     longitude: row.longitude,
@@ -46,6 +47,7 @@ pub fn from_list_location_tags_row(
     name: row.name,
     name_en: row.name_en,
     icon_name: row.icon_name,
+    icon_variant: row.icon_variant,
   )
 }
 
@@ -57,6 +59,7 @@ pub fn to_json(location: Location) -> Json {
     description:,
     description_en:,
     icon_name:,
+    icon_variant:,
     color:,
     latitude:,
     longitude:,
@@ -70,6 +73,7 @@ pub fn to_json(location: Location) -> Json {
     #("description", json.string(description)),
     #("description_en", json.string(description_en)),
     #("icon_name", json.string(icon_name)),
+    #("icon_variant", json.string(icon_variant)),
     #("color", json.string(color)),
     #("latitude", json.float(latitude)),
     #("longitude", json.float(longitude)),
@@ -79,12 +83,13 @@ pub fn to_json(location: Location) -> Json {
 }
 
 pub fn tag_to_json(tag: LocationTag) -> Json {
-  let LocationTag(id:, name:, name_en:, icon_name:) = tag
+  let LocationTag(id:, name:, name_en:, icon_name:, icon_variant:) = tag
   json.object([
     #("id", id |> uuid.to_string |> json.string),
     #("name", json.string(name)),
     #("name_en", json.string(name_en)),
     #("icon_name", json.string(icon_name)),
+    #("icon_variant", json.string(icon_variant)),
   ])
 }
 
