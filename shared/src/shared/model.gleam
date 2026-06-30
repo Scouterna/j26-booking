@@ -1,6 +1,6 @@
-import gleam/dict.{type Dict}
 import gleam/dynamic/decode
 import gleam/float
+import gleam/json.{type Json}
 import gleam/option.{type Option, None}
 import gleam/time/timestamp.{type Timestamp}
 import youid/uuid.{type Uuid}
@@ -276,17 +276,6 @@ pub fn activity_statuses_decoder() -> decode.Decoder(List(ActivityStatusEntry)) 
   decode.success(statuses)
 }
 
-/// A single open interval within a day, e.g. `09:00`–`12:00`. Times are kept as
-/// `HH:MM` strings since they are only ever displayed, never computed with.
-pub type TimeRange {
-  TimeRange(from: String, to: String)
-}
-
-/// A location's opening hours, keyed by ISO date (`YYYY-MM-DD`). Each date maps
-/// to the intervals the location is open that day; a missing date means closed.
-pub type OpeningHours =
-  Dict(String, List(TimeRange))
-
 pub type Location {
   Location(
     id: Uuid,
@@ -300,23 +289,14 @@ pub type Location {
     color: String,
     latitude: Float,
     longitude: Float,
-    opening_hours: OpeningHours,
+    /// Opening hours as stored, keyed by ISO date
+    /// (`{"YYYY-MM-DD": [{"from": "09:00", "to": "12:00"}]}`). Carried as an
+    /// opaque `Json` value and passed through untouched rather than modelled.
+    opening_hours: Json,
     /// Ids of the tags applied to this location; resolve to full tags via
     /// `/api/location-tags`.
     tags: List(Uuid),
   )
-}
-
-fn time_range_decoder() -> decode.Decoder(TimeRange) {
-  use from <- decode.field("from", decode.string)
-  use to <- decode.field("to", decode.string)
-  decode.success(TimeRange(from:, to:))
-}
-
-/// Decode opening hours from the API/DB JSON object
-/// `{"YYYY-MM-DD": [{"from": "09:00", "to": "12:00"}]}`.
-pub fn opening_hours_decoder() -> decode.Decoder(OpeningHours) {
-  decode.dict(decode.string, decode.list(time_range_decoder()))
 }
 
 pub type LocationTag {
