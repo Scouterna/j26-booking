@@ -1269,8 +1269,8 @@ pub type ListLocationsRow {
   )
 }
 
-/// Lists all locations ordered by name. `opening_hours` is returned as a JSON
-/// string (cast from jsonb) for the model layer to parse.
+/// Lists all locations ordered by name. `opening_hours` (jsonb) comes back as
+/// its JSON text, which Squirrel maps to a String for the model layer to parse.
 ///
 /// > 🐿️ This function was generated automatically using v4.6.0 of
 /// > the [squirrel package](https://github.com/giacomocavalieri/squirrel).
@@ -1305,8 +1305,8 @@ pub fn list_locations(
     ))
   }
 
-  "-- Lists all locations ordered by name. `opening_hours` is returned as a JSON
--- string (cast from jsonb) for the model layer to parse.
+  "-- Lists all locations ordered by name. `opening_hours` (jsonb) comes back as
+-- its JSON text, which Squirrel maps to a String for the model layer to parse.
 SELECT id,
     name,
     name_en,
@@ -1317,7 +1317,7 @@ SELECT id,
     color,
     latitude,
     longitude,
-    opening_hours::text AS opening_hours
+    opening_hours
 FROM location
 ORDER BY name ASC;
 "
