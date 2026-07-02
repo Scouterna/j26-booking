@@ -6,6 +6,7 @@ import server/web/app_config
 import server/web/booking
 import server/web/favourite
 import server/web/location
+import server/web/spots
 import server/web/status
 import wisp.{type Request, type Response}
 
@@ -33,6 +34,11 @@ fn handle_api_request(
     _, ["climbing-wall-activities"] -> wisp.method_not_allowed([Get])
     Get, ["favourited-activities"] -> activities.get_favourited(req, ctx)
     _, ["favourited-activities"] -> wisp.method_not_allowed([Get])
+    Get, ["activity-spots"] -> spots.get_all(req, ctx)
+    _, ["activity-spots"] -> wisp.method_not_allowed([Get])
+    Get, ["activities", activity_id, "spots"] ->
+      spots.get_one(req, activity_id, ctx)
+    _, ["activities", _, "spots"] -> wisp.method_not_allowed([Get])
     Get, ["activities", activity_id, "bookings"] ->
       booking.get_by_activity(req, activity_id, ctx)
     Post, ["activities", activity_id, "bookings"] ->

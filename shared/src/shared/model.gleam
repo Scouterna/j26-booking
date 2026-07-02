@@ -1,7 +1,8 @@
 import gleam/dynamic/decode
 import gleam/float
+import gleam/int
 import gleam/json.{type Json}
-import gleam/option.{type Option, None}
+import gleam/option.{type Option, None, Some}
 import gleam/time/timestamp.{type Timestamp}
 import youid/uuid.{type Uuid}
 
@@ -127,6 +128,64 @@ pub fn activity_summaries_decoder() -> decode.Decoder(List(ActivitySummary)) {
     decode.list(activity_summary_decoder()),
   )
   decode.success(activities)
+}
+
+/// The number of booked spots (summed `participant_count`) for one activity.
+/// Served by `/api/activity-spots` separately from the activity itself because
+/// the count is volatile and fetched more often than the activity metadata.
+pub type ActivitySpots {
+  ActivitySpots(activity_id: Uuid, spots_booked: Int)
+}
+
+/// Decode an ActivitySpots entry. Expects `activity_id` as a UUID string.
+pub fn activity_spots_decoder() -> decode.Decoder(ActivitySpots) {
+  use activity_id_str <- decode.field("activity_id", decode.string)
+  use spots_booked <- decode.field("spots_booked", decode.int)
+  case uuid.from_string(activity_id_str) {
+    Ok(activity_id) ->
+      decode.success(ActivitySpots(activity_id:, spots_booked:))
+    Error(_) ->
+      decode.failure(
+        ActivitySpots(uuid.v7(), spots_booked),
+        "valid UUID string for activity_id",
+      )
+  }
+}
+
+/// Decode a list of spot counts from the API response `{"spots": [...]}`.
+pub fn activity_spots_list_decoder() -> decode.Decoder(List(ActivitySpots)) {
+  use spots <- decode.field("spots", decode.list(activity_spots_decoder()))
+  decode.success(spots)
+}
+
+/// Decode the single-activity spots response `{"spots_booked": <int>}`.
+pub fn spots_booked_decoder() -> decode.Decoder(Int) {
+  use spots_booked <- decode.field("spots_booked", decode.int)
+  decode.success(spots_booked)
+}
+
+/// Spots left for display, with `Unknown` as a first-class state so a card
+/// with cached metadata but no fetched count renders "unknown" rather than
+/// falsely claiming full availability.
+pub type SpotsRemaining {
+  /// `max_attendees` is `None` — no cap.
+  Unlimited
+  /// Known cap and known count; the seats left, clamped at 0.
+  Remaining(Int)
+  /// Capped, but the booked count is not in hand (not fetched / offline).
+  UnknownSpots
+}
+
+/// Derive the display state. `spots_booked` is `None` when the count is unknown.
+pub fn spots_remaining(
+  max_attendees: Option(Int),
+  spots_booked: Option(Int),
+) -> SpotsRemaining {
+  case max_attendees, spots_booked {
+    None, _ -> Unlimited
+    Some(_), None -> UnknownSpots
+    Some(max), Some(booked) -> Remaining(int.max(0, max - booked))
+  }
 }
 
 pub type Booking {

@@ -190,6 +190,66 @@ paths:
         '500':
           $ref: '#/components/responses/ServerError'
 
+  /activity-spots:
+    get:
+      tags:
+        - Activities
+      summary: List booked-spot counts
+      description: |
+        Retrieve the number of booked spots (summed `participant_count` over all
+        bookings) for every activity, one entry per activity — including
+        `spots_booked: 0` for activities with no bookings. This count is volatile
+        and served separately from the (cacheable) activity read shapes so it can
+        be fetched more often. Not user-specific; not paginated.
+      operationId: listActivitySpots
+      responses:
+        '200':
+          description: Successfully retrieved booked-spot counts
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - spots
+                properties:
+                  spots:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ActivitySpots'
+        '500':
+          $ref: '#/components/responses/ServerError'
+
+  /activities/{activity_id}/spots:
+    get:
+      tags:
+        - Activities
+      summary: Get booked-spot count for activity
+      description: |
+        Retrieve the number of booked spots (summed `participant_count`) for a
+        single activity. Returns `0` when the activity has no bookings.
+      operationId: getActivitySpots
+      parameters:
+        - $ref: '#/components/parameters/ActivityIdPath'
+      responses:
+        '200':
+          description: Successfully retrieved booked-spot count
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - spots_booked
+                properties:
+                  spots_booked:
+                    type: integer
+                    minimum: 0
+                    description: Summed participant_count of all bookings for the activity
+                    example: 12
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '500':
+          $ref: '#/components/responses/ServerError'
+
   /activities/{id}:
     get:
       tags:
@@ -755,6 +815,24 @@ components:
           format: int64
           description: End time as Unix timestamp in seconds
           example: 1752357600
+
+    ActivitySpots:
+      type: object
+      description: Booked-spot count for a single activity
+      required:
+        - activity_id
+        - spots_booked
+      properties:
+        activity_id:
+          type: string
+          format: uuid
+          description: Activity the count belongs to
+          example: "6f5e1d46-5f58-4e23-9a9d-8c2bfc2d22a0"
+        spots_booked:
+          type: integer
+          minimum: 0
+          description: Summed participant_count of all bookings for the activity
+          example: 12
 
     ActivityStatusEntry:
       type: object

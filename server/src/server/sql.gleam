@@ -619,6 +619,43 @@ WHERE id = $1;"
   |> pog.execute(db)
 }
 
+/// A row you get from running the `get_activity_spots` query
+/// defined in `./src/server/sql/get_activity_spots.sql`.
+///
+/// > 🐿️ This type definition was generated automatically using v4.6.0 of the
+/// > [squirrel package](https://github.com/giacomocavalieri/squirrel).
+///
+pub type GetActivitySpotsRow {
+  GetActivitySpotsRow(spots_booked: Int)
+}
+
+/// Booked spot count for a single activity. The aggregate has no GROUP BY, so
+/// it always returns exactly one row (0 when the activity has no bookings).
+///
+/// > 🐿️ This function was generated automatically using v4.6.0 of
+/// > the [squirrel package](https://github.com/giacomocavalieri/squirrel).
+///
+pub fn get_activity_spots(
+  db: pog.Connection,
+  arg_1: Uuid,
+) -> Result(pog.Returned(GetActivitySpotsRow), pog.QueryError) {
+  let decoder = {
+    use spots_booked <- decode.field(0, decode.int)
+    decode.success(GetActivitySpotsRow(spots_booked:))
+  }
+
+  "-- Booked spot count for a single activity. The aggregate has no GROUP BY, so
+-- it always returns exactly one row (0 when the activity has no bookings).
+SELECT COALESCE(SUM(participant_count), 0) AS spots_booked
+FROM booking
+WHERE activity_id = $1
+"
+  |> pog.query
+  |> pog.parameter(pog.text(uuid.to_string(arg_1)))
+  |> pog.returning(decoder)
+  |> pog.execute(db)
+}
+
 /// A row you get from running the `get_booking` query
 /// defined in `./src/server/sql/get_booking.sql`.
 ///
@@ -1031,6 +1068,44 @@ pub fn list_activities_by_title(
 FROM activity
 WHERE recurring_activity_kind IS NULL
 ORDER BY title ASC;
+"
+  |> pog.query
+  |> pog.returning(decoder)
+  |> pog.execute(db)
+}
+
+/// A row you get from running the `list_activity_spots` query
+/// defined in `./src/server/sql/list_activity_spots.sql`.
+///
+/// > 🐿️ This type definition was generated automatically using v4.6.0 of the
+/// > [squirrel package](https://github.com/giacomocavalieri/squirrel).
+///
+pub type ListActivitySpotsRow {
+  ListActivitySpotsRow(activity_id: Uuid, spots_booked: Int)
+}
+
+/// Booked spot count per activity. LEFT JOIN so activities with no bookings
+/// return 0 (not absent) — the client distinguishes known-zero from unknown.
+///
+/// > 🐿️ This function was generated automatically using v4.6.0 of
+/// > the [squirrel package](https://github.com/giacomocavalieri/squirrel).
+///
+pub fn list_activity_spots(
+  db: pog.Connection,
+) -> Result(pog.Returned(ListActivitySpotsRow), pog.QueryError) {
+  let decoder = {
+    use activity_id <- decode.field(0, uuid_decoder())
+    use spots_booked <- decode.field(1, decode.int)
+    decode.success(ListActivitySpotsRow(activity_id:, spots_booked:))
+  }
+
+  "-- Booked spot count per activity. LEFT JOIN so activities with no bookings
+-- return 0 (not absent) — the client distinguishes known-zero from unknown.
+SELECT activity.id AS activity_id,
+    COALESCE(SUM(booking.participant_count), 0) AS spots_booked
+FROM activity
+    LEFT JOIN booking ON booking.activity_id = activity.id
+GROUP BY activity.id
 "
   |> pog.query
   |> pog.returning(decoder)

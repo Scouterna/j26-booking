@@ -24,8 +24,9 @@ import lustre/event
 import modem
 import rsvp
 import shared/model.{
-  type Activity, type ActivityStatus, type ActivityStatusEntry,
-  type ActivitySummary, type Booking, Booked, Favourited, NotInterested,
+  type Activity, type ActivitySpots, type ActivityStatus,
+  type ActivityStatusEntry, type ActivitySummary, type Booking, Booked,
+  Favourited, NotInterested,
 }
 import youid/uuid.{type Uuid}
 
@@ -47,6 +48,7 @@ fn english_translations() -> g18n.Translations {
     "activity.spots_remaining.other",
     "{count} spots remaining",
   )
+  |> g18n.add_translation("activity.spots_unknown", "Spots remaining: unknown")
   |> g18n.add_translation("activity.time", "Time")
   |> g18n.add_translation("activity.date_range_separator", "to")
   |> g18n.add_translation("activity.location", "Location")
@@ -101,6 +103,7 @@ fn swedish_translations() -> g18n.Translations {
     "activity.spots_remaining.other",
     "{count} platser kvar",
   )
+  |> g18n.add_translation("activity.spots_unknown", "Platser kvar: okänt")
   |> g18n.add_translation("activity.time", "Tid")
   |> g18n.add_translation("activity.date_range_separator", "till")
   |> g18n.add_translation("activity.location", "Plats")
@@ -153,16 +156,29 @@ pub fn main() {
 // MODEL -----------------------------------------------------------------------
 
 /// A list-view row: a slim activity summary paired with the current user's
-/// status for it. Built at view time from the summary cache + status dict.
+/// status for it and its booked-spot count. Built at view time from the summary
+/// cache + status dict + spots dict. `spots_booked` is `None` when the count is
+/// unknown (not fetched / offline).
 pub type CardItem {
-  CardItem(summary: ActivitySummary, status: ActivityStatus)
+  CardItem(
+    summary: ActivitySummary,
+    status: ActivityStatus,
+    spots_booked: Option(Int),
+  )
 }
 
 pub fn to_card_items(
   summaries: List(ActivitySummary),
   statuses: Dict(Uuid, ActivityStatus),
+  spots: Dict(Uuid, Int),
 ) -> List(CardItem) {
-  list.map(summaries, fn(s) { CardItem(s, status_of(statuses, s.id)) })
+  list.map(summaries, fn(s) {
+    CardItem(
+      s,
+      status_of(statuses, s.id),
+      dict.get(spots, s.id) |> option.from_result,
+    )
+  })
 }
 
 /// The user's status for one activity; `NotInterested` when absent from the
@@ -337,6 +353,11 @@ pub type Model {
     // (also the state for anonymous users: `/api/statuses/me` 401s and the
     // dict stays empty).
     statuses: Dict(Uuid, ActivityStatus),
+    // Booked-spot counts per activity, fetched separately from the (cacheable)
+    // activity metadata because they change far more often. A MISSING key means
+    // UNKNOWN (not fetched / offline), not zero — so cached cards with no count
+    // render "unknown" rather than falsely claiming full availability.
+    spots: Dict(Uuid, Int),
   )
 }
 
@@ -636,6 +657,7 @@ fn init(_flags) -> #(Model, Effect(Msg)) {
       favourited: NotAsked,
       details: seed_detail_loading(dict.new(), page),
       statuses: dict.new(),
+      spots: dict.new(),
     )
 
   let title_effect = case app_bar_title(translator, page) {
@@ -649,6 +671,7 @@ fn init(_flags) -> #(Model, Effect(Msg)) {
       modem.init(OnRouteChange),
       observe_lang(),
       fetch_list(SourceActivities),
+      fetch_spots(),
       page_effect,
       // Always attempt; a 401 (anonymous user) leaves the status dict empty.
       fetch_statuses(),
@@ -671,6 +694,8 @@ pub type Msg {
   )
   ApiReturnedActivity(Uuid, Result(Activity, rsvp.Error))
   ApiReturnedStatuses(Result(List(ActivityStatusEntry), rsvp.Error))
+  ApiReturnedActivitySpots(Result(List(ActivitySpots), rsvp.Error))
+  ApiReturnedActivitySpotsOne(Uuid, Result(Int, rsvp.Error))
   ApiCreatedActivity(Result(Activity, rsvp.Error))
   ApiUpdatedActivity(Result(Activity, rsvp.Error))
   ApiDeletedActivity(Uuid, Result(Nil, rsvp.Error))
@@ -763,6 +788,24 @@ pub fn update(model: Model, msg: Msg) -> #(Model, Effect(Msg)) {
 
     // Keep the prior status dict on failure.
     ApiReturnedStatuses(Error(_)) -> #(model, effect.none())
+
+    ApiReturnedActivitySpots(Ok(entries)) -> {
+      let spots =
+        list.fold(entries, dict.new(), fn(acc, entry) {
+          dict.insert(acc, entry.activity_id, entry.spots_booked)
+        })
+      #(Model(..model, spots:), effect.none())
+    }
+
+    // Keep the prior counts on failure (missing keys still read as unknown).
+    ApiReturnedActivitySpots(Error(_)) -> #(model, effect.none())
+
+    ApiReturnedActivitySpotsOne(id, Ok(spots_booked)) -> #(
+      Model(..model, spots: dict.insert(model.spots, id, spots_booked)),
+      effect.none(),
+    )
+
+    ApiReturnedActivitySpotsOne(_, Error(_)) -> #(model, effect.none())
 
     ApiCreatedActivity(Ok(activity)) -> #(
       Model(
@@ -1144,7 +1187,10 @@ pub fn update(model: Model, msg: Msg) -> #(Model, Effect(Msg)) {
       }
       // Booking auto-favourites server-side, so invalidate the favourited
       // window to pick up this newly-relevant summary on next Favourites open.
-      #(Model(..model, statuses:, page:, favourited: NotAsked), effect.none())
+      #(
+        Model(..model, statuses:, page:, favourited: NotAsked),
+        fetch_activity_spots(booking.activity_id),
+      )
     }
 
     ApiCreatedBooking(Error(_)) ->
@@ -1177,7 +1223,10 @@ pub fn update(model: Model, msg: Msg) -> #(Model, Effect(Msg)) {
         ActivityDetailPage(id, _) -> ActivityDetailPage(id, BookingClosed)
         other -> other
       }
-      #(Model(..model, statuses:, page:), effect.none())
+      #(
+        Model(..model, statuses:, page:),
+        fetch_activity_spots(booking.activity_id),
+      )
     }
 
     ApiUpdatedBooking(Error(_)) ->
@@ -1211,7 +1260,7 @@ pub fn update(model: Model, msg: Msg) -> #(Model, Effect(Msg)) {
         ActivityDetailPage(id, _) -> ActivityDetailPage(id, BookingClosed)
         other -> other
       }
-      #(Model(..model, statuses:, page:), effect.none())
+      #(Model(..model, statuses:, page:), fetch_activity_spots(activity_id))
     }
 
     ApiDeletedBooking(_, _, Error(_)) ->
@@ -1312,6 +1361,30 @@ fn fetch_statuses() -> Effect(Msg) {
   rsvp.get(
     api_prefix <> "/api/statuses/me",
     rsvp.expect_json(model.activity_statuses_decoder(), ApiReturnedStatuses),
+  )
+}
+
+/// Fetch booked-spot counts for every activity (replaces the whole `spots`
+/// cache). Idempotent — safe to re-fire on an interval if polling is added.
+fn fetch_spots() -> Effect(Msg) {
+  rsvp.get(
+    api_prefix <> "/api/activity-spots",
+    rsvp.expect_json(
+      model.activity_spots_list_decoder(),
+      ApiReturnedActivitySpots,
+    ),
+  )
+}
+
+/// Fetch the live booked-spot count for a single activity. Used on detail open
+/// and after booking mutations, so the count reflects concurrent bookings by
+/// other users too.
+fn fetch_activity_spots(id: Uuid) -> Effect(Msg) {
+  rsvp.get(
+    api_prefix <> "/api/activities/" <> uuid.to_string(id) <> "/spots",
+    rsvp.expect_json(model.spots_booked_decoder(), fn(result) {
+      ApiReturnedActivitySpotsOne(id, result)
+    }),
   )
 }
 
@@ -1459,11 +1532,16 @@ pub fn uri_to_page(
       case uuid.from_string(id_str) {
         Ok(id) -> {
           // Reuse the cached activity if present; otherwise fetch it lazily.
-          let effect_ = case dict.get(details, id) {
+          let activity_effect = case dict.get(details, id) {
             Ok(Loaded(_)) -> effect.none()
             _ -> fetch_activity(id)
           }
-          #(ActivityDetailPage(id, BookingClosed), effect_)
+          // Always refetch the spot count on open — it's cheap, volatile, and
+          // this is the screen where the user is about to book.
+          #(
+            ActivityDetailPage(id, BookingClosed),
+            effect.batch([activity_effect, fetch_activity_spots(id)]),
+          )
         }
         Error(_) -> #(NotFoundPage, effect.none())
       }
@@ -1480,6 +1558,7 @@ fn view(model: Model) -> Element(Msg) {
         model.translator,
         tab_summaries(model, filters.tab),
         model.statuses,
+        model.spots,
         filters,
       )
     ActivityNewPage(form, submit_error) -> view_activity_new(form, submit_error)
@@ -1488,6 +1567,7 @@ fn view(model: Model) -> Element(Msg) {
         model.translator,
         detail_of(model, id),
         status_of(model.statuses, id),
+        dict.get(model.spots, id) |> option.from_result,
         booking,
       )
     ActivityEditPage(_, _) -> view_not_found()
@@ -1499,6 +1579,7 @@ fn view_activities_list(
   translator: Translator,
   summaries: RemoteData(List(ActivitySummary)),
   statuses: Dict(Uuid, ActivityStatus),
+  spots: Dict(Uuid, Int),
   filters: ListFilters,
 ) -> Element(Msg) {
   let t = fn(key) { g18n.translate(translator, key) }
@@ -1534,7 +1615,7 @@ fn view_activities_list(
       Loaded(items) ->
         view_grouped_activities(
           translator,
-          to_card_items(items, statuses),
+          to_card_items(items, statuses, spots),
           filters,
         )
     },
@@ -1826,13 +1907,8 @@ fn view_activity_card(
       section_date,
     )
   let location = mock_location(summary.id)
-  let spots_text = case summary.max_attendees {
-    Some(_) -> {
-      let spots = mock_spots_remaining(summary)
-      Some(g18n.translate_plural(translator, "activity.spots_remaining", spots))
-    }
-    None -> None
-  }
+  let spots_text =
+    spots_remaining_text(translator, summary.max_attendees, item.spots_booked)
   let status = card_status(translator, summary, item.status)
   component.activity_card(
     api_prefix <> "/activities/" <> id,
@@ -1930,6 +2006,7 @@ fn view_activity_detail(
   translator: Translator,
   state: RemoteData(Activity),
   status: ActivityStatus,
+  spots_booked: Option(Int),
   booking: BookingFormState,
 ) -> Element(Msg) {
   case state {
@@ -1967,7 +2044,13 @@ fn view_activity_detail(
         ]),
       ])
     Loaded(activity) ->
-      view_activity_detail_loaded(translator, activity, status, booking)
+      view_activity_detail_loaded(
+        translator,
+        activity,
+        status,
+        spots_booked,
+        booking,
+      )
   }
 }
 
@@ -1975,6 +2058,7 @@ fn view_activity_detail_loaded(
   translator: Translator,
   activity: Activity,
   status: ActivityStatus,
+  spots_booked: Option(Int),
   booking: BookingFormState,
 ) -> Element(Msg) {
   let heart_btn =
@@ -2051,8 +2135,14 @@ fn view_activity_detail_loaded(
                   ],
                 )
               },
-              case activity.max_attendees {
-                Some(max_attendees) ->
+              case
+                spots_remaining_text(
+                  translator,
+                  activity.max_attendees,
+                  spots_booked,
+                )
+              {
+                Some(text) ->
                   html.div(
                     [
                       attribute.class(
@@ -2061,14 +2151,7 @@ fn view_activity_detail_loaded(
                     ],
                     [
                       component.icon(icons.users, "size-4"),
-                      html.p([attribute.class("flex-1")], [
-                        element.text(g18n.translate_plural(
-                          translator,
-                          "activity.spots_remaining",
-                          max_attendees,
-                          // TODO: do real calculation based on bookings
-                        )),
-                      ]),
+                      html.p([attribute.class("flex-1")], [element.text(text)]),
                     ],
                   )
                 None -> element.none()
@@ -2447,17 +2530,24 @@ fn mock_tags(id: Uuid) -> List(String) {
   }
 }
 
-fn mock_spots_remaining(summary: ActivitySummary) -> Int {
-  case summary.max_attendees {
-    Some(max) -> {
-      let taken = id_seed(summary.id) % { max + 1 }
-      let remaining = max - taken
-      case remaining < 0 {
-        True -> 0
-        False -> remaining
-      }
-    }
-    None -> 0
+/// The "spots remaining" label to show, or `None` for an uncapped activity
+/// (which shows no text). A capped activity with an unknown count shows an
+/// explicit "unknown" label rather than a number.
+fn spots_remaining_text(
+  translator: Translator,
+  max_attendees: Option(Int),
+  spots_booked: Option(Int),
+) -> Option(String) {
+  case model.spots_remaining(max_attendees, spots_booked) {
+    model.Unlimited -> None
+    model.Remaining(remaining) ->
+      Some(g18n.translate_plural(
+        translator,
+        "activity.spots_remaining",
+        remaining,
+      ))
+    model.UnknownSpots ->
+      Some(g18n.translate(translator, "activity.spots_unknown"))
   }
 }
 

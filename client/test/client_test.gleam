@@ -81,6 +81,7 @@ fn base_model() -> client.Model {
     favourited: client.NotAsked,
     details: dict.new(),
     statuses: dict.new(),
+    spots: dict.new(),
   )
 }
 
@@ -249,16 +250,26 @@ pub fn classify_interval_different_days_test() {
 // covers search + day + the mock facets.
 
 pub fn apply_filters_default_keeps_everything_test() {
-  let a = client.CardItem(a_summary(id_a(), "A", None), model.NotInterested)
-  let b = client.CardItem(a_summary(id_b(), "B", None), model.NotInterested)
+  let a =
+    client.CardItem(a_summary(id_a(), "A", None), model.NotInterested, None)
+  let b =
+    client.CardItem(a_summary(id_b(), "B", None), model.NotInterested, None)
   assert client.apply_filters([a, b], client.default_filters()) == [a, b]
 }
 
 pub fn apply_filters_matches_title_case_insensitively_test() {
   let climb =
-    client.CardItem(a_summary(id_a(), "Klättring", None), model.NotInterested)
+    client.CardItem(
+      a_summary(id_a(), "Klättring", None),
+      model.NotInterested,
+      None,
+    )
   let swim =
-    client.CardItem(a_summary(id_b(), "Simning", None), model.NotInterested)
+    client.CardItem(
+      a_summary(id_b(), "Simning", None),
+      model.NotInterested,
+      None,
+    )
   let filters = client.ListFilters(..client.default_filters(), search: "KLÄTT")
   assert client.apply_filters([climb, swim], filters) == [climb]
 }
