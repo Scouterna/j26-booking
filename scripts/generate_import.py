@@ -53,9 +53,11 @@ DEFAULT_ICON_NAME = "tabler-map-pin"
 DEFAULT_ICON_VARIANT = "outline"
 DEFAULT_COLOR = "#6b7280"
 # Used for locations with no latitude/longitude in the sheet, so they still
-# land somewhere on the camp map instead of failing the NOT NULL constraint.
-FALLBACK_LATITUDE = 55.979798511431689
-FALLBACK_LONGITUDE = 14.134385999313892
+# satisfy the NOT NULL constraint. Deliberately an obviously-wrong value
+# (middle of the ocean) rather than a real camp coordinate, so unfixed rows
+# are easy to spot on a map.
+FALLBACK_LATITUDE = 0.0
+FALLBACK_LONGITUDE = 0.0
 
 TIME_RANGE_RE = re.compile(r"(\d{1,2})[:.](\d{2})\s*-\s*(\d{1,2})[:.](\d{2})")
 
