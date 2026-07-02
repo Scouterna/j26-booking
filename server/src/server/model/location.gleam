@@ -36,9 +36,7 @@ fn parse_opening_hours(raw: String) -> Json {
   }
 }
 
-pub fn from_list_location_tags_row(
-  row: sql.ListLocationTagsRow,
-) -> LocationTag {
+pub fn from_list_location_tags_row(row: sql.ListLocationTagsRow) -> LocationTag {
   LocationTag(
     id: row.id,
     name: row.name,
