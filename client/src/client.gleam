@@ -1604,13 +1604,6 @@ fn view_activities_list(
       Loaded([]) ->
         html.div([attribute.class("py-6 text-center flex flex-col gap-3")], [
           html.p([], [element.text("No activities yet.")]),
-          html.a(
-            [
-              attribute.href(api_prefix <> "/activities/new"),
-              attribute.class("no-underline self-center"),
-            ],
-            [component.scout_button_el("Create first activity", "primary")],
-          ),
         ])
       Loaded(items) ->
         view_grouped_activities(
