@@ -1,5 +1,6 @@
 import given
 import gleam/list
+import gleam/string
 import lustre/attribute
 import lustre/element.{type Element}
 import lustre/element/html
@@ -89,6 +90,13 @@ pub fn with_authenticated_user(
       }
     NotAuthenticated | InvalidToken -> wisp.response(401)
   }
+}
+
+/// Logs a database query error and responds with a 500. Shared by handlers so
+/// the log-and-500 shape stays consistent across the API.
+pub fn query_error(error: pog.QueryError) -> Response {
+  wisp.log_error("QueryError " <> string.inspect(error))
+  wisp.internal_server_error()
 }
 
 /// Reads and discards the request body.

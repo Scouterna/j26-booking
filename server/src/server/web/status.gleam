@@ -2,7 +2,6 @@ import gleam/http.{Get}
 import gleam/json.{type Json}
 import gleam/list
 import gleam/set
-import gleam/string
 import pog
 import server/model/booking
 import server/model/favourite
@@ -21,10 +20,10 @@ pub fn get_mine(req: Request, ctx: web.Context) -> Response {
   use user_id <- web.with_authenticated_user(ctx)
 
   case sql.get_bookings_by_user(ctx.db_connection, user_id) {
-    Error(error) -> query_error(error)
+    Error(error) -> web.query_error(error)
     Ok(pog.Returned(_, booking_rows)) ->
       case sql.get_favourites_by_user(ctx.db_connection, user_id) {
-        Error(error) -> query_error(error)
+        Error(error) -> web.query_error(error)
         Ok(pog.Returned(_, favourite_rows)) -> {
           let bookings =
             booking_rows |> list.map(booking.from_get_bookings_by_user_row)
@@ -69,9 +68,4 @@ fn favourited_entry(activity_id: Uuid) -> Json {
     #("activity_id", activity_id |> uuid.to_string |> json.string),
     #("status", json.string("favourited")),
   ])
-}
-
-fn query_error(error: pog.QueryError) -> Response {
-  wisp.log_error("QueryError " <> string.inspect(error))
-  wisp.internal_server_error()
 }
