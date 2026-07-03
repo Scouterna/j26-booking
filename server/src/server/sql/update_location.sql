@@ -1,5 +1,5 @@
--- Updates a location and returns it. opening_hours is passed as JSON text and
--- cast to jsonb.
+-- Updates a location and returns it. opening_hours is sent as JSON text; the
+-- parameter type is inferred as jsonb from the target column.
 UPDATE location
 SET name = $2,
     name_en = $3,
@@ -10,7 +10,7 @@ SET name = $2,
     color = $8,
     latitude = $9,
     longitude = $10,
-    opening_hours = $11::jsonb
+    opening_hours = $11
 WHERE id = $1
 RETURNING id,
     name,

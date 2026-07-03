@@ -1,5 +1,5 @@
--- Creates a location and returns it. opening_hours is passed as JSON text and
--- cast to jsonb.
+-- Creates a location and returns it. opening_hours is sent as JSON text; the
+-- parameter type is inferred as jsonb from the target column.
 INSERT INTO location (
         id,
         name,
@@ -24,7 +24,7 @@ VALUES (
         $8,
         $9,
         $10,
-        $11::jsonb
+        $11
     )
 RETURNING id,
     name,
