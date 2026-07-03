@@ -5,7 +5,6 @@ import gleam/http.{Delete, Get, Post, Put}
 import gleam/json
 import gleam/list
 import gleam/option.{type Option, None, Some}
-import gleam/string
 import gleam/time/timestamp
 import pog
 import server/model/activity
@@ -35,10 +34,7 @@ fn response_from_db_activity_summaries(
   to_activity: fn(a) -> model.Activity,
 ) -> Response {
   case query_result {
-    Error(error) -> {
-      wisp.log_error("QueryError " <> string.inspect(error))
-      wisp.internal_server_error()
-    }
+    Error(error) -> web.query_error(error)
     Ok(pog.Returned(_, rows)) -> {
       let activities = rows |> list.map(to_activity)
       wisp.json_response(
@@ -118,10 +114,7 @@ pub fn get_one(req: Request, id: String, ctx: web.Context) -> Response {
     wisp.bad_request("Invalid activity ID format")
   })
   case sql.get_activity(ctx.db_connection, activity_id) {
-    Error(error) -> {
-      wisp.log_error("QueryError " <> string.inspect(error))
-      wisp.internal_server_error()
-    }
+    Error(error) -> web.query_error(error)
     Ok(pog.Returned(_, [])) -> wisp.not_found()
     Ok(pog.Returned(_, [row, ..])) ->
       wisp.json_response(
@@ -142,10 +135,7 @@ pub fn delete(req: Request, id: String, ctx: web.Context) -> Response {
   })
 
   case sql.delete_activity(ctx.db_connection, activity_id) {
-    Error(error) -> {
-      wisp.log_error("QueryError " <> string.inspect(error))
-      wisp.internal_server_error()
-    }
+    Error(error) -> web.query_error(error)
     Ok(pog.Returned(_, [])) -> wisp.not_found()
     Ok(pog.Returned(_, [_, ..])) -> wisp.no_content()
   }
@@ -191,10 +181,7 @@ fn response_from_db_activity_creation(
   to_activity: fn(a) -> model.Activity,
 ) -> Response {
   case query_result {
-    Error(error) -> {
-      wisp.log_error("QueryError " <> string.inspect(error))
-      wisp.internal_server_error()
-    }
+    Error(error) -> web.query_error(error)
     Ok(pog.Returned(_, [])) -> wisp.internal_server_error()
     Ok(pog.Returned(_, [row, ..])) -> {
       let created_activity = to_activity(row)
@@ -255,10 +242,7 @@ fn response_from_db_activity_update(
   to_activity: fn(a) -> model.Activity,
 ) -> Response {
   case query_result {
-    Error(error) -> {
-      wisp.log_error("QueryError " <> string.inspect(error))
-      wisp.internal_server_error()
-    }
+    Error(error) -> web.query_error(error)
     Ok(pog.Returned(_, [])) -> wisp.not_found()
     Ok(pog.Returned(_, [row, ..])) -> {
       let updated_activity = row |> to_activity

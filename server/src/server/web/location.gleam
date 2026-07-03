@@ -4,7 +4,6 @@ import gleam/json
 import gleam/list
 import gleam/option.{None, Some}
 import gleam/result
-import gleam/string
 import pog
 import server/model/location
 import server/sql
@@ -34,10 +33,7 @@ pub fn get_all(req: Request, ctx: web.Context) -> Response {
         200,
       )
     }
-    Error(error), _ | _, Error(error) -> {
-      wisp.log_error("QueryError " <> string.inspect(error))
-      wisp.internal_server_error()
-    }
+    Error(error), _ | _, Error(error) -> web.query_error(error)
   }
 }
 
@@ -45,10 +41,7 @@ pub fn get_all(req: Request, ctx: web.Context) -> Response {
 pub fn get_tags(req: Request, ctx: web.Context) -> Response {
   use <- wisp.require_method(req, Get)
   case sql.list_location_tags(ctx.db_connection) {
-    Error(error) -> {
-      wisp.log_error("QueryError " <> string.inspect(error))
-      wisp.internal_server_error()
-    }
+    Error(error) -> web.query_error(error)
     Ok(pog.Returned(_, rows)) -> {
       let tags = list.map(rows, location.from_list_location_tags_row)
       wisp.json_response(

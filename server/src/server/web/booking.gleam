@@ -73,10 +73,7 @@ pub fn create(
       input.participant_count,
     )
   {
-    Error(error) -> {
-      wisp.log_error("QueryError " <> string.inspect(error))
-      wisp.internal_server_error()
-    }
+    Error(error) -> web.query_error(error)
     Ok(pog.Returned(_, [])) -> wisp.internal_server_error()
     Ok(pog.Returned(_, [row, ..])) -> {
       let created_booking = booking.from_create_booking_row(row)
@@ -107,10 +104,7 @@ pub fn get_one(req: Request, id: String, ctx: web.Context) -> Response {
     wisp.bad_request("Invalid booking ID format")
   })
   case sql.get_booking(ctx.db_connection, booking_id) {
-    Error(error) -> {
-      wisp.log_error("QueryError " <> string.inspect(error))
-      wisp.internal_server_error()
-    }
+    Error(error) -> web.query_error(error)
     Ok(pog.Returned(_, [])) -> wisp.not_found()
     Ok(pog.Returned(_, [row, ..])) ->
       wisp.json_response(
@@ -147,10 +141,7 @@ pub fn get_by_activity(
   case
     sql.get_bookings_by_activity(ctx.db_connection, activity_id, limit, offset)
   {
-    Error(error) -> {
-      wisp.log_error("QueryError " <> string.inspect(error))
-      wisp.internal_server_error()
-    }
+    Error(error) -> web.query_error(error)
     Ok(pog.Returned(_, rows)) -> {
       let bookings = rows |> list.map(booking.from_get_bookings_by_activity_row)
       wisp.json_response(
@@ -184,10 +175,7 @@ pub fn update(req: Request, id: String, ctx: web.Context) -> Response {
       input.participant_count,
     )
   {
-    Error(error) -> {
-      wisp.log_error("QueryError " <> string.inspect(error))
-      wisp.internal_server_error()
-    }
+    Error(error) -> web.query_error(error)
     Ok(pog.Returned(_, [])) -> wisp.not_found()
     Ok(pog.Returned(_, [row, ..])) ->
       wisp.json_response(
@@ -208,10 +196,7 @@ pub fn delete(req: Request, id: String, ctx: web.Context) -> Response {
   })
 
   case sql.delete_booking(ctx.db_connection, booking_id) {
-    Error(error) -> {
-      wisp.log_error("QueryError " <> string.inspect(error))
-      wisp.internal_server_error()
-    }
+    Error(error) -> web.query_error(error)
     Ok(pog.Returned(_, [])) -> wisp.not_found()
     Ok(pog.Returned(_, [_, ..])) -> wisp.no_content()
   }

@@ -1,7 +1,6 @@
 import given
 import gleam/http.{Delete, Put}
 import gleam/json
-import gleam/string
 import pog
 import server/model/favourite
 import server/sql
@@ -19,10 +18,7 @@ pub fn put(req: Request, activity_id_str: String, ctx: web.Context) -> Response 
   let id = uuid.v7()
 
   case sql.create_favourite(ctx.db_connection, id, user_id, activity_id) {
-    Error(error) -> {
-      wisp.log_error("QueryError " <> string.inspect(error))
-      wisp.internal_server_error()
-    }
+    Error(error) -> web.query_error(error)
     Ok(pog.Returned(_, [row, ..])) ->
       wisp.json_response(
         row
@@ -62,10 +58,7 @@ pub fn delete(
       activity_id,
     )
   {
-    Error(error) -> {
-      wisp.log_error("QueryError " <> string.inspect(error))
-      wisp.internal_server_error()
-    }
+    Error(error) -> web.query_error(error)
     Ok(pog.Returned(_, [_, ..])) ->
       wisp.json_response(
         json.object([
@@ -76,10 +69,7 @@ pub fn delete(
       )
     Ok(pog.Returned(_, [])) ->
       case sql.delete_favourite(ctx.db_connection, user_id, activity_id) {
-        Error(error) -> {
-          wisp.log_error("QueryError " <> string.inspect(error))
-          wisp.internal_server_error()
-        }
+        Error(error) -> web.query_error(error)
         Ok(pog.Returned(_, [])) -> wisp.not_found()
         Ok(pog.Returned(_, [_, ..])) -> wisp.no_content()
       }
