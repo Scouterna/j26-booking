@@ -94,8 +94,10 @@ Request → web.middleware → router.handle_request → handler
 | GET/PUT/DELETE | `/api/activities/:id` | Single activity CRUD |
 | GET/POST | `/api/activities/:id/bookings` | List (paginated) / Create booking |
 | GET/PUT/DELETE | `/api/bookings/:id` | Single booking CRUD |
-| GET | `/api/locations` | List locations (with embedded tag ids and opening hours) |
-| GET | `/api/location-tags` | List location tags |
+| GET/POST | `/api/locations` | List (with embedded tag ids and opening hours) / Create |
+| GET/PUT/DELETE | `/api/locations/:id` | Single location CRUD |
+| GET/POST | `/api/location-tags` | List / Create |
+| GET/PUT/DELETE | `/api/location-tags/:id` | Single location-tag CRUD |
 | GET | `/api/app-config` | Navigation config |
 | GET | `/api/docs` | OpenAPI documentation (Scalar) |
 

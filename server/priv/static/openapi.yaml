@@ -709,6 +709,103 @@ paths:
                       - "0190f3a1-2d3e-7f40-ab51-6c7d8e9f0a1b"
         '500':
           $ref: '#/components/responses/ServerError'
+    post:
+      tags:
+        - Locations
+      summary: Create a location
+      description: |
+        Create a location. `opening_hours` (default `{}`) is stored verbatim
+        and `tags` (default `[]`) are the ids of tags to link to it. Returns the
+        created location; the `Location` response header points at it.
+      operationId: createLocation
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LocationInput'
+      responses:
+        '201':
+          description: Location created
+          headers:
+            Location:
+              description: URL of the created location
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Location'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '500':
+          $ref: '#/components/responses/ServerError'
+
+  /locations/{id}:
+    get:
+      tags:
+        - Locations
+      summary: Get a location
+      operationId: getLocation
+      parameters:
+        - $ref: '#/components/parameters/LocationIdPath'
+      responses:
+        '200':
+          description: The location
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Location'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/ServerError'
+    put:
+      tags:
+        - Locations
+      summary: Update a location
+      description: Replace all fields of a location, including its tag links.
+      operationId: updateLocation
+      parameters:
+        - $ref: '#/components/parameters/LocationIdPath'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LocationInput'
+      responses:
+        '200':
+          description: The updated location
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Location'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/ServerError'
+    delete:
+      tags:
+        - Locations
+      summary: Delete a location
+      description: Deletes the location together with its tag links.
+      operationId: deleteLocation
+      parameters:
+        - $ref: '#/components/parameters/LocationIdPath'
+      responses:
+        '204':
+          description: Location deleted
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/ServerError'
 
   /location-tags:
     get:
@@ -738,6 +835,98 @@ paths:
                     name_en: "Service"
                     icon_name: "tabler-info-circle"
                     icon_variant: "outline"
+        '500':
+          $ref: '#/components/responses/ServerError'
+    post:
+      tags:
+        - Locations
+      summary: Create a location tag
+      operationId: createLocationTag
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LocationTagInput'
+      responses:
+        '201':
+          description: Location tag created
+          headers:
+            Location:
+              description: URL of the created location tag
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LocationTag'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '500':
+          $ref: '#/components/responses/ServerError'
+
+  /location-tags/{id}:
+    get:
+      tags:
+        - Locations
+      summary: Get a location tag
+      operationId: getLocationTag
+      parameters:
+        - $ref: '#/components/parameters/LocationTagIdPath'
+      responses:
+        '200':
+          description: The location tag
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LocationTag'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/ServerError'
+    put:
+      tags:
+        - Locations
+      summary: Update a location tag
+      operationId: updateLocationTag
+      parameters:
+        - $ref: '#/components/parameters/LocationTagIdPath'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LocationTagInput'
+      responses:
+        '200':
+          description: The updated location tag
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LocationTag'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/ServerError'
+    delete:
+      tags:
+        - Locations
+      summary: Delete a location tag
+      description: Deletes the tag and unlinks it from any locations.
+      operationId: deleteLocationTag
+      parameters:
+        - $ref: '#/components/parameters/LocationTagIdPath'
+      responses:
+        '204':
+          description: Location tag deleted
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
         '500':
           $ref: '#/components/responses/ServerError'
 
@@ -1073,6 +1262,82 @@ components:
           description: Icon style variant, e.g. "outline" or "filled"
           example: "outline"
 
+    LocationInput:
+      type: object
+      description: Input for creating or updating a location
+      required:
+        - name
+        - name_en
+        - description
+        - description_en
+        - icon_name
+        - icon_variant
+        - color
+        - latitude
+        - longitude
+      properties:
+        name:
+          type: string
+          example: "Infotält"
+        name_en:
+          type: string
+          example: "Info tent"
+        description:
+          type: string
+          example: "Information och hjälp för deltagare."
+        description_en:
+          type: string
+          example: "Information and help for participants."
+        icon_name:
+          type: string
+          example: "tabler-badge-wc"
+        icon_variant:
+          type: string
+          example: "filled"
+        color:
+          type: string
+          example: "#2563eb"
+        latitude:
+          type: number
+          format: double
+          example: 55.979798511431689
+        longitude:
+          type: number
+          format: double
+          example: 14.134385999313892
+        opening_hours:
+          $ref: '#/components/schemas/OpeningHours'
+        tags:
+          type: array
+          description: Ids of the tags to link to this location (default empty)
+          items:
+            type: string
+            format: uuid
+          example:
+            - "0190f3a1-2d3e-7f40-ab51-6c7d8e9f0a1b"
+
+    LocationTagInput:
+      type: object
+      description: Input for creating or updating a location tag
+      required:
+        - name
+        - name_en
+        - icon_name
+        - icon_variant
+      properties:
+        name:
+          type: string
+          example: "Service"
+        name_en:
+          type: string
+          example: "Service"
+        icon_name:
+          type: string
+          example: "tabler-info-circle"
+        icon_variant:
+          type: string
+          example: "outline"
+
     BookingInput:
       type: object
       description: Input data for creating or updating a booking
@@ -1234,6 +1499,26 @@ components:
         type: string
         format: uuid
       example: "dd000001-0000-4000-8000-000000000001"
+
+    LocationIdPath:
+      name: id
+      in: path
+      required: true
+      description: Unique identifier of the location
+      schema:
+        type: string
+        format: uuid
+      example: "0190f3a1-1c2d-7e3f-9a4b-5c6d7e8f9a0b"
+
+    LocationTagIdPath:
+      name: id
+      in: path
+      required: true
+      description: Unique identifier of the location tag
+      schema:
+        type: string
+        format: uuid
+      example: "0190f3a1-2d3e-7f40-ab51-6c7d8e9f0a1b"
 
     SortParam:
       name: sort

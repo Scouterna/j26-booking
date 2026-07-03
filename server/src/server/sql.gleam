@@ -5,6 +5,7 @@
 ////
 
 import gleam/dynamic/decode
+import gleam/json.{type Json}
 import gleam/option.{type Option}
 import gleam/time/timestamp.{type Timestamp}
 import pog
@@ -329,6 +330,194 @@ RETURNING id,
   |> pog.execute(db)
 }
 
+/// A row you get from running the `create_location` query
+/// defined in `./src/server/sql/create_location.sql`.
+///
+/// > 🐿️ This type definition was generated automatically using v4.6.0 of the
+/// > [squirrel package](https://github.com/giacomocavalieri/squirrel).
+///
+pub type CreateLocationRow {
+  CreateLocationRow(
+    id: Uuid,
+    name: String,
+    name_en: String,
+    description: String,
+    description_en: String,
+    icon_name: String,
+    icon_variant: String,
+    color: String,
+    latitude: Float,
+    longitude: Float,
+    opening_hours: String,
+  )
+}
+
+/// Creates a location and returns it. opening_hours is sent as JSON text; the
+/// parameter type is inferred as jsonb from the target column.
+///
+/// > 🐿️ This function was generated automatically using v4.6.0 of
+/// > the [squirrel package](https://github.com/giacomocavalieri/squirrel).
+///
+pub fn create_location(
+  db: pog.Connection,
+  arg_1: Uuid,
+  arg_2: String,
+  arg_3: String,
+  arg_4: String,
+  arg_5: String,
+  arg_6: String,
+  arg_7: String,
+  arg_8: String,
+  arg_9: Float,
+  arg_10: Float,
+  arg_11: Json,
+) -> Result(pog.Returned(CreateLocationRow), pog.QueryError) {
+  let decoder = {
+    use id <- decode.field(0, uuid_decoder())
+    use name <- decode.field(1, decode.string)
+    use name_en <- decode.field(2, decode.string)
+    use description <- decode.field(3, decode.string)
+    use description_en <- decode.field(4, decode.string)
+    use icon_name <- decode.field(5, decode.string)
+    use icon_variant <- decode.field(6, decode.string)
+    use color <- decode.field(7, decode.string)
+    use latitude <- decode.field(8, decode.float)
+    use longitude <- decode.field(9, decode.float)
+    use opening_hours <- decode.field(10, decode.string)
+    decode.success(CreateLocationRow(
+      id:,
+      name:,
+      name_en:,
+      description:,
+      description_en:,
+      icon_name:,
+      icon_variant:,
+      color:,
+      latitude:,
+      longitude:,
+      opening_hours:,
+    ))
+  }
+
+  "-- Creates a location and returns it. opening_hours is sent as JSON text; the
+-- parameter type is inferred as jsonb from the target column.
+INSERT INTO location (
+        id,
+        name,
+        name_en,
+        description,
+        description_en,
+        icon_name,
+        icon_variant,
+        color,
+        latitude,
+        longitude,
+        opening_hours
+    )
+VALUES (
+        $1,
+        $2,
+        $3,
+        $4,
+        $5,
+        $6,
+        $7,
+        $8,
+        $9,
+        $10,
+        $11
+    )
+RETURNING id,
+    name,
+    name_en,
+    description,
+    description_en,
+    icon_name,
+    icon_variant,
+    color,
+    latitude,
+    longitude,
+    opening_hours;
+"
+  |> pog.query
+  |> pog.parameter(pog.text(uuid.to_string(arg_1)))
+  |> pog.parameter(pog.text(arg_2))
+  |> pog.parameter(pog.text(arg_3))
+  |> pog.parameter(pog.text(arg_4))
+  |> pog.parameter(pog.text(arg_5))
+  |> pog.parameter(pog.text(arg_6))
+  |> pog.parameter(pog.text(arg_7))
+  |> pog.parameter(pog.text(arg_8))
+  |> pog.parameter(pog.float(arg_9))
+  |> pog.parameter(pog.float(arg_10))
+  |> pog.parameter(pog.text(json.to_string(arg_11)))
+  |> pog.returning(decoder)
+  |> pog.execute(db)
+}
+
+/// A row you get from running the `create_location_tag` query
+/// defined in `./src/server/sql/create_location_tag.sql`.
+///
+/// > 🐿️ This type definition was generated automatically using v4.6.0 of the
+/// > [squirrel package](https://github.com/giacomocavalieri/squirrel).
+///
+pub type CreateLocationTagRow {
+  CreateLocationTagRow(
+    id: Uuid,
+    name: String,
+    name_en: String,
+    icon_name: String,
+    icon_variant: String,
+  )
+}
+
+/// Creates a location tag and returns it.
+///
+/// > 🐿️ This function was generated automatically using v4.6.0 of
+/// > the [squirrel package](https://github.com/giacomocavalieri/squirrel).
+///
+pub fn create_location_tag(
+  db: pog.Connection,
+  arg_1: Uuid,
+  arg_2: String,
+  arg_3: String,
+  arg_4: String,
+  arg_5: String,
+) -> Result(pog.Returned(CreateLocationTagRow), pog.QueryError) {
+  let decoder = {
+    use id <- decode.field(0, uuid_decoder())
+    use name <- decode.field(1, decode.string)
+    use name_en <- decode.field(2, decode.string)
+    use icon_name <- decode.field(3, decode.string)
+    use icon_variant <- decode.field(4, decode.string)
+    decode.success(CreateLocationTagRow(
+      id:,
+      name:,
+      name_en:,
+      icon_name:,
+      icon_variant:,
+    ))
+  }
+
+  "-- Creates a location tag and returns it.
+INSERT INTO location_tag (id, name, name_en, icon_name, icon_variant)
+VALUES ($1, $2, $3, $4, $5)
+RETURNING id,
+    name,
+    name_en,
+    icon_name,
+    icon_variant;
+"
+  |> pog.query
+  |> pog.parameter(pog.text(uuid.to_string(arg_1)))
+  |> pog.parameter(pog.text(arg_2))
+  |> pog.parameter(pog.text(arg_3))
+  |> pog.parameter(pog.text(arg_4))
+  |> pog.parameter(pog.text(arg_5))
+  |> pog.returning(decoder)
+  |> pog.execute(db)
+}
+
 /// A row you get from running the `delete_activity` query
 /// defined in `./src/server/sql/delete_activity.sql`.
 ///
@@ -432,6 +621,118 @@ RETURNING id
   |> pog.query
   |> pog.parameter(pog.text(uuid.to_string(arg_1)))
   |> pog.parameter(pog.text(uuid.to_string(arg_2)))
+  |> pog.returning(decoder)
+  |> pog.execute(db)
+}
+
+/// A row you get from running the `delete_location` query
+/// defined in `./src/server/sql/delete_location.sql`.
+///
+/// > 🐿️ This type definition was generated automatically using v4.6.0 of the
+/// > [squirrel package](https://github.com/giacomocavalieri/squirrel).
+///
+pub type DeleteLocationRow {
+  DeleteLocationRow(id: Uuid)
+}
+
+/// Deletes a location, returning its id if it existed.
+///
+/// > 🐿️ This function was generated automatically using v4.6.0 of
+/// > the [squirrel package](https://github.com/giacomocavalieri/squirrel).
+///
+pub fn delete_location(
+  db: pog.Connection,
+  arg_1: Uuid,
+) -> Result(pog.Returned(DeleteLocationRow), pog.QueryError) {
+  let decoder = {
+    use id <- decode.field(0, uuid_decoder())
+    decode.success(DeleteLocationRow(id:))
+  }
+
+  "-- Deletes a location, returning its id if it existed.
+DELETE FROM location
+WHERE id = $1
+RETURNING id;
+"
+  |> pog.query
+  |> pog.parameter(pog.text(uuid.to_string(arg_1)))
+  |> pog.returning(decoder)
+  |> pog.execute(db)
+}
+
+/// Removes all location links for a tag (used before deleting the tag).
+///
+/// > 🐿️ This function was generated automatically using v4.6.0 of
+/// > the [squirrel package](https://github.com/giacomocavalieri/squirrel).
+///
+pub fn delete_location_links_by_tag(
+  db: pog.Connection,
+  arg_1: Uuid,
+) -> Result(pog.Returned(Nil), pog.QueryError) {
+  let decoder = decode.map(decode.dynamic, fn(_) { Nil })
+
+  "-- Removes all location links for a tag (used before deleting the tag).
+DELETE FROM location_tag_location
+WHERE location_tag_id = $1;
+"
+  |> pog.query
+  |> pog.parameter(pog.text(uuid.to_string(arg_1)))
+  |> pog.returning(decoder)
+  |> pog.execute(db)
+}
+
+/// A row you get from running the `delete_location_tag` query
+/// defined in `./src/server/sql/delete_location_tag.sql`.
+///
+/// > 🐿️ This type definition was generated automatically using v4.6.0 of the
+/// > [squirrel package](https://github.com/giacomocavalieri/squirrel).
+///
+pub type DeleteLocationTagRow {
+  DeleteLocationTagRow(id: Uuid)
+}
+
+/// Deletes a location tag, returning its id if it existed.
+///
+/// > 🐿️ This function was generated automatically using v4.6.0 of
+/// > the [squirrel package](https://github.com/giacomocavalieri/squirrel).
+///
+pub fn delete_location_tag(
+  db: pog.Connection,
+  arg_1: Uuid,
+) -> Result(pog.Returned(DeleteLocationTagRow), pog.QueryError) {
+  let decoder = {
+    use id <- decode.field(0, uuid_decoder())
+    decode.success(DeleteLocationTagRow(id:))
+  }
+
+  "-- Deletes a location tag, returning its id if it existed.
+DELETE FROM location_tag
+WHERE id = $1
+RETURNING id;
+"
+  |> pog.query
+  |> pog.parameter(pog.text(uuid.to_string(arg_1)))
+  |> pog.returning(decoder)
+  |> pog.execute(db)
+}
+
+/// Removes all tag links for a location (used when re-syncing or deleting).
+///
+/// > 🐿️ This function was generated automatically using v4.6.0 of
+/// > the [squirrel package](https://github.com/giacomocavalieri/squirrel).
+///
+pub fn delete_location_tag_links(
+  db: pog.Connection,
+  arg_1: Uuid,
+) -> Result(pog.Returned(Nil), pog.QueryError) {
+  let decoder = decode.map(decode.dynamic, fn(_) { Nil })
+
+  "-- Removes all tag links for a location (used when re-syncing or deleting).
+DELETE FROM location_tag_location
+WHERE location_id = $1;
+"
+  |> pog.query
+  |> pog.parameter(pog.text(uuid.to_string(arg_1)))
   |> pog.returning(decoder)
   |> pog.execute(db)
 }
@@ -952,6 +1253,203 @@ ORDER BY id
 "
   |> pog.query
   |> pog.parameter(pog.text(uuid.to_string(arg_1)))
+  |> pog.returning(decoder)
+  |> pog.execute(db)
+}
+
+/// A row you get from running the `get_location` query
+/// defined in `./src/server/sql/get_location.sql`.
+///
+/// > 🐿️ This type definition was generated automatically using v4.6.0 of the
+/// > [squirrel package](https://github.com/giacomocavalieri/squirrel).
+///
+pub type GetLocationRow {
+  GetLocationRow(
+    id: Uuid,
+    name: String,
+    name_en: String,
+    description: String,
+    description_en: String,
+    icon_name: String,
+    icon_variant: String,
+    color: String,
+    latitude: Float,
+    longitude: Float,
+    opening_hours: String,
+  )
+}
+
+/// Gets a single location by id.
+///
+/// > 🐿️ This function was generated automatically using v4.6.0 of
+/// > the [squirrel package](https://github.com/giacomocavalieri/squirrel).
+///
+pub fn get_location(
+  db: pog.Connection,
+  arg_1: Uuid,
+) -> Result(pog.Returned(GetLocationRow), pog.QueryError) {
+  let decoder = {
+    use id <- decode.field(0, uuid_decoder())
+    use name <- decode.field(1, decode.string)
+    use name_en <- decode.field(2, decode.string)
+    use description <- decode.field(3, decode.string)
+    use description_en <- decode.field(4, decode.string)
+    use icon_name <- decode.field(5, decode.string)
+    use icon_variant <- decode.field(6, decode.string)
+    use color <- decode.field(7, decode.string)
+    use latitude <- decode.field(8, decode.float)
+    use longitude <- decode.field(9, decode.float)
+    use opening_hours <- decode.field(10, decode.string)
+    decode.success(GetLocationRow(
+      id:,
+      name:,
+      name_en:,
+      description:,
+      description_en:,
+      icon_name:,
+      icon_variant:,
+      color:,
+      latitude:,
+      longitude:,
+      opening_hours:,
+    ))
+  }
+
+  "-- Gets a single location by id.
+SELECT id,
+    name,
+    name_en,
+    description,
+    description_en,
+    icon_name,
+    icon_variant,
+    color,
+    latitude,
+    longitude,
+    opening_hours
+FROM location
+WHERE id = $1;
+"
+  |> pog.query
+  |> pog.parameter(pog.text(uuid.to_string(arg_1)))
+  |> pog.returning(decoder)
+  |> pog.execute(db)
+}
+
+/// A row you get from running the `get_location_tag` query
+/// defined in `./src/server/sql/get_location_tag.sql`.
+///
+/// > 🐿️ This type definition was generated automatically using v4.6.0 of the
+/// > [squirrel package](https://github.com/giacomocavalieri/squirrel).
+///
+pub type GetLocationTagRow {
+  GetLocationTagRow(
+    id: Uuid,
+    name: String,
+    name_en: String,
+    icon_name: String,
+    icon_variant: String,
+  )
+}
+
+/// Gets a single location tag by id.
+///
+/// > 🐿️ This function was generated automatically using v4.6.0 of
+/// > the [squirrel package](https://github.com/giacomocavalieri/squirrel).
+///
+pub fn get_location_tag(
+  db: pog.Connection,
+  arg_1: Uuid,
+) -> Result(pog.Returned(GetLocationTagRow), pog.QueryError) {
+  let decoder = {
+    use id <- decode.field(0, uuid_decoder())
+    use name <- decode.field(1, decode.string)
+    use name_en <- decode.field(2, decode.string)
+    use icon_name <- decode.field(3, decode.string)
+    use icon_variant <- decode.field(4, decode.string)
+    decode.success(GetLocationTagRow(
+      id:,
+      name:,
+      name_en:,
+      icon_name:,
+      icon_variant:,
+    ))
+  }
+
+  "-- Gets a single location tag by id.
+SELECT id,
+    name,
+    name_en,
+    icon_name,
+    icon_variant
+FROM location_tag
+WHERE id = $1;
+"
+  |> pog.query
+  |> pog.parameter(pog.text(uuid.to_string(arg_1)))
+  |> pog.returning(decoder)
+  |> pog.execute(db)
+}
+
+/// A row you get from running the `get_location_tag_ids` query
+/// defined in `./src/server/sql/get_location_tag_ids.sql`.
+///
+/// > 🐿️ This type definition was generated automatically using v4.6.0 of the
+/// > [squirrel package](https://github.com/giacomocavalieri/squirrel).
+///
+pub type GetLocationTagIdsRow {
+  GetLocationTagIdsRow(location_tag_id: Uuid)
+}
+
+/// Lists the tag ids linked to a location.
+///
+/// > 🐿️ This function was generated automatically using v4.6.0 of
+/// > the [squirrel package](https://github.com/giacomocavalieri/squirrel).
+///
+pub fn get_location_tag_ids(
+  db: pog.Connection,
+  arg_1: Uuid,
+) -> Result(pog.Returned(GetLocationTagIdsRow), pog.QueryError) {
+  let decoder = {
+    use location_tag_id <- decode.field(0, uuid_decoder())
+    decode.success(GetLocationTagIdsRow(location_tag_id:))
+  }
+
+  "-- Lists the tag ids linked to a location.
+SELECT location_tag_id
+FROM location_tag_location
+WHERE location_id = $1;
+"
+  |> pog.query
+  |> pog.parameter(pog.text(uuid.to_string(arg_1)))
+  |> pog.returning(decoder)
+  |> pog.execute(db)
+}
+
+/// Links a location to the given tag ids in one statement. An empty array
+/// inserts no rows.
+///
+/// > 🐿️ This function was generated automatically using v4.6.0 of
+/// > the [squirrel package](https://github.com/giacomocavalieri/squirrel).
+///
+pub fn insert_location_tag_links(
+  db: pog.Connection,
+  arg_1: Uuid,
+  arg_2: List(Uuid),
+) -> Result(pog.Returned(Nil), pog.QueryError) {
+  let decoder = decode.map(decode.dynamic, fn(_) { Nil })
+
+  "-- Links a location to the given tag ids in one statement. An empty array
+-- inserts no rows.
+INSERT INTO location_tag_location (location_id, location_tag_id)
+SELECT $1, unnest($2::uuid[]);
+"
+  |> pog.query
+  |> pog.parameter(pog.text(uuid.to_string(arg_1)))
+  |> pog.parameter(pog.array(
+    fn(value) { pog.text(uuid.to_string(value)) },
+    arg_2,
+  ))
   |> pog.returning(decoder)
   |> pog.execute(db)
 }
@@ -1739,6 +2237,184 @@ RETURNING id,
   |> pog.parameter(pog.text(arg_3))
   |> pog.parameter(pog.text(arg_4))
   |> pog.parameter(pog.int(arg_5))
+  |> pog.returning(decoder)
+  |> pog.execute(db)
+}
+
+/// A row you get from running the `update_location` query
+/// defined in `./src/server/sql/update_location.sql`.
+///
+/// > 🐿️ This type definition was generated automatically using v4.6.0 of the
+/// > [squirrel package](https://github.com/giacomocavalieri/squirrel).
+///
+pub type UpdateLocationRow {
+  UpdateLocationRow(
+    id: Uuid,
+    name: String,
+    name_en: String,
+    description: String,
+    description_en: String,
+    icon_name: String,
+    icon_variant: String,
+    color: String,
+    latitude: Float,
+    longitude: Float,
+    opening_hours: String,
+  )
+}
+
+/// Updates a location and returns it. opening_hours is sent as JSON text; the
+/// parameter type is inferred as jsonb from the target column.
+///
+/// > 🐿️ This function was generated automatically using v4.6.0 of
+/// > the [squirrel package](https://github.com/giacomocavalieri/squirrel).
+///
+pub fn update_location(
+  db: pog.Connection,
+  arg_1: Uuid,
+  arg_2: String,
+  arg_3: String,
+  arg_4: String,
+  arg_5: String,
+  arg_6: String,
+  arg_7: String,
+  arg_8: String,
+  arg_9: Float,
+  arg_10: Float,
+  arg_11: Json,
+) -> Result(pog.Returned(UpdateLocationRow), pog.QueryError) {
+  let decoder = {
+    use id <- decode.field(0, uuid_decoder())
+    use name <- decode.field(1, decode.string)
+    use name_en <- decode.field(2, decode.string)
+    use description <- decode.field(3, decode.string)
+    use description_en <- decode.field(4, decode.string)
+    use icon_name <- decode.field(5, decode.string)
+    use icon_variant <- decode.field(6, decode.string)
+    use color <- decode.field(7, decode.string)
+    use latitude <- decode.field(8, decode.float)
+    use longitude <- decode.field(9, decode.float)
+    use opening_hours <- decode.field(10, decode.string)
+    decode.success(UpdateLocationRow(
+      id:,
+      name:,
+      name_en:,
+      description:,
+      description_en:,
+      icon_name:,
+      icon_variant:,
+      color:,
+      latitude:,
+      longitude:,
+      opening_hours:,
+    ))
+  }
+
+  "-- Updates a location and returns it. opening_hours is sent as JSON text; the
+-- parameter type is inferred as jsonb from the target column.
+UPDATE location
+SET name = $2,
+    name_en = $3,
+    description = $4,
+    description_en = $5,
+    icon_name = $6,
+    icon_variant = $7,
+    color = $8,
+    latitude = $9,
+    longitude = $10,
+    opening_hours = $11
+WHERE id = $1
+RETURNING id,
+    name,
+    name_en,
+    description,
+    description_en,
+    icon_name,
+    icon_variant,
+    color,
+    latitude,
+    longitude,
+    opening_hours;
+"
+  |> pog.query
+  |> pog.parameter(pog.text(uuid.to_string(arg_1)))
+  |> pog.parameter(pog.text(arg_2))
+  |> pog.parameter(pog.text(arg_3))
+  |> pog.parameter(pog.text(arg_4))
+  |> pog.parameter(pog.text(arg_5))
+  |> pog.parameter(pog.text(arg_6))
+  |> pog.parameter(pog.text(arg_7))
+  |> pog.parameter(pog.text(arg_8))
+  |> pog.parameter(pog.float(arg_9))
+  |> pog.parameter(pog.float(arg_10))
+  |> pog.parameter(pog.text(json.to_string(arg_11)))
+  |> pog.returning(decoder)
+  |> pog.execute(db)
+}
+
+/// A row you get from running the `update_location_tag` query
+/// defined in `./src/server/sql/update_location_tag.sql`.
+///
+/// > 🐿️ This type definition was generated automatically using v4.6.0 of the
+/// > [squirrel package](https://github.com/giacomocavalieri/squirrel).
+///
+pub type UpdateLocationTagRow {
+  UpdateLocationTagRow(
+    id: Uuid,
+    name: String,
+    name_en: String,
+    icon_name: String,
+    icon_variant: String,
+  )
+}
+
+/// Updates a location tag and returns it.
+///
+/// > 🐿️ This function was generated automatically using v4.6.0 of
+/// > the [squirrel package](https://github.com/giacomocavalieri/squirrel).
+///
+pub fn update_location_tag(
+  db: pog.Connection,
+  arg_1: Uuid,
+  arg_2: String,
+  arg_3: String,
+  arg_4: String,
+  arg_5: String,
+) -> Result(pog.Returned(UpdateLocationTagRow), pog.QueryError) {
+  let decoder = {
+    use id <- decode.field(0, uuid_decoder())
+    use name <- decode.field(1, decode.string)
+    use name_en <- decode.field(2, decode.string)
+    use icon_name <- decode.field(3, decode.string)
+    use icon_variant <- decode.field(4, decode.string)
+    decode.success(UpdateLocationTagRow(
+      id:,
+      name:,
+      name_en:,
+      icon_name:,
+      icon_variant:,
+    ))
+  }
+
+  "-- Updates a location tag and returns it.
+UPDATE location_tag
+SET name = $2,
+    name_en = $3,
+    icon_name = $4,
+    icon_variant = $5
+WHERE id = $1
+RETURNING id,
+    name,
+    name_en,
+    icon_name,
+    icon_variant;
+"
+  |> pog.query
+  |> pog.parameter(pog.text(uuid.to_string(arg_1)))
+  |> pog.parameter(pog.text(arg_2))
+  |> pog.parameter(pog.text(arg_3))
+  |> pog.parameter(pog.text(arg_4))
+  |> pog.parameter(pog.text(arg_5))
   |> pog.returning(decoder)
   |> pog.execute(db)
 }

@@ -29,6 +29,66 @@ pub fn from_list_locations_row(
   )
 }
 
+pub fn from_create_location_row(
+  row: sql.CreateLocationRow,
+  tags: List(Uuid),
+) -> Location {
+  Location(
+    id: row.id,
+    name: row.name,
+    name_en: row.name_en,
+    description: row.description,
+    description_en: row.description_en,
+    icon_name: row.icon_name,
+    icon_variant: row.icon_variant,
+    color: row.color,
+    latitude: row.latitude,
+    longitude: row.longitude,
+    opening_hours: parse_opening_hours(row.opening_hours),
+    tags:,
+  )
+}
+
+pub fn from_get_location_row(
+  row: sql.GetLocationRow,
+  tags: List(Uuid),
+) -> Location {
+  Location(
+    id: row.id,
+    name: row.name,
+    name_en: row.name_en,
+    description: row.description,
+    description_en: row.description_en,
+    icon_name: row.icon_name,
+    icon_variant: row.icon_variant,
+    color: row.color,
+    latitude: row.latitude,
+    longitude: row.longitude,
+    opening_hours: parse_opening_hours(row.opening_hours),
+    tags:,
+  )
+}
+
+pub fn from_update_location_row(
+  row: sql.UpdateLocationRow,
+  tags: List(Uuid),
+) -> Location {
+  Location(
+    id: row.id,
+    name: row.name,
+    name_en: row.name_en,
+    description: row.description,
+    description_en: row.description_en,
+    icon_name: row.icon_name,
+    icon_variant: row.icon_variant,
+    color: row.color,
+    latitude: row.latitude,
+    longitude: row.longitude,
+    opening_hours: parse_opening_hours(row.opening_hours),
+    tags:,
+  )
+}
+
 fn parse_opening_hours(raw: String) -> Json {
   case json.parse(from: raw, using: utils.json_passthrough_decoder()) {
     Ok(opening_hours) -> opening_hours
@@ -37,6 +97,40 @@ fn parse_opening_hours(raw: String) -> Json {
 }
 
 pub fn from_list_location_tags_row(row: sql.ListLocationTagsRow) -> LocationTag {
+  LocationTag(
+    id: row.id,
+    name: row.name,
+    name_en: row.name_en,
+    icon_name: row.icon_name,
+    icon_variant: row.icon_variant,
+  )
+}
+
+pub fn from_create_location_tag_row(
+  row: sql.CreateLocationTagRow,
+) -> LocationTag {
+  LocationTag(
+    id: row.id,
+    name: row.name,
+    name_en: row.name_en,
+    icon_name: row.icon_name,
+    icon_variant: row.icon_variant,
+  )
+}
+
+pub fn from_get_location_tag_row(row: sql.GetLocationTagRow) -> LocationTag {
+  LocationTag(
+    id: row.id,
+    name: row.name,
+    name_en: row.name_en,
+    icon_name: row.icon_name,
+    icon_variant: row.icon_variant,
+  )
+}
+
+pub fn from_update_location_tag_row(
+  row: sql.UpdateLocationTagRow,
+) -> LocationTag {
   LocationTag(
     id: row.id,
     name: row.name,
