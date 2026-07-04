@@ -51,8 +51,8 @@ packages = [
   { name = "tote", version = "1.1.0", build_tools = ["gleam"], requirements = ["gleam_stdlib"], otp_app = "tote", source = "hex", outer_checksum = "30CBB77B72867B1DE2D271A7FE61DBE8BB81CA7DC385A0E1FDF7D38E71F3791A" },
   { name = "wisp", version = "2.2.2", build_tools = ["gleam"], requirements = ["directories", "exception", "filepath", "gleam_crypto", "gleam_erlang", "gleam_http", "gleam_json", "gleam_stdlib", "houdini", "logging", "marceau", "mist", "simplifile"], otp_app = "wisp", source = "hex", outer_checksum = "5FF5F1E288C3437252ABB93D8F9CF42FF652CE7AD54480CFE736038DC09C4F22" },
   { name = "youid", version = "1.6.0", build_tools = ["gleam"], requirements = ["gleam_crypto", "gleam_stdlib", "gleam_time"], otp_app = "youid", source = "hex", outer_checksum = "7A3ABA44B1B38BC2BDCB5474C5317AA372BE58DFBC649815EE08B03526DDA18D" },
-  { name = "ywt_core", version = "1.2.0", build_tools = ["gleam"], requirements = ["bigi", "gleam_json", "gleam_stdlib", "gleam_time"], otp_app = "ywt_core", source = "hex", outer_checksum = "AAA8F04B1592631229E5E4F48BDD76D9AE06081FB9E025A001C17E4C575F7BC1" },
-  { name = "ywt_erlang", version = "1.0.1", build_tools = ["gleam"], requirements = ["gleam_json", "gleam_stdlib", "gleam_time", "ywt_core"], otp_app = "ywt_erlang", source = "hex", outer_checksum = "C9645B8BE588471B694CA6DD89EB78E55E740211F9D904763442B62E98C82A31" },
+  { name = "ywt_core", version = "2.0.0", build_tools = ["gleam"], requirements = ["bigi", "gleam_json", "gleam_stdlib", "gleam_time"], otp_app = "ywt_core", source = "hex", outer_checksum = "C9A1E930D64DEAE7B558A015D01C0AE0198147D5B4B5C00A36008EDB2EB11AA2" },
+  { name = "ywt_erlang", version = "2.0.0", build_tools = ["gleam"], requirements = ["gleam_json", "gleam_stdlib", "gleam_time", "ywt_core"], otp_app = "ywt_erlang", source = "hex", outer_checksum = "A9B50D836CCB5E26FF9A2BCCDA3B902AEBA0746C2C5C93964D925F82D726568E" },
 ]
 
 [requirements]
@@ -75,5 +75,5 @@ shared = { path = "../shared" }
 squirrel = { version = ">= 4.4.1 and < 5.0.0" }
 wisp = { version = ">= 2.0.0 and < 3.0.0" }
 youid = { version = ">= 1.5.1 and < 2.0.0" }
-ywt_core = { version = ">= 1.1.0 and < 2.0.0" }
-ywt_erlang = { version = ">= 1.0.0 and < 2.0.0" }
+ywt_core = { version = ">= 2.0.0 and < 3.0.0" }
+ywt_erlang = { version = ">= 2.0.0 and < 3.0.0" }
