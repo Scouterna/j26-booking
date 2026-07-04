@@ -21,7 +21,7 @@ import ywt/verify_key.{type VerifyKey}
 
 pub const base_path = "/_services/booking"
 
-pub const scouterna_ui_webc_version = "4.4.2"
+pub const scouterna_ui_webc_version = "4.4.4"
 
 /// Roles defined on the `j26-booking` Keycloak client, carried in the
 /// `resource_access.j26-booking.roles` claim of the access token.

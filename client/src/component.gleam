@@ -1,6 +1,7 @@
 import formal/form.{type Form}
 import gleam/dynamic/decode
 import gleam/int
+import gleam/json
 import gleam/list
 import gleam/option.{type Option, None, Some}
 import lustre/attribute
@@ -97,6 +98,24 @@ pub fn scout_loader(text: String) -> Element(msg) {
       attribute.attribute("size", "base"),
     ],
     [],
+  )
+}
+
+pub fn scout_drawer(
+  open: Bool,
+  heading: String,
+  on_exit: msg,
+  content: List(Element(msg)),
+) -> Element(msg) {
+  element.element(
+    "scout-drawer",
+    [
+      attribute.property("open", json.bool(open)),
+      attribute.attribute("heading", heading),
+      attribute.attribute("show-exit-button", "true"),
+      event.on("exitButtonClicked", decode.success(on_exit)),
+    ],
+    content,
   )
 }
 
