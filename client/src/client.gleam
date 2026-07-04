@@ -1660,34 +1660,36 @@ fn view_activities_list(
 ) -> Element(Msg) {
   let t = fn(key) { g18n.translate(translator, key) }
 
-  html.div([attribute.class("flex flex-col gap-3 p-4")], [
+  html.div([attribute.class("flex flex-col")], [
     view_list_top_bar(translator, filters, summaries),
     case filters.more_open {
       True -> view_more_filters_panel(translator, filters)
       False -> element.none()
     },
-    case summaries {
-      NotAsked | Loading -> component.scout_loader(t("activity.loading"))
-      Failed(err) ->
-        html.div([attribute.class("py-6 flex flex-col items-center gap-3")], [
-          component.error_banner(err),
-          component.scout_button_action(
-            t("list.retry"),
-            "primary",
-            UserClickedRetryLoad,
-          ),
-        ])
-      Loaded([]) ->
-        html.div([attribute.class("py-6 text-center flex flex-col gap-3")], [
-          html.p([], [element.text("No activities yet.")]),
-        ])
-      Loaded(items) ->
-        view_grouped_activities(
-          translator,
-          to_card_items(items, statuses, spots),
-          filters,
-        )
-    },
+    html.div([attribute.class("flex flex-col gap-3 mt-3")], [
+      case summaries {
+        NotAsked | Loading -> component.scout_loader(t("activity.loading"))
+        Failed(err) ->
+          html.div([attribute.class("py-6 flex flex-col items-center gap-3")], [
+            component.error_banner(err),
+            component.scout_button_action(
+              t("list.retry"),
+              "primary",
+              UserClickedRetryLoad,
+            ),
+          ])
+        Loaded([]) ->
+          html.div([attribute.class("py-6 text-center flex flex-col gap-3")], [
+            html.p([], [element.text("No activities yet.")]),
+          ])
+        Loaded(items) ->
+          view_grouped_activities(
+            translator,
+            to_card_items(items, statuses, spots),
+            filters,
+          )
+      },
+    ]),
   ])
 }
 
@@ -1705,7 +1707,7 @@ fn view_list_top_bar(
   html.div(
     [
       attribute.class(
-        "flex flex-col gap-2 bg-white rounded-lg border border-gray-200 p-3",
+        "flex flex-col gap-2 bg-white border-b border-gray-200 p-3",
       ),
     ],
     [
@@ -1803,8 +1805,13 @@ fn view_more_filters_panel(
   filters: ListFilters,
 ) -> Element(Msg) {
   let t = fn(key) { g18n.translate(translator, key) }
-  component.scout_card([
-    html.div([attribute.class("flex flex-col gap-3 p-2")], [
+  html.div(
+    [
+      attribute.class(
+        "bg-white border-b border-gray-200 p-3 flex flex-col gap-3",
+      ),
+    ],
+    [
       html.div([attribute.class("flex flex-col gap-2")], [
         html.h4([attribute.class("text-body-sm font-semibold")], [
           element.text(t("list.filter.audience_label")),
@@ -1835,8 +1842,8 @@ fn view_more_filters_panel(
           }),
         ),
       ]),
-    ]),
-  ])
+    ],
+  )
 }
 
 fn view_grouped_activities(
@@ -1873,7 +1880,7 @@ fn view_grouped_activities(
       let today = date_of(now_ts)
       let now_bucket = current_bucket()
       html.div(
-        [attribute.class("flex flex-col gap-4")],
+        [attribute.class("flex flex-col gap-4 px-3 pb-4")],
         list.map(groups, fn(group) {
           let #(#(date, bucket), items) = group
           let is_current = date == today && bucket == now_bucket
@@ -2173,7 +2180,7 @@ fn view_activity_detail_loaded(
       // Content
       [
         attribute.class(
-          "z-10 bg-white border-t border-gray-200 flex-1 flex flex-col p-4 gap-4",
+          "z-10 bg-white border-t border-gray-200 flex-1 flex flex-col p-3 gap-4",
         ),
       ],
       [

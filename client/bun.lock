@@ -1,6 +1,5 @@
 {
   "lockfileVersion": 1,
-  "configVersion": 0,
   "workspaces": {
     "": {
       "name": "j26booking_client",
@@ -8,7 +7,7 @@
         "@fontsource-variable/source-sans-3": "^5.2.9",
       },
       "devDependencies": {
-        "@scouterna/tailwind-theme": "^0.0.5",
+        "@scouterna/tailwind-theme": "^0.0.6",
       },
     },
   },
@@ -19,9 +18,9 @@
 
     "@isaacs/brace-expansion": ["@isaacs/brace-expansion@5.0.0", "", { "dependencies": { "@isaacs/balanced-match": "^4.0.1" } }, "sha512-ZT55BDLV0yv0RBm2czMiZ+SqCGO7AvmOM3G/w2xhVPH+te0aKgFjmBvGlL1dH+ql2tgGO3MVrbb3jCKyvpgnxA=="],
 
-    "@scouterna/design-tokens": ["@scouterna/design-tokens@0.0.6", "", { "dependencies": { "glob": "^13.0.0" } }, "sha512-wgqjEkTiSv+mfnpYBHkIpArRuZotZMJles+F4vhgBxsFO3p6t++jbIrp7IHh4BzsF9Du4HdTnzmqlFsCirSXag=="],
+    "@scouterna/design-tokens": ["@scouterna/design-tokens@0.0.7", "", { "dependencies": { "glob": "^13.0.0" } }, "sha512-7HT8/ltcczFmQVxYyU+fHZ8LsMa1KvDe80wshIOdilqS0hBTzaZtatnLwwRYytayfMMVX0oyP1HNfC46tkpDbQ=="],
 
-    "@scouterna/tailwind-theme": ["@scouterna/tailwind-theme@0.0.5", "", { "dependencies": { "@scouterna/design-tokens": "0.0.6" } }, "sha512-4zh2xpvNuAlBRv5SzIgbm9h4KyQ+QOtpbbLapLyWAMtCLIXM6dsGBvQeQ52s1Q6uzrqO25KLD43+L/FBV10Obw=="],
+    "@scouterna/tailwind-theme": ["@scouterna/tailwind-theme@0.0.6", "", { "dependencies": { "@scouterna/design-tokens": "0.0.7" } }, "sha512-6TX7nprndr/lHdq/AdPxMYbs3hhqWdEkROTeKbt0y6My44WKY/v4EqwUkYuMYyJWrI8C61rdAazq1llZU1aOqw=="],
 
     "glob": ["glob@13.0.0", "", { "dependencies": { "minimatch": "^10.1.1", "minipass": "^7.1.2", "path-scurry": "^2.0.0" } }, "sha512-tvZgpqk6fz4BaNZ66ZsRaZnbHvP/jG3uKJvAZOwEVUL4RTA5nJeeLYfyN9/VA8NX/V3IBG+hkeuGpKjvELkVhA=="],
 

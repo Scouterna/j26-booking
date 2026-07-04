@@ -208,7 +208,6 @@ pub fn filter_pill_icon(
     "scout-button",
     [
       attribute.attribute("variant", variant),
-      attribute.attribute("size", "small"),
       attribute.attribute("icon", icon_svg),
       attribute.attribute("icon-only", ""),
       attribute.attribute("aria-label", aria_label),
@@ -221,13 +220,18 @@ pub fn filter_pill_icon(
 pub fn filter_chip(label: String, selected: Bool, msg: msg) -> Element(msg) {
   let base = "px-3 py-1 rounded-full text-body-sm border cursor-pointer "
   let class = case selected {
-    True -> base <> "bg-blue-100 border-blue-500 text-blue-900"
+    True -> base <> "bg-background-brand-base border-transparent text-white"
     False -> base <> "bg-white border-gray-300 text-gray-800"
+  }
+  let aria_pressed = case selected {
+    True -> "true"
+    False -> "false"
   }
   html.button(
     [
       attribute.type_("button"),
       attribute.class(class),
+      attribute.aria_pressed(aria_pressed),
       event.on_click(msg),
     ],
     [element.text(label)],
