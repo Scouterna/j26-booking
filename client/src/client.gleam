@@ -26,8 +26,8 @@ import modem
 import rsvp
 import shared/model.{
   type Activity, type ActivitySpots, type ActivityStatus,
-  type ActivityStatusEntry, type ActivitySummary, type Booking, Booked,
-  Favourited, NotInterested,
+  type ActivityStatusEntry, type ActivitySummary, type Booking, type Location,
+  Booked, Favourited, NotInterested,
 }
 import youid/uuid.{type Uuid}
 
@@ -334,6 +334,16 @@ pub type Page {
   NotFoundPage
 }
 
+/// The detail-only fields of an activity — everything NOT already carried by
+/// its `ActivitySummary`. Fetched lazily when a detail page opens and cached in
+/// `Model.details`, keyed by activity id. Storing only these fields (rather than
+/// a full `Activity`) keeps the summary in exactly one place (`Model.activities`),
+/// so a list refetch can never leave an open detail view showing stale summary
+/// fields.
+pub type ActivityDetail {
+  ActivityDetail(description: String, location: Option(Location))
+}
+
 pub type Model {
   Model(
     page: Page,
@@ -348,8 +358,9 @@ pub type Model {
     // Drives the Favourites tab's /api/favourited-activities fetch state and
     // cache hydration. Membership is DERIVED from `statuses`, not this list.
     favourited: RemoteData(List(Uuid)),
-    // Full activities (with description), fetched lazily per detail view.
-    details: Dict(Uuid, RemoteData(Activity)),
+    // Detail-only fields (description + full location), fetched lazily per
+    // detail view. Composed with the summary from `activities` at read time.
+    details: Dict(Uuid, RemoteData(ActivityDetail)),
     // Sparse: present key => Booked/Favourited. Absent => NotInterested
     // (also the state for anonymous users: `/api/statuses/me` 401s and the
     // dict stays empty).
@@ -461,12 +472,20 @@ pub fn hydrate(
   list.fold(items, store, fn(acc, s) { dict.insert(acc, s.id, s) })
 }
 
-/// The cached detail for an activity, defaulting to `Loading` while a fetch is
-/// expected but the cache has no entry yet.
+/// The cached full activity for a detail view, composed from the slim summary
+/// (`activities`) and the lazily-loaded detail-only fields (`details`). Defaults
+/// to `Loading` while a fetch is expected but the cache has no entry yet.
 fn detail_of(model: Model, id: Uuid) -> RemoteData(Activity) {
   case dict.get(model.details, id) {
-    Ok(remote) -> remote
-    Error(_) -> Loading
+    Error(_) | Ok(NotAsked) | Ok(Loading) -> Loading
+    Ok(Failed(err)) -> Failed(err)
+    Ok(Loaded(detail)) ->
+      case dict.get(model.activities, id) {
+        Ok(summary) -> Loaded(to_activity(summary, detail))
+        // A loaded detail always arrives with its summary (see
+        // `ApiReturnedActivity`), so this is unreachable in practice.
+        Error(_) -> Loading
+      }
   }
 }
 
@@ -474,9 +493,9 @@ fn detail_of(model: Model, id: Uuid) -> RemoteData(Activity) {
 /// about to start, so the detail view shows a spinner instead of a flash of
 /// "not found".
 fn seed_detail_loading(
-  details: Dict(Uuid, RemoteData(Activity)),
+  details: Dict(Uuid, RemoteData(ActivityDetail)),
   page: Page,
-) -> Dict(Uuid, RemoteData(Activity)) {
+) -> Dict(Uuid, RemoteData(ActivityDetail)) {
   case page {
     ActivityDetailPage(id, _) | ActivityEditPage(id, _) ->
       case dict.get(details, id) {
@@ -495,6 +514,24 @@ fn to_summary(a: Activity) -> ActivitySummary {
     start_time: a.start_time,
     end_time: a.end_time,
     location_name: option.map(a.location, fn(l) { l.name }),
+  )
+}
+
+/// Extract the detail-only fields from a full activity.
+fn to_detail(a: Activity) -> ActivityDetail {
+  ActivityDetail(description: a.description, location: a.location)
+}
+
+/// Compose a full activity from a cached summary and its loaded detail fields.
+fn to_activity(summary: ActivitySummary, detail: ActivityDetail) -> Activity {
+  model.Activity(
+    id: summary.id,
+    title: summary.title,
+    description: detail.description,
+    max_attendees: summary.max_attendees,
+    start_time: summary.start_time,
+    end_time: summary.end_time,
+    location: detail.location,
   )
 }
 
@@ -785,16 +822,29 @@ pub fn update(model: Model, msg: Msg) -> #(Model, Effect(Msg)) {
       effect.none(),
     )
 
-    ApiReturnedActivity(id, result) -> {
-      let entry = case result {
-        Ok(activity) -> Loaded(activity)
-        Error(_) -> Failed("Failed to load activity")
-      }
-      #(
-        Model(..model, details: dict.insert(model.details, id, entry)),
-        effect.none(),
-      )
-    }
+    ApiReturnedActivity(id, Ok(activity)) -> #(
+      // A detail fetch carries the whole activity, so refresh the summary too —
+      // this both keeps the two caches in sync and populates the summary on
+      // direct navigation to an activity we never listed.
+      Model(
+        ..model,
+        activities: dict.insert(model.activities, id, to_summary(activity)),
+        details: dict.insert(model.details, id, Loaded(to_detail(activity))),
+      ),
+      effect.none(),
+    )
+
+    ApiReturnedActivity(id, Error(_)) -> #(
+      Model(
+        ..model,
+        details: dict.insert(
+          model.details,
+          id,
+          Failed("Failed to load activity"),
+        ),
+      ),
+      effect.none(),
+    )
 
     ApiReturnedStatuses(Ok(entries)) -> {
       let statuses =
@@ -839,7 +889,11 @@ pub fn update(model: Model, msg: Msg) -> #(Model, Effect(Msg)) {
         activities_ids: prepend_id(model.activities_ids, activity.id),
         swim_bus_ids: NotAsked,
         climbing_wall_ids: NotAsked,
-        details: dict.insert(model.details, activity.id, Loaded(activity)),
+        details: dict.insert(
+          model.details,
+          activity.id,
+          Loaded(to_detail(activity)),
+        ),
       ),
       modem.push(api_prefix <> "/activities", None, None),
     )
@@ -873,7 +927,11 @@ pub fn update(model: Model, msg: Msg) -> #(Model, Effect(Msg)) {
             activity.id,
             to_summary(activity),
           ),
-          details: dict.insert(model.details, activity.id, Loaded(activity)),
+          details: dict.insert(
+            model.details,
+            activity.id,
+            Loaded(to_detail(activity)),
+          ),
           page:,
         ),
         effect.none(),
@@ -1535,7 +1593,7 @@ fn activity_form_to_json(af: ActivityForm) -> json.Json {
 
 pub fn uri_to_page(
   uri: Uri,
-  details: Dict(Uuid, RemoteData(Activity)),
+  details: Dict(Uuid, RemoteData(ActivityDetail)),
 ) -> #(Page, Effect(Msg)) {
   case uri.path_segments(uri.path) |> list.drop(2) {
     ["activities"] | [] -> #(

@@ -60,6 +60,11 @@ fn an_activity(id: Uuid, max: Option(Int)) -> model.Activity {
   )
 }
 
+/// The detail-only slice of `an_activity` — description "Desc", no location.
+fn a_detail() -> client.ActivityDetail {
+  client.ActivityDetail(description: "Desc", location: None)
+}
+
 fn a_booking(id: Uuid, activity_id: Uuid) -> model.Booking {
   model.Booking(
     id:,
@@ -467,9 +472,8 @@ pub fn clicking_book_with_capacity_opens_form_test() {
     client.Model(
       ..base_model(),
       page: client.ActivityDetailPage(id_a(), client.BookingClosed),
-      details: dict.from_list([
-        #(id_a(), client.Loaded(an_activity(id_a(), Some(10)))),
-      ]),
+      activities: dict.from_list([#(id_a(), a_summary(id_a(), "A", Some(10)))]),
+      details: dict.from_list([#(id_a(), client.Loaded(a_detail()))]),
     )
   let #(next, _) = client.update(model_, client.UserClickedBook)
   let assert client.ActivityDetailPage(_, client.BookingOpen(_, error, mode)) =
@@ -483,9 +487,8 @@ pub fn clicking_book_without_capacity_submits_directly_test() {
     client.Model(
       ..base_model(),
       page: client.ActivityDetailPage(id_a(), client.BookingClosed),
-      details: dict.from_list([
-        #(id_a(), client.Loaded(an_activity(id_a(), None))),
-      ]),
+      activities: dict.from_list([#(id_a(), a_summary(id_a(), "A", None))]),
+      details: dict.from_list([#(id_a(), client.Loaded(a_detail()))]),
     )
   let #(next, _) = client.update(model_, client.UserClickedBook)
   let assert client.ActivityDetailPage(_, client.BookingSubmitting(mode)) =
@@ -614,6 +617,26 @@ pub fn returned_activity_list_hydrates_cache_and_sets_window_test() {
   assert dict.get(next.activities, id_b()) == Ok(summary_b)
 }
 
+pub fn list_refetch_refreshes_summary_without_touching_loaded_detail_test() {
+  // A list response refreshes the summary in `activities` while a loaded detail
+  // in `details` is preserved — the two caches can't drift because the summary
+  // has exactly one home. `detail_of` composes the fresh summary + this detail.
+  let model_ =
+    client.Model(
+      ..base_model(),
+      activities: dict.from_list([#(id_a(), a_summary(id_a(), "Old", None))]),
+      details: dict.from_list([#(id_a(), client.Loaded(a_detail()))]),
+    )
+  let refreshed = a_summary(id_a(), "New", Some(20))
+  let #(next, _) =
+    client.update(
+      model_,
+      client.ApiReturnedActivityList(client.SourceActivities, Ok([refreshed])),
+    )
+  assert dict.get(next.activities, id_a()) == Ok(refreshed)
+  assert dict.get(next.details, id_a()) == Ok(client.Loaded(a_detail()))
+}
+
 pub fn failed_activity_list_marks_source_failed_test() {
   let #(next, _) =
     client.update(
@@ -640,9 +663,10 @@ pub fn created_activity_caches_and_invalidates_special_windows_test() {
   assert next.activities_ids == client.Loaded([id_a(), id_b()])
   assert next.swim_bus_ids == client.NotAsked
   assert next.climbing_wall_ids == client.NotAsked
-  assert dict.has_key(next.activities, id_a())
-  let assert Ok(client.Loaded(cached)) = dict.get(next.details, id_a())
-  assert cached == activity
+  // The summary lands in `activities`; only the detail-only fields in `details`.
+  assert dict.get(next.activities, id_a())
+    == Ok(a_summary(id_a(), "Climb", Some(5)))
+  assert dict.get(next.details, id_a()) == Ok(client.Loaded(a_detail()))
 }
 
 pub fn deleted_activity_purges_caches_and_all_windows_test() {
