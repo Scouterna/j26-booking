@@ -1,30 +1,71 @@
 import given
+import gleam/dynamic/decode
+import gleam/http/request
+import gleam/int
 import gleam/list
+import gleam/option.{type Option}
+import gleam/result
 import gleam/string
+import gleam/time/duration
 import lustre/attribute
 import lustre/element.{type Element}
 import lustre/element/html
 import pog
+import shared/utils as shared_utils
 import wisp.{type Request, type Response}
 import youid/uuid.{type Uuid}
+import ywt
+import ywt/claim
 import ywt/verify_key.{type VerifyKey}
 
 pub const base_path = "/_services/booking"
 
 const scouterna_ui_webc_version = "4.3.4"
 
-pub type Permissions {
-  CreateActivity
-  DeleteActivity
+/// Roles defined on the `j26-booking` Keycloak client, carried in the
+/// `resource_access.j26-booking.roles` claim of the access token.
+pub type Role {
+  ActivitiesManage
+  BookingsOthersCreate
+  BookingsRead
+  BookingsSelfCreate
+  Admin
+}
+
+pub fn string_to_role(value: String) -> Result(Role, Nil) {
+  case value {
+    "activities:manage" -> Ok(ActivitiesManage)
+    "bookings:others:create" -> Ok(BookingsOthersCreate)
+    "bookings:read" -> Ok(BookingsRead)
+    "bookings:self:create" -> Ok(BookingsSelfCreate)
+    "admin" -> Ok(Admin)
+    _ -> Error(Nil)
+  }
 }
 
 pub type User {
-  User(user_id: String, user_name: String, roles: Permissions)
+  User(
+    id: Uuid,
+    name: String,
+    roles: List(Role),
+    /// Numeric ScoutID group id from the first `groups` claim entry matching
+    /// `/j26-scoutid-sync/groups/<id>`. `None` when the token carries no such
+    /// group (e.g. a user outside any scout group).
+    group_id: Option(Int),
+  )
 }
 
-/// TODO: This is a draft of a authentication result which should be the result of validating and parsing a JWT.
+/// TODO(group-name): Resolving a ScoutID group id to its display name is not
+/// solved yet — there is no group-directory integration. Replace this
+/// placeholder with a real lookup when one exists.
+pub fn group_id_to_name(group_id: Int) -> String {
+  "Grupp " <> int.to_string(group_id)
+}
+
 pub type AuthenticationResult {
+  /// The request carried no access token.
   NotAuthenticated
+  /// The request carried an access token that failed verification.
   InvalidToken
   Authenticated(user: User)
 }
@@ -39,6 +80,10 @@ pub type Context {
     db_connection: pog.Connection,
     jwt_verify_keys: JWTVerifyKeys,
     authentication_result: AuthenticationResult,
+    /// User that requests without an access token authenticate as. Only ever
+    /// `Some` in local development (`DEV_AUTH_ROLES`), where the app runs
+    /// without the j26-app shell that normally provides the token cookie.
+    dev_fallback_user: Option(User),
   )
 }
 
@@ -61,34 +106,151 @@ pub fn middleware(
   handle_request(req, ctx)
 }
 
-/// TODO: Should use the JWT verify keys to authenticate the request and populate the context with the authentication result.
-/// Currently hardcoded to a seeded user so the client can exercise bookings end-to-end before JWT auth is wired.
-fn authenticate(_req: Request, ctx: Context) -> Context {
-  Context(
-    ..ctx,
-    authentication_result: Authenticated(User(
-      user_id: "a1b2c3d4-e5f6-4a90-abcd-ef1234567890",
-      user_name: "Anna Svensson",
-      roles: CreateActivity,
-    )),
-  )
+/// Cookie the j26-auth service stores the access token in. It is httpOnly and
+/// scoped to the whole origin, so the browser attaches it to every API request
+/// made from inside the j26-app shell without any client-side code.
+const access_token_cookie_name = "j26-auth_access-token"
+
+/// Populates the context with the outcome of access-token verification.
+///
+/// The token is taken from the `Authorization: Bearer` header when present
+/// (API clients), otherwise from the j26-auth access-token cookie (the app
+/// shell case). Requests without a token authenticate as the dev fallback
+/// user when one is configured, and are `NotAuthenticated` otherwise.
+///
+/// Public so tests can exercise the token handling directly; production code
+/// only reaches it through `middleware`.
+pub fn authenticate(req: Request, ctx: Context) -> Context {
+  let authentication_result = case access_token(req) {
+    Ok(token) -> verify_access_token(ctx, token)
+    Error(Nil) ->
+      case ctx.dev_fallback_user {
+        option.Some(user) -> Authenticated(user)
+        option.None -> NotAuthenticated
+      }
+  }
+  Context(..ctx, authentication_result:)
 }
 
-/// Resolve the authenticated user's UUID from the request context.
+fn access_token(req: Request) -> Result(String, Nil) {
+  let header_token = case request.get_header(req, "authorization") {
+    Ok(header_value) ->
+      case string.split_once(header_value, " ") {
+        Ok(#("Bearer", token)) -> Ok(token)
+        _ -> Error(Nil)
+      }
+    Error(Nil) -> Error(Nil)
+  }
+  use <- result.lazy_or(header_token)
+  request.get_cookies(req) |> list.key_find(access_token_cookie_name)
+}
+
+fn verify_access_token(ctx: Context, token: String) -> AuthenticationResult {
+  let claims = [
+    claim.issuer(ctx.jwt_verify_keys.issuer, []),
+    // Keycloak issues `aud: ["j26-booking", "account"]`; ywt accepts the token
+    // when any entry matches an accepted audience. Without this claim ywt 2.0
+    // rejects every token that carries an `aud`.
+    claim.audience("j26-booking", []),
+    // Verification checks the token's own `exp` plus `leeway` (`max_age` only
+    // applies when signing). Passing the claim makes `exp` required, so a
+    // token without an expiry is rejected.
+    claim.expires_at(
+      max_age: duration.minutes(15),
+      leeway: duration.seconds(30),
+    ),
+  ]
+  case
+    ywt.decode(
+      token,
+      using: user_decoder(),
+      claims:,
+      keys: ctx.jwt_verify_keys.keys,
+    )
+  {
+    Ok(user) -> Authenticated(user)
+    Error(error) -> {
+      // The reason stays in the server log; clients get an undetailed 401 so
+      // verification failures are not leaked.
+      wisp.log_warning("JWT verification failed: " <> string.inspect(error))
+      InvalidToken
+    }
+  }
+}
+
+/// Decodes the verified JWT payload into a `User`.
 ///
-/// Calls `next` with the parsed `Uuid` when the request carries a valid
+/// `resource_access.j26-booking.roles` may be absent (a user with no roles on
+/// this client); unknown role strings are skipped since Keycloak adds roles we
+/// do not model (e.g. `default-roles-jamboree26`). `groups` may likewise be
+/// absent or contain no ScoutID group path.
+fn user_decoder() -> decode.Decoder(User) {
+  use id <- decode.field("sub", uuid_decoder())
+  use name <- decode.field("name", decode.string)
+  use roles <- decode.then(decode.optionally_at(
+    ["resource_access", "j26-booking", "roles"],
+    [],
+    shared_utils.decode_partial_list(role_decoder()),
+  ))
+  use groups <- decode.optional_field("groups", [], decode.list(decode.string))
+  let group_id = list.find_map(groups, group_path_to_id) |> option.from_result
+  decode.success(User(id:, name:, roles:, group_id:))
+}
+
+fn uuid_decoder() -> decode.Decoder(Uuid) {
+  decode.string
+  |> decode.then(fn(raw) {
+    case uuid.from_string(raw) {
+      Ok(id) -> decode.success(id)
+      Error(Nil) -> decode.failure(uuid.nil, "Uuid")
+    }
+  })
+}
+
+fn role_decoder() -> decode.Decoder(Role) {
+  decode.string
+  |> decode.then(fn(raw) {
+    case string_to_role(raw) {
+      Ok(role) -> decode.success(role)
+      // The zero value is never observed: decode_partial_list drops failures.
+      Error(Nil) -> decode.failure(Admin, "Role")
+    }
+  })
+}
+
+/// Extracts the numeric ScoutID group id from a Keycloak group path like
+/// `/j26-scoutid-sync/groups/1386`.
+fn group_path_to_id(path: String) -> Result(Int, Nil) {
+  case string.split(path, "/") {
+    ["", "j26-scoutid-sync", "groups", raw_id] -> int.parse(raw_id)
+    _ -> Error(Nil)
+  }
+}
+
+/// Resolve the authenticated user from the request context.
+///
+/// Calls `next` with the `User` when the request carries a valid
 /// authentication result, otherwise short-circuits with a 401 response.
 pub fn with_authenticated_user(
   ctx: Context,
-  next: fn(Uuid) -> Response,
+  next: fn(User) -> Response,
 ) -> Response {
   case ctx.authentication_result {
-    Authenticated(user) ->
-      case uuid.from_string(user.user_id) {
-        Ok(user_id) -> next(user_id)
-        Error(_) -> wisp.internal_server_error()
-      }
+    Authenticated(user) -> next(user)
     NotAuthenticated | InvalidToken -> wisp.response(401)
+  }
+}
+
+/// Calls `next` when the user holds `role`, otherwise short-circuits with a
+/// 403 response. `Admin` implies every role.
+pub fn require_role(
+  user: User,
+  role: Role,
+  next: fn() -> Response,
+) -> Response {
+  case list.contains(user.roles, role) || list.contains(user.roles, Admin) {
+    True -> next()
+    False -> wisp.response(403)
   }
 }
 

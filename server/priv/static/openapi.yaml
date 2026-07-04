@@ -74,6 +74,9 @@ paths:
       summary: Create activity
       description: Create a new activity with the provided details.
       operationId: createActivity
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
       requestBody:
         required: true
         content:
@@ -102,6 +105,10 @@ paths:
                 end_time: 1752357600
         '400':
           $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
         '500':
           $ref: '#/components/responses/ServerError'
 
@@ -171,6 +178,9 @@ paths:
         have browsed to; Favourites tab membership is derived from
         `/statuses/me`, not from this list. Not paginated.
       operationId: listFavouritedActivities
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
       responses:
         '200':
           description: Successfully retrieved favourited and booked activities
@@ -186,7 +196,7 @@ paths:
                     items:
                       $ref: '#/components/schemas/ActivitySummary'
         '401':
-          description: Unauthenticated
+          $ref: '#/components/responses/Unauthorized'
         '500':
           $ref: '#/components/responses/ServerError'
 
@@ -286,6 +296,9 @@ paths:
       summary: Update activity
       description: Update an existing activity with new details.
       operationId: updateActivity
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
       parameters:
         - $ref: '#/components/parameters/ActivityId'
       requestBody:
@@ -318,6 +331,10 @@ paths:
           $ref: '#/components/responses/BadRequest'
         '404':
           $ref: '#/components/responses/NotFound'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
         '500':
           $ref: '#/components/responses/ServerError'
 
@@ -327,6 +344,9 @@ paths:
       summary: Delete activity
       description: Delete an activity by its ID.
       operationId: deleteActivity
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
       parameters:
         - $ref: '#/components/parameters/ActivityId'
       responses:
@@ -336,6 +356,10 @@ paths:
           $ref: '#/components/responses/BadRequest'
         '404':
           $ref: '#/components/responses/NotFound'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
         '500':
           $ref: '#/components/responses/ServerError'
 
@@ -346,6 +370,9 @@ paths:
       summary: List bookings for activity
       description: Retrieve a paginated list of bookings for a specific activity, ordered by responsible name.
       operationId: listBookingsByActivity
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
       parameters:
         - $ref: '#/components/parameters/ActivityIdPath'
         - $ref: '#/components/parameters/PageParam'
@@ -376,6 +403,10 @@ paths:
                     participant_count: 12
         '400':
           $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
         '500':
           $ref: '#/components/responses/ServerError'
 
@@ -384,10 +415,14 @@ paths:
         - Bookings
       summary: Create booking for activity
       description: |
-        Create a new booking for a specific activity. The `user_id`, `booker_group_id`,
-        and `booker_group_name` are currently set to dummy values and will be populated
-        from JWT authentication in the future.
+        Create a new booking for a specific activity. Requires the
+        `bookings:self:create` role. The `user_id` and `booker_group_id` come
+        from the access token; `booker_group_name` is a placeholder until group
+        name resolution exists.
       operationId: createBooking
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
       parameters:
         - $ref: '#/components/parameters/ActivityIdPath'
       requestBody:
@@ -425,6 +460,21 @@ paths:
                 participant_count: 12
         '400':
           $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          description: |
+            Forbidden - the user lacks the `bookings:self:create` role, or the
+            token carries no ScoutID group to book on behalf of
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                example:
+                  error: "No scout group found in token"
         '500':
           $ref: '#/components/responses/ServerError'
 
@@ -435,6 +485,9 @@ paths:
       summary: Get booking
       description: Retrieve a single booking by its ID.
       operationId: getBooking
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
       parameters:
         - $ref: '#/components/parameters/BookingId'
       responses:
@@ -458,6 +511,10 @@ paths:
           $ref: '#/components/responses/BadRequest'
         '404':
           $ref: '#/components/responses/NotFound'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
         '500':
           $ref: '#/components/responses/ServerError'
 
@@ -467,6 +524,9 @@ paths:
       summary: Update booking
       description: Update an existing booking. Only mutable fields (group_free_text, responsible_name, phone_number, participant_count) can be changed.
       operationId: updateBooking
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
       parameters:
         - $ref: '#/components/parameters/BookingId'
       requestBody:
@@ -501,6 +561,8 @@ paths:
           $ref: '#/components/responses/BadRequest'
         '404':
           $ref: '#/components/responses/NotFound'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
         '500':
           $ref: '#/components/responses/ServerError'
 
@@ -510,6 +572,9 @@ paths:
       summary: Delete booking
       description: Delete a booking by its ID.
       operationId: deleteBooking
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
       parameters:
         - $ref: '#/components/parameters/BookingId'
       responses:
@@ -519,6 +584,8 @@ paths:
           $ref: '#/components/responses/BadRequest'
         '404':
           $ref: '#/components/responses/NotFound'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
         '500':
           $ref: '#/components/responses/ServerError'
 
@@ -531,6 +598,9 @@ paths:
         Mark an activity as favourited for the authenticated user. Idempotent — calling
         this on an already-favourited activity is a no-op success.
       operationId: putFavourite
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
       parameters:
         - $ref: '#/components/parameters/ActivityIdPath'
       responses:
@@ -547,7 +617,7 @@ paths:
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':
-          description: Unauthenticated
+          $ref: '#/components/responses/Unauthorized'
         '500':
           $ref: '#/components/responses/ServerError'
 
@@ -560,6 +630,9 @@ paths:
         activity — a booking implicitly favourites the activity, and the favourite
         cannot be removed while the booking exists.
       operationId: deleteFavourite
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
       parameters:
         - $ref: '#/components/parameters/ActivityIdPath'
       responses:
@@ -568,7 +641,7 @@ paths:
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':
-          description: Unauthenticated
+          $ref: '#/components/responses/Unauthorized'
         '404':
           description: No favourite existed for this activity
         '409':
@@ -597,6 +670,9 @@ paths:
         both appears once with status `booked`. Activities absent from the list
         have no status for the user.
       operationId: listMyStatuses
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
       responses:
         '200':
           description: Successfully retrieved statuses
@@ -628,7 +704,7 @@ paths:
                   - activity_id: "b4219a53-4746-4a09-8b4e-3e2ac0c3df11"
                     status: "favourited"
         '401':
-          description: Unauthenticated
+          $ref: '#/components/responses/Unauthorized'
         '500':
           $ref: '#/components/responses/ServerError'
 
@@ -720,6 +796,9 @@ paths:
         and `tags` (default `[]`) are the ids of tags to link to it. Returns the
         created location; the `Location` response header points at it.
       operationId: createLocation
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
       requestBody:
         required: true
         content:
@@ -740,6 +819,10 @@ paths:
                 $ref: '#/components/schemas/Location'
         '400':
           $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
         '500':
           $ref: '#/components/responses/ServerError'
 
@@ -770,6 +853,9 @@ paths:
       summary: Update a location
       description: Replace all fields of a location, including its tag links.
       operationId: updateLocation
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
       parameters:
         - $ref: '#/components/parameters/LocationIdPath'
       requestBody:
@@ -789,6 +875,10 @@ paths:
           $ref: '#/components/responses/BadRequest'
         '404':
           $ref: '#/components/responses/NotFound'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
         '500':
           $ref: '#/components/responses/ServerError'
     delete:
@@ -797,6 +887,9 @@ paths:
       summary: Delete a location
       description: Deletes the location together with its tag links.
       operationId: deleteLocation
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
       parameters:
         - $ref: '#/components/parameters/LocationIdPath'
       responses:
@@ -806,6 +899,10 @@ paths:
           $ref: '#/components/responses/BadRequest'
         '404':
           $ref: '#/components/responses/NotFound'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
         '500':
           $ref: '#/components/responses/ServerError'
 
@@ -845,6 +942,9 @@ paths:
         - Locations
       summary: Create a location tag
       operationId: createLocationTag
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
       requestBody:
         required: true
         content:
@@ -865,6 +965,10 @@ paths:
                 $ref: '#/components/schemas/LocationTag'
         '400':
           $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
         '500':
           $ref: '#/components/responses/ServerError'
 
@@ -894,6 +998,9 @@ paths:
         - Locations
       summary: Update a location tag
       operationId: updateLocationTag
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
       parameters:
         - $ref: '#/components/parameters/LocationTagIdPath'
       requestBody:
@@ -913,6 +1020,10 @@ paths:
           $ref: '#/components/responses/BadRequest'
         '404':
           $ref: '#/components/responses/NotFound'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
         '500':
           $ref: '#/components/responses/ServerError'
     delete:
@@ -921,6 +1032,9 @@ paths:
       summary: Delete a location tag
       description: Deletes the tag and unlinks it from any locations.
       operationId: deleteLocationTag
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
       parameters:
         - $ref: '#/components/parameters/LocationTagIdPath'
       responses:
@@ -930,10 +1044,30 @@ paths:
           $ref: '#/components/responses/BadRequest'
         '404':
           $ref: '#/components/responses/NotFound'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
         '500':
           $ref: '#/components/responses/ServerError'
 
 components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: |
+        Keycloak access token for the `jamboree26` realm, sent explicitly by
+        API clients.
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: j26-auth_access-token
+      description: |
+        The httpOnly access-token cookie set by the j26-auth service. Browsers
+        inside the j26-app shell send it automatically; the `Authorization`
+        header takes precedence when both are present.
   schemas:
     Activity:
       type: object
@@ -1562,3 +1696,9 @@ components:
           schema:
             type: string
           example: "Internal server error"
+
+    Unauthorized:
+      description: Unauthenticated - missing or invalid access token
+
+    Forbidden:
+      description: Forbidden - the authenticated user lacks the required role

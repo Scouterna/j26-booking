@@ -119,10 +119,10 @@ pub fn get_climbing_wall(req: Request, ctx: web.Context) -> Response {
 /// Favourites tab is derived from `/api/statuses/me`, not from this list.
 pub fn get_favourited(req: Request, ctx: web.Context) -> Response {
   use <- wisp.require_method(req, Get)
-  use user_id <- web.with_authenticated_user(ctx)
+  use user <- web.with_authenticated_user(ctx)
   use locations <- with_locations(ctx)
   response_from_db_activity_summaries(
-    sql.list_favourited_activities(ctx.db_connection, user_id),
+    sql.list_favourited_activities(ctx.db_connection, user.id),
     activity.from_list_favourited_activities_row(_, locations),
   )
 }
@@ -150,6 +150,8 @@ pub fn get_one(req: Request, id: String, ctx: web.Context) -> Response {
 pub fn delete(req: Request, id: String, ctx: web.Context) -> Response {
   use <- wisp.require_method(req, Delete)
   web.discard_body(req)
+  use user <- web.with_authenticated_user(ctx)
+  use <- web.require_role(user, web.ActivitiesManage)
   use activity_id <- given.ok(uuid.from_string(id), fn(_) {
     wisp.bad_request("Invalid activity ID format")
   })
@@ -220,6 +222,8 @@ fn response_from_db_activity_creation(
 
 pub fn create(req: Request, ctx: web.Context) -> Response {
   use <- wisp.require_method(req, Post)
+  use user <- web.with_authenticated_user(ctx)
+  use <- web.require_role(user, web.ActivitiesManage)
   use json_body <- wisp.require_json(req)
   use input <- given.ok(decode.run(json_body, activity_input_decoder()), fn(_) {
     wisp.bad_request("Invalid JSON payload")
@@ -279,6 +283,8 @@ fn response_from_db_activity_update(
 
 pub fn update(req: Request, id: String, ctx: web.Context) -> Response {
   use <- wisp.require_method(req, Put)
+  use user <- web.with_authenticated_user(ctx)
+  use <- web.require_role(user, web.ActivitiesManage)
   use activity_id <- given.ok(uuid.from_string(id), fn(_) {
     wisp.bad_request("Invalid activity ID format")
   })

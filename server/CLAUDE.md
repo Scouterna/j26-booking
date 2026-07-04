@@ -9,7 +9,7 @@ Server-specific guidance. See root `CLAUDE.md` for monorepo-wide info (commands,
 - **Middleware composition**: Uses `use` syntax with wisp middleware functions in `web.middleware()`
 - **Squirrel workflow**: SQL files in `src/server/sql/` → `gleam run -m squirrel` → generates `sql.gleam` with typed functions
 - **Env helpers**: `utils.gleam` provides `get_env`/`get_env_int`/`get_secret_key_base` for reading environment variables with defaults — used in `server.gleam` for config
-- **Auth**: JWT verification keys fetched from OpenID Connect discovery on startup (stored in `Context.jwt_verify_keys`). Authentication middleware in `web.gleam` is scaffolded but not yet wired up — `authenticate()` is a TODO stub
+- **Auth**: JWT verification keys fetched from OpenID Connect discovery on startup (stored in `Context.jwt_verify_keys`). `web.authenticate()` verifies the token from the `Authorization: Bearer` header, falling back to the httpOnly `j26-auth_access-token` cookie (sent automatically by browsers inside the j26-app shell), then to the `DEV_AUTH_ROLES` dev fallback user (local dev only). Handlers guard with `web.with_authenticated_user` (401) and `web.require_role` (403; `Admin` implies every role). Roles decode from `resource_access.j26-booking.roles`; the booker group id from the `groups` claim (`/j26-scoutid-sync/groups/<id>`)
 
 ## API changes
 

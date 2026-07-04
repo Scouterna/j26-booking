@@ -68,8 +68,26 @@ The application will be available at http://localhost:8000
 | `DB_POOL_SIZE` | 15 | Connection pool size |
 | `SECRET_KEY_BASE` | (random) | Secret key for sessions (required in production) |
 | `OPEN_ID_CONFIGURATION_URL` | https://app.dev.j26.se/auth/... | OpenID Connect discovery URL |
+| `DEV_AUTH_ROLES` | (unset) | **Local dev only.** Comma-separated roles (e.g. `admin` or `bookings:self:create,bookings:read`). When set, requests without an access token authenticate as the seeded dev user with these roles. Never set in production. |
 
 **Note:** The base path `/_services/booking` is hardcoded as `web.base_path` (not an environment variable). All routes are served under this prefix.
+
+### Authentication & Authorization
+
+Requests are authenticated by a Keycloak-issued JWT, taken from the
+`Authorization: Bearer` header when present, otherwise from the httpOnly
+`j26-auth_access-token` cookie that the j26-auth service sets on the shared
+origin (the browser sends it automatically from inside the j26-app shell, and
+the shell's refresh loop keeps it fresh). Signatures are verified against the
+JWKS fetched from OpenID Connect discovery at startup.
+
+Roles come from the token's `resource_access.j26-booking.roles` claim:
+`activities:manage`, `bookings:others:create`, `bookings:read`,
+`bookings:self:create`, and `admin` (implies all). The booker group id is
+parsed from the `/j26-scoutid-sync/groups/<id>` entry of the `groups` claim.
+
+When running without the shell, set `DEV_AUTH_ROLES` to work as a fallback
+dev user (see table above); real tokens always take precedence.
 
 ### Building Docker Image
 

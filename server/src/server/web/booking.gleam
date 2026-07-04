@@ -46,7 +46,11 @@ pub fn create(
   ctx: web.Context,
 ) -> Response {
   use <- wisp.require_method(req, Post)
-  use user_id <- web.with_authenticated_user(ctx)
+  use user <- web.with_authenticated_user(ctx)
+  // TODO(bookings-others): holders of bookings:others:create should be able
+  // to pick a booker group (likely from a hardcoded list) instead of booking
+  // for their own token group.
+  use <- web.require_role(user, web.BookingsSelfCreate)
   use activity_id <- given.ok(uuid.from_string(activity_id_str), fn(_) {
     wisp.bad_request("Invalid activity ID format")
   })
@@ -55,9 +59,17 @@ pub fn create(
     wisp.bad_request("Invalid JSON payload")
   })
   let id = uuid.v7()
-  // TODO: Get booker_group_id and booker_group_name from JWT
-  let booker_group_id = 0
-  let booker_group_name = "TODO: from JWT"
+  let user_id = user.id
+  // A booking is made on behalf of a scout group, so a token without one
+  // cannot create bookings.
+  use booker_group_id <- given.some(user.group_id, else_return: fn() {
+    wisp.json_response(
+      json.object([#("error", json.string("No scout group found in token"))])
+        |> json.to_string,
+      403,
+    )
+  })
+  let booker_group_name = web.group_id_to_name(booker_group_id)
 
   case
     sql.create_booking(
@@ -100,6 +112,8 @@ pub fn create(
 
 pub fn get_one(req: Request, id: String, ctx: web.Context) -> Response {
   use <- wisp.require_method(req, Get)
+  use user <- web.with_authenticated_user(ctx)
+  use <- web.require_role(user, web.BookingsRead)
   use booking_id <- given.ok(uuid.from_string(id), fn(_) {
     wisp.bad_request("Invalid booking ID format")
   })
@@ -123,6 +137,8 @@ pub fn get_by_activity(
   ctx: web.Context,
 ) -> Response {
   use <- wisp.require_method(req, Get)
+  use user <- web.with_authenticated_user(ctx)
+  use <- web.require_role(user, web.BookingsRead)
   use activity_id <- given.ok(uuid.from_string(activity_id_str), fn(_) {
     wisp.bad_request("Invalid activity ID format")
   })
@@ -157,6 +173,9 @@ pub fn get_by_activity(
 
 pub fn update(req: Request, id: String, ctx: web.Context) -> Response {
   use <- wisp.require_method(req, Put)
+  // TODO(booking-ownership): only authentication is required for now — the
+  // own-booking vs others-booking role semantics are not decided yet.
+  use _user <- web.with_authenticated_user(ctx)
   use booking_id <- given.ok(uuid.from_string(id), fn(_) {
     wisp.bad_request("Invalid booking ID format")
   })
@@ -191,6 +210,9 @@ pub fn update(req: Request, id: String, ctx: web.Context) -> Response {
 pub fn delete(req: Request, id: String, ctx: web.Context) -> Response {
   use <- wisp.require_method(req, Delete)
   web.discard_body(req)
+  // TODO(booking-ownership): only authentication is required for now — the
+  // own-booking vs others-booking role semantics are not decided yet.
+  use _user <- web.with_authenticated_user(ctx)
   use booking_id <- given.ok(uuid.from_string(id), fn(_) {
     wisp.bad_request("Invalid booking ID format")
   })

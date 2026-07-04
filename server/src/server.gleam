@@ -1,9 +1,14 @@
+import envoy
 import gleam/dynamic/decode
 import gleam/erlang/process
 import gleam/http/request
 import gleam/httpc
+import gleam/int
 import gleam/json
+import gleam/list
+import gleam/option.{type Option}
 import gleam/otp/static_supervisor as supervisor
+import gleam/string
 import mist
 import pog
 import server/router
@@ -12,6 +17,7 @@ import server/web.{type JWTVerifyKeys, Context, JWTVerifyKeys}
 import shared/utils as shared_utils
 import wisp
 import wisp/wisp_mist
+import youid/uuid
 import ywt/verify_key
 
 pub fn main() -> Nil {
@@ -53,6 +59,7 @@ pub fn main() -> Nil {
       db_connection: pog.named_connection(pool_name),
       jwt_verify_keys:,
       authentication_result: web.NotAuthenticated,
+      dev_fallback_user: dev_fallback_user_from_env(),
     )
   let handler = router.handle_request(_, ctx)
 
@@ -99,6 +106,9 @@ fn fetch_jwt_verify_keys(open_id_configuration_url: String) -> JWTVerifyKeys {
     jwks_request
     |> request.prepend_header("accept", "application/json")
     |> httpc.send
+  // The partial-list decoder drops JWKS entries ywt cannot use — Keycloak
+  // publishes an RSA-OAEP encryption key alongside the signing keys, and one
+  // unusable key must not take the whole set (and startup) down with it.
   let assert Ok(jwt_verify_keys) =
     json.parse(
       jwks_response.body,
@@ -107,7 +117,57 @@ fn fetch_jwt_verify_keys(open_id_configuration_url: String) -> JWTVerifyKeys {
         shared_utils.decode_partial_list(verify_key.decoder()),
       ),
     )
+  case jwt_verify_keys {
+    [] -> panic as { "No usable JWT verify keys in JWKS from " <> jwks_uri }
+    _ -> Nil
+  }
+  wisp.log_info(
+    "Loaded "
+    <> int.to_string(list.length(jwt_verify_keys))
+    <> " JWT verify keys from "
+    <> jwks_uri,
+  )
   JWTVerifyKeys(issuer, jwt_verify_keys)
+}
+
+/// Builds the user that tokenless requests authenticate as in local
+/// development, from the comma-separated roles in `DEV_AUTH_ROLES` (e.g.
+/// "admin" or "bookings:self:create,bookings:read"). The user matches the
+/// seeded "Anna Svensson" so seeded bookings and favourites line up.
+///
+/// Never set the variable in production: unset means tokenless requests stay
+/// unauthenticated. Real tokens always take precedence over the fallback.
+fn dev_fallback_user_from_env() -> Option(web.User) {
+  case envoy.get("DEV_AUTH_ROLES") {
+    Error(Nil) -> option.None
+    Ok(raw_roles) -> {
+      let roles =
+        raw_roles
+        |> string.split(",")
+        |> list.map(string.trim)
+        |> list.map(fn(raw_role) {
+          case web.string_to_role(raw_role) {
+            Ok(role) -> role
+            // A typo in dev configuration; failing fast beats silently
+            // running with fewer roles than the developer expects.
+            Error(Nil) ->
+              panic as { "Unknown role in DEV_AUTH_ROLES: " <> raw_role }
+          }
+        })
+      let assert Ok(user_id) =
+        uuid.from_string("a1b2c3d4-e5f6-4a90-abcd-ef1234567890")
+      wisp.log_warning(
+        "DEV_AUTH_ROLES is set: tokenless requests authenticate as the "
+        <> "seeded dev user. Never enable this in production.",
+      )
+      option.Some(web.User(
+        id: user_id,
+        name: "Anna Svensson",
+        roles:,
+        group_id: option.Some(1386),
+      ))
+    }
+  }
 }
 
 pub fn static_directory() -> String {

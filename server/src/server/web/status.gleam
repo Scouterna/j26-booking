@@ -17,7 +17,8 @@ import youid/uuid.{type Uuid}
 /// activity that is both is reported once as `booked`.
 pub fn get_mine(req: Request, ctx: web.Context) -> Response {
   use <- wisp.require_method(req, Get)
-  use user_id <- web.with_authenticated_user(ctx)
+  use user <- web.with_authenticated_user(ctx)
+  let user_id = user.id
 
   case sql.get_bookings_by_user(ctx.db_connection, user_id) {
     Error(error) -> web.query_error(error)
