@@ -20,10 +20,11 @@ pub fn from_list_locations_row(
 ) -> Location {
   Location(
     id: row.id,
-    name: row.name,
-    name_en: row.name_en,
-    description: row.description,
-    description_en: row.description_en,
+    name: model.BilingualString(sv: row.name, en: row.name_en),
+    description: model.BilingualString(
+      sv: row.description,
+      en: row.description_en,
+    ),
     icon_name: row.icon_name,
     icon_variant: row.icon_variant,
     color: row.color,
@@ -40,10 +41,11 @@ pub fn from_create_location_row(
 ) -> Location {
   Location(
     id: row.id,
-    name: row.name,
-    name_en: row.name_en,
-    description: row.description,
-    description_en: row.description_en,
+    name: model.BilingualString(sv: row.name, en: row.name_en),
+    description: model.BilingualString(
+      sv: row.description,
+      en: row.description_en,
+    ),
     icon_name: row.icon_name,
     icon_variant: row.icon_variant,
     color: row.color,
@@ -60,10 +62,11 @@ pub fn from_get_location_row(
 ) -> Location {
   Location(
     id: row.id,
-    name: row.name,
-    name_en: row.name_en,
-    description: row.description,
-    description_en: row.description_en,
+    name: model.BilingualString(sv: row.name, en: row.name_en),
+    description: model.BilingualString(
+      sv: row.description,
+      en: row.description_en,
+    ),
     icon_name: row.icon_name,
     icon_variant: row.icon_variant,
     color: row.color,
@@ -80,10 +83,11 @@ pub fn from_update_location_row(
 ) -> Location {
   Location(
     id: row.id,
-    name: row.name,
-    name_en: row.name_en,
-    description: row.description,
-    description_en: row.description_en,
+    name: model.BilingualString(sv: row.name, en: row.name_en),
+    description: model.BilingualString(
+      sv: row.description,
+      en: row.description_en,
+    ),
     icon_name: row.icon_name,
     icon_variant: row.icon_variant,
     color: row.color,
@@ -143,8 +147,7 @@ pub fn from_list_location_tags_row(
 ) -> LocationTag {
   LocationTag(
     id: row.id,
-    name: row.name,
-    name_en: row.name_en,
+    name: model.BilingualString(sv: row.name, en: row.name_en),
     icon_name: row.icon_name,
     icon_variant: row.icon_variant,
   )
@@ -155,8 +158,7 @@ pub fn from_create_location_tag_row(
 ) -> LocationTag {
   LocationTag(
     id: row.id,
-    name: row.name,
-    name_en: row.name_en,
+    name: model.BilingualString(sv: row.name, en: row.name_en),
     icon_name: row.icon_name,
     icon_variant: row.icon_variant,
   )
@@ -165,8 +167,7 @@ pub fn from_create_location_tag_row(
 pub fn from_get_location_tag_row(row: sql.GetLocationTagRow) -> LocationTag {
   LocationTag(
     id: row.id,
-    name: row.name,
-    name_en: row.name_en,
+    name: model.BilingualString(sv: row.name, en: row.name_en),
     icon_name: row.icon_name,
     icon_variant: row.icon_variant,
   )
@@ -177,8 +178,7 @@ pub fn from_update_location_tag_row(
 ) -> LocationTag {
   LocationTag(
     id: row.id,
-    name: row.name,
-    name_en: row.name_en,
+    name: model.BilingualString(sv: row.name, en: row.name_en),
     icon_name: row.icon_name,
     icon_variant: row.icon_variant,
   )
@@ -188,9 +188,7 @@ pub fn to_json(location: Location) -> Json {
   let Location(
     id:,
     name:,
-    name_en:,
     description:,
-    description_en:,
     icon_name:,
     icon_variant:,
     color:,
@@ -201,10 +199,8 @@ pub fn to_json(location: Location) -> Json {
   ) = location
   json.object([
     #("id", id |> uuid.to_string |> json.string),
-    #("name", json.string(name)),
-    #("name_en", json.string(name_en)),
-    #("description", json.string(description)),
-    #("description_en", json.string(description_en)),
+    #("name", model.bilingual_string_to_json(name)),
+    #("description", model.bilingual_string_to_json(description)),
     #("icon_name", json.string(icon_name)),
     #("icon_variant", json.string(icon_variant)),
     #("color", json.string(color)),
@@ -216,11 +212,10 @@ pub fn to_json(location: Location) -> Json {
 }
 
 pub fn tag_to_json(tag: LocationTag) -> Json {
-  let LocationTag(id:, name:, name_en:, icon_name:, icon_variant:) = tag
+  let LocationTag(id:, name:, icon_name:, icon_variant:) = tag
   json.object([
     #("id", id |> uuid.to_string |> json.string),
-    #("name", json.string(name)),
-    #("name_en", json.string(name_en)),
+    #("name", model.bilingual_string_to_json(name)),
     #("icon_name", json.string(icon_name)),
     #("icon_variant", json.string(icon_variant)),
   ])

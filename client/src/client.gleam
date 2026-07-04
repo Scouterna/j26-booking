@@ -494,9 +494,7 @@ fn to_summary(a: Activity) -> ActivitySummary {
     max_attendees: a.max_attendees,
     start_time: a.start_time,
     end_time: a.end_time,
-    location_name: option.map(a.location, fn(l) {
-      model.BilingualString(sv: l.name, en: l.name_en)
-    }),
+    location_name: option.map(a.location, fn(l) { l.name }),
   )
 }
 
@@ -634,13 +632,13 @@ fn current_language(translator: Translator) -> String {
   translator |> g18n.locale |> locale.language
 }
 
-/// Pick the Swedish or English variant of a value by active language. Used for
-/// database-sourced bilingual text (e.g. location names), which g18n's
+/// Pick the Swedish or English variant of a bilingual value by active language.
+/// Used for database-sourced text (e.g. location names), which g18n's
 /// translation keys don't cover.
-fn localized(translator: Translator, sv: String, en: String) -> String {
+fn localized(translator: Translator, value: model.BilingualString) -> String {
   case current_language(translator) {
-    "en" -> en
-    _ -> sv
+    "en" -> value.en
+    _ -> value.sv
   }
 }
 
@@ -1929,9 +1927,7 @@ fn view_activity_card(
     is_favourited(item.status),
     UserToggledFavourite(summary.id),
     time,
-    option.map(summary.location_name, fn(n) {
-      localized(translator, n.sv, n.en)
-    }),
+    option.map(summary.location_name, fn(n) { localized(translator, n) }),
     spots_text,
   )
 }
@@ -2211,13 +2207,7 @@ fn view_activity_detail_loaded(
                 component.quick_info_tile(
                   icons.pin,
                   g18n.translate(translator, "activity.location"),
-                  [
-                    element.text(localized(
-                      translator,
-                      location.name,
-                      location.name_en,
-                    )),
-                  ],
+                  [element.text(localized(translator, location.name))],
                 )
               None -> element.none()
             },

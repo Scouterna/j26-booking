@@ -376,10 +376,8 @@ pub fn activity_statuses_decoder() -> decode.Decoder(List(ActivityStatusEntry)) 
 pub type Location {
   Location(
     id: Uuid,
-    name: String,
-    name_en: String,
-    description: String,
-    description_en: String,
+    name: BilingualString,
+    description: BilingualString,
     icon_name: String,
     /// Icon style variant, e.g. `outline` or `filled`.
     icon_variant: String,
@@ -399,8 +397,7 @@ pub type Location {
 pub type LocationTag {
   LocationTag(
     id: Uuid,
-    name: String,
-    name_en: String,
+    name: BilingualString,
     icon_name: String,
     /// Icon style variant, e.g. `outline` or `filled`.
     icon_variant: String,
@@ -422,10 +419,8 @@ pub fn location_decoder() -> decode.Decoder(Location) {
   let float_field =
     decode.one_of(decode.float, [decode.int |> decode.map(int.to_float)])
   use id <- decode.field("id", uuid_decoder())
-  use name <- decode.field("name", decode.string)
-  use name_en <- decode.field("name_en", decode.string)
-  use description <- decode.field("description", decode.string)
-  use description_en <- decode.field("description_en", decode.string)
+  use name <- decode.field("name", bilingual_string_decoder())
+  use description <- decode.field("description", bilingual_string_decoder())
   use icon_name <- decode.field("icon_name", decode.string)
   use icon_variant <- decode.field("icon_variant", decode.string)
   use color <- decode.field("color", decode.string)
@@ -443,9 +438,7 @@ pub fn location_decoder() -> decode.Decoder(Location) {
   decode.success(Location(
     id:,
     name:,
-    name_en:,
     description:,
-    description_en:,
     icon_name:,
     icon_variant:,
     color:,

@@ -263,10 +263,7 @@ pub fn summary_to_json(activity: Activity) -> Json {
     #(
       "location_name",
       json.nullable(
-        location
-          |> option.map(fn(l) {
-            model.BilingualString(sv: l.name, en: l.name_en)
-          }),
+        location |> option.map(fn(l) { l.name }),
         model.bilingual_string_to_json,
       ),
     ),

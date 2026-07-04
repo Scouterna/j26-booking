@@ -690,10 +690,12 @@ paths:
               example:
                 locations:
                   - id: "0190f3a1-1c2d-7e3f-9a4b-5c6d7e8f9a0b"
-                    name: "Infotält"
-                    name_en: "Info tent"
-                    description: "Information och hjälp för deltagare."
-                    description_en: "Information and help for participants."
+                    name:
+                      sv: "Infotält"
+                      en: "Info tent"
+                    description:
+                      sv: "Information och hjälp för deltagare."
+                      en: "Information and help for participants."
                     icon_name: "tabler-badge-wc"
                     icon_variant: "filled"
                     color: "#2563eb"
@@ -831,8 +833,9 @@ paths:
               example:
                 location_tags:
                   - id: "0190f3a1-2d3e-7f40-ab51-6c7d8e9f0a1b"
-                    name: "Service"
-                    name_en: "Service"
+                    name:
+                      sv: "Service"
+                      en: "Service"
                     icon_name: "tabler-info-circle"
                     icon_variant: "outline"
         '500':
@@ -1010,19 +1013,10 @@ components:
           description: End time as Unix timestamp in seconds
           example: 1752357600
         location_name:
-          type: object
           nullable: true
           description: The location's name in both languages (null if the activity has no location). The client selects a variant by active language.
-          required:
-            - sv
-            - en
-          properties:
-            sv:
-              type: string
-              example: "Infotält"
-            en:
-              type: string
-              example: "Info tent"
+          allOf:
+            - $ref: '#/components/schemas/BilingualString'
 
     ActivitySpots:
       type: object
@@ -1146,15 +1140,29 @@ components:
           description: ID of the favourited activity
           example: "6f5e1d46-5f58-4e23-9a9d-8c2bfc2d22a0"
 
+    BilingualString:
+      type: object
+      description: A string in both Swedish and English; the client selects a variant by active language.
+      required:
+        - sv
+        - en
+      properties:
+        sv:
+          type: string
+          description: Swedish text
+          example: "Infotält"
+        en:
+          type: string
+          description: English text
+          example: "Info tent"
+
     Location:
       type: object
       description: A map location with its tags and opening hours
       required:
         - id
         - name
-        - name_en
         - description
-        - description_en
         - icon_name
         - icon_variant
         - color
@@ -1169,21 +1177,9 @@ components:
           description: Unique identifier for the location
           example: "0190f3a1-1c2d-7e3f-9a4b-5c6d7e8f9a0b"
         name:
-          type: string
-          description: Location name (Swedish)
-          example: "Infotält"
-        name_en:
-          type: string
-          description: Location name (English)
-          example: "Info tent"
+          $ref: '#/components/schemas/BilingualString'
         description:
-          type: string
-          description: Location description (Swedish)
-          example: "Information och hjälp för deltagare."
-        description_en:
-          type: string
-          description: Location description (English)
-          example: "Information and help for participants."
+          $ref: '#/components/schemas/BilingualString'
         icon_name:
           type: string
           description: Name of the icon representing the location
@@ -1255,7 +1251,6 @@ components:
       required:
         - id
         - name
-        - name_en
         - icon_name
         - icon_variant
       properties:
@@ -1265,13 +1260,7 @@ components:
           description: Unique identifier for the tag
           example: "0190f3a1-2d3e-7f40-ab51-6c7d8e9f0a1b"
         name:
-          type: string
-          description: Tag name (Swedish)
-          example: "Service"
-        name_en:
-          type: string
-          description: Tag name (English)
-          example: "Service"
+          $ref: '#/components/schemas/BilingualString'
         icon_name:
           type: string
           description: Name of the icon representing the tag
@@ -1286,9 +1275,7 @@ components:
       description: Input for creating or updating a location
       required:
         - name
-        - name_en
         - description
-        - description_en
         - icon_name
         - icon_variant
         - color
@@ -1296,17 +1283,9 @@ components:
         - longitude
       properties:
         name:
-          type: string
-          example: "Infotält"
-        name_en:
-          type: string
-          example: "Info tent"
+          $ref: '#/components/schemas/BilingualString'
         description:
-          type: string
-          example: "Information och hjälp för deltagare."
-        description_en:
-          type: string
-          example: "Information and help for participants."
+          $ref: '#/components/schemas/BilingualString'
         icon_name:
           type: string
           example: "tabler-badge-wc"
@@ -1340,16 +1319,11 @@ components:
       description: Input for creating or updating a location tag
       required:
         - name
-        - name_en
         - icon_name
         - icon_variant
       properties:
         name:
-          type: string
-          example: "Service"
-        name_en:
-          type: string
-          example: "Service"
+          $ref: '#/components/schemas/BilingualString'
         icon_name:
           type: string
           example: "tabler-info-circle"

@@ -10,6 +10,7 @@ import pog
 import server/model/location
 import server/sql
 import server/web
+import shared/model.{type BilingualString}
 import shared/utils
 import wisp.{type Request, type Response}
 import youid/uuid.{type Uuid}
@@ -18,10 +19,8 @@ import youid/uuid.{type Uuid}
 
 pub type LocationInput {
   LocationInput(
-    name: String,
-    name_en: String,
-    description: String,
-    description_en: String,
+    name: BilingualString,
+    description: BilingualString,
     icon_name: String,
     icon_variant: String,
     color: String,
@@ -34,8 +33,7 @@ pub type LocationInput {
 
 pub type LocationTagInput {
   LocationTagInput(
-    name: String,
-    name_en: String,
+    name: BilingualString,
     icon_name: String,
     icon_variant: String,
   )
@@ -55,10 +53,11 @@ fn coordinate_decoder() -> decode.Decoder(Float) {
 }
 
 fn location_input_decoder() -> decode.Decoder(LocationInput) {
-  use name <- decode.field("name", decode.string)
-  use name_en <- decode.field("name_en", decode.string)
-  use description <- decode.field("description", decode.string)
-  use description_en <- decode.field("description_en", decode.string)
+  use name <- decode.field("name", model.bilingual_string_decoder())
+  use description <- decode.field(
+    "description",
+    model.bilingual_string_decoder(),
+  )
   use icon_name <- decode.field("icon_name", decode.string)
   use icon_variant <- decode.field("icon_variant", decode.string)
   use color <- decode.field("color", decode.string)
@@ -72,9 +71,7 @@ fn location_input_decoder() -> decode.Decoder(LocationInput) {
   use tags <- decode.optional_field("tags", [], decode.list(uuid_decoder()))
   decode.success(LocationInput(
     name:,
-    name_en:,
     description:,
-    description_en:,
     icon_name:,
     icon_variant:,
     color:,
@@ -86,11 +83,10 @@ fn location_input_decoder() -> decode.Decoder(LocationInput) {
 }
 
 fn location_tag_input_decoder() -> decode.Decoder(LocationTagInput) {
-  use name <- decode.field("name", decode.string)
-  use name_en <- decode.field("name_en", decode.string)
+  use name <- decode.field("name", model.bilingual_string_decoder())
   use icon_name <- decode.field("icon_name", decode.string)
   use icon_variant <- decode.field("icon_variant", decode.string)
-  decode.success(LocationTagInput(name:, name_en:, icon_name:, icon_variant:))
+  decode.success(LocationTagInput(name:, icon_name:, icon_variant:))
 }
 
 // --- Locations -------------------------------------------------------------
@@ -145,10 +141,10 @@ pub fn create(req: Request, ctx: web.Context) -> Response {
       use created <- result.try(sql.create_location(
         conn,
         id,
-        input.name,
-        input.name_en,
-        input.description,
-        input.description_en,
+        input.name.sv,
+        input.name.en,
+        input.description.sv,
+        input.description.en,
         input.icon_name,
         input.icon_variant,
         input.color,
@@ -198,10 +194,10 @@ pub fn update(req: Request, id: String, ctx: web.Context) -> Response {
         sql.update_location(
           conn,
           location_id,
-          input.name,
-          input.name_en,
-          input.description,
-          input.description_en,
+          input.name.sv,
+          input.name.en,
+          input.description.sv,
+          input.description.en,
           input.icon_name,
           input.icon_variant,
           input.color,
@@ -305,8 +301,8 @@ pub fn create_tag(req: Request, ctx: web.Context) -> Response {
     sql.create_location_tag(
       ctx.db_connection,
       id,
-      input.name,
-      input.name_en,
+      input.name.sv,
+      input.name.en,
       input.icon_name,
       input.icon_variant,
     )
@@ -340,8 +336,8 @@ pub fn update_tag(req: Request, id: String, ctx: web.Context) -> Response {
     sql.update_location_tag(
       ctx.db_connection,
       tag_id,
-      input.name,
-      input.name_en,
+      input.name.sv,
+      input.name.en,
       input.icon_name,
       input.icon_variant,
     )
