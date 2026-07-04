@@ -11,4 +11,5 @@ RETURNING id,
     title,
     description,
     start_time,
-    end_time
+    end_time,
+    location_id

@@ -280,3 +280,20 @@ VALUES (
         '2025-07-13 12:00:00',
         'climbing-wall'
     );
+
+-- Assign a few activities to real locations (seeded in locations.sql). The
+-- remaining activities keep location_id NULL to exercise the no-location path.
+UPDATE activity
+SET location_id = '0190f3a1-1c2d-7e3f-9a4b-5c6d7e8f9a0b' -- Infotält
+WHERE id IN (
+    '6f5e1d46-5f58-4e23-9a9d-8c2bfc2d22a0',
+    'fa3825ab-8bc1-4f59-9100-2cc6aeb3d219',
+    '0197faa4-e500-7b23-9292-38f7bd41c955'
+);
+
+UPDATE activity
+SET location_id = '0190f3a1-3e4f-7051-bc62-7d8e9f0a1b2c' -- Sjukvårdstält
+WHERE id IN (
+    'b4219a53-4746-4a09-8b4e-3e2ac0c3df11',
+    'c10f7b72-cc9d-44a5-9e3f-f0f89b621e3e'
+);

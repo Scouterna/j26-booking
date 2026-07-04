@@ -970,6 +970,11 @@ components:
           format: int64
           description: End time as Unix timestamp in seconds
           example: 1752357600
+        location:
+          nullable: true
+          description: The full location this activity happens at, embedded so no follow-up request is needed. Null if the activity has no location.
+          allOf:
+            - $ref: '#/components/schemas/Location'
 
     ActivitySummary:
       type: object
@@ -1004,6 +1009,20 @@ components:
           format: int64
           description: End time as Unix timestamp in seconds
           example: 1752357600
+        location_name:
+          type: object
+          nullable: true
+          description: The location's name in both languages (null if the activity has no location). The client selects a variant by active language.
+          required:
+            - sv
+            - en
+          properties:
+            sv:
+              type: string
+              example: "Infotält"
+            en:
+              type: string
+              example: "Info tent"
 
     ActivitySpots:
       type: object

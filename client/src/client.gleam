@@ -4,6 +4,7 @@ import g18n.{type Translator}
 import g18n/locale
 import gleam/dict.{type Dict}
 import gleam/dynamic/decode
+import gleam/float
 import gleam/int
 import gleam/json
 import gleam/list
@@ -493,6 +494,9 @@ fn to_summary(a: Activity) -> ActivitySummary {
     max_attendees: a.max_attendees,
     start_time: a.start_time,
     end_time: a.end_time,
+    location_name: option.map(a.location, fn(l) {
+      model.BilingualString(sv: l.name, en: l.name_en)
+    }),
   )
 }
 
@@ -622,6 +626,22 @@ pub fn translator_for(lang: String) -> Translator {
     _ -> swedish_translations()
   }
   g18n.new_translator(chosen, translations)
+}
+
+/// The active language code (e.g. `"sv"` or `"en"`) for the translator, using
+/// the same locale lookup `translator_for` relies on.
+fn current_language(translator: Translator) -> String {
+  translator |> g18n.locale |> locale.language
+}
+
+/// Pick the Swedish or English variant of a value by active language. Used for
+/// database-sourced bilingual text (e.g. location names), which g18n's
+/// translation keys don't cover.
+fn localized(translator: Translator, sv: String, en: String) -> String {
+  case current_language(translator) {
+    "en" -> en
+    _ -> sv
+  }
 }
 
 fn app_bar_title(translator: Translator, page: Page) -> Option(String) {
@@ -1899,7 +1919,6 @@ fn view_activity_card(
       summary.end_time,
       section_date,
     )
-  let location = mock_location(summary.id)
   let spots_text =
     spots_remaining_text(translator, summary.max_attendees, item.spots_booked)
   let status = card_status(translator, summary, item.status)
@@ -1910,7 +1929,9 @@ fn view_activity_card(
     is_favourited(item.status),
     UserToggledFavourite(summary.id),
     time,
-    location,
+    option.map(summary.location_name, fn(n) {
+      localized(translator, n.sv, n.en)
+    }),
     spots_text,
   )
 }
@@ -2047,6 +2068,21 @@ fn view_activity_detail(
   }
 }
 
+/// Builds the map preview iframe URL for a location. The map's `icon` param
+/// takes the bare tabler icon name, without the `tabler-` prefix locations
+/// store it with.
+fn map_preview_src(location: model.Location) -> String {
+  let icon = string.replace(location.icon_name, each: "tabler-", with: "")
+  "/_services/map/preview.html?lat="
+  <> float.to_string(location.latitude)
+  <> "&lng="
+  <> float.to_string(location.longitude)
+  <> "&icon="
+  <> icon
+  <> "&variant="
+  <> location.icon_variant
+}
+
 fn view_activity_detail_loaded(
   translator: Translator,
   activity: Activity,
@@ -2062,22 +2098,23 @@ fn view_activity_detail_loaded(
       False,
     )
   html.div([attribute.class("flex flex-col")], [
-    html.div(
-      // Map
-      [
-        attribute.class("sticky top-0 h-28"),
-      ],
-      [
-        html.iframe([
-          attribute.src(
-            // TODO: Use proper coordinates.
-            "/_services/map/preview.html?lat=55.979571&lng=14.130669&icon=badge-wc&variant=filled",
-          ),
-          attribute.class("w-full h-full outline-none pointer-events-none"),
-          attribute.loading("lazy"),
-        ]),
-      ],
-    ),
+    case activity.location {
+      Some(location) ->
+        html.div(
+          // Map
+          [
+            attribute.class("sticky top-0 h-28"),
+          ],
+          [
+            html.iframe([
+              attribute.src(map_preview_src(location)),
+              attribute.class("w-full h-full outline-none pointer-events-none"),
+              attribute.loading("lazy"),
+            ]),
+          ],
+        )
+      None -> element.none()
+    },
     html.div(
       // Content
       [
@@ -2169,14 +2206,21 @@ fn view_activity_detail_loaded(
                 ),
               ],
             ),
-            component.quick_info_tile(
-              icons.pin,
-              g18n.translate(translator, "activity.location"),
-              [
-                element.text("Badbusstorget"),
-                // TODO: Mocked data
-              ],
-            ),
+            case activity.location {
+              Some(location) ->
+                component.quick_info_tile(
+                  icons.pin,
+                  g18n.translate(translator, "activity.location"),
+                  [
+                    element.text(localized(
+                      translator,
+                      location.name,
+                      location.name_en,
+                    )),
+                  ],
+                )
+              None -> element.none()
+            },
           ],
         ),
         html.div([], [
@@ -2462,8 +2506,8 @@ fn view_not_found() -> Element(Msg) {
 }
 
 // MOCK -----------------------------------------------------------------------
-// TODO: replace with real data once schema is extended with location, tags,
-// target audience, and bookings.
+// TODO: replace with real data once schema is extended with tags, target
+// audience, and bookings.
 
 fn id_seed(id: Uuid) -> Int {
   uuid.to_string(id)
@@ -2485,20 +2529,12 @@ fn pick_at(items: List(a), seed: Int, default: a) -> a {
   }
 }
 
-const mock_locations: List(String) = [
-  "Badbusstorget", "Lägerelden", "Stora ängen", "Aktivitetstältet", "Hjärtat",
-]
-
 fn audience_options() -> List(String) {
   ["Spårare", "Upptäckare", "Äventyrare", "Utmanare", "Rover"]
 }
 
 fn tag_options() -> List(String) {
   ["Fysisk", "Badbuss", "Mat", "Skapande", "Lugn"]
-}
-
-fn mock_location(id: Uuid) -> String {
-  pick_at(mock_locations, id_seed(id), "Badbusstorget")
 }
 
 fn mock_audiences(id: Uuid) -> List(String) {

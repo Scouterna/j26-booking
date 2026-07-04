@@ -39,10 +39,11 @@ gleam run -m lustre/dev build  # Build client.js (output: server/priv/static/)
 # Example client (run from examples/client/)
 gleam run -m lustre/dev start  # Dev server with hot reload (standalone demo)
 
-# Database
+# Database (seed order matters: locations → activities → bookings)
 export DATABASE_URL="postgres://postgres@localhost:5432/j26booking"
-psql "$DATABASE_URL" -f server/priv/seeding/activities.sql  # Seed activities
-psql "$DATABASE_URL" -f server/priv/seeding/bookings.sql   # Seed users + bookings
+psql "$DATABASE_URL" -f server/priv/seeding/locations.sql   # Seed locations + tags
+psql "$DATABASE_URL" -f server/priv/seeding/activities.sql  # Seed activities (some link a location)
+psql "$DATABASE_URL" -f server/priv/seeding/bookings.sql    # Seed users + bookings
 ```
 
 ## Architecture
@@ -80,7 +81,7 @@ Request → web.middleware → router.handle_request → handler
 
 ### Database Workflow
 
-1. Add migration SQL to `server/priv/migrations/`
+1. Scaffold the migration with `gleam run -m cigogne new --name <name>` (creates a timestamped file in `server/priv/migrations/` with the `migration:up/down/end` markers) — never hand-create the migration file. Then fill in the up/down SQL.
 2. Apply with `gleam run -m cigogne up` (one migration) or `gleam run -m cigogne all` (all pending); roll back with `gleam run -m cigogne down`
 3. Add query SQL files to `server/src/server/sql/`
 4. Regenerate with `gleam run -m squirrel` (creates `sql.gleam`)

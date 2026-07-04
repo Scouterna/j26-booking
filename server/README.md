@@ -125,13 +125,16 @@ This applies all pending migrations from [`priv/migrations/`](priv/migrations/).
 ### Seeding the Database
 
 ```sh
+psql "$DATABASE_URL" -f priv/seeding/locations.sql
 psql "$DATABASE_URL" -f priv/seeding/activities.sql
 psql "$DATABASE_URL" -f priv/seeding/bookings.sql
-psql "$DATABASE_URL" -f priv/seeding/locations.sql
 ```
 
-This inserts sample activities, users, bookings, activity_user assignments, and
-locations with their tags. Make sure migrations have been applied first. From the repo root you can also run `./seed.sh`.
+This inserts locations with their tags, sample activities (some linked to a
+location via `location_id`), users, bookings, and activity_user assignments.
+Locations must be seeded before activities, which reference them; bookings
+reference activities, so they come last. Make sure migrations have been applied
+first. From the repo root you can also run `./seed.sh`.
 
 ### Database Schema
 

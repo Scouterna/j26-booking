@@ -33,13 +33,18 @@ fn id_c() -> Uuid {
   uid("00000000-0000-0000-0000-00000000000c")
 }
 
-fn a_summary(id: Uuid, title: String, max: Option(Int)) -> model.ActivitySummary {
+fn a_summary(
+  id: Uuid,
+  title: String,
+  max: Option(Int),
+) -> model.ActivitySummary {
   model.ActivitySummary(
     id:,
     title:,
     max_attendees: max,
     start_time: timestamp.from_unix_seconds(1_750_000_000),
     end_time: timestamp.from_unix_seconds(1_750_003_600),
+    location_name: None,
   )
 }
 
@@ -51,6 +56,7 @@ fn an_activity(id: Uuid, max: Option(Int)) -> model.Activity {
     max_attendees: max,
     start_time: timestamp.from_unix_seconds(1_750_000_000),
     end_time: timestamp.from_unix_seconds(1_750_003_600),
+    location: None,
   )
 }
 

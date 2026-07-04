@@ -319,7 +319,7 @@ pub fn activity_card(
   favourited: Bool,
   on_toggle_favourite: option_msg,
   time: Element(option_msg),
-  location: String,
+  location: Option(String),
   spots_remaining_text: Option(String),
 ) -> Element(option_msg) {
   let heart_locked = case status {
@@ -370,7 +370,10 @@ pub fn activity_card(
             ],
             list.flatten([
               [card_meta(icons.clock, time)],
-              [card_meta(icons.pin, element.text(location))],
+              case location {
+                Some(name) -> [card_meta(icons.pin, element.text(name))]
+                None -> []
+              },
               case spots_remaining_text {
                 Some(text) -> [card_meta(icons.users, element.text(text))]
                 None -> []

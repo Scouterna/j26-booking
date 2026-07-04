@@ -4,6 +4,7 @@ import gleam/int
 import gleam/json.{type Json}
 import gleam/option.{type Option, None, Some}
 import gleam/time/timestamp.{type Timestamp}
+import shared/utils
 import youid/uuid.{type Uuid}
 
 pub type Activity {
@@ -14,6 +15,8 @@ pub type Activity {
     max_attendees: Option(Int),
     start_time: Timestamp,
     end_time: Timestamp,
+    /// The full location this activity happens at. `None` when the activity has no location.
+    location: Option(Location),
   )
 }
 
@@ -36,6 +39,11 @@ pub fn activity_decoder() -> decode.Decoder(Activity) {
     "end_time",
     decode.one_of(decode.int, [decode.float |> decode.map(float.round)]),
   )
+  use location <- decode.optional_field(
+    "location",
+    None,
+    decode.optional(location_decoder()),
+  )
   case uuid.from_string(id_str) {
     Ok(id) ->
       decode.success(Activity(
@@ -45,6 +53,7 @@ pub fn activity_decoder() -> decode.Decoder(Activity) {
         max_attendees:,
         start_time: timestamp.from_unix_seconds(start_time_secs),
         end_time: timestamp.from_unix_seconds(end_time_secs),
+        location:,
       ))
     Error(_) ->
       decode.failure(
@@ -55,6 +64,7 @@ pub fn activity_decoder() -> decode.Decoder(Activity) {
           max_attendees:,
           start_time: timestamp.from_unix_seconds(start_time_secs),
           end_time: timestamp.from_unix_seconds(end_time_secs),
+          location:,
         ),
         "valid UUID string",
       )
@@ -67,6 +77,24 @@ pub fn activities_decoder() -> decode.Decoder(List(Activity)) {
   decode.success(activities)
 }
 
+/// A string carried in both Swedish and English so the client can pick a
+/// variant by active language. Serialised as `{"sv": ..., "en": ...}`.
+pub type BilingualString {
+  BilingualString(sv: String, en: String)
+}
+
+/// Decode a `BilingualString` from `{"sv": ..., "en": ...}`.
+pub fn bilingual_string_decoder() -> decode.Decoder(BilingualString) {
+  use sv <- decode.field("sv", decode.string)
+  use en <- decode.field("en", decode.string)
+  decode.success(BilingualString(sv:, en:))
+}
+
+/// Encode a `BilingualString` as `{"sv": ..., "en": ...}`.
+pub fn bilingual_string_to_json(value: BilingualString) -> Json {
+  json.object([#("sv", json.string(value.sv)), #("en", json.string(value.en))])
+}
+
 /// Slim activity for list views — omits `description` to keep the payload
 /// small when the whole catalogue is fetched at once.
 pub type ActivitySummary {
@@ -76,6 +104,9 @@ pub type ActivitySummary {
     max_attendees: Option(Int),
     start_time: Timestamp,
     end_time: Timestamp,
+    /// The location's name in both languages, embedded so list cards need no
+    /// follow-up request. `None` when the activity has no location.
+    location_name: Option(BilingualString),
   )
 }
 
@@ -97,6 +128,11 @@ pub fn activity_summary_decoder() -> decode.Decoder(ActivitySummary) {
     "end_time",
     decode.one_of(decode.int, [decode.float |> decode.map(float.round)]),
   )
+  use location_name <- decode.optional_field(
+    "location_name",
+    None,
+    decode.optional(bilingual_string_decoder()),
+  )
   case uuid.from_string(id_str) {
     Ok(id) ->
       decode.success(ActivitySummary(
@@ -105,6 +141,7 @@ pub fn activity_summary_decoder() -> decode.Decoder(ActivitySummary) {
         max_attendees:,
         start_time: timestamp.from_unix_seconds(start_time_secs),
         end_time: timestamp.from_unix_seconds(end_time_secs),
+        location_name:,
       ))
     Error(_) ->
       decode.failure(
@@ -114,6 +151,7 @@ pub fn activity_summary_decoder() -> decode.Decoder(ActivitySummary) {
           max_attendees:,
           start_time: timestamp.from_unix_seconds(start_time_secs),
           end_time: timestamp.from_unix_seconds(end_time_secs),
+          location_name:,
         ),
         "valid UUID string",
       )
@@ -367,4 +405,59 @@ pub type LocationTag {
     /// Icon style variant, e.g. `outline` or `filled`.
     icon_variant: String,
   )
+}
+
+/// Decodes a UUID string, failing the field on an unparseable value.
+fn uuid_decoder() -> decode.Decoder(Uuid) {
+  use str <- decode.then(decode.string)
+  case uuid.from_string(str) {
+    Ok(id) -> decode.success(id)
+    Error(_) -> decode.failure(uuid.v7(), "valid UUID string")
+  }
+}
+
+/// Decode a Location from API JSON (matches the server's `location.to_json`).
+/// `opening_hours` is carried through as an opaque `Json` value.
+pub fn location_decoder() -> decode.Decoder(Location) {
+  let float_field =
+    decode.one_of(decode.float, [decode.int |> decode.map(int.to_float)])
+  use id <- decode.field("id", uuid_decoder())
+  use name <- decode.field("name", decode.string)
+  use name_en <- decode.field("name_en", decode.string)
+  use description <- decode.field("description", decode.string)
+  use description_en <- decode.field("description_en", decode.string)
+  use icon_name <- decode.field("icon_name", decode.string)
+  use icon_variant <- decode.field("icon_variant", decode.string)
+  use color <- decode.field("color", decode.string)
+  use latitude <- decode.field("latitude", float_field)
+  use longitude <- decode.field("longitude", float_field)
+  use opening_hours <- decode.optional_field(
+    "opening_hours",
+    json.object([]),
+    utils.json_passthrough_decoder(),
+  )
+  use tags <- decode.field(
+    "tags",
+    utils.decode_partial_list(of: uuid_decoder()),
+  )
+  decode.success(Location(
+    id:,
+    name:,
+    name_en:,
+    description:,
+    description_en:,
+    icon_name:,
+    icon_variant:,
+    color:,
+    latitude:,
+    longitude:,
+    opening_hours:,
+    tags:,
+  ))
+}
+
+/// Decode a list of locations from the API response `{"locations": [...]}`.
+pub fn locations_decoder() -> decode.Decoder(List(Location)) {
+  use locations <- decode.field("locations", decode.list(location_decoder()))
+  decode.success(locations)
 }

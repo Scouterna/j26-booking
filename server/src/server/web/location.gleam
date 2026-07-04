@@ -1,11 +1,9 @@
 import given
-import gleam/dict.{type Dict}
 import gleam/dynamic/decode
 import gleam/http.{Delete, Get, Post, Put}
 import gleam/int
 import gleam/json
 import gleam/list
-import gleam/option.{None, Some}
 import gleam/result
 import gleam/string
 import pog
@@ -98,28 +96,18 @@ fn location_tag_input_decoder() -> decode.Decoder(LocationTagInput) {
 // --- Locations -------------------------------------------------------------
 
 /// Returns all locations with their tag ids embedded. Locations and their
-/// join-table links are fetched separately and stitched together here, avoiding
-/// an array aggregation in SQL.
+/// join-table links are fetched separately and stitched together in
+/// `location.fetch_all`, avoiding an array aggregation in SQL.
 pub fn get_all(req: Request, ctx: web.Context) -> Response {
   use <- wisp.require_method(req, Get)
-  case
-    sql.list_locations(ctx.db_connection),
-    sql.list_location_tag_links(ctx.db_connection)
-  {
-    Ok(pog.Returned(_, location_rows)), Ok(pog.Returned(_, link_rows)) -> {
-      let tags_by_location = group_tags_by_location(link_rows)
-      let locations =
-        list.map(location_rows, fn(row) {
-          let tags = dict.get(tags_by_location, row.id) |> result.unwrap([])
-          location.from_list_locations_row(row, tags)
-        })
+  case location.fetch_all(ctx.db_connection) {
+    Error(error) -> web.query_error(error)
+    Ok(locations) ->
       wisp.json_response(
         json.object([#("locations", json.array(locations, location.to_json))])
           |> json.to_string,
         200,
       )
-    }
-    Error(error), _ | _, Error(error) -> web.query_error(error)
   }
 }
 
@@ -388,18 +376,6 @@ pub fn delete_tag(req: Request, id: String, ctx: web.Context) -> Response {
 }
 
 // --- Helpers ---------------------------------------------------------------
-
-fn group_tags_by_location(
-  links: List(sql.ListLocationTagLinksRow),
-) -> Dict(Uuid, List(Uuid)) {
-  list.fold(links, dict.new(), fn(acc, link) {
-    use existing <- dict.upsert(acc, link.location_id)
-    case existing {
-      Some(tag_ids) -> [link.location_tag_id, ..tag_ids]
-      None -> [link.location_tag_id]
-    }
-  })
-}
 
 fn transaction_error(error: pog.TransactionError(pog.QueryError)) -> Response {
   wisp.log_error("TransactionError " <> string.inspect(error))

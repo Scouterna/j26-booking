@@ -10,4 +10,5 @@ RETURNING id,
     description,
     max_attendees,
     start_time,
-    end_time
+    end_time,
+    location_id

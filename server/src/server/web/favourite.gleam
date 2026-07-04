@@ -8,7 +8,11 @@ import server/web
 import wisp.{type Request, type Response}
 import youid/uuid
 
-pub fn put(req: Request, activity_id_str: String, ctx: web.Context) -> Response {
+pub fn put(
+  req: Request,
+  activity_id_str: String,
+  ctx: web.Context,
+) -> Response {
   use <- wisp.require_method(req, Put)
   web.discard_body(req)
   use user_id <- web.with_authenticated_user(ctx)

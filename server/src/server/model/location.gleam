@@ -1,4 +1,9 @@
+import gleam/dict.{type Dict}
 import gleam/json.{type Json}
+import gleam/list
+import gleam/option.{None, Some}
+import gleam/result
+import pog
 import server/sql
 import shared/model.{type Location, type LocationTag, Location, LocationTag}
 import shared/utils
@@ -96,7 +101,46 @@ fn parse_opening_hours(raw: String) -> Json {
   }
 }
 
-pub fn from_list_location_tags_row(row: sql.ListLocationTagsRow) -> LocationTag {
+/// Groups tag-location links into the tag ids applied to each location.
+pub fn group_tags_by_location(
+  links: List(sql.ListLocationTagLinksRow),
+) -> Dict(Uuid, List(Uuid)) {
+  list.fold(links, dict.new(), fn(acc, link) {
+    use existing <- dict.upsert(acc, link.location_id)
+    case existing {
+      Some(tag_ids) -> [link.location_tag_id, ..tag_ids]
+      None -> [link.location_tag_id]
+    }
+  })
+}
+
+/// Fetch every location with its tag ids stitched in, ordered by name.
+pub fn fetch_all(db: pog.Connection) -> Result(List(Location), pog.QueryError) {
+  use pog.Returned(_, location_rows) <- result.try(sql.list_locations(db))
+  use pog.Returned(_, link_rows) <- result.try(sql.list_location_tag_links(db))
+  let tags_by_location = group_tags_by_location(link_rows)
+  location_rows
+  |> list.map(fn(row) {
+    let tags = dict.get(tags_by_location, row.id) |> result.unwrap([])
+    from_list_locations_row(row, tags)
+  })
+  |> Ok
+}
+
+/// Fetch every location keyed by id — used to embed locations into activities
+/// without a per-activity query.
+pub fn fetch_all_dict(
+  db: pog.Connection,
+) -> Result(Dict(Uuid, Location), pog.QueryError) {
+  use locations <- result.map(fetch_all(db))
+  list.fold(locations, dict.new(), fn(acc, location) {
+    dict.insert(acc, location.id, location)
+  })
+}
+
+pub fn from_list_location_tags_row(
+  row: sql.ListLocationTagsRow,
+) -> LocationTag {
   LocationTag(
     id: row.id,
     name: row.name,
