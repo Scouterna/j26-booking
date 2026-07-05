@@ -1,8 +1,8 @@
 -- Seed users first (bookings require a valid user_id)
-INSERT INTO "user" (id, role)
-VALUES ('a1b2c3d4-e5f6-4a90-abcd-ef1234567890', 'booker'),
-    ('b2c3d4e5-f6a7-4b01-bcde-f12345678901', 'booker'),
-    ('c3d4e5f6-a7b8-4c12-8def-123456789012', 'organizer')
+INSERT INTO "user" (id)
+VALUES ('a1b2c3d4-e5f6-4a90-abcd-ef1234567890'),
+    ('b2c3d4e5-f6a7-4b01-bcde-f12345678901'),
+    ('c3d4e5f6-a7b8-4c12-8def-123456789012')
 ON CONFLICT (id) DO NOTHING;
 
 -- Seed bookings (references activities from activities.sql)

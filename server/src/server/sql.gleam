@@ -2462,6 +2462,43 @@ RETURNING id,
   |> pog.execute(db)
 }
 
+/// A row you get from running the `upsert_user` query
+/// defined in `./src/server/sql/upsert_user.sql`.
+///
+/// > 🐿️ This type definition was generated automatically using v4.6.0 of the
+/// > [squirrel package](https://github.com/giacomocavalieri/squirrel).
+///
+pub type UpsertUserRow {
+  UpsertUserRow(id: Uuid)
+}
+
+/// Creates the user row for a JWT-authenticated user on first sight, so
+/// handlers can write rows with user_id foreign keys.
+///
+/// > 🐿️ This function was generated automatically using v4.6.0 of
+/// > the [squirrel package](https://github.com/giacomocavalieri/squirrel).
+///
+pub fn upsert_user(
+  db: pog.Connection,
+  arg_1: Uuid,
+) -> Result(pog.Returned(UpsertUserRow), pog.QueryError) {
+  let decoder = {
+    use id <- decode.field(0, uuid_decoder())
+    decode.success(UpsertUserRow(id:))
+  }
+
+  "-- Creates the user row for a JWT-authenticated user on first sight, so
+-- handlers can write rows with user_id foreign keys.
+INSERT INTO \"user\" (id)
+VALUES ($1) ON CONFLICT (id) DO NOTHING
+RETURNING id
+"
+  |> pog.query
+  |> pog.parameter(pog.text(uuid.to_string(arg_1)))
+  |> pog.returning(decoder)
+  |> pog.execute(db)
+}
+
 // --- Encoding/decoding utils -------------------------------------------------
 
 /// A decoder to decode `Uuid`s coming from a Postgres query.

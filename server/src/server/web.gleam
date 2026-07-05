@@ -11,6 +11,7 @@ import lustre/attribute
 import lustre/element.{type Element}
 import lustre/element/html
 import pog
+import server/sql
 import shared/utils as shared_utils
 import wisp.{type Request, type Response}
 import youid/uuid.{type Uuid}
@@ -103,7 +104,29 @@ pub fn middleware(
     from: ctx.static_directory,
   )
   let ctx = authenticate(req, ctx)
+  ensure_user_row(ctx)
   handle_request(req, ctx)
+}
+
+/// Creates the authenticated user's `"user"` row on first sight (the table
+/// only has seeded rows otherwise), so handlers can write rows with user_id
+/// foreign keys. Runs in the middleware rather than in individual handlers so
+/// future user-referencing endpoints cannot forget it; the upsert is a
+/// single primary-key `ON CONFLICT DO NOTHING`, negligible at this app's
+/// request volume.
+///
+/// Failure is logged but does not fail the request: read-only handlers still
+/// work, and writes that need the row surface the database problem themselves.
+fn ensure_user_row(ctx: Context) -> Nil {
+  case ctx.authentication_result {
+    Authenticated(user) ->
+      case sql.upsert_user(ctx.db_connection, user.id) {
+        Ok(_) -> Nil
+        Error(error) ->
+          wisp.log_error("Failed to upsert user row: " <> string.inspect(error))
+      }
+    NotAuthenticated | InvalidToken -> Nil
+  }
 }
 
 /// Cookie the j26-auth service stores the access token in. It is httpOnly and
