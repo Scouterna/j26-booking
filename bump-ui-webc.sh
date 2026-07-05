@@ -20,7 +20,7 @@ sed -i.bak -E "s|@scouterna/ui-webc@[0-9]+\.[0-9]+\.[0-9]+|@scouterna/ui-webc@${
   client/gleam.toml
 rm client/gleam.toml.bak
 
-sed -i.bak -E "s|const scouterna_ui_webc_version = \"[0-9]+\.[0-9]+\.[0-9]+\"|pub const ui_webc_version = \"${VERSION}\"|" \
+sed -i.bak -E "s|(const scouterna_ui_webc_version = \")[0-9]+\.[0-9]+\.[0-9]+(\")|\1${VERSION}\2|" \
   server/src/server/web.gleam
 rm server/src/server/web.gleam.bak
 

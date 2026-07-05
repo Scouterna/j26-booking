@@ -1,6 +1,7 @@
 import formal/form.{type Form}
 import gleam/dynamic/decode
 import gleam/int
+import gleam/json
 import gleam/list
 import gleam/option.{type Option, None, Some}
 import lustre/attribute
@@ -97,6 +98,24 @@ pub fn scout_loader(text: String) -> Element(msg) {
       attribute.attribute("size", "base"),
     ],
     [],
+  )
+}
+
+pub fn scout_drawer(
+  open: Bool,
+  heading: String,
+  on_exit: msg,
+  content: List(Element(msg)),
+) -> Element(msg) {
+  element.element(
+    "scout-drawer",
+    [
+      attribute.property("open", json.bool(open)),
+      attribute.attribute("heading", heading),
+      attribute.attribute("show-exit-button", "true"),
+      event.on("exitButtonClicked", decode.success(on_exit)),
+    ],
+    content,
   )
 }
 
@@ -208,7 +227,6 @@ pub fn filter_pill_icon(
     "scout-button",
     [
       attribute.attribute("variant", variant),
-      attribute.attribute("size", "small"),
       attribute.attribute("icon", icon_svg),
       attribute.attribute("icon-only", ""),
       attribute.attribute("aria-label", aria_label),
@@ -221,13 +239,18 @@ pub fn filter_pill_icon(
 pub fn filter_chip(label: String, selected: Bool, msg: msg) -> Element(msg) {
   let base = "px-3 py-1 rounded-full text-body-sm border cursor-pointer "
   let class = case selected {
-    True -> base <> "bg-blue-100 border-blue-500 text-blue-900"
+    True -> base <> "bg-background-brand-base border-transparent text-white"
     False -> base <> "bg-white border-gray-300 text-gray-800"
+  }
+  let aria_pressed = case selected {
+    True -> "true"
+    False -> "false"
   }
   html.button(
     [
       attribute.type_("button"),
       attribute.class(class),
+      attribute.aria_pressed(aria_pressed),
       event.on_click(msg),
     ],
     [element.text(label)],
