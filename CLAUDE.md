@@ -135,6 +135,13 @@ Quick-reference rules (skills above expand on these):
 - Don't fragment modules prematurely — prefer larger, well-designed modules
 - Always add dependencies with `gleam add <package>` — never edit `gleam.toml` manually
 
+## Plans
+
+Implementation plans and handoff docs live in `docs/plans/` (one file per piece
+of work, serial-numbered, each with a status header). Check there for prior/
+in-flight designs before starting significant work, and see `docs/plans/CLAUDE.md`
+for how to add a plan and keep its status and the index current.
+
 ## Commits
 
 Follow [Conventional Commits](https://www.conventionalcommits.org/). Run `gleam format` before committing.
