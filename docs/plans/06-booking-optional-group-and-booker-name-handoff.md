@@ -1,6 +1,15 @@
 # 06. Handoff: optional booker group + store booker_name from JWT
 
-> **Status: 🔲 Not started** (as of 2026-07-08)
+> **Status: ✅ Done 2026-07-08** (commit `fa641e9`)
+>
+> Implemented as planned, with one deviation: Squirrel generates
+> **non-nullable** parameters, so a single `create_booking` cannot pass `NULL`
+> for the group columns. The create query was split into
+> `create_booking_with_group` / `create_booking_without_group` (the latter
+> hardcodes `NULL, NULL`), mirroring the existing
+> `create_activity_with/without_max_attendees` pattern; the handler branches on
+> `user.group_id` and `model/booking.gleam` gained
+> `from_create_booking_with_group_row` / `from_create_booking_without_group_row`.
 
 ## Goal
 
