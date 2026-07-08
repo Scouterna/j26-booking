@@ -703,7 +703,11 @@ pub fn selecting_tab_updates_filter_and_lazily_loads_source_test() {
 }
 
 pub fn retrying_load_marks_current_tab_source_loading_test() {
-  let model_ = client.Model(..base_model(), activities_ids: client.Failed("e"))
+  let model_ =
+    client.Model(
+      ..base_model(),
+      activities_ids: client.Failed(client.LoadActivitiesFailed),
+    )
   let #(next, _) = client.update(model_, client.UserClickedRetryLoad)
   assert next.activities_ids == client.Loading
 }

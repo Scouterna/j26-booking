@@ -119,15 +119,12 @@ pub fn scout_drawer(
   )
 }
 
-pub fn error_banner(message: String) -> Element(msg) {
-  html.div(
+pub fn error_banner(heading: String, message: String) -> Element(msg) {
+  element.element(
+    "scout-callout",
     [
-      attribute.styles([
-        #("padding", "var(--spacing-2) var(--spacing-4)"),
-        #("background", "var(--color-background-danger-base)"),
-        #("color", "var(--color-text-danger-base)"),
-        #("border-radius", "4px"),
-      ]),
+      attribute.attribute("variant", "error"),
+      attribute.attribute("heading", heading),
     ],
     [element.text(message)],
   )

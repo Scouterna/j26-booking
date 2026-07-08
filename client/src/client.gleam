@@ -88,6 +88,14 @@ fn english_translations() -> g18n.Translations {
     "No activities match the filters.",
   )
   |> g18n.add_translation("list.retry", "Try again")
+  |> g18n.add_translation("error.heading", "Something went wrong")
+  |> g18n.add_translation("error.load_activities", "Failed to load activities")
+  |> g18n.add_translation("error.load_activity", "Failed to load activity")
+  |> g18n.add_translation("error.create_activity", "Failed to create activity")
+  |> g18n.add_translation("error.update_activity", "Failed to update activity")
+  |> g18n.add_translation("error.delete_activity", "Failed to delete activity")
+  |> g18n.add_translation("error.create_booking", "Failed to create booking")
+  |> g18n.add_translation("error.update_booking", "Failed to update booking")
 }
 
 fn swedish_translations() -> g18n.Translations {
@@ -143,6 +151,29 @@ fn swedish_translations() -> g18n.Translations {
     "Inga aktiviteter matchar filtren.",
   )
   |> g18n.add_translation("list.retry", "Försök igen")
+  |> g18n.add_translation("error.heading", "Något gick fel")
+  |> g18n.add_translation(
+    "error.load_activities",
+    "Kunde inte ladda aktiviteter",
+  )
+  |> g18n.add_translation("error.load_activity", "Kunde inte ladda aktiviteten")
+  |> g18n.add_translation(
+    "error.create_activity",
+    "Kunde inte skapa aktiviteten",
+  )
+  |> g18n.add_translation(
+    "error.update_activity",
+    "Kunde inte uppdatera aktiviteten",
+  )
+  |> g18n.add_translation(
+    "error.delete_activity",
+    "Kunde inte ta bort aktiviteten",
+  )
+  |> g18n.add_translation("error.create_booking", "Kunde inte skapa bokningen")
+  |> g18n.add_translation(
+    "error.update_booking",
+    "Kunde inte uppdatera bokningen",
+  )
 }
 
 // MAIN ------------------------------------------------------------------------
@@ -256,7 +287,7 @@ pub type BookingFormState {
   BookingClosed
   BookingOpen(
     form: Form(BookingFormFields),
-    submit_error: Option(String),
+    submit_error: Option(AppError),
     mode: BookingMode,
   )
   BookingSubmitting(mode: BookingMode)
@@ -268,14 +299,39 @@ pub type RemoteData(a) {
   NotAsked
   Loading
   Loaded(a)
-  Failed(String)
+  Failed(AppError)
+}
+
+/// A user-facing error. Stored (rather than a pre-translated string) so the view
+/// can localize it at render time — this way an error surfaced in one language
+/// re-renders correctly if the user switches language before dismissing it.
+pub type AppError {
+  LoadActivitiesFailed
+  LoadActivityFailed
+  CreateActivityFailed
+  UpdateActivityFailed
+  DeleteActivityFailed
+  CreateBookingFailed
+  UpdateBookingFailed
+}
+
+fn app_error_key(error: AppError) -> String {
+  case error {
+    LoadActivitiesFailed -> "error.load_activities"
+    LoadActivityFailed -> "error.load_activity"
+    CreateActivityFailed -> "error.create_activity"
+    UpdateActivityFailed -> "error.update_activity"
+    DeleteActivityFailed -> "error.delete_activity"
+    CreateBookingFailed -> "error.create_booking"
+    UpdateBookingFailed -> "error.update_booking"
+  }
 }
 
 pub type EditState {
   EditReady(
     activity: Activity,
     form: Form(ActivityForm),
-    submit_error: Option(String),
+    submit_error: Option(AppError),
   )
 }
 
@@ -330,7 +386,7 @@ pub fn tab_from_index(index: Int) -> ActivitiesFilterTab {
 
 pub type Page {
   ActivitiesListPage(filters: ListFilters)
-  ActivityNewPage(form: Form(ActivityForm), submit_error: Option(String))
+  ActivityNewPage(form: Form(ActivityForm), submit_error: Option(AppError))
   ActivityDetailPage(id: Uuid, booking: BookingFormState)
   ActivityEditPage(id: Uuid, state: EditState)
   NotFoundPage
@@ -829,7 +885,7 @@ pub fn update(model: Model, msg: Msg) -> #(Model, Effect(Msg)) {
     }
 
     ApiReturnedActivityList(source, Error(_)) -> #(
-      set_source_remote(model, source, Failed("Failed to load activities")),
+      set_source_remote(model, source, Failed(LoadActivitiesFailed)),
       effect.none(),
     )
 
@@ -848,11 +904,7 @@ pub fn update(model: Model, msg: Msg) -> #(Model, Effect(Msg)) {
     ApiReturnedActivity(id, Error(_)) -> #(
       Model(
         ..model,
-        details: dict.insert(
-          model.details,
-          id,
-          Failed("Failed to load activity"),
-        ),
+        details: dict.insert(model.details, id, Failed(LoadActivityFailed)),
       ),
       effect.none(),
     )
@@ -914,7 +966,7 @@ pub fn update(model: Model, msg: Msg) -> #(Model, Effect(Msg)) {
         ActivityNewPage(form, _) -> #(
           Model(
             ..model,
-            page: ActivityNewPage(form, Some("Failed to create activity")),
+            page: ActivityNewPage(form, Some(CreateActivityFailed)),
           ),
           effect.none(),
         )
@@ -956,7 +1008,7 @@ pub fn update(model: Model, msg: Msg) -> #(Model, Effect(Msg)) {
             ..model,
             page: ActivityEditPage(
               id,
-              EditReady(activity, form, Some("Failed to update activity")),
+              EditReady(activity, form, Some(UpdateActivityFailed)),
             ),
           ),
           effect.none(),
@@ -985,7 +1037,7 @@ pub fn update(model: Model, msg: Msg) -> #(Model, Effect(Msg)) {
             ..model,
             page: ActivityEditPage(
               id,
-              EditReady(activity, form, Some("Failed to delete activity")),
+              EditReady(activity, form, Some(DeleteActivityFailed)),
             ),
           ),
           effect.none(),
@@ -1287,11 +1339,7 @@ pub fn update(model: Model, msg: Msg) -> #(Model, Effect(Msg)) {
             ..model,
             page: ActivityDetailPage(
               id,
-              BookingOpen(
-                new_booking_form(),
-                Some("Failed to create booking"),
-                mode,
-              ),
+              BookingOpen(new_booking_form(), Some(CreateBookingFailed), mode),
             ),
           ),
           effect.none(),
@@ -1323,11 +1371,7 @@ pub fn update(model: Model, msg: Msg) -> #(Model, Effect(Msg)) {
             ..model,
             page: ActivityDetailPage(
               id,
-              BookingOpen(
-                new_booking_form(),
-                Some("Failed to update booking"),
-                mode,
-              ),
+              BookingOpen(new_booking_form(), Some(UpdateBookingFailed), mode),
             ),
           ),
           effect.none(),
@@ -1660,7 +1704,8 @@ fn view(model: Model) -> Element(Msg) {
         model.spots,
         filters,
       )
-    ActivityNewPage(form, submit_error) -> view_activity_new(form, submit_error)
+    ActivityNewPage(form, submit_error) ->
+      view_activity_new(model.translator, form, submit_error)
     ActivityDetailPage(id, booking) ->
       view_activity_detail(
         model.translator,
@@ -1694,7 +1739,7 @@ fn view_activities_list(
         NotAsked | Loading -> component.scout_loader(t("activity.loading"))
         Failed(err) ->
           html.div([attribute.class("py-6 flex flex-col items-center gap-3")], [
-            component.error_banner(err),
+            component.error_banner(t("error.heading"), t(app_error_key(err))),
             component.scout_button_action(
               t("list.retry"),
               "primary",
@@ -2039,8 +2084,9 @@ fn card_status(
 }
 
 fn view_activity_new(
+  translator: g18n.Translator,
   form: Form(ActivityForm),
-  submit_error: Option(String),
+  submit_error: Option(AppError),
 ) -> Element(Msg) {
   let submitted = fn(values) {
     form
@@ -2054,7 +2100,11 @@ fn view_activity_new(
     ]),
     html.div([attribute.styles([#("padding", "var(--spacing-4)")])], [
       case submit_error {
-        Some(err) -> component.error_banner(err)
+        Some(err) ->
+          component.error_banner(
+            g18n.translate(translator, "error.heading"),
+            g18n.translate(translator, app_error_key(err)),
+          )
         None -> element.none()
       },
       html.form([event.on_submit(submitted)], [
@@ -2430,7 +2480,11 @@ fn view_booking_form_section(
       html.form([event.on_submit(submitted)], [
         html.div([attribute.class("flex flex-col gap-2")], [
           case submit_error {
-            Some(err) -> component.error_banner(err)
+            Some(err) ->
+              component.error_banner(
+                g18n.translate(translator, "error.heading"),
+                g18n.translate(translator, app_error_key(err)),
+              )
             None -> element.none()
           },
           component.scout_form_field(
