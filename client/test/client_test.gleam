@@ -33,10 +33,14 @@ fn id_c() -> Uuid {
   uid("00000000-0000-0000-0000-00000000000c")
 }
 
-fn a_summary(id: Uuid, title: String, max: Option(Int)) -> model.ActivitySummary {
+fn a_summary(
+  id: Uuid,
+  title: String,
+  max: Option(Int),
+) -> model.ActivitySummary {
   model.ActivitySummary(
     id:,
-    title:,
+    title: model.BilingualString(sv: title, en: title),
     max_attendees: max,
     start_time: timestamp.from_unix_seconds(1_750_000_000),
     end_time: timestamp.from_unix_seconds(1_750_003_600),
@@ -47,8 +51,8 @@ fn a_summary(id: Uuid, title: String, max: Option(Int)) -> model.ActivitySummary
 fn an_activity(id: Uuid, max: Option(Int)) -> model.Activity {
   model.Activity(
     id:,
-    title: "Climb",
-    description: "Desc",
+    title: model.BilingualString(sv: "Climb", en: "Climb"),
+    description: model.BilingualString(sv: "Desc", en: "Desc"),
     max_attendees: max,
     start_time: timestamp.from_unix_seconds(1_750_000_000),
     end_time: timestamp.from_unix_seconds(1_750_003_600),
@@ -58,7 +62,10 @@ fn an_activity(id: Uuid, max: Option(Int)) -> model.Activity {
 
 /// The detail-only slice of `an_activity` — description "Desc", no location.
 fn a_detail() -> client.ActivityDetail {
-  client.ActivityDetail(description: "Desc", location: None)
+  client.ActivityDetail(
+    description: model.BilingualString(sv: "Desc", en: "Desc"),
+    location: None,
+  )
 }
 
 fn a_booking(id: Uuid, activity_id: Uuid) -> model.Booking {

@@ -56,7 +56,9 @@ pub type CreateActivityWithMaxAttendeesRow {
   CreateActivityWithMaxAttendeesRow(
     id: Uuid,
     title: String,
+    title_en: String,
     description: String,
+    description_en: String,
     max_attendees: Option(Int),
     start_time: Timestamp,
     end_time: Timestamp,
@@ -75,22 +77,28 @@ pub fn create_activity_with_max_attendees(
   arg_1: Uuid,
   arg_2: String,
   arg_3: String,
-  arg_4: Int,
-  arg_5: Timestamp,
-  arg_6: Timestamp,
+  arg_4: String,
+  arg_5: String,
+  arg_6: Int,
+  arg_7: Timestamp,
+  arg_8: Timestamp,
 ) -> Result(pog.Returned(CreateActivityWithMaxAttendeesRow), pog.QueryError) {
   let decoder = {
     use id <- decode.field(0, uuid_decoder())
     use title <- decode.field(1, decode.string)
-    use description <- decode.field(2, decode.string)
-    use max_attendees <- decode.field(3, decode.optional(decode.int))
-    use start_time <- decode.field(4, pog.timestamp_decoder())
-    use end_time <- decode.field(5, pog.timestamp_decoder())
-    use location_id <- decode.field(6, decode.optional(uuid_decoder()))
+    use title_en <- decode.field(2, decode.string)
+    use description <- decode.field(3, decode.string)
+    use description_en <- decode.field(4, decode.string)
+    use max_attendees <- decode.field(5, decode.optional(decode.int))
+    use start_time <- decode.field(6, pog.timestamp_decoder())
+    use end_time <- decode.field(7, pog.timestamp_decoder())
+    use location_id <- decode.field(8, decode.optional(uuid_decoder()))
     decode.success(CreateActivityWithMaxAttendeesRow(
       id:,
       title:,
+      title_en:,
       description:,
+      description_en:,
       max_attendees:,
       start_time:,
       end_time:,
@@ -101,15 +109,19 @@ pub fn create_activity_with_max_attendees(
   "INSERT INTO activity (
         id,
         title,
+        title_en,
         description,
+        description_en,
         max_attendees,
         start_time,
         end_time
     )
-VALUES ($1, $2, $3, $4, $5, $6)
+VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
 RETURNING id,
     title,
+    title_en,
     description,
+    description_en,
     max_attendees,
     start_time,
     end_time,
@@ -118,9 +130,11 @@ RETURNING id,
   |> pog.parameter(pog.text(uuid.to_string(arg_1)))
   |> pog.parameter(pog.text(arg_2))
   |> pog.parameter(pog.text(arg_3))
-  |> pog.parameter(pog.int(arg_4))
-  |> pog.parameter(pog.timestamp(arg_5))
-  |> pog.parameter(pog.timestamp(arg_6))
+  |> pog.parameter(pog.text(arg_4))
+  |> pog.parameter(pog.text(arg_5))
+  |> pog.parameter(pog.int(arg_6))
+  |> pog.parameter(pog.timestamp(arg_7))
+  |> pog.parameter(pog.timestamp(arg_8))
   |> pog.returning(decoder)
   |> pog.execute(db)
 }
@@ -135,7 +149,9 @@ pub type CreateActivityWithoutMaxAttendeesRow {
   CreateActivityWithoutMaxAttendeesRow(
     id: Uuid,
     title: String,
+    title_en: String,
     description: String,
+    description_en: String,
     start_time: Timestamp,
     end_time: Timestamp,
     location_id: Option(Uuid),
@@ -153,20 +169,26 @@ pub fn create_activity_without_max_attendees(
   arg_1: Uuid,
   arg_2: String,
   arg_3: String,
-  arg_4: Timestamp,
-  arg_5: Timestamp,
+  arg_4: String,
+  arg_5: String,
+  arg_6: Timestamp,
+  arg_7: Timestamp,
 ) -> Result(pog.Returned(CreateActivityWithoutMaxAttendeesRow), pog.QueryError) {
   let decoder = {
     use id <- decode.field(0, uuid_decoder())
     use title <- decode.field(1, decode.string)
-    use description <- decode.field(2, decode.string)
-    use start_time <- decode.field(3, pog.timestamp_decoder())
-    use end_time <- decode.field(4, pog.timestamp_decoder())
-    use location_id <- decode.field(5, decode.optional(uuid_decoder()))
+    use title_en <- decode.field(2, decode.string)
+    use description <- decode.field(3, decode.string)
+    use description_en <- decode.field(4, decode.string)
+    use start_time <- decode.field(5, pog.timestamp_decoder())
+    use end_time <- decode.field(6, pog.timestamp_decoder())
+    use location_id <- decode.field(7, decode.optional(uuid_decoder()))
     decode.success(CreateActivityWithoutMaxAttendeesRow(
       id:,
       title:,
+      title_en:,
       description:,
+      description_en:,
       start_time:,
       end_time:,
       location_id:,
@@ -176,15 +198,19 @@ pub fn create_activity_without_max_attendees(
   "INSERT INTO activity (
         id,
         title,
+        title_en,
         description,
+        description_en,
         max_attendees,
         start_time,
         end_time
     )
-VALUES ($1, $2, $3, NULL, $4, $5)
+VALUES ($1, $2, $3, $4, $5, NULL, $6, $7)
 RETURNING id,
     title,
+    title_en,
     description,
+    description_en,
     start_time,
     end_time,
     location_id"
@@ -192,8 +218,10 @@ RETURNING id,
   |> pog.parameter(pog.text(uuid.to_string(arg_1)))
   |> pog.parameter(pog.text(arg_2))
   |> pog.parameter(pog.text(arg_3))
-  |> pog.parameter(pog.timestamp(arg_4))
-  |> pog.parameter(pog.timestamp(arg_5))
+  |> pog.parameter(pog.text(arg_4))
+  |> pog.parameter(pog.text(arg_5))
+  |> pog.parameter(pog.timestamp(arg_6))
+  |> pog.parameter(pog.timestamp(arg_7))
   |> pog.returning(decoder)
   |> pog.execute(db)
 }
@@ -761,6 +789,8 @@ pub type GetActivitiesByStartTimeRow {
     end_time: Timestamp,
     recurring_activity_kind: Option(String),
     location_id: Option(Uuid),
+    title_en: String,
+    description_en: String,
   )
 }
 
@@ -787,6 +817,8 @@ pub fn get_activities_by_start_time(
       decode.optional(decode.string),
     )
     use location_id <- decode.field(7, decode.optional(uuid_decoder()))
+    use title_en <- decode.field(8, decode.string)
+    use description_en <- decode.field(9, decode.string)
     decode.success(GetActivitiesByStartTimeRow(
       id:,
       title:,
@@ -796,6 +828,8 @@ pub fn get_activities_by_start_time(
       end_time:,
       recurring_activity_kind:,
       location_id:,
+      title_en:,
+      description_en:,
     ))
   }
 
@@ -826,6 +860,8 @@ pub type GetActivitiesByTitleRow {
     end_time: Timestamp,
     recurring_activity_kind: Option(String),
     location_id: Option(Uuid),
+    title_en: String,
+    description_en: String,
   )
 }
 
@@ -852,6 +888,8 @@ pub fn get_activities_by_title(
       decode.optional(decode.string),
     )
     use location_id <- decode.field(7, decode.optional(uuid_decoder()))
+    use title_en <- decode.field(8, decode.string)
+    use description_en <- decode.field(9, decode.string)
     decode.success(GetActivitiesByTitleRow(
       id:,
       title:,
@@ -861,6 +899,8 @@ pub fn get_activities_by_title(
       end_time:,
       recurring_activity_kind:,
       location_id:,
+      title_en:,
+      description_en:,
     ))
   }
 
@@ -891,6 +931,8 @@ pub type GetActivityRow {
     end_time: Timestamp,
     recurring_activity_kind: Option(String),
     location_id: Option(Uuid),
+    title_en: String,
+    description_en: String,
   )
 }
 
@@ -916,6 +958,8 @@ pub fn get_activity(
       decode.optional(decode.string),
     )
     use location_id <- decode.field(7, decode.optional(uuid_decoder()))
+    use title_en <- decode.field(8, decode.string)
+    use description_en <- decode.field(9, decode.string)
     decode.success(GetActivityRow(
       id:,
       title:,
@@ -925,6 +969,8 @@ pub fn get_activity(
       end_time:,
       recurring_activity_kind:,
       location_id:,
+      title_en:,
+      description_en:,
     ))
   }
 
@@ -1487,6 +1533,8 @@ pub type ListActivitiesByStartTimeRow {
     end_time: Timestamp,
     recurring_activity_kind: Option(String),
     location_id: Option(Uuid),
+    title_en: String,
+    description_en: String,
   )
 }
 
@@ -1511,6 +1559,8 @@ pub fn list_activities_by_start_time(
       decode.optional(decode.string),
     )
     use location_id <- decode.field(7, decode.optional(uuid_decoder()))
+    use title_en <- decode.field(8, decode.string)
+    use description_en <- decode.field(9, decode.string)
     decode.success(ListActivitiesByStartTimeRow(
       id:,
       title:,
@@ -1520,6 +1570,8 @@ pub fn list_activities_by_start_time(
       end_time:,
       recurring_activity_kind:,
       location_id:,
+      title_en:,
+      description_en:,
     ))
   }
 
@@ -1549,6 +1601,8 @@ pub type ListActivitiesByTitleRow {
     end_time: Timestamp,
     recurring_activity_kind: Option(String),
     location_id: Option(Uuid),
+    title_en: String,
+    description_en: String,
   )
 }
 
@@ -1573,6 +1627,8 @@ pub fn list_activities_by_title(
       decode.optional(decode.string),
     )
     use location_id <- decode.field(7, decode.optional(uuid_decoder()))
+    use title_en <- decode.field(8, decode.string)
+    use description_en <- decode.field(9, decode.string)
     decode.success(ListActivitiesByTitleRow(
       id:,
       title:,
@@ -1582,6 +1638,8 @@ pub fn list_activities_by_title(
       end_time:,
       recurring_activity_kind:,
       location_id:,
+      title_en:,
+      description_en:,
     ))
   }
 
@@ -1649,6 +1707,8 @@ pub type ListClimbingWallActivitiesRow {
     end_time: Timestamp,
     recurring_activity_kind: Option(String),
     location_id: Option(Uuid),
+    title_en: String,
+    description_en: String,
   )
 }
 
@@ -1673,6 +1733,8 @@ pub fn list_climbing_wall_activities(
       decode.optional(decode.string),
     )
     use location_id <- decode.field(7, decode.optional(uuid_decoder()))
+    use title_en <- decode.field(8, decode.string)
+    use description_en <- decode.field(9, decode.string)
     decode.success(ListClimbingWallActivitiesRow(
       id:,
       title:,
@@ -1682,6 +1744,8 @@ pub fn list_climbing_wall_activities(
       end_time:,
       recurring_activity_kind:,
       location_id:,
+      title_en:,
+      description_en:,
     ))
   }
 
@@ -1711,6 +1775,8 @@ pub type ListFavouritedActivitiesRow {
     end_time: Timestamp,
     recurring_activity_kind: Option(String),
     location_id: Option(Uuid),
+    title_en: String,
+    description_en: String,
   )
 }
 
@@ -1736,6 +1802,8 @@ pub fn list_favourited_activities(
       decode.optional(decode.string),
     )
     use location_id <- decode.field(7, decode.optional(uuid_decoder()))
+    use title_en <- decode.field(8, decode.string)
+    use description_en <- decode.field(9, decode.string)
     decode.success(ListFavouritedActivitiesRow(
       id:,
       title:,
@@ -1745,6 +1813,8 @@ pub fn list_favourited_activities(
       end_time:,
       recurring_activity_kind:,
       location_id:,
+      title_en:,
+      description_en:,
     ))
   }
 
@@ -1944,6 +2014,8 @@ pub type ListSwimBusActivitiesRow {
     end_time: Timestamp,
     recurring_activity_kind: Option(String),
     location_id: Option(Uuid),
+    title_en: String,
+    description_en: String,
   )
 }
 
@@ -1968,6 +2040,8 @@ pub fn list_swim_bus_activities(
       decode.optional(decode.string),
     )
     use location_id <- decode.field(7, decode.optional(uuid_decoder()))
+    use title_en <- decode.field(8, decode.string)
+    use description_en <- decode.field(9, decode.string)
     decode.success(ListSwimBusActivitiesRow(
       id:,
       title:,
@@ -1977,6 +2051,8 @@ pub fn list_swim_bus_activities(
       end_time:,
       recurring_activity_kind:,
       location_id:,
+      title_en:,
+      description_en:,
     ))
   }
 
@@ -2006,6 +2082,8 @@ pub type SearchActivitiesRow {
     end_time: Timestamp,
     recurring_activity_kind: Option(String),
     location_id: Option(Uuid),
+    title_en: String,
+    description_en: String,
   )
 }
 
@@ -2030,6 +2108,8 @@ pub fn search_activities(
       decode.optional(decode.string),
     )
     use location_id <- decode.field(7, decode.optional(uuid_decoder()))
+    use title_en <- decode.field(8, decode.string)
+    use description_en <- decode.field(9, decode.string)
     decode.success(SearchActivitiesRow(
       id:,
       title:,
@@ -2039,6 +2119,8 @@ pub fn search_activities(
       end_time:,
       recurring_activity_kind:,
       location_id:,
+      title_en:,
+      description_en:,
     ))
   }
 
@@ -2063,7 +2145,9 @@ pub type UpdateActivityWithMaxAttendeesRow {
   UpdateActivityWithMaxAttendeesRow(
     id: Uuid,
     title: String,
+    title_en: String,
     description: String,
+    description_en: String,
     max_attendees: Option(Int),
     start_time: Timestamp,
     end_time: Timestamp,
@@ -2082,22 +2166,28 @@ pub fn update_activity_with_max_attendees(
   arg_1: Uuid,
   arg_2: String,
   arg_3: String,
-  arg_4: Int,
-  arg_5: Timestamp,
-  arg_6: Timestamp,
+  arg_4: String,
+  arg_5: String,
+  arg_6: Int,
+  arg_7: Timestamp,
+  arg_8: Timestamp,
 ) -> Result(pog.Returned(UpdateActivityWithMaxAttendeesRow), pog.QueryError) {
   let decoder = {
     use id <- decode.field(0, uuid_decoder())
     use title <- decode.field(1, decode.string)
-    use description <- decode.field(2, decode.string)
-    use max_attendees <- decode.field(3, decode.optional(decode.int))
-    use start_time <- decode.field(4, pog.timestamp_decoder())
-    use end_time <- decode.field(5, pog.timestamp_decoder())
-    use location_id <- decode.field(6, decode.optional(uuid_decoder()))
+    use title_en <- decode.field(2, decode.string)
+    use description <- decode.field(3, decode.string)
+    use description_en <- decode.field(4, decode.string)
+    use max_attendees <- decode.field(5, decode.optional(decode.int))
+    use start_time <- decode.field(6, pog.timestamp_decoder())
+    use end_time <- decode.field(7, pog.timestamp_decoder())
+    use location_id <- decode.field(8, decode.optional(uuid_decoder()))
     decode.success(UpdateActivityWithMaxAttendeesRow(
       id:,
       title:,
+      title_en:,
       description:,
+      description_en:,
       max_attendees:,
       start_time:,
       end_time:,
@@ -2107,14 +2197,18 @@ pub fn update_activity_with_max_attendees(
 
   "UPDATE activity
 SET title = $2,
-    description = $3,
-    max_attendees = $4,
-    start_time = $5,
-    end_time = $6
+    title_en = $3,
+    description = $4,
+    description_en = $5,
+    max_attendees = $6,
+    start_time = $7,
+    end_time = $8
 WHERE id = $1
 RETURNING id,
     title,
+    title_en,
     description,
+    description_en,
     max_attendees,
     start_time,
     end_time,
@@ -2123,9 +2217,11 @@ RETURNING id,
   |> pog.parameter(pog.text(uuid.to_string(arg_1)))
   |> pog.parameter(pog.text(arg_2))
   |> pog.parameter(pog.text(arg_3))
-  |> pog.parameter(pog.int(arg_4))
-  |> pog.parameter(pog.timestamp(arg_5))
-  |> pog.parameter(pog.timestamp(arg_6))
+  |> pog.parameter(pog.text(arg_4))
+  |> pog.parameter(pog.text(arg_5))
+  |> pog.parameter(pog.int(arg_6))
+  |> pog.parameter(pog.timestamp(arg_7))
+  |> pog.parameter(pog.timestamp(arg_8))
   |> pog.returning(decoder)
   |> pog.execute(db)
 }
@@ -2140,7 +2236,9 @@ pub type UpdateActivityWithoutMaxAttendeesRow {
   UpdateActivityWithoutMaxAttendeesRow(
     id: Uuid,
     title: String,
+    title_en: String,
     description: String,
+    description_en: String,
     start_time: Timestamp,
     end_time: Timestamp,
     location_id: Option(Uuid),
@@ -2158,20 +2256,26 @@ pub fn update_activity_without_max_attendees(
   arg_1: Uuid,
   arg_2: String,
   arg_3: String,
-  arg_4: Timestamp,
-  arg_5: Timestamp,
+  arg_4: String,
+  arg_5: String,
+  arg_6: Timestamp,
+  arg_7: Timestamp,
 ) -> Result(pog.Returned(UpdateActivityWithoutMaxAttendeesRow), pog.QueryError) {
   let decoder = {
     use id <- decode.field(0, uuid_decoder())
     use title <- decode.field(1, decode.string)
-    use description <- decode.field(2, decode.string)
-    use start_time <- decode.field(3, pog.timestamp_decoder())
-    use end_time <- decode.field(4, pog.timestamp_decoder())
-    use location_id <- decode.field(5, decode.optional(uuid_decoder()))
+    use title_en <- decode.field(2, decode.string)
+    use description <- decode.field(3, decode.string)
+    use description_en <- decode.field(4, decode.string)
+    use start_time <- decode.field(5, pog.timestamp_decoder())
+    use end_time <- decode.field(6, pog.timestamp_decoder())
+    use location_id <- decode.field(7, decode.optional(uuid_decoder()))
     decode.success(UpdateActivityWithoutMaxAttendeesRow(
       id:,
       title:,
+      title_en:,
       description:,
+      description_en:,
       start_time:,
       end_time:,
       location_id:,
@@ -2180,14 +2284,18 @@ pub fn update_activity_without_max_attendees(
 
   "UPDATE activity
 SET title = $2,
-    description = $3,
+    title_en = $3,
+    description = $4,
+    description_en = $5,
     max_attendees = NULL,
-    start_time = $4,
-    end_time = $5
+    start_time = $6,
+    end_time = $7
 WHERE id = $1
 RETURNING id,
     title,
+    title_en,
     description,
+    description_en,
     start_time,
     end_time,
     location_id"
@@ -2195,8 +2303,10 @@ RETURNING id,
   |> pog.parameter(pog.text(uuid.to_string(arg_1)))
   |> pog.parameter(pog.text(arg_2))
   |> pog.parameter(pog.text(arg_3))
-  |> pog.parameter(pog.timestamp(arg_4))
-  |> pog.parameter(pog.timestamp(arg_5))
+  |> pog.parameter(pog.text(arg_4))
+  |> pog.parameter(pog.text(arg_5))
+  |> pog.parameter(pog.timestamp(arg_6))
+  |> pog.parameter(pog.timestamp(arg_7))
   |> pog.returning(decoder)
   |> pog.execute(db)
 }

@@ -30,5 +30,5 @@ When you create, finish, or touch a plan here, keep the folder consistent:
 | 02 | [Normalized activity store + favourites endpoint](02-normalized-activity-store-and-favourites-endpoint.md) | ✅ Done 2026-07-02 |
 | 03 | [Model badbuss & klättervägg as activity categories](03-model-special-activity-categories.md) | ✅ Done 2026-07-02 (different design) |
 | 04 | [Real "spots remaining" via activity-spots API](04-activity-spots-remaining-calculation.md) | ✅ Done 2026-07-03 |
-| 05 | [Bilingual title & description for activities](05-bilingual-activity-title-description.md) | 🔲 Not started |
+| 05 | [Bilingual title & description for activities](05-bilingual-activity-title-description.md) | ✅ Done 2026-07-08 |
 | 06 | [Optional booker group + store booker_name from JWT](06-booking-optional-group-and-booker-name-handoff.md) | 🔲 Not started |

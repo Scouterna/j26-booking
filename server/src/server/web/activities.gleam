@@ -12,7 +12,7 @@ import server/model/activity
 import server/model/location
 import server/sql
 import server/web
-import shared/model.{type Location}
+import shared/model.{type BilingualString, type Location}
 import wisp.{type Request, type Response}
 import youid/uuid.{type Uuid}
 
@@ -165,8 +165,8 @@ pub fn delete(req: Request, id: String, ctx: web.Context) -> Response {
 
 pub type ActivityInput {
   ActivityInput(
-    title: String,
-    description: String,
+    title: BilingualString,
+    description: BilingualString,
     max_attendees: Option(Int),
     start_time: Int,
     end_time: Int,
@@ -174,8 +174,11 @@ pub type ActivityInput {
 }
 
 fn activity_input_decoder() -> decode.Decoder(ActivityInput) {
-  use title <- decode.field("title", decode.string)
-  use description <- decode.field("description", decode.string)
+  use title <- decode.field("title", model.bilingual_string_decoder())
+  use description <- decode.field(
+    "description",
+    model.bilingual_string_decoder(),
+  )
   use max_attendees <- decode.optional_field(
     "max_attendees",
     None,
@@ -241,8 +244,10 @@ pub fn create(req: Request, ctx: web.Context) -> Response {
         sql.create_activity_with_max_attendees(
           ctx.db_connection,
           id,
-          input.title,
-          input.description,
+          input.title.sv,
+          input.title.en,
+          input.description.sv,
+          input.description.en,
           max_attendees,
           start_time,
           end_time,
@@ -254,8 +259,10 @@ pub fn create(req: Request, ctx: web.Context) -> Response {
         sql.create_activity_without_max_attendees(
           ctx.db_connection,
           id,
-          input.title,
-          input.description,
+          input.title.sv,
+          input.title.en,
+          input.description.sv,
+          input.description.en,
           start_time,
           end_time,
         ),
@@ -302,8 +309,10 @@ pub fn update(req: Request, id: String, ctx: web.Context) -> Response {
         sql.update_activity_with_max_attendees(
           ctx.db_connection,
           activity_id,
-          input.title,
-          input.description,
+          input.title.sv,
+          input.title.en,
+          input.description.sv,
+          input.description.en,
           max_attendees,
           start_time,
           end_time,
@@ -315,8 +324,10 @@ pub fn update(req: Request, id: String, ctx: web.Context) -> Response {
         sql.update_activity_without_max_attendees(
           ctx.db_connection,
           activity_id,
-          input.title,
-          input.description,
+          input.title.sv,
+          input.title.en,
+          input.description.sv,
+          input.description.en,
           start_time,
           end_time,
         ),

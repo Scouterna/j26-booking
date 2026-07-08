@@ -26,8 +26,11 @@ pub fn from_create_activity_with_max_attendees_row(
 ) -> Activity {
   Activity(
     id: row.id,
-    title: row.title,
-    description: row.description,
+    title: model.BilingualString(sv: row.title, en: row.title_en),
+    description: model.BilingualString(
+      sv: row.description,
+      en: row.description_en,
+    ),
     max_attendees: row.max_attendees,
     start_time: row.start_time,
     end_time: row.end_time,
@@ -41,8 +44,11 @@ pub fn from_create_activity_without_max_attendees_row(
 ) -> Activity {
   Activity(
     id: row.id,
-    title: row.title,
-    description: row.description,
+    title: model.BilingualString(sv: row.title, en: row.title_en),
+    description: model.BilingualString(
+      sv: row.description,
+      en: row.description_en,
+    ),
     max_attendees: None,
     start_time: row.start_time,
     end_time: row.end_time,
@@ -56,8 +62,11 @@ pub fn from_search_activity_row(
 ) -> Activity {
   Activity(
     id: row.id,
-    title: row.title,
-    description: row.description,
+    title: model.BilingualString(sv: row.title, en: row.title_en),
+    description: model.BilingualString(
+      sv: row.description,
+      en: row.description_en,
+    ),
     max_attendees: row.max_attendees,
     start_time: row.start_time,
     end_time: row.end_time,
@@ -71,8 +80,11 @@ pub fn from_get_activity_row(
 ) -> Activity {
   Activity(
     id: row.id,
-    title: row.title,
-    description: row.description,
+    title: model.BilingualString(sv: row.title, en: row.title_en),
+    description: model.BilingualString(
+      sv: row.description,
+      en: row.description_en,
+    ),
     max_attendees: row.max_attendees,
     start_time: row.start_time,
     end_time: row.end_time,
@@ -86,8 +98,11 @@ pub fn from_get_activities_by_title_row(
 ) -> Activity {
   Activity(
     id: row.id,
-    title: row.title,
-    description: row.description,
+    title: model.BilingualString(sv: row.title, en: row.title_en),
+    description: model.BilingualString(
+      sv: row.description,
+      en: row.description_en,
+    ),
     max_attendees: row.max_attendees,
     start_time: row.start_time,
     end_time: row.end_time,
@@ -101,8 +116,11 @@ pub fn from_get_activities_by_start_time_row(
 ) -> Activity {
   Activity(
     id: row.id,
-    title: row.title,
-    description: row.description,
+    title: model.BilingualString(sv: row.title, en: row.title_en),
+    description: model.BilingualString(
+      sv: row.description,
+      en: row.description_en,
+    ),
     max_attendees: row.max_attendees,
     start_time: row.start_time,
     end_time: row.end_time,
@@ -116,8 +134,11 @@ pub fn from_list_activities_by_title_row(
 ) -> Activity {
   Activity(
     id: row.id,
-    title: row.title,
-    description: row.description,
+    title: model.BilingualString(sv: row.title, en: row.title_en),
+    description: model.BilingualString(
+      sv: row.description,
+      en: row.description_en,
+    ),
     max_attendees: row.max_attendees,
     start_time: row.start_time,
     end_time: row.end_time,
@@ -131,8 +152,11 @@ pub fn from_list_activities_by_start_time_row(
 ) -> Activity {
   Activity(
     id: row.id,
-    title: row.title,
-    description: row.description,
+    title: model.BilingualString(sv: row.title, en: row.title_en),
+    description: model.BilingualString(
+      sv: row.description,
+      en: row.description_en,
+    ),
     max_attendees: row.max_attendees,
     start_time: row.start_time,
     end_time: row.end_time,
@@ -146,8 +170,11 @@ pub fn from_list_swim_bus_activities_row(
 ) -> Activity {
   Activity(
     id: row.id,
-    title: row.title,
-    description: row.description,
+    title: model.BilingualString(sv: row.title, en: row.title_en),
+    description: model.BilingualString(
+      sv: row.description,
+      en: row.description_en,
+    ),
     max_attendees: row.max_attendees,
     start_time: row.start_time,
     end_time: row.end_time,
@@ -161,8 +188,11 @@ pub fn from_list_climbing_wall_activities_row(
 ) -> Activity {
   Activity(
     id: row.id,
-    title: row.title,
-    description: row.description,
+    title: model.BilingualString(sv: row.title, en: row.title_en),
+    description: model.BilingualString(
+      sv: row.description,
+      en: row.description_en,
+    ),
     max_attendees: row.max_attendees,
     start_time: row.start_time,
     end_time: row.end_time,
@@ -176,8 +206,11 @@ pub fn from_list_favourited_activities_row(
 ) -> Activity {
   Activity(
     id: row.id,
-    title: row.title,
-    description: row.description,
+    title: model.BilingualString(sv: row.title, en: row.title_en),
+    description: model.BilingualString(
+      sv: row.description,
+      en: row.description_en,
+    ),
     max_attendees: row.max_attendees,
     start_time: row.start_time,
     end_time: row.end_time,
@@ -191,8 +224,11 @@ pub fn from_update_activity_with_max_attendees_row(
 ) -> Activity {
   Activity(
     id: row.id,
-    title: row.title,
-    description: row.description,
+    title: model.BilingualString(sv: row.title, en: row.title_en),
+    description: model.BilingualString(
+      sv: row.description,
+      en: row.description_en,
+    ),
     max_attendees: row.max_attendees,
     start_time: row.start_time,
     end_time: row.end_time,
@@ -206,8 +242,11 @@ pub fn from_update_activity_without_max_attendees_row(
 ) -> Activity {
   Activity(
     id: row.id,
-    title: row.title,
-    description: row.description,
+    title: model.BilingualString(sv: row.title, en: row.title_en),
+    description: model.BilingualString(
+      sv: row.description,
+      en: row.description_en,
+    ),
     max_attendees: None,
     start_time: row.start_time,
     end_time: row.end_time,
@@ -227,8 +266,8 @@ pub fn to_json(activity: Activity) -> Json {
   ) = activity
   json.object([
     #("id", id |> uuid.to_string |> json.string),
-    #("title", json.string(title)),
-    #("description", json.string(description)),
+    #("title", model.bilingual_string_to_json(title)),
+    #("description", model.bilingual_string_to_json(description)),
     #("max_attendees", json.nullable(max_attendees, json.int)),
     #(
       "start_time",
@@ -253,7 +292,7 @@ pub fn summary_to_json(activity: Activity) -> Json {
   ) = activity
   json.object([
     #("id", id |> uuid.to_string |> json.string),
-    #("title", json.string(title)),
+    #("title", model.bilingual_string_to_json(title)),
     #("max_attendees", json.nullable(max_attendees, json.int)),
     #(
       "start_time",

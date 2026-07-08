@@ -54,12 +54,16 @@ paths:
               example:
                 activities:
                   - id: "6f5e1d46-5f58-4e23-9a9d-8c2bfc2d22a0"
-                    title: "Campfire Songs"
+                    title:
+                      sv: "Lägereldssånger"
+                      en: "Campfire Songs"
                     max_attendees: 50
                     start_time: 1752350400
                     end_time: 1752357600
                   - id: "b4219a53-4746-4a09-8b4e-3e2ac0c3df11"
-                    title: "Orienteering Challenge"
+                    title:
+                      sv: "Orienteringsutmaning"
+                      en: "Orienteering Challenge"
                     max_attendees: 30
                     start_time: 1752400800
                     end_time: 1752411600
@@ -84,8 +88,12 @@ paths:
             schema:
               $ref: '#/components/schemas/ActivityInput'
             example:
-              title: "Campfire Songs"
-              description: "An evening of classic scout songs around the campfire with marshmallows."
+              title:
+                sv: "Lägereldssånger"
+                en: "Campfire Songs"
+              description:
+                sv: "En kväll med klassiska scoutsånger vid lägerelden med marshmallows."
+                en: "An evening of classic scout songs around the campfire with marshmallows."
               max_attendees: 50
               start_time: 1752350400
               end_time: 1752357600
@@ -98,8 +106,12 @@ paths:
                 $ref: '#/components/schemas/Activity'
               example:
                 id: "6f5e1d46-5f58-4e23-9a9d-8c2bfc2d22a0"
-                title: "Campfire Songs"
-                description: "An evening of classic scout songs around the campfire with marshmallows."
+                title:
+                  sv: "Lägereldssånger"
+                  en: "Campfire Songs"
+                description:
+                  sv: "En kväll med klassiska scoutsånger vid lägerelden med marshmallows."
+                  en: "An evening of classic scout songs around the campfire with marshmallows."
                 max_attendees: 50
                 start_time: 1752350400
                 end_time: 1752357600
@@ -278,8 +290,12 @@ paths:
                 $ref: '#/components/schemas/Activity'
               example:
                 id: "6f5e1d46-5f58-4e23-9a9d-8c2bfc2d22a0"
-                title: "Campfire Songs"
-                description: "An evening of classic scout songs around the campfire with marshmallows."
+                title:
+                  sv: "Lägereldssånger"
+                  en: "Campfire Songs"
+                description:
+                  sv: "En kväll med klassiska scoutsånger vid lägerelden med marshmallows."
+                  en: "An evening of classic scout songs around the campfire with marshmallows."
                 max_attendees: 50
                 start_time: 1752350400
                 end_time: 1752357600
@@ -308,8 +324,12 @@ paths:
             schema:
               $ref: '#/components/schemas/ActivityInput'
             example:
-              title: "Campfire Songs (Updated)"
-              description: "An evening of classic scout songs with marshmallows and hot chocolate."
+              title:
+                sv: "Lägereldssånger (uppdaterad)"
+                en: "Campfire Songs (Updated)"
+              description:
+                sv: "En kväll med klassiska scoutsånger med marshmallows och varm choklad."
+                en: "An evening of classic scout songs with marshmallows and hot chocolate."
               max_attendees: 60
               start_time: 1752350400
               end_time: 1752357600
@@ -322,8 +342,12 @@ paths:
                 $ref: '#/components/schemas/Activity'
               example:
                 id: "6f5e1d46-5f58-4e23-9a9d-8c2bfc2d22a0"
-                title: "Campfire Songs (Updated)"
-                description: "An evening of classic scout songs with marshmallows and hot chocolate."
+                title:
+                  sv: "Lägereldssånger (uppdaterad)"
+                  en: "Campfire Songs (Updated)"
+                description:
+                  sv: "En kväll med klassiska scoutsånger med marshmallows och varm choklad."
+                  en: "An evening of classic scout songs with marshmallows and hot chocolate."
                 max_attendees: 60
                 start_time: 1752350400
                 end_time: 1752357600
@@ -1085,13 +1109,9 @@ components:
           description: Unique identifier for the activity
           example: "6f5e1d46-5f58-4e23-9a9d-8c2bfc2d22a0"
         title:
-          type: string
-          description: Title of the activity
-          example: "Campfire Songs"
+          $ref: '#/components/schemas/BilingualString'
         description:
-          type: string
-          description: Detailed description of the activity
-          example: "An evening of classic scout songs around the campfire with marshmallows."
+          $ref: '#/components/schemas/BilingualString'
         max_attendees:
           type: integer
           nullable: true
@@ -1128,9 +1148,7 @@ components:
           description: Unique identifier for the activity
           example: "6f5e1d46-5f58-4e23-9a9d-8c2bfc2d22a0"
         title:
-          type: string
-          description: Title of the activity
-          example: "Campfire Songs"
+          $ref: '#/components/schemas/BilingualString'
         max_attendees:
           type: integer
           nullable: true
@@ -1501,13 +1519,9 @@ components:
         - end_time
       properties:
         title:
-          type: string
-          description: Title of the activity
-          example: "Campfire Songs"
+          $ref: '#/components/schemas/BilingualString'
         description:
-          type: string
-          description: Detailed description of the activity
-          example: "An evening of classic scout songs around the campfire with marshmallows."
+          $ref: '#/components/schemas/BilingualString'
         max_attendees:
           type: integer
           nullable: true

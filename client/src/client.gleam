@@ -229,7 +229,9 @@ pub type ActivityListSource {
 pub type ActivityForm {
   ActivityForm(
     title: String,
+    title_en: String,
     description: String,
+    description_en: String,
     max_attendees: Option(Int),
     start_time: #(calendar.Date, calendar.TimeOfDay),
     end_time: #(calendar.Date, calendar.TimeOfDay),
@@ -341,7 +343,7 @@ pub type Page {
 /// so a list refetch can never leave an open detail view showing stale summary
 /// fields.
 pub type ActivityDetail {
-  ActivityDetail(description: String, location: Option(Location))
+  ActivityDetail(description: model.BilingualString, location: Option(Location))
 }
 
 pub type Model {
@@ -608,7 +610,12 @@ fn booking_form_from(b: Booking) -> Form(BookingFormFields) {
 fn activity_form() -> Form(ActivityForm) {
   form.new({
     use title <- form.field("title", form.parse_string |> form.check_not_empty)
+    use title_en <- form.field(
+      "title_en",
+      form.parse_string |> form.check_not_empty,
+    )
     use description <- form.field("description", form.parse_string)
+    use description_en <- form.field("description_en", form.parse_string)
     use max_attendees <- form.field(
       "max_attendees",
       form.parse_optional(form.parse_int),
@@ -617,7 +624,9 @@ fn activity_form() -> Form(ActivityForm) {
     use end_time <- form.field("end_time", form.parse_date_time)
     form.success(ActivityForm(
       title:,
+      title_en:,
       description:,
+      description_en:,
       max_attendees:,
       start_time:,
       end_time:,
@@ -627,8 +636,10 @@ fn activity_form() -> Form(ActivityForm) {
 
 fn form_from_activity(activity: Activity) -> Form(ActivityForm) {
   activity_form()
-  |> form.add_string("title", activity.title)
-  |> form.add_string("description", activity.description)
+  |> form.add_string("title", activity.title.sv)
+  |> form.add_string("title_en", activity.title.en)
+  |> form.add_string("description", activity.description.sv)
+  |> form.add_string("description_en", activity.description.en)
   |> form.add_string("max_attendees", case activity.max_attendees {
     Some(n) -> int.to_string(n)
     None -> ""
@@ -1578,8 +1589,20 @@ fn activity_form_to_json(af: ActivityForm) -> json.Json {
     secs
   }
   json.object([
-    #("title", json.string(af.title)),
-    #("description", json.string(af.description)),
+    #(
+      "title",
+      model.bilingual_string_to_json(model.BilingualString(
+        sv: af.title,
+        en: af.title_en,
+      )),
+    ),
+    #(
+      "description",
+      model.bilingual_string_to_json(model.BilingualString(
+        sv: af.description,
+        en: af.description_en,
+      )),
+    ),
     #("max_attendees", case af.max_attendees {
       Some(n) -> json.int(n)
       None -> json.null()
@@ -1987,7 +2010,7 @@ fn view_activity_card(
   let status = card_status(translator, summary, item.status)
   component.activity_card(
     api_prefix <> "/activities/" <> id,
-    summary.title,
+    localized(translator, summary.title),
     status,
     is_favourited(item.status),
     UserToggledFavourite(summary.id),
@@ -2037,12 +2060,24 @@ fn view_activity_new(
       html.form([event.on_submit(submitted)], [
         component.scout_card([
           html.div([attribute.class("flex flex-col gap-2")], [
-            component.scout_form_field(form, "Title", "text", "title"),
+            component.scout_form_field(form, "Title (Swedish)", "text", "title"),
             component.scout_form_field(
               form,
-              "Description",
+              "Title (English)",
+              "text",
+              "title_en",
+            ),
+            component.scout_form_field(
+              form,
+              "Description (Swedish)",
               "text",
               "description",
+            ),
+            component.scout_form_field(
+              form,
+              "Description (English)",
+              "text",
+              "description_en",
             ),
             component.scout_form_field(
               form,
@@ -2206,7 +2241,7 @@ fn view_activity_detail_loaded(
                     "text-heading-xs hyphens-auto break-words text-balance min-w-0",
                   ),
                 ],
-                [element.text(activity.title)],
+                [element.text(localized(translator, activity.title))],
               ),
             ]),
             html.div([attribute.class("flex flex-col gap-2 items-end")], [
@@ -2289,7 +2324,7 @@ fn view_activity_detail_loaded(
         ),
         html.div([], [
           html.p([attribute.class("text-body-m")], [
-            element.text(activity.description),
+            element.text(localized(translator, activity.description)),
           ]),
         ]),
       ],
@@ -2707,7 +2742,9 @@ pub fn apply_filters(items: List(CardItem), f: ListFilters) -> List(CardItem) {
   let summary = item.summary
   let title_match = case needle {
     "" -> True
-    _ -> string.contains(string.lowercase(summary.title), needle)
+    _ ->
+      string.contains(string.lowercase(summary.title.sv), needle)
+      || string.contains(string.lowercase(summary.title.en), needle)
   }
   let day_match = case f.day {
     None -> True

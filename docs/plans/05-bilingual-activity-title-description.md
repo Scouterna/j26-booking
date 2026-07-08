@@ -1,10 +1,16 @@
 # 05. Handoff: bilingual `title` & `description` for activities
 
-> **Status: 🔲 Not started** (as of 2026-07-08)
+> **Status: ✅ Done 2026-07-08** (commit pending; implemented as planned)
 >
-> `Activity.title` and `Activity.description` in `shared/src/shared/model.gleam`
-> are still `String`. The reference work for locations (`BilingualString`,
-> commit `b37634a`) is done; activities have not been migrated yet.
+> `Activity.title`/`.description` and `ActivitySummary.title` are now
+> `BilingualString` end-to-end (migration `20260708113115`, SQL, server model +
+> web, shared decoders, client card/detail/search/form, OpenAPI, seed data).
+> Verified: `gleam test` (server + client) green, seed inserts satisfy the new
+> NOT NULL columns, and a live POST/PUT/GET round-trip carries nested `{sv,en}`.
+> One divergence from the plan: the client edit-form view (`ActivityEditPage`)
+> renders `view_not_found()` today, so the English inputs only surface on the
+> **create** form — `ActivityForm`/`form_from_activity` still carry the English
+> fields, so wiring the edit view up later needs no further model changes.
 
 ## Goal
 

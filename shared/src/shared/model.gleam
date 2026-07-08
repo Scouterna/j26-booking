@@ -10,8 +10,8 @@ import youid/uuid.{type Uuid}
 pub type Activity {
   Activity(
     id: Uuid,
-    title: String,
-    description: String,
+    title: BilingualString,
+    description: BilingualString,
     max_attendees: Option(Int),
     start_time: Timestamp,
     end_time: Timestamp,
@@ -24,8 +24,8 @@ pub type Activity {
 /// Expects id as string (UUID), timestamps as int (unix seconds).
 pub fn activity_decoder() -> decode.Decoder(Activity) {
   use id_str <- decode.field("id", decode.string)
-  use title <- decode.field("title", decode.string)
-  use description <- decode.field("description", decode.string)
+  use title <- decode.field("title", bilingual_string_decoder())
+  use description <- decode.field("description", bilingual_string_decoder())
   use max_attendees <- decode.optional_field(
     "max_attendees",
     None,
@@ -100,7 +100,7 @@ pub fn bilingual_string_to_json(value: BilingualString) -> Json {
 pub type ActivitySummary {
   ActivitySummary(
     id: Uuid,
-    title: String,
+    title: BilingualString,
     max_attendees: Option(Int),
     start_time: Timestamp,
     end_time: Timestamp,
@@ -114,7 +114,7 @@ pub type ActivitySummary {
 /// Expects id as string (UUID), timestamps as int (unix seconds).
 pub fn activity_summary_decoder() -> decode.Decoder(ActivitySummary) {
   use id_str <- decode.field("id", decode.string)
-  use title <- decode.field("title", decode.string)
+  use title <- decode.field("title", bilingual_string_decoder())
   use max_attendees <- decode.optional_field(
     "max_attendees",
     None,
