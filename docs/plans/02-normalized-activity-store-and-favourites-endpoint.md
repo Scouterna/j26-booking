@@ -6,13 +6,13 @@
 > `activity.from_list_favourited_activities_row`, `activities.get_favourited`, and
 > the `["favourited-activities"]` route all exist. Client: `RemoteData` gained
 > `NotAsked`, the single `summaries` field was replaced by the entity `Dict` +
-> per-tab id lists (`activities_ids`/`swim_bus_ids`/`climbing_wall_ids`/
+> per-tab id lists (`activities_ids`/`beach_bus_ids`/`climbing_wall_ids`/
 > `favourited`), plus `ActivityListSource`, `ApiReturnedActivityList`, `hydrate`,
 > and lazy per-tab fetching.
 
 ## Context
 
-Today the client holds a single `summaries: RemoteData(List(ActivitySummary))` that is **swapped out** on every tab switch (`fetch_for_tab` refetches `/api/activities`, `/api/swim-bus-activities`, or `/api/climbing-wall-activities` and replaces the list). The Favourites tab refetches the full catalogue and filters client-side by `is_favourited`.
+Today the client holds a single `summaries: RemoteData(List(ActivitySummary))` that is **swapped out** on every tab switch (`fetch_for_tab` refetches `/api/activities`, `/api/beach-bus-activities`, or `/api/climbing-wall-activities` and replaces the list). The Favourites tab refetches the full catalogue and filters client-side by `is_favourited`.
 
 Two upcoming requirements break that model:
 
@@ -21,7 +21,7 @@ Two upcoming requirements break that model:
 
 The chosen architecture is a **normalized entity cache**: one `Dict(Uuid, ActivitySummary)` hydrated (overwrite-on-overlap) by *every* response, plus per-browse-tab **ordered id lists** that define each tab's membership/order. Favourites is **derived**, not stored: `/api/statuses/me` already returns the user's *complete* favourited∪booked id set at init, so the only missing piece is summary data for favourites the user hasn't browsed to — supplied by a new `GET /api/favourited-activities`.
 
-This removes the two weaknesses of per-tab summary lists: duplication of overlapping items (a swim-bus slot appears in the Activities and Swim bus tabs) and N places to keep in sync on mutation.
+This removes the two weaknesses of per-tab summary lists: duplication of overlapping items (a beach-bus slot appears in the Activities and Beach bus tabs) and N places to keep in sync on mutation.
 
 ### Load-bearing assumption
 
@@ -64,7 +64,7 @@ pub fn get_favourited(req: Request, ctx: web.Context) -> Response {
 
 ### `server/src/server/router.gleam`
 
-Top-level route (no collision with `["activities", id]`, consistent with the swim-bus/climbing-wall endpoints):
+Top-level route (no collision with `["activities", id]`, consistent with the beach-bus/climbing-wall endpoints):
 
 ```gleam
 Get, ["favourited-activities"] -> activities.get_favourited(req, ctx)
@@ -102,11 +102,11 @@ type Model {
     page: Page,
     translator: Translator,
     // Entity cache: one copy per activity, hydrated/overwritten by EVERY
-    // response (browse pages, swim-bus, climbing-wall, favourited, detail fetches).
+    // response (browse pages, beach-bus, climbing-wall, favourited, detail fetches).
     activities: Dict(Uuid, ActivitySummary),
     // Ordered id windows per browse tab — define membership + order.
     activities_ids: RemoteData(List(Uuid)),
-    swim_bus_ids: RemoteData(List(Uuid)),
+    beach_bus_ids: RemoteData(List(Uuid)),
     climbing_wall_ids: RemoteData(List(Uuid)),
     // Drives the Favourites tab's /api/favourited-activities fetch state +
     // hydration. Membership is derived from `statuses`, not from this list.
@@ -131,13 +131,13 @@ fn hydrate(store: Dict(Uuid, ActivitySummary), items: List(ActivitySummary)) -> 
 Replace the ambiguous `ApiReturnedSummaries(Result(...))`:
 
 ```gleam
-type ActivityListSource { SourceActivities SourceSwimBus SourceClimbingWall SourceFavourites }
+type ActivityListSource { SourceActivities SourceBeachBus SourceClimbingWall SourceFavourites }
 
 // Msg
 ApiReturnedActivityList(ActivityListSource, Result(List(ActivitySummary), rsvp.Error))
 ```
 
-`fetch_list(source)` maps source → URL (`/api/activities`, `/api/swim-bus-activities`, `/api/climbing-wall-activities`, `/api/favourited-activities`) and tags the response. On success: `hydrate` the dict with the items **and** set that source's id-list `RemoteData` to `Loaded(ids)`; on error, `Failed`.
+`fetch_list(source)` maps source → URL (`/api/activities`, `/api/beach-bus-activities`, `/api/climbing-wall-activities`, `/api/favourited-activities`) and tags the response. On success: `hydrate` the dict with the items **and** set that source's id-list `RemoteData` to `Loaded(ids)`; on error, `Failed`.
 
 ### 4. Lazy fetch on tab select
 
@@ -162,7 +162,7 @@ ApiReturnedActivityList(ActivityListSource, Result(List(ActivitySummary), rsvp.E
 
 `upsert_summary`/`remove_summary` on the single list (create/update/delete handlers) become operations on the `activities` dict:
 
-- **create / update**: `dict.insert(activities, a.id, to_summary(a))`; for **create**, also append the id to `activities_ids` (the all-list window) so it shows immediately. Special-tab id-lists can't be classified client-side (kind is server-internal) → reset `swim_bus_ids`/`climbing_wall_ids` to `NotAsked` on create so they refetch on next open.
+- **create / update**: `dict.insert(activities, a.id, to_summary(a))`; for **create**, also append the id to `activities_ids` (the all-list window) so it shows immediately. Special-tab id-lists can't be classified client-side (kind is server-internal) → reset `beach_bus_ids`/`climbing_wall_ids` to `NotAsked` on create so they refetch on next open.
 - **delete**: `dict.delete` from `activities`; remove the id from every id-list; `dict.delete` from `statuses` and `details`.
 - **favourite toggle / booking change**: update `statuses` (as today) — Favourites re-derives automatically; reset `favourited` to `NotAsked` on *add* (step 5).
 
@@ -193,7 +193,7 @@ Switching tabs still changes the rendered list, so the existing `keyed.div` arou
 3. `cd client && gleam build` + `gleam format`.
 4. `./dev.sh` (or `./start.sh`): 
    - First open of each tab triggers exactly one fetch; switching back is instant (no network).
-   - Swim bus / Climbing wall show only their slots; Activities shows the full list.
-   - Favourites shows all favourited **and** booked items across all three kinds — including a favourited swim-bus slot that was never browsed (proves `/api/favourited-activities` hydration + statuses membership).
+   - Beach bus / Climbing wall show only their slots; Activities shows the full list.
+   - Favourites shows all favourited **and** booked items across all three kinds — including a favourited beach-bus slot that was never browsed (proves `/api/favourited-activities` hydration + statuses membership).
    - Unfavouriting an item on the Favourites tab drops it immediately (no refetch); favouriting a new item elsewhere then opening Favourites shows it (lazy refetch).
    - No console reconciler errors; day dropdown has no duplicate options.

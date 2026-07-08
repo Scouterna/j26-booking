@@ -32,7 +32,7 @@ paths:
       summary: List activities
       description: |
         Retrieve ordinary activities as slim summaries (without `description`),
-        with optional sorting. Excludes recurring-kind slots (swim bus, climbing
+        with optional sorting. Excludes recurring-kind slots (beach bus, climbing
         wall), which have their own endpoints. Not paginated.
       operationId: listActivities
       parameters:
@@ -124,19 +124,19 @@ paths:
         '500':
           $ref: '#/components/responses/ServerError'
 
-  /swim-bus-activities:
+  /beach-bus-activities:
     get:
       tags:
         - Activities
-      summary: List swim bus slots
+      summary: List beach bus slots
       description: |
-        Retrieve all swim bus (badbuss) slots as slim summaries (without
+        Retrieve all beach bus (badbuss) slots as slim summaries (without
         `description`), ordered by start time. These are bookable slots of the
-        recurring "swim-bus" kind. Not paginated.
-      operationId: listSwimBusActivities
+        recurring "beach-bus" kind. Not paginated.
+      operationId: listBeachBusActivities
       responses:
         '200':
-          description: Successfully retrieved swim bus slots
+          description: Successfully retrieved beach bus slots
           content:
             application/json:
               schema:

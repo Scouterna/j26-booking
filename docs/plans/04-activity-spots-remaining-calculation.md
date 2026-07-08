@@ -67,7 +67,7 @@ Then, from `server/`: `gleam run -m squirrel` (regenerates `sql.gleam` — do no
 
 ### New handler — `server/src/server/web/spots.gleam`
 
-No auth needed (counts aren't user-specific; mirrors `get_page`/`get_swim_bus` which don't call `with_authenticated_user`):
+No auth needed (counts aren't user-specific; mirrors `get_page`/`get_beach_bus` which don't call `with_authenticated_user`):
 
 ```gleam
 pub fn get_all(req: Request, ctx: web.Context) -> Response {

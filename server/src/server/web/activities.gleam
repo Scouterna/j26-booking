@@ -64,7 +64,7 @@ fn response_from_db_activity_summaries(
 }
 
 /// Returns ordinary activities as slim summaries (no `description`), excluding
-/// recurring-kind slots (swim bus, climbing wall) which have their own
+/// recurring-kind slots (beach bus, climbing wall) which have their own
 /// endpoints. Unpaginated; `sort` is honoured.
 pub fn get_page(req: Request, ctx: web.Context) -> Response {
   use <- wisp.require_method(req, Get)
@@ -93,13 +93,13 @@ pub fn get_page(req: Request, ctx: web.Context) -> Response {
   }
 }
 
-/// Returns all swim bus slots as slim summaries, ordered by start time.
-pub fn get_swim_bus(req: Request, ctx: web.Context) -> Response {
+/// Returns all beach bus slots as slim summaries, ordered by start time.
+pub fn get_beach_bus(req: Request, ctx: web.Context) -> Response {
   use <- wisp.require_method(req, Get)
   use locations <- with_locations(ctx)
   response_from_db_activity_summaries(
-    sql.list_swim_bus_activities(ctx.db_connection),
-    activity.from_list_swim_bus_activities_row(_, locations),
+    sql.list_beach_bus_activities(ctx.db_connection),
+    activity.from_list_beach_bus_activities_row(_, locations),
   )
 }
 

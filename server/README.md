@@ -175,7 +175,7 @@ activity {
   int[null] max_attendees
   timestamp start_time
   timestamp end_time
-  text[null] recurring_activity_kind "slug: swim-bus | climbing-wall"
+  text[null] recurring_activity_kind "slug: beach-bus | climbing-wall"
   uuid[null] location_id FK "_not initial scope_"
 }
 

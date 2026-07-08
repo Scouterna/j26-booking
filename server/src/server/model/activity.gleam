@@ -164,8 +164,8 @@ pub fn from_list_activities_by_start_time_row(
   )
 }
 
-pub fn from_list_swim_bus_activities_row(
-  row: sql.ListSwimBusActivitiesRow,
+pub fn from_list_beach_bus_activities_row(
+  row: sql.ListBeachBusActivitiesRow,
   locations: Dict(Uuid, Location),
 ) -> Activity {
   Activity(

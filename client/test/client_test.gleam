@@ -91,7 +91,7 @@ fn base_model() -> client.Model {
     translator: client.translator_for("sv"),
     activities: dict.new(),
     activities_ids: client.Loading,
-    swim_bus_ids: client.NotAsked,
+    beach_bus_ids: client.NotAsked,
     climbing_wall_ids: client.NotAsked,
     favourited: client.NotAsked,
     details: dict.new(),
@@ -172,7 +172,7 @@ pub fn tab_from_index_out_of_range_falls_back_to_activities_test() {
 
 pub fn tab_source_maps_each_tab_test() {
   assert client.tab_source(client.TabActivities) == client.SourceActivities
-  assert client.tab_source(client.TabSwimBus) == client.SourceSwimBus
+  assert client.tab_source(client.TabBeachBus) == client.SourceBeachBus
   assert client.tab_source(client.TabClimbingWall) == client.SourceClimbingWall
   assert client.tab_source(client.TabFavourites) == client.SourceFavourites
 }
@@ -318,7 +318,7 @@ pub fn tab_summaries_browse_drops_uncached_ids_test() {
 }
 
 pub fn tab_summaries_browse_reflects_fetch_state_test() {
-  assert client.tab_summaries(base_model(), client.TabSwimBus)
+  assert client.tab_summaries(base_model(), client.TabBeachBus)
     == client.NotAsked
 }
 
@@ -367,15 +367,15 @@ pub fn set_then_get_source_remote_round_trips_test() {
 
 pub fn ensure_source_loaded_marks_unasked_source_loading_test() {
   let #(next, _) =
-    client.ensure_source_loaded(base_model(), client.SourceSwimBus)
-  assert client.source_remote(next, client.SourceSwimBus) == client.Loading
+    client.ensure_source_loaded(base_model(), client.SourceBeachBus)
+  assert client.source_remote(next, client.SourceBeachBus) == client.Loading
 }
 
 pub fn ensure_source_loaded_leaves_loaded_source_untouched_test() {
   let model_ =
-    client.Model(..base_model(), swim_bus_ids: client.Loaded([id_a()]))
-  let #(next, _) = client.ensure_source_loaded(model_, client.SourceSwimBus)
-  assert next.swim_bus_ids == client.Loaded([id_a()])
+    client.Model(..base_model(), beach_bus_ids: client.Loaded([id_a()]))
+  let #(next, _) = client.ensure_source_loaded(model_, client.SourceBeachBus)
+  assert next.beach_bus_ids == client.Loaded([id_a()])
 }
 
 // ROUTING: uri_to_page ---------------------------------------------------------
@@ -612,11 +612,11 @@ pub fn returned_activity_list_hydrates_cache_and_sets_window_test() {
     client.update(
       base_model(),
       client.ApiReturnedActivityList(
-        client.SourceSwimBus,
+        client.SourceBeachBus,
         Ok([summary_a, summary_b]),
       ),
     )
-  assert next.swim_bus_ids == client.Loaded([id_a(), id_b()])
+  assert next.beach_bus_ids == client.Loaded([id_a(), id_b()])
   assert dict.get(next.activities, id_a()) == Ok(summary_a)
   assert dict.get(next.activities, id_b()) == Ok(summary_b)
 }
@@ -658,14 +658,14 @@ pub fn created_activity_caches_and_invalidates_special_windows_test() {
     client.Model(
       ..base_model(),
       activities_ids: client.Loaded([id_b()]),
-      swim_bus_ids: client.Loaded([id_b()]),
+      beach_bus_ids: client.Loaded([id_b()]),
       climbing_wall_ids: client.Loaded([id_b()]),
     )
   let activity = an_activity(id_a(), Some(5))
   let #(next, _) =
     client.update(model_, client.ApiCreatedActivity(Ok(activity)))
   assert next.activities_ids == client.Loaded([id_a(), id_b()])
-  assert next.swim_bus_ids == client.NotAsked
+  assert next.beach_bus_ids == client.NotAsked
   assert next.climbing_wall_ids == client.NotAsked
   // The summary lands in `activities`; only the detail-only fields in `details`.
   assert dict.get(next.activities, id_a())
@@ -681,13 +681,13 @@ pub fn deleted_activity_purges_caches_and_all_windows_test() {
       ..base_model(),
       activities: dict.from_list([#(id_a(), summary_a), #(id_b(), summary_b)]),
       activities_ids: client.Loaded([id_a(), id_b()]),
-      swim_bus_ids: client.Loaded([id_a()]),
+      beach_bus_ids: client.Loaded([id_a()]),
       statuses: dict.from_list([#(id_a(), model.Favourited)]),
     )
   let #(next, _) =
     client.update(model_, client.ApiDeletedActivity(id_a(), Ok(Nil)))
   assert next.activities_ids == client.Loaded([id_b()])
-  assert next.swim_bus_ids == client.Loaded([])
+  assert next.beach_bus_ids == client.Loaded([])
   assert dict.has_key(next.activities, id_a()) == False
   assert dict.get(next.statuses, id_a()) == Error(Nil)
 }
@@ -695,11 +695,11 @@ pub fn deleted_activity_purges_caches_and_all_windows_test() {
 // UPDATE: list filters & tabs --------------------------------------------------
 
 pub fn selecting_tab_updates_filter_and_lazily_loads_source_test() {
-  // index 1 == TabSwimBus, whose source starts NotAsked in base_model.
+  // index 1 == TabBeachBus, whose source starts NotAsked in base_model.
   let #(next, _) = client.update(base_model(), client.UserSelectedTab(1))
   let assert client.ActivitiesListPage(filters) = next.page
-  assert filters.tab == client.TabSwimBus
-  assert next.swim_bus_ids == client.Loading
+  assert filters.tab == client.TabBeachBus
+  assert next.beach_bus_ids == client.Loading
 }
 
 pub fn retrying_load_marks_current_tab_source_loading_test() {

@@ -1,4 +1,4 @@
 SELECT *
 FROM activity
-WHERE recurring_activity_kind = 'swim-bus'
+WHERE recurring_activity_kind = 'beach-bus'
 ORDER BY start_time ASC;

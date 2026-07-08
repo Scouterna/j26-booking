@@ -261,46 +261,46 @@ INSERT INTO activity (
 VALUES (
         '0198a000-0000-7000-8000-000000000001',
         'Badbuss',
-        'Swim Bus',
+        'Beach Bus',
         'Buss till badplatsen och tillbaka. Begränsat antal platser per avgång.',
         'Bus to the swimming spot and back. Limited spots per departure.',
         30,
         '2025-07-12 09:00:00',
         '2025-07-12 12:00:00',
-        'swim-bus'
+        'beach-bus'
     ),
     (
         '0198a000-0000-7000-8000-000000000002',
         'Badbuss',
-        'Swim Bus',
+        'Beach Bus',
         'Buss till badplatsen och tillbaka. Begränsat antal platser per avgång.',
         'Bus to the swimming spot and back. Limited spots per departure.',
         30,
         '2025-07-12 13:00:00',
         '2025-07-12 16:00:00',
-        'swim-bus'
+        'beach-bus'
     ),
     (
         '0198a000-0000-7000-8000-000000000003',
         'Badbuss',
-        'Swim Bus',
+        'Beach Bus',
         'Buss till badplatsen och tillbaka. Begränsat antal platser per avgång.',
         'Bus to the swimming spot and back. Limited spots per departure.',
         40,
         '2025-07-13 09:00:00',
         '2025-07-13 12:00:00',
-        'swim-bus'
+        'beach-bus'
     ),
     (
         '0198a000-0000-7000-8000-000000000004',
         'Badbuss',
-        'Swim Bus',
+        'Beach Bus',
         'Buss till badplatsen och tillbaka. Begränsat antal platser per avgång.',
         'Bus to the swimming spot and back. Limited spots per departure.',
         40,
         '2025-07-13 13:00:00',
         '2025-07-13 16:00:00',
-        'swim-bus'
+        'beach-bus'
     ),
     (
         '0198b000-0000-7000-8000-000000000001',

@@ -1802,6 +1802,74 @@ GROUP BY activity.id
   |> pog.execute(db)
 }
 
+/// A row you get from running the `list_beach_bus_activities` query
+/// defined in `./src/server/sql/list_beach_bus_activities.sql`.
+///
+/// > 🐿️ This type definition was generated automatically using v4.6.0 of the
+/// > [squirrel package](https://github.com/giacomocavalieri/squirrel).
+///
+pub type ListBeachBusActivitiesRow {
+  ListBeachBusActivitiesRow(
+    id: Uuid,
+    title: String,
+    description: String,
+    max_attendees: Option(Int),
+    start_time: Timestamp,
+    end_time: Timestamp,
+    recurring_activity_kind: Option(String),
+    location_id: Option(Uuid),
+    title_en: String,
+    description_en: String,
+  )
+}
+
+/// Runs the `list_beach_bus_activities` query
+/// defined in `./src/server/sql/list_beach_bus_activities.sql`.
+///
+/// > 🐿️ This function was generated automatically using v4.6.0 of
+/// > the [squirrel package](https://github.com/giacomocavalieri/squirrel).
+///
+pub fn list_beach_bus_activities(
+  db: pog.Connection,
+) -> Result(pog.Returned(ListBeachBusActivitiesRow), pog.QueryError) {
+  let decoder = {
+    use id <- decode.field(0, uuid_decoder())
+    use title <- decode.field(1, decode.string)
+    use description <- decode.field(2, decode.string)
+    use max_attendees <- decode.field(3, decode.optional(decode.int))
+    use start_time <- decode.field(4, pog.timestamp_decoder())
+    use end_time <- decode.field(5, pog.timestamp_decoder())
+    use recurring_activity_kind <- decode.field(
+      6,
+      decode.optional(decode.string),
+    )
+    use location_id <- decode.field(7, decode.optional(uuid_decoder()))
+    use title_en <- decode.field(8, decode.string)
+    use description_en <- decode.field(9, decode.string)
+    decode.success(ListBeachBusActivitiesRow(
+      id:,
+      title:,
+      description:,
+      max_attendees:,
+      start_time:,
+      end_time:,
+      recurring_activity_kind:,
+      location_id:,
+      title_en:,
+      description_en:,
+    ))
+  }
+
+  "SELECT *
+FROM activity
+WHERE recurring_activity_kind = 'beach-bus'
+ORDER BY start_time ASC;
+"
+  |> pog.query
+  |> pog.returning(decoder)
+  |> pog.execute(db)
+}
+
 /// A row you get from running the `list_climbing_wall_activities` query
 /// defined in `./src/server/sql/list_climbing_wall_activities.sql`.
 ///
@@ -2103,74 +2171,6 @@ SELECT id,
     opening_hours
 FROM location
 ORDER BY name ASC;
-"
-  |> pog.query
-  |> pog.returning(decoder)
-  |> pog.execute(db)
-}
-
-/// A row you get from running the `list_swim_bus_activities` query
-/// defined in `./src/server/sql/list_swim_bus_activities.sql`.
-///
-/// > 🐿️ This type definition was generated automatically using v4.6.0 of the
-/// > [squirrel package](https://github.com/giacomocavalieri/squirrel).
-///
-pub type ListSwimBusActivitiesRow {
-  ListSwimBusActivitiesRow(
-    id: Uuid,
-    title: String,
-    description: String,
-    max_attendees: Option(Int),
-    start_time: Timestamp,
-    end_time: Timestamp,
-    recurring_activity_kind: Option(String),
-    location_id: Option(Uuid),
-    title_en: String,
-    description_en: String,
-  )
-}
-
-/// Runs the `list_swim_bus_activities` query
-/// defined in `./src/server/sql/list_swim_bus_activities.sql`.
-///
-/// > 🐿️ This function was generated automatically using v4.6.0 of
-/// > the [squirrel package](https://github.com/giacomocavalieri/squirrel).
-///
-pub fn list_swim_bus_activities(
-  db: pog.Connection,
-) -> Result(pog.Returned(ListSwimBusActivitiesRow), pog.QueryError) {
-  let decoder = {
-    use id <- decode.field(0, uuid_decoder())
-    use title <- decode.field(1, decode.string)
-    use description <- decode.field(2, decode.string)
-    use max_attendees <- decode.field(3, decode.optional(decode.int))
-    use start_time <- decode.field(4, pog.timestamp_decoder())
-    use end_time <- decode.field(5, pog.timestamp_decoder())
-    use recurring_activity_kind <- decode.field(
-      6,
-      decode.optional(decode.string),
-    )
-    use location_id <- decode.field(7, decode.optional(uuid_decoder()))
-    use title_en <- decode.field(8, decode.string)
-    use description_en <- decode.field(9, decode.string)
-    decode.success(ListSwimBusActivitiesRow(
-      id:,
-      title:,
-      description:,
-      max_attendees:,
-      start_time:,
-      end_time:,
-      recurring_activity_kind:,
-      location_id:,
-      title_en:,
-      description_en:,
-    ))
-  }
-
-  "SELECT *
-FROM activity
-WHERE recurring_activity_kind = 'swim-bus'
-ORDER BY start_time ASC;
 "
   |> pog.query
   |> pog.returning(decoder)

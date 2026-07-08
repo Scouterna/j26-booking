@@ -72,7 +72,7 @@ Fill in:
 ### 2. SQL + regenerate (`server/src/server/sql/`)
 
 - Read queries use `SELECT *` (`get_activity.sql`, `list_activities_by_*`,
-  `get_activities_by_*`, `search_activities.sql`, swim-bus/climbing-wall/favourited)
+  `get_activities_by_*`, `search_activities.sql`, beach-bus/climbing-wall/favourited)
   → they pick up the new columns automatically. Verify each.
 - The **4 create/update** files (`create_activity_with/without_max_attendees.sql`,
   `update_activity_with/without_max_attendees.sql`): add `title_en`, `description_en`

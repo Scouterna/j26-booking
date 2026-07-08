@@ -71,7 +71,7 @@ fn english_translations() -> g18n.Translations {
   |> g18n.add_translation("list.search_placeholder", "Search")
   |> g18n.add_translation("list.filter.all", "All")
   |> g18n.add_translation("list.tab.activities", "Activities")
-  |> g18n.add_translation("list.tab.swim_bus", "Swim bus")
+  |> g18n.add_translation("list.tab.beach_bus", "Beach bus")
   |> g18n.add_translation("list.tab.climbing_wall", "Climbing wall")
   |> g18n.add_translation("list.filter.favourites", "Favourites")
   |> g18n.add_translation("list.filter.more", "More filters")
@@ -126,7 +126,7 @@ fn swedish_translations() -> g18n.Translations {
   |> g18n.add_translation("list.search_placeholder", "Sök")
   |> g18n.add_translation("list.filter.all", "Alla")
   |> g18n.add_translation("list.tab.activities", "Aktiviteter")
-  |> g18n.add_translation("list.tab.swim_bus", "Badbuss")
+  |> g18n.add_translation("list.tab.beach_bus", "Badbuss")
   |> g18n.add_translation("list.tab.climbing_wall", "Klättervägg")
   |> g18n.add_translation("list.filter.favourites", "Favoriter")
   |> g18n.add_translation("list.filter.more", "Fler filter")
@@ -221,7 +221,7 @@ pub fn booking_of(status: ActivityStatus) -> Option(Booking) {
 /// state — its membership is derived from `statuses`, not from this list.
 pub type ActivityListSource {
   SourceActivities
-  SourceSwimBus
+  SourceBeachBus
   SourceClimbingWall
   SourceFavourites
 }
@@ -281,7 +281,7 @@ pub type EditState {
 
 pub type ActivitiesFilterTab {
   TabActivities
-  TabSwimBus
+  TabBeachBus
   TabClimbingWall
   TabFavourites
 }
@@ -310,7 +310,7 @@ pub fn default_filters() -> ListFilters {
 
 /// Tabs in display order; index is used for the segmented control.
 fn list_tabs() -> List(ActivitiesFilterTab) {
-  [TabActivities, TabSwimBus, TabClimbingWall, TabFavourites]
+  [TabActivities, TabBeachBus, TabClimbingWall, TabFavourites]
 }
 
 pub fn tab_index(tab: ActivitiesFilterTab) -> Int {
@@ -351,11 +351,11 @@ pub type Model {
     page: Page,
     translator: Translator,
     // Entity cache: one slim summary per activity, hydrated/overwritten by
-    // EVERY list response (browse pages, swim-bus, climbing-wall, favourited).
+    // EVERY list response (browse pages, beach-bus, climbing-wall, favourited).
     activities: Dict(Uuid, ActivitySummary),
     // Ordered id windows per browse tab — define each tab's membership + order.
     activities_ids: RemoteData(List(Uuid)),
-    swim_bus_ids: RemoteData(List(Uuid)),
+    beach_bus_ids: RemoteData(List(Uuid)),
     climbing_wall_ids: RemoteData(List(Uuid)),
     // Drives the Favourites tab's /api/favourited-activities fetch state and
     // cache hydration. Membership is DERIVED from `statuses`, not this list.
@@ -378,7 +378,7 @@ pub type Model {
 pub fn tab_source(tab: ActivitiesFilterTab) -> ActivityListSource {
   case tab {
     TabActivities -> SourceActivities
-    TabSwimBus -> SourceSwimBus
+    TabBeachBus -> SourceBeachBus
     TabClimbingWall -> SourceClimbingWall
     TabFavourites -> SourceFavourites
   }
@@ -392,7 +392,7 @@ pub fn source_remote(
 ) -> RemoteData(List(Uuid)) {
   case source {
     SourceActivities -> model.activities_ids
-    SourceSwimBus -> model.swim_bus_ids
+    SourceBeachBus -> model.beach_bus_ids
     SourceClimbingWall -> model.climbing_wall_ids
     SourceFavourites -> model.favourited
   }
@@ -405,7 +405,7 @@ pub fn set_source_remote(
 ) -> Model {
   case source {
     SourceActivities -> Model(..model, activities_ids: remote)
-    SourceSwimBus -> Model(..model, swim_bus_ids: remote)
+    SourceBeachBus -> Model(..model, beach_bus_ids: remote)
     SourceClimbingWall -> Model(..model, climbing_wall_ids: remote)
     SourceFavourites -> Model(..model, favourited: remote)
   }
@@ -435,7 +435,7 @@ pub fn tab_summaries(
     TabFavourites -> {
       // Membership is derived from the complete `statuses` map; the `favourited`
       // fetch only supplies hydration (summaries for fav/booked items not yet in
-      // the cache, e.g. swim-bus/climbing-wall slots) + the first-load state.
+      // the cache, e.g. beach-bus/climbing-wall slots) + the first-load state.
       let derived =
         model.statuses
         |> dict.keys
@@ -718,7 +718,7 @@ fn init(_flags) -> #(Model, Effect(Msg)) {
       activities: dict.new(),
       // Default tab loads immediately; other sources load lazily on first open.
       activities_ids: Loading,
-      swim_bus_ids: NotAsked,
+      beach_bus_ids: NotAsked,
       climbing_wall_ids: NotAsked,
       favourited: NotAsked,
       details: seed_detail_loading(dict.new(), page),
@@ -898,7 +898,7 @@ pub fn update(model: Model, msg: Msg) -> #(Model, Effect(Msg)) {
         // server-internal, so we can't tell if it belongs to a special tab —
         // invalidate those windows so they refetch on next open.
         activities_ids: prepend_id(model.activities_ids, activity.id),
-        swim_bus_ids: NotAsked,
+        beach_bus_ids: NotAsked,
         climbing_wall_ids: NotAsked,
         details: dict.insert(
           model.details,
@@ -969,7 +969,7 @@ pub fn update(model: Model, msg: Msg) -> #(Model, Effect(Msg)) {
         ..model,
         activities: dict.delete(model.activities, id),
         activities_ids: remove_id(model.activities_ids, id),
-        swim_bus_ids: remove_id(model.swim_bus_ids, id),
+        beach_bus_ids: remove_id(model.beach_bus_ids, id),
         climbing_wall_ids: remove_id(model.climbing_wall_ids, id),
         favourited: remove_id(model.favourited, id),
         details: dict.delete(model.details, id),
@@ -1420,7 +1420,7 @@ fn observe_lang() -> Effect(Msg) {
 fn list_source_path(source: ActivityListSource) -> String {
   case source {
     SourceActivities -> "/api/activities"
-    SourceSwimBus -> "/api/swim-bus-activities"
+    SourceBeachBus -> "/api/beach-bus-activities"
     SourceClimbingWall -> "/api/climbing-wall-activities"
     SourceFavourites -> "/api/favourited-activities"
   }
@@ -1771,7 +1771,7 @@ fn view_list_top_bar(
 fn tab_label(translator: Translator, tab: ActivitiesFilterTab) -> String {
   case tab {
     TabActivities -> g18n.translate(translator, "list.tab.activities")
-    TabSwimBus -> g18n.translate(translator, "list.tab.swim_bus")
+    TabBeachBus -> g18n.translate(translator, "list.tab.beach_bus")
     TabClimbingWall -> g18n.translate(translator, "list.tab.climbing_wall")
     TabFavourites -> g18n.translate(translator, "list.filter.favourites")
   }

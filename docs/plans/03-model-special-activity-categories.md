@@ -11,12 +11,12 @@
 > - **Migration `20260629120000-add_recurring_activity_kind.sql`** adds a plain
 >   nullable `recurring_activity_kind TEXT` column to `activity` (no separate
 >   table, no display label/icon data, no `id`/`slug`/`name`/`name_en`).
-> - **Dedicated endpoints** `GET /api/swim-bus-activities` and
+> - **Dedicated endpoints** `GET /api/beach-bus-activities` and
 >   `GET /api/climbing-wall-activities` (router.gleam:30-33) backed by dedicated
->   queries `list_swim_bus_activities.sql` / `list_climbing_wall_activities.sql`
->   that filter `WHERE recurring_activity_kind = 'swim-bus' | 'climbing-wall'`.
+>   queries `list_beach_bus_activities.sql` / `list_climbing_wall_activities.sql`
+>   that filter `WHERE recurring_activity_kind = 'beach-bus' | 'climbing-wall'`.
 >   No `category` query param on `/api/activities`; no `/api/activity-categories`.
-> - **Client** models the tabs as `SourceSwimBus` / `SourceClimbingWall`
+> - **Client** models the tabs as `SourceBeachBus` / `SourceClimbingWall`
 >   (part of the `ActivityListSource` work from the normalized-store plan), not
 >   from a fetched category list.
 >
