@@ -112,7 +112,7 @@ All components use the `scout-` prefix. Required props are marked `*`. Events pr
 
 | Tag | Props | Slots | Events |
 |---|---|---|---|
-| `scout-button` | `variant` (`primary`/`outlined`/`text`/`caution`/`danger`, default `outlined`), `size` (`medium`/`large`, default `medium`), `type` (`button`/`submit`/`reset`/`link`, default `button`), `disabled`, `icon`, `icon-position` (`before`/`after`, default `after`), `icon-only`, `href`, `target`, `rel` | default (label) | `scoutClick` |
+| `scout-button` | `variant` (`primary`/`outlined`/`text`/`caution`/`danger`, default `outlined`), `size` (`medium`/`large`, default `medium`), `type` (`button`/`submit`/`reset`/`link`, default `button`), `disabled`, `loading` (shows a centered spinner and hides content), `icon`, `icon-position` (`before`/`after`, default `after`), `icon-only`, `href`, `target`, `rel` | default (label) | `scoutClick` |
 | `scout-link` | `label`\*, `type` (`link`/`button`, default `link`), `href`, `target` (`_blank`/`_self`/`_parent`/`_top`/`framename`, default `_self`), `rel`, `link-aria-label` | — | `scoutLinkClick` (only when `type="button"`) |
 | `scout-segmented-control` | `value` (zero-based index), `size` (`small`/`medium`, default `medium`) | default (button elements as segments) | `scoutChange` (`{value: number}`) |
 
@@ -123,7 +123,7 @@ Wrap form controls in `scout-field` for label + validation display.
 | Tag | Props | Slots | Events |
 |---|---|---|---|
 | `scout-field` | `label`\*, `help-text` | default (form control) | — |
-| `scout-input` | `name`\*, `type` (`text`/`email`/`number`/`password`/`tel`/`url`, default `text`), `inputmode`, `size` (`medium`/`large`, default `medium`), `value`, `disabled`, `clearable`, `icon` (raw SVG string), `placeholder`, `pattern`, `validity` | — | `scoutInputChange` (`{value, element}`), `scoutBlur`, `scoutValidate` |
+| `scout-input` | `name`\*, `type` (`text`/`email`/`number`/`password`/`tel`/`url`, default `text`), `inputmode`, `size` (`medium`/`large`, default `medium`), `value`, `default-value` (initial value for uncontrolled usage; set once on first render, not kept in sync), `disabled`, `clearable`, `icon` (raw SVG string), `placeholder`, `pattern`, `autocomplete` (maps to native `autocomplete` attribute), `validity` | — | `scoutInputChange` (`{value, element}`), `scoutBlur`, `scoutValidate` |
 | `scout-select` | `name`\*, `value`, `disabled`, `validity` | default (`<option>` elements) | `scoutInputChange`, `scoutBlur`, `scoutValidate` |
 | `scout-checkbox` | `checked`, `disabled`, `label`, `name`, `value`, `validity`, `aria-labelledby` | — | `scoutChecked` (`{checked, element}`), `scoutInputChange`, `scoutBlur`, `scoutValidate` |
 | `scout-radio-button` | `checked`, `disabled`, `label`, `name`, `value`, `validity`, `aria-labelledby` | — | `scoutChecked`, `scoutInputChange`, `scoutBlur`, `scoutValidate` |
@@ -136,7 +136,7 @@ The native `input` event also fires on `scout-input`, so `event.on_input(Msg)` w
 | Tag | Props | Slots | Events |
 |---|---|---|---|
 | `scout-list-view` | — | default | — |
-| `scout-list-view-item` | `type` (`button`/`link`/`radio`/`checkbox`, default `button`), `primary`, `secondary`, `icon`, `action` (`chevron`), `href`, `target`, `rel`, `name`, `value`, `checked`, `disabled` | — | `scoutClick` |
+| `scout-list-view-item` | `type` (`button`/`link`/`radio`/`checkbox`, default `button`), `primary`, `secondary`, `icon`, `action` (`chevron`), `href`, `target`, `rel`, `name`, `value`, `checked`, `disabled` | — | `scoutClick`, `scoutChecked` (`{checked, element}`, for `radio`/`checkbox` types) |
 | `scout-list-view-subheader` | `text`\*, `heading-level` (`h1`–`h6`, default `h2`) | — | — |
 
 ### Feedback
