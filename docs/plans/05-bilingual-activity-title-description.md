@@ -1,6 +1,6 @@
 # 05. Handoff: bilingual `title` & `description` for activities
 
-> **Status: ✅ Done 2026-07-08** (commit pending; implemented as planned)
+> **Status: ✅ Done 2026-07-08** (implemented as planned)
 >
 > `Activity.title`/`.description` and `ActivitySummary.title` are now
 > `BilingualString` end-to-end (migration `20260708113115`, SQL, server model +
