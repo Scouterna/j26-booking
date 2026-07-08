@@ -4,6 +4,7 @@ import gleam/http.{Delete, Get, Post, Put}
 import gleam/int
 import gleam/json
 import gleam/list
+import gleam/option
 import gleam/result
 import gleam/string
 import pog
@@ -60,35 +61,53 @@ pub fn create(
   })
   let id = uuid.v7()
   let user_id = user.id
-  // A booking is made on behalf of a scout group, so a token without one
-  // cannot create bookings.
-  use booker_group_id <- given.some(user.group_id, else_return: fn() {
-    wisp.json_response(
-      json.object([#("error", json.string("No scout group found in token"))])
-        |> json.to_string,
-      403,
-    )
-  })
-  let booker_group_name = web.group_id_to_name(booker_group_id)
+  // The booker group comes from the token. A token without one still creates a
+  // booking — the group columns are simply left NULL.
+  let booking_result = case user.group_id {
+    option.Some(group_id) ->
+      sql.create_booking_with_group(
+        ctx.db_connection,
+        id,
+        user_id,
+        activity_id,
+        user.name,
+        group_id,
+        web.group_id_to_name(group_id),
+        input.group_free_text,
+        input.responsible_name,
+        input.phone_number,
+        input.participant_count,
+      )
+      |> result.map(fn(returned) {
+        pog.Returned(
+          returned.count,
+          list.map(returned.rows, booking.from_create_booking_with_group_row),
+        )
+      })
+    option.None ->
+      sql.create_booking_without_group(
+        ctx.db_connection,
+        id,
+        user_id,
+        activity_id,
+        user.name,
+        input.group_free_text,
+        input.responsible_name,
+        input.phone_number,
+        input.participant_count,
+      )
+      |> result.map(fn(returned) {
+        pog.Returned(
+          returned.count,
+          list.map(returned.rows, booking.from_create_booking_without_group_row),
+        )
+      })
+  }
 
-  case
-    sql.create_booking(
-      ctx.db_connection,
-      id,
-      user_id,
-      activity_id,
-      booker_group_id,
-      booker_group_name,
-      input.group_free_text,
-      input.responsible_name,
-      input.phone_number,
-      input.participant_count,
-    )
-  {
+  case booking_result {
     Error(error) -> web.query_error(error)
     Ok(pog.Returned(_, [])) -> wisp.internal_server_error()
-    Ok(pog.Returned(_, [row, ..])) -> {
-      let created_booking = booking.from_create_booking_row(row)
+    Ok(pog.Returned(_, [created_booking, ..])) -> {
       // Auto-favourite on booking. Idempotent via ON CONFLICT DO NOTHING.
       case
         sql.create_favourite(ctx.db_connection, uuid.v7(), user_id, activity_id)

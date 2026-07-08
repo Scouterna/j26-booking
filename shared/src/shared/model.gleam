@@ -231,8 +231,9 @@ pub type Booking {
     id: Uuid,
     user_id: Uuid,
     activity_id: Uuid,
-    booker_group_id: Int,
-    booker_group_name: String,
+    booker_name: String,
+    booker_group_id: Option(Int),
+    booker_group_name: Option(String),
     group_free_text: String,
     responsible_name: String,
     phone_number: String,
@@ -246,8 +247,17 @@ pub fn booking_decoder() -> decode.Decoder(Booking) {
   use id_str <- decode.field("id", decode.string)
   use user_id_str <- decode.field("user_id", decode.string)
   use activity_id_str <- decode.field("activity_id", decode.string)
-  use booker_group_id <- decode.field("booker_group_id", decode.int)
-  use booker_group_name <- decode.field("booker_group_name", decode.string)
+  use booker_name <- decode.field("booker_name", decode.string)
+  use booker_group_id <- decode.optional_field(
+    "booker_group_id",
+    None,
+    decode.optional(decode.int),
+  )
+  use booker_group_name <- decode.optional_field(
+    "booker_group_name",
+    None,
+    decode.optional(decode.string),
+  )
   use group_free_text <- decode.field("group_free_text", decode.string)
   use responsible_name <- decode.field("responsible_name", decode.string)
   use phone_number <- decode.field("phone_number", decode.string)
@@ -262,6 +272,7 @@ pub fn booking_decoder() -> decode.Decoder(Booking) {
         id:,
         user_id:,
         activity_id:,
+        booker_name:,
         booker_group_id:,
         booker_group_name:,
         group_free_text:,
@@ -275,6 +286,7 @@ pub fn booking_decoder() -> decode.Decoder(Booking) {
           id: uuid.v7(),
           user_id: uuid.v7(),
           activity_id: uuid.v7(),
+          booker_name:,
           booker_group_id:,
           booker_group_name:,
           group_free_text:,

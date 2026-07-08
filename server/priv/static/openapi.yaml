@@ -419,6 +419,7 @@ paths:
                   - id: "dd000001-0000-4000-8000-000000000001"
                     user_id: "a1b2c3d4-e5f6-4a90-abcd-ef1234567890"
                     activity_id: "6f5e1d46-5f58-4e23-9a9d-8c2bfc2d22a0"
+                    booker_name: "Anna Svensson"
                     booker_group_id: 101
                     booker_group_name: "Sjöscoutkåren Dansen"
                     group_free_text: "Patrull Örnarna"
@@ -440,9 +441,11 @@ paths:
       summary: Create booking for activity
       description: |
         Create a new booking for a specific activity. Requires the
-        `bookings:self:create` role. The `user_id` and `booker_group_id` come
-        from the access token; `booker_group_name` is a placeholder until group
-        name resolution exists.
+        `bookings:self:create` role. The `user_id`, `booker_name`, and
+        `booker_group_id` come from the access token; `booker_group_name` is a
+        placeholder until group name resolution exists. Tokens without a scout
+        group can still book — `booker_group_id` and `booker_group_name` are
+        then `null`.
       operationId: createBooking
       security:
         - bearerAuth: []
@@ -476,6 +479,7 @@ paths:
                 id: "dd000001-0000-4000-8000-000000000001"
                 user_id: "a1b2c3d4-e5f6-4a90-abcd-ef1234567890"
                 activity_id: "6f5e1d46-5f58-4e23-9a9d-8c2bfc2d22a0"
+                booker_name: "Anna Svensson"
                 booker_group_id: 101
                 booker_group_name: "Sjöscoutkåren Dansen"
                 group_free_text: "Patrull Örnarna"
@@ -487,18 +491,7 @@ paths:
         '401':
           $ref: '#/components/responses/Unauthorized'
         '403':
-          description: |
-            Forbidden - the user lacks the `bookings:self:create` role, or the
-            token carries no ScoutID group to book on behalf of
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  error:
-                    type: string
-                example:
-                  error: "No scout group found in token"
+          $ref: '#/components/responses/Forbidden'
         '500':
           $ref: '#/components/responses/ServerError'
 
@@ -525,6 +518,7 @@ paths:
                 id: "dd000001-0000-4000-8000-000000000001"
                 user_id: "a1b2c3d4-e5f6-4a90-abcd-ef1234567890"
                 activity_id: "6f5e1d46-5f58-4e23-9a9d-8c2bfc2d22a0"
+                booker_name: "Anna Svensson"
                 booker_group_id: 101
                 booker_group_name: "Sjöscoutkåren Dansen"
                 group_free_text: "Patrull Örnarna"
@@ -575,6 +569,7 @@ paths:
                 id: "dd000001-0000-4000-8000-000000000001"
                 user_id: "a1b2c3d4-e5f6-4a90-abcd-ef1234567890"
                 activity_id: "6f5e1d46-5f58-4e23-9a9d-8c2bfc2d22a0"
+                booker_name: "Anna Svensson"
                 booker_group_id: 101
                 booker_group_name: "Sjöscoutkåren Dansen"
                 group_free_text: "Patrull Falkarna"
@@ -719,6 +714,7 @@ paths:
                       id: "aa000001-0000-4000-8000-000000000001"
                       user_id: "a1b2c3d4-e5f6-4a90-abcd-ef1234567890"
                       activity_id: "6f5e1d46-5f58-4e23-9a9d-8c2bfc2d22a0"
+                      booker_name: "Anna Svensson"
                       booker_group_id: 0
                       booker_group_name: "Patrull Räven"
                       group_free_text: "Vi är glada!"
@@ -1221,8 +1217,7 @@ components:
         - id
         - user_id
         - activity_id
-        - booker_group_id
-        - booker_group_name
+        - booker_name
         - group_free_text
         - responsible_name
         - phone_number
@@ -1243,13 +1238,24 @@ components:
           format: uuid
           description: ID of the activity being booked
           example: "6f5e1d46-5f58-4e23-9a9d-8c2bfc2d22a0"
+        booker_name:
+          type: string
+          description: Name of the booker, taken from the access token (JWT)
+          example: "Anna Svensson"
         booker_group_id:
           type: integer
-          description: Booker's scout group ID (from Scoutnet via JWT, currently dummy value)
+          nullable: true
+          description: >-
+            Booker's scout group ID (from Scoutnet via JWT). Null when the
+            token has no scout group.
           example: 101
         booker_group_name:
           type: string
-          description: Booker's scout group name (from Scoutnet via JWT, currently dummy value)
+          nullable: true
+          description: >-
+            Booker's scout group name (from Scoutnet via JWT, currently a
+            placeholder derived from the id). Null when the token has no scout
+            group.
           example: "Sjöscoutkåren Dansen"
         group_free_text:
           type: string

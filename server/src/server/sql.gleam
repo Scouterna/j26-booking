@@ -226,19 +226,20 @@ RETURNING id,
   |> pog.execute(db)
 }
 
-/// A row you get from running the `create_booking` query
-/// defined in `./src/server/sql/create_booking.sql`.
+/// A row you get from running the `create_booking_with_group` query
+/// defined in `./src/server/sql/create_booking_with_group.sql`.
 ///
 /// > 🐿️ This type definition was generated automatically using v4.6.0 of the
 /// > [squirrel package](https://github.com/giacomocavalieri/squirrel).
 ///
-pub type CreateBookingRow {
-  CreateBookingRow(
+pub type CreateBookingWithGroupRow {
+  CreateBookingWithGroupRow(
     id: Uuid,
     user_id: Uuid,
     activity_id: Uuid,
-    booker_group_id: Int,
-    booker_group_name: String,
+    booker_name: String,
+    booker_group_id: Option(Int),
+    booker_group_name: Option(String),
     group_free_text: String,
     responsible_name: String,
     phone_number: String,
@@ -246,38 +247,41 @@ pub type CreateBookingRow {
   )
 }
 
-/// Runs the `create_booking` query
-/// defined in `./src/server/sql/create_booking.sql`.
+/// Runs the `create_booking_with_group` query
+/// defined in `./src/server/sql/create_booking_with_group.sql`.
 ///
 /// > 🐿️ This function was generated automatically using v4.6.0 of
 /// > the [squirrel package](https://github.com/giacomocavalieri/squirrel).
 ///
-pub fn create_booking(
+pub fn create_booking_with_group(
   db: pog.Connection,
   arg_1: Uuid,
   arg_2: Uuid,
   arg_3: Uuid,
-  arg_4: Int,
-  arg_5: String,
+  arg_4: String,
+  arg_5: Int,
   arg_6: String,
   arg_7: String,
   arg_8: String,
-  arg_9: Int,
-) -> Result(pog.Returned(CreateBookingRow), pog.QueryError) {
+  arg_9: String,
+  arg_10: Int,
+) -> Result(pog.Returned(CreateBookingWithGroupRow), pog.QueryError) {
   let decoder = {
     use id <- decode.field(0, uuid_decoder())
     use user_id <- decode.field(1, uuid_decoder())
     use activity_id <- decode.field(2, uuid_decoder())
-    use booker_group_id <- decode.field(3, decode.int)
-    use booker_group_name <- decode.field(4, decode.string)
-    use group_free_text <- decode.field(5, decode.string)
-    use responsible_name <- decode.field(6, decode.string)
-    use phone_number <- decode.field(7, decode.string)
-    use participant_count <- decode.field(8, decode.int)
-    decode.success(CreateBookingRow(
+    use booker_name <- decode.field(3, decode.string)
+    use booker_group_id <- decode.field(4, decode.optional(decode.int))
+    use booker_group_name <- decode.field(5, decode.optional(decode.string))
+    use group_free_text <- decode.field(6, decode.string)
+    use responsible_name <- decode.field(7, decode.string)
+    use phone_number <- decode.field(8, decode.string)
+    use participant_count <- decode.field(9, decode.int)
+    decode.success(CreateBookingWithGroupRow(
       id:,
       user_id:,
       activity_id:,
+      booker_name:,
       booker_group_id:,
       booker_group_name:,
       group_free_text:,
@@ -291,6 +295,7 @@ pub fn create_booking(
         id,
         user_id,
         activity_id,
+        booker_name,
         booker_group_id,
         booker_group_name,
         group_free_text,
@@ -298,10 +303,11 @@ pub fn create_booking(
         phone_number,
         participant_count
     )
-VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
 RETURNING id,
     user_id,
     activity_id,
+    booker_name,
     booker_group_id,
     booker_group_name,
     group_free_text,
@@ -313,12 +319,105 @@ RETURNING id,
   |> pog.parameter(pog.text(uuid.to_string(arg_1)))
   |> pog.parameter(pog.text(uuid.to_string(arg_2)))
   |> pog.parameter(pog.text(uuid.to_string(arg_3)))
-  |> pog.parameter(pog.int(arg_4))
-  |> pog.parameter(pog.text(arg_5))
+  |> pog.parameter(pog.text(arg_4))
+  |> pog.parameter(pog.int(arg_5))
   |> pog.parameter(pog.text(arg_6))
   |> pog.parameter(pog.text(arg_7))
   |> pog.parameter(pog.text(arg_8))
-  |> pog.parameter(pog.int(arg_9))
+  |> pog.parameter(pog.text(arg_9))
+  |> pog.parameter(pog.int(arg_10))
+  |> pog.returning(decoder)
+  |> pog.execute(db)
+}
+
+/// A row you get from running the `create_booking_without_group` query
+/// defined in `./src/server/sql/create_booking_without_group.sql`.
+///
+/// > 🐿️ This type definition was generated automatically using v4.6.0 of the
+/// > [squirrel package](https://github.com/giacomocavalieri/squirrel).
+///
+pub type CreateBookingWithoutGroupRow {
+  CreateBookingWithoutGroupRow(
+    id: Uuid,
+    user_id: Uuid,
+    activity_id: Uuid,
+    booker_name: String,
+    group_free_text: String,
+    responsible_name: String,
+    phone_number: String,
+    participant_count: Int,
+  )
+}
+
+/// Runs the `create_booking_without_group` query
+/// defined in `./src/server/sql/create_booking_without_group.sql`.
+///
+/// > 🐿️ This function was generated automatically using v4.6.0 of
+/// > the [squirrel package](https://github.com/giacomocavalieri/squirrel).
+///
+pub fn create_booking_without_group(
+  db: pog.Connection,
+  arg_1: Uuid,
+  arg_2: Uuid,
+  arg_3: Uuid,
+  arg_4: String,
+  arg_5: String,
+  arg_6: String,
+  arg_7: String,
+  arg_8: Int,
+) -> Result(pog.Returned(CreateBookingWithoutGroupRow), pog.QueryError) {
+  let decoder = {
+    use id <- decode.field(0, uuid_decoder())
+    use user_id <- decode.field(1, uuid_decoder())
+    use activity_id <- decode.field(2, uuid_decoder())
+    use booker_name <- decode.field(3, decode.string)
+    use group_free_text <- decode.field(4, decode.string)
+    use responsible_name <- decode.field(5, decode.string)
+    use phone_number <- decode.field(6, decode.string)
+    use participant_count <- decode.field(7, decode.int)
+    decode.success(CreateBookingWithoutGroupRow(
+      id:,
+      user_id:,
+      activity_id:,
+      booker_name:,
+      group_free_text:,
+      responsible_name:,
+      phone_number:,
+      participant_count:,
+    ))
+  }
+
+  "INSERT INTO booking (
+        id,
+        user_id,
+        activity_id,
+        booker_name,
+        booker_group_id,
+        booker_group_name,
+        group_free_text,
+        responsible_name,
+        phone_number,
+        participant_count
+    )
+VALUES ($1, $2, $3, $4, NULL, NULL, $5, $6, $7, $8)
+RETURNING id,
+    user_id,
+    activity_id,
+    booker_name,
+    group_free_text,
+    responsible_name,
+    phone_number,
+    participant_count
+"
+  |> pog.query
+  |> pog.parameter(pog.text(uuid.to_string(arg_1)))
+  |> pog.parameter(pog.text(uuid.to_string(arg_2)))
+  |> pog.parameter(pog.text(uuid.to_string(arg_3)))
+  |> pog.parameter(pog.text(arg_4))
+  |> pog.parameter(pog.text(arg_5))
+  |> pog.parameter(pog.text(arg_6))
+  |> pog.parameter(pog.text(arg_7))
+  |> pog.parameter(pog.int(arg_8))
   |> pog.returning(decoder)
   |> pog.execute(db)
 }
@@ -1031,8 +1130,9 @@ pub type GetBookingRow {
     id: Uuid,
     user_id: Uuid,
     activity_id: Uuid,
-    booker_group_id: Int,
-    booker_group_name: String,
+    booker_name: String,
+    booker_group_id: Option(Int),
+    booker_group_name: Option(String),
     group_free_text: String,
     responsible_name: String,
     phone_number: String,
@@ -1054,16 +1154,18 @@ pub fn get_booking(
     use id <- decode.field(0, uuid_decoder())
     use user_id <- decode.field(1, uuid_decoder())
     use activity_id <- decode.field(2, uuid_decoder())
-    use booker_group_id <- decode.field(3, decode.int)
-    use booker_group_name <- decode.field(4, decode.string)
-    use group_free_text <- decode.field(5, decode.string)
-    use responsible_name <- decode.field(6, decode.string)
-    use phone_number <- decode.field(7, decode.string)
-    use participant_count <- decode.field(8, decode.int)
+    use booker_name <- decode.field(3, decode.string)
+    use booker_group_id <- decode.field(4, decode.optional(decode.int))
+    use booker_group_name <- decode.field(5, decode.optional(decode.string))
+    use group_free_text <- decode.field(6, decode.string)
+    use responsible_name <- decode.field(7, decode.string)
+    use phone_number <- decode.field(8, decode.string)
+    use participant_count <- decode.field(9, decode.int)
     decode.success(GetBookingRow(
       id:,
       user_id:,
       activity_id:,
+      booker_name:,
       booker_group_id:,
       booker_group_name:,
       group_free_text:,
@@ -1076,6 +1178,7 @@ pub fn get_booking(
   "SELECT id,
     user_id,
     activity_id,
+    booker_name,
     booker_group_id,
     booker_group_name,
     group_free_text,
@@ -1141,8 +1244,9 @@ pub type GetBookingsByActivityRow {
     id: Uuid,
     user_id: Uuid,
     activity_id: Uuid,
-    booker_group_id: Int,
-    booker_group_name: String,
+    booker_name: String,
+    booker_group_id: Option(Int),
+    booker_group_name: Option(String),
     group_free_text: String,
     responsible_name: String,
     phone_number: String,
@@ -1166,16 +1270,18 @@ pub fn get_bookings_by_activity(
     use id <- decode.field(0, uuid_decoder())
     use user_id <- decode.field(1, uuid_decoder())
     use activity_id <- decode.field(2, uuid_decoder())
-    use booker_group_id <- decode.field(3, decode.int)
-    use booker_group_name <- decode.field(4, decode.string)
-    use group_free_text <- decode.field(5, decode.string)
-    use responsible_name <- decode.field(6, decode.string)
-    use phone_number <- decode.field(7, decode.string)
-    use participant_count <- decode.field(8, decode.int)
+    use booker_name <- decode.field(3, decode.string)
+    use booker_group_id <- decode.field(4, decode.optional(decode.int))
+    use booker_group_name <- decode.field(5, decode.optional(decode.string))
+    use group_free_text <- decode.field(6, decode.string)
+    use responsible_name <- decode.field(7, decode.string)
+    use phone_number <- decode.field(8, decode.string)
+    use participant_count <- decode.field(9, decode.int)
     decode.success(GetBookingsByActivityRow(
       id:,
       user_id:,
       activity_id:,
+      booker_name:,
       booker_group_id:,
       booker_group_name:,
       group_free_text:,
@@ -1188,6 +1294,7 @@ pub fn get_bookings_by_activity(
   "SELECT id,
     user_id,
     activity_id,
+    booker_name,
     booker_group_id,
     booker_group_name,
     group_free_text,
@@ -1219,8 +1326,9 @@ pub type GetBookingsByUserRow {
     id: Uuid,
     user_id: Uuid,
     activity_id: Uuid,
-    booker_group_id: Int,
-    booker_group_name: String,
+    booker_name: String,
+    booker_group_id: Option(Int),
+    booker_group_name: Option(String),
     group_free_text: String,
     responsible_name: String,
     phone_number: String,
@@ -1242,16 +1350,18 @@ pub fn get_bookings_by_user(
     use id <- decode.field(0, uuid_decoder())
     use user_id <- decode.field(1, uuid_decoder())
     use activity_id <- decode.field(2, uuid_decoder())
-    use booker_group_id <- decode.field(3, decode.int)
-    use booker_group_name <- decode.field(4, decode.string)
-    use group_free_text <- decode.field(5, decode.string)
-    use responsible_name <- decode.field(6, decode.string)
-    use phone_number <- decode.field(7, decode.string)
-    use participant_count <- decode.field(8, decode.int)
+    use booker_name <- decode.field(3, decode.string)
+    use booker_group_id <- decode.field(4, decode.optional(decode.int))
+    use booker_group_name <- decode.field(5, decode.optional(decode.string))
+    use group_free_text <- decode.field(6, decode.string)
+    use responsible_name <- decode.field(7, decode.string)
+    use phone_number <- decode.field(8, decode.string)
+    use participant_count <- decode.field(9, decode.int)
     decode.success(GetBookingsByUserRow(
       id:,
       user_id:,
       activity_id:,
+      booker_name:,
       booker_group_id:,
       booker_group_name:,
       group_free_text:,
@@ -1264,6 +1374,7 @@ pub fn get_bookings_by_user(
   "SELECT id,
     user_id,
     activity_id,
+    booker_name,
     booker_group_id,
     booker_group_name,
     group_free_text,
@@ -2322,8 +2433,9 @@ pub type UpdateBookingRow {
     id: Uuid,
     user_id: Uuid,
     activity_id: Uuid,
-    booker_group_id: Int,
-    booker_group_name: String,
+    booker_name: String,
+    booker_group_id: Option(Int),
+    booker_group_name: Option(String),
     group_free_text: String,
     responsible_name: String,
     phone_number: String,
@@ -2349,16 +2461,18 @@ pub fn update_booking(
     use id <- decode.field(0, uuid_decoder())
     use user_id <- decode.field(1, uuid_decoder())
     use activity_id <- decode.field(2, uuid_decoder())
-    use booker_group_id <- decode.field(3, decode.int)
-    use booker_group_name <- decode.field(4, decode.string)
-    use group_free_text <- decode.field(5, decode.string)
-    use responsible_name <- decode.field(6, decode.string)
-    use phone_number <- decode.field(7, decode.string)
-    use participant_count <- decode.field(8, decode.int)
+    use booker_name <- decode.field(3, decode.string)
+    use booker_group_id <- decode.field(4, decode.optional(decode.int))
+    use booker_group_name <- decode.field(5, decode.optional(decode.string))
+    use group_free_text <- decode.field(6, decode.string)
+    use responsible_name <- decode.field(7, decode.string)
+    use phone_number <- decode.field(8, decode.string)
+    use participant_count <- decode.field(9, decode.int)
     decode.success(UpdateBookingRow(
       id:,
       user_id:,
       activity_id:,
+      booker_name:,
       booker_group_id:,
       booker_group_name:,
       group_free_text:,
@@ -2377,6 +2491,7 @@ WHERE id = $1
 RETURNING id,
     user_id,
     activity_id,
+    booker_name,
     booker_group_id,
     booker_group_name,
     group_free_text,
