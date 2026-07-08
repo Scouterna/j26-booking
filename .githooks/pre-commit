@@ -1,0 +1,44 @@
+#!/usr/bin/env bash
+#
+# Runs `gleam format` on staged .gleam files in the server/, client/ and
+# shared/ packages, then re-stages whatever it reformats. Only packages that
+# have staged .gleam changes are touched — the rest of the change set is left
+# alone.
+#
+# Enabled via `git config core.hooksPath .githooks` (see .githooks/install.sh).
+
+set -euo pipefail
+
+if ! command -v gleam >/dev/null 2>&1; then
+  echo "pre-commit: gleam not found on PATH — skipping format." >&2
+  exit 0
+fi
+
+repo_root="$(git rev-parse --show-toplevel)"
+cd "$repo_root"
+
+# Staged, still-present files (Added/Copied/Modified/Renamed).
+staged="$(git diff --cached --name-only --diff-filter=ACMR)"
+
+formatted_any=0
+
+for pkg in server client shared; do
+  # Staged .gleam files in this package, made relative to the package dir.
+  files="$(printf '%s\n' "$staged" \
+    | grep -E "^${pkg}/.*\.gleam$" \
+    | sed -E "s#^${pkg}/##" || true)"
+
+  [ -z "$files" ] && continue
+
+  echo "pre-commit: gleam format ($pkg)"
+  # shellcheck disable=SC2086
+  ( cd "$pkg" && printf '%s\n' $files | xargs gleam format )
+
+  # Re-stage the files we just formatted (prefixed back to repo-relative).
+  printf '%s\n' "$files" | sed -E "s#^#${pkg}/#" | xargs git add
+  formatted_any=1
+done
+
+[ "$formatted_any" -eq 0 ] && echo "pre-commit: no staged .gleam files to format."
+
+exit 0
