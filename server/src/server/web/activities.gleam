@@ -6,13 +6,15 @@ import gleam/http.{Delete, Get, Post, Put}
 import gleam/json
 import gleam/list
 import gleam/option.{type Option, None, Some}
+import gleam/result
+import gleam/string
 import gleam/time/timestamp
 import pog
 import server/model/activity
 import server/model/location
 import server/sql
 import server/web
-import shared/model.{type BilingualString, type Location}
+import shared/model.{type BilingualString, type Location, type TargetGroup}
 import wisp.{type Request, type Response}
 import youid/uuid.{type Uuid}
 
@@ -31,9 +33,17 @@ fn parse_sort(value: String) -> Result(SortQueryParams, Nil) {
   }
 }
 
+fn uuid_decoder() -> decode.Decoder(Uuid) {
+  use raw <- decode.then(decode.string)
+  case uuid.from_string(raw) {
+    Ok(id) -> decode.success(id)
+    Error(_) -> decode.failure(uuid.v7(), "valid UUID string")
+  }
+}
+
 /// Fetches every location keyed by id and hands it to `next`, so activity
-/// handlers can embed locations without a per-activity query. Short-circuits to
-/// a query error response if the fetch fails.
+/// handlers can resolve locations without a per-activity query. Short-circuits
+/// to a query error response if the fetch fails.
 fn with_locations(
   ctx: web.Context,
   next: fn(Dict(Uuid, Location)) -> Response,
@@ -42,6 +52,46 @@ fn with_locations(
     Error(error) -> web.query_error(error)
     Ok(locations) -> next(locations)
   }
+}
+
+/// Fetches everything embedded into activities — locations, tag links and
+/// target-group links — grouped by activity id, so list/detail responses can
+/// stitch them in without per-activity queries.
+fn with_embeds(
+  ctx: web.Context,
+  next: fn(activity.Embeds) -> Response,
+) -> Response {
+  use locations <- with_locations(ctx)
+  case sql.list_activity_tag_links(ctx.db_connection) {
+    Error(error) -> web.query_error(error)
+    Ok(pog.Returned(_, tag_links)) ->
+      case sql.list_activity_target_groups(ctx.db_connection) {
+        Error(error) -> web.query_error(error)
+        Ok(pog.Returned(_, target_group_links)) ->
+          next(activity.Embeds(
+            locations:,
+            tags_by_activity: activity.group_tags_by_activity(tag_links),
+            target_groups_by_activity: activity.group_target_groups_by_activity(
+              target_group_links,
+            ),
+          ))
+      }
+  }
+}
+
+/// Builds the embeds for a single activity from the tags and target groups just
+/// written for it (avoids re-fetching after a create/update).
+fn embeds_for_one(
+  locations: Dict(Uuid, Location),
+  id: Uuid,
+  tags: List(Uuid),
+  target_groups: List(TargetGroup),
+) -> activity.Embeds {
+  activity.Embeds(
+    locations:,
+    tags_by_activity: dict.from_list([#(id, tags)]),
+    target_groups_by_activity: dict.from_list([#(id, target_groups)]),
+  )
 }
 
 fn response_from_db_activity_summaries(
@@ -77,18 +127,18 @@ pub fn get_page(req: Request, ctx: web.Context) -> Response {
     using: parse_sort,
     else_respond_with: "Invalid sort parameter. Allowed values: title, start_time",
   )
-  use locations <- with_locations(ctx)
+  use embeds <- with_embeds(ctx)
 
   case sort {
     StartTime ->
       response_from_db_activity_summaries(
         sql.list_activities_by_start_time(ctx.db_connection),
-        activity.from_list_activities_by_start_time_row(_, locations),
+        activity.from_list_activities_by_start_time_row(_, embeds),
       )
     Title ->
       response_from_db_activity_summaries(
         sql.list_activities_by_title(ctx.db_connection),
-        activity.from_list_activities_by_title_row(_, locations),
+        activity.from_list_activities_by_title_row(_, embeds),
       )
   }
 }
@@ -96,20 +146,20 @@ pub fn get_page(req: Request, ctx: web.Context) -> Response {
 /// Returns all beach bus slots as slim summaries, ordered by start time.
 pub fn get_beach_bus(req: Request, ctx: web.Context) -> Response {
   use <- wisp.require_method(req, Get)
-  use locations <- with_locations(ctx)
+  use embeds <- with_embeds(ctx)
   response_from_db_activity_summaries(
     sql.list_beach_bus_activities(ctx.db_connection),
-    activity.from_list_beach_bus_activities_row(_, locations),
+    activity.from_list_beach_bus_activities_row(_, embeds),
   )
 }
 
 /// Returns all climbing wall slots as slim summaries, ordered by start time.
 pub fn get_climbing_wall(req: Request, ctx: web.Context) -> Response {
   use <- wisp.require_method(req, Get)
-  use locations <- with_locations(ctx)
+  use embeds <- with_embeds(ctx)
   response_from_db_activity_summaries(
     sql.list_climbing_wall_activities(ctx.db_connection),
-    activity.from_list_climbing_wall_activities_row(_, locations),
+    activity.from_list_climbing_wall_activities_row(_, embeds),
   )
 }
 
@@ -120,10 +170,10 @@ pub fn get_climbing_wall(req: Request, ctx: web.Context) -> Response {
 pub fn get_favourited(req: Request, ctx: web.Context) -> Response {
   use <- wisp.require_method(req, Get)
   use user <- web.with_authenticated_user(ctx)
-  use locations <- with_locations(ctx)
+  use embeds <- with_embeds(ctx)
   response_from_db_activity_summaries(
     sql.list_favourited_activities(ctx.db_connection, user.id),
-    activity.from_list_favourited_activities_row(_, locations),
+    activity.from_list_favourited_activities_row(_, embeds),
   )
 }
 
@@ -132,14 +182,14 @@ pub fn get_one(req: Request, id: String, ctx: web.Context) -> Response {
   use activity_id <- given.ok(uuid.from_string(id), fn(_) {
     wisp.bad_request("Invalid activity ID format")
   })
-  use locations <- with_locations(ctx)
+  use embeds <- with_embeds(ctx)
   case sql.get_activity(ctx.db_connection, activity_id) {
     Error(error) -> web.query_error(error)
     Ok(pog.Returned(_, [])) -> wisp.not_found()
     Ok(pog.Returned(_, [row, ..])) ->
       wisp.json_response(
         row
-          |> activity.from_get_activity_row(locations)
+          |> activity.from_get_activity_row(embeds)
           |> activity.to_json
           |> json.to_string,
         200,
@@ -156,10 +206,17 @@ pub fn delete(req: Request, id: String, ctx: web.Context) -> Response {
     wisp.bad_request("Invalid activity ID format")
   })
 
-  case sql.delete_activity(ctx.db_connection, activity_id) {
-    Error(error) -> web.query_error(error)
+  let transaction_result =
+    pog.transaction(ctx.db_connection, fn(conn) {
+      use _ <- result.try(sql.delete_activity_tag_links(conn, activity_id))
+      use _ <- result.try(sql.delete_activity_target_groups(conn, activity_id))
+      use deleted <- result.try(sql.delete_activity(conn, activity_id))
+      Ok(deleted)
+    })
+  case transaction_result {
     Ok(pog.Returned(_, [])) -> wisp.not_found()
     Ok(pog.Returned(_, [_, ..])) -> wisp.no_content()
+    Error(error) -> transaction_error(error)
   }
 }
 
@@ -170,6 +227,8 @@ pub type ActivityInput {
     max_attendees: Option(Int),
     start_time: Int,
     end_time: Int,
+    tags: List(Uuid),
+    target_groups: List(TargetGroup),
   )
 }
 
@@ -192,34 +251,42 @@ fn activity_input_decoder() -> decode.Decoder(ActivityInput) {
     "end_time",
     decode.one_of(decode.int, [decode.float |> decode.map(float.round)]),
   )
+  use tags <- decode.optional_field("tags", [], decode.list(uuid_decoder()))
+  use target_groups <- decode.optional_field(
+    "target_groups",
+    [],
+    decode.list(model.target_group_decoder()),
+  )
   decode.success(ActivityInput(
     title:,
     description:,
     max_attendees:,
     start_time:,
     end_time:,
+    tags:,
+    target_groups:,
   ))
 }
 
-fn response_from_db_activity_creation(
-  query_result: Result(pog.Returned(a), pog.QueryError),
+/// Renders the 201 response for a created activity, or the appropriate error.
+fn creation_response(
+  transaction_result: Result(
+    pog.Returned(a),
+    pog.TransactionError(pog.QueryError),
+  ),
   to_activity: fn(a) -> model.Activity,
 ) -> Response {
-  case query_result {
-    Error(error) -> web.query_error(error)
-    Ok(pog.Returned(_, [])) -> wisp.internal_server_error()
+  case transaction_result {
     Ok(pog.Returned(_, [row, ..])) -> {
-      let created_activity = to_activity(row)
-      let location =
-        web.base_path
-        <> "/api/activities/"
-        <> uuid.to_string(created_activity.id)
-      wisp.json_response(
-        activity.to_json(created_activity) |> json.to_string,
-        201,
+      let created = to_activity(row)
+      wisp.json_response(activity.to_json(created) |> json.to_string, 201)
+      |> wisp.set_header(
+        "location",
+        web.base_path <> "/api/activities/" <> uuid.to_string(created.id),
       )
-      |> wisp.set_header("location", location)
     }
+    Ok(pog.Returned(_, [])) -> wisp.internal_server_error()
+    Error(error) -> transaction_error(error)
   }
 }
 
@@ -234,15 +301,19 @@ pub fn create(req: Request, ctx: web.Context) -> Response {
   let id = uuid.v7()
   let start_time = timestamp.from_unix_seconds(input.start_time)
   let end_time = timestamp.from_unix_seconds(input.end_time)
+  let target_groups_sql =
+    list.map(input.target_groups, activity.model_target_group_to_sql)
 
   // A newly created activity never has a location (the form cannot set one), so
-  // resolving against an empty map always yields `None`.
-  let locations = dict.new()
+  // resolving against an empty map always yields `None`. Tags and target groups
+  // come from the request body we just wrote.
+  let embeds = embeds_for_one(dict.new(), id, input.tags, input.target_groups)
+
   case input.max_attendees {
     Some(max_attendees) ->
-      response_from_db_activity_creation(
-        sql.create_activity_with_max_attendees(
-          ctx.db_connection,
+      pog.transaction(ctx.db_connection, fn(conn) {
+        use created <- result.try(sql.create_activity_with_max_attendees(
+          conn,
           id,
           input.title.sv,
           input.title.en,
@@ -251,13 +322,23 @@ pub fn create(req: Request, ctx: web.Context) -> Response {
           max_attendees,
           start_time,
           end_time,
-        ),
-        activity.from_create_activity_with_max_attendees_row(_, locations),
-      )
+        ))
+        use _ <- result.try(sql.insert_activity_tag_links(conn, id, input.tags))
+        use _ <- result.try(sql.insert_activity_target_groups(
+          conn,
+          id,
+          target_groups_sql,
+        ))
+        Ok(created)
+      })
+      |> creation_response(activity.from_create_activity_with_max_attendees_row(
+        _,
+        embeds,
+      ))
     None ->
-      response_from_db_activity_creation(
-        sql.create_activity_without_max_attendees(
-          ctx.db_connection,
+      pog.transaction(ctx.db_connection, fn(conn) {
+        use created <- result.try(sql.create_activity_without_max_attendees(
+          conn,
           id,
           input.title.sv,
           input.title.en,
@@ -265,25 +346,70 @@ pub fn create(req: Request, ctx: web.Context) -> Response {
           input.description.en,
           start_time,
           end_time,
-        ),
-        activity.from_create_activity_without_max_attendees_row(_, locations),
+        ))
+        use _ <- result.try(sql.insert_activity_tag_links(conn, id, input.tags))
+        use _ <- result.try(sql.insert_activity_target_groups(
+          conn,
+          id,
+          target_groups_sql,
+        ))
+        Ok(created)
+      })
+      |> creation_response(
+        activity.from_create_activity_without_max_attendees_row(_, embeds),
       )
   }
 }
 
-fn response_from_db_activity_update(
-  query_result: Result(pog.Returned(a), pog.QueryError),
+/// Distinguishes a missing activity (404) from a genuine query failure (500)
+/// inside the update transaction.
+type UpdateError {
+  ActivityNotFound
+  UpdateQueryFailed(pog.QueryError)
+}
+
+/// Re-syncs an activity's tag links and target groups to match the request
+/// body, inside the update transaction.
+fn resync_links(
+  conn: pog.Connection,
+  activity_id: Uuid,
+  tags: List(Uuid),
+  target_groups_sql: List(sql.TargetGroup),
+) -> Result(Nil, UpdateError) {
+  use _ <- result.try(
+    sql.delete_activity_tag_links(conn, activity_id)
+    |> result.map_error(UpdateQueryFailed),
+  )
+  use _ <- result.try(
+    sql.insert_activity_tag_links(conn, activity_id, tags)
+    |> result.map_error(UpdateQueryFailed),
+  )
+  use _ <- result.try(
+    sql.delete_activity_target_groups(conn, activity_id)
+    |> result.map_error(UpdateQueryFailed),
+  )
+  use _ <- result.try(
+    sql.insert_activity_target_groups(conn, activity_id, target_groups_sql)
+    |> result.map_error(UpdateQueryFailed),
+  )
+  Ok(Nil)
+}
+
+/// Renders the 200 response for an updated activity, or the appropriate error.
+fn update_response(
+  transaction_result: Result(a, pog.TransactionError(UpdateError)),
   to_activity: fn(a) -> model.Activity,
 ) -> Response {
-  case query_result {
-    Error(error) -> web.query_error(error)
-    Ok(pog.Returned(_, [])) -> wisp.not_found()
-    Ok(pog.Returned(_, [row, ..])) -> {
-      let updated_activity = row |> to_activity
+  case transaction_result {
+    Ok(row) ->
       wisp.json_response(
-        activity.to_json(updated_activity) |> json.to_string,
+        to_activity(row) |> activity.to_json |> json.to_string,
         200,
       )
+    Error(pog.TransactionRolledBack(ActivityNotFound)) -> wisp.not_found()
+    Error(error) -> {
+      wisp.log_error("TransactionError " <> string.inspect(error))
+      wisp.internal_server_error()
     }
   }
 }
@@ -302,36 +428,205 @@ pub fn update(req: Request, id: String, ctx: web.Context) -> Response {
   use locations <- with_locations(ctx)
   let start_time = timestamp.from_unix_seconds(input.start_time)
   let end_time = timestamp.from_unix_seconds(input.end_time)
+  let target_groups_sql =
+    list.map(input.target_groups, activity.model_target_group_to_sql)
+  let embeds =
+    embeds_for_one(locations, activity_id, input.tags, input.target_groups)
 
   case input.max_attendees {
     Some(max_attendees) ->
-      response_from_db_activity_update(
-        sql.update_activity_with_max_attendees(
-          ctx.db_connection,
-          activity_id,
-          input.title.sv,
-          input.title.en,
-          input.description.sv,
-          input.description.en,
-          max_attendees,
-          start_time,
-          end_time,
-        ),
-        activity.from_update_activity_with_max_attendees_row(_, locations),
-      )
+      pog.transaction(ctx.db_connection, fn(conn) {
+        use updated <- result.try(
+          sql.update_activity_with_max_attendees(
+            conn,
+            activity_id,
+            input.title.sv,
+            input.title.en,
+            input.description.sv,
+            input.description.en,
+            max_attendees,
+            start_time,
+            end_time,
+          )
+          |> result.map_error(UpdateQueryFailed),
+        )
+        case updated.rows {
+          [] -> Error(ActivityNotFound)
+          [row, ..] -> {
+            use _ <- result.try(resync_links(
+              conn,
+              activity_id,
+              input.tags,
+              target_groups_sql,
+            ))
+            Ok(row)
+          }
+        }
+      })
+      |> update_response(activity.from_update_activity_with_max_attendees_row(
+        _,
+        embeds,
+      ))
     None ->
-      response_from_db_activity_update(
-        sql.update_activity_without_max_attendees(
-          ctx.db_connection,
-          activity_id,
-          input.title.sv,
-          input.title.en,
-          input.description.sv,
-          input.description.en,
-          start_time,
-          end_time,
-        ),
-        activity.from_update_activity_without_max_attendees_row(_, locations),
+      pog.transaction(ctx.db_connection, fn(conn) {
+        use updated <- result.try(
+          sql.update_activity_without_max_attendees(
+            conn,
+            activity_id,
+            input.title.sv,
+            input.title.en,
+            input.description.sv,
+            input.description.en,
+            start_time,
+            end_time,
+          )
+          |> result.map_error(UpdateQueryFailed),
+        )
+        case updated.rows {
+          [] -> Error(ActivityNotFound)
+          [row, ..] -> {
+            use _ <- result.try(resync_links(
+              conn,
+              activity_id,
+              input.tags,
+              target_groups_sql,
+            ))
+            Ok(row)
+          }
+        }
+      })
+      |> update_response(
+        activity.from_update_activity_without_max_attendees_row(_, embeds),
       )
   }
+}
+
+// --- Activity tags ---------------------------------------------------------
+
+pub type ActivityTagInput {
+  ActivityTagInput(name: BilingualString)
+}
+
+fn activity_tag_input_decoder() -> decode.Decoder(ActivityTagInput) {
+  use name <- decode.field("name", model.bilingual_string_decoder())
+  decode.success(ActivityTagInput(name:))
+}
+
+/// Returns all activity tags.
+pub fn get_tags(req: Request, ctx: web.Context) -> Response {
+  use <- wisp.require_method(req, Get)
+  case sql.list_activity_tags(ctx.db_connection) {
+    Error(error) -> web.query_error(error)
+    Ok(pog.Returned(_, rows)) -> {
+      let tags = list.map(rows, activity.from_list_activity_tags_row)
+      wisp.json_response(
+        json.object([
+          #("activity_tags", json.array(tags, activity.activity_tag_to_json)),
+        ])
+          |> json.to_string,
+        200,
+      )
+    }
+  }
+}
+
+pub fn get_tag(req: Request, id: String, ctx: web.Context) -> Response {
+  use <- wisp.require_method(req, Get)
+  use tag_id <- given.ok(uuid.from_string(id), fn(_) {
+    wisp.bad_request("Invalid activity tag ID format")
+  })
+  case sql.get_activity_tag(ctx.db_connection, tag_id) {
+    Error(error) -> web.query_error(error)
+    Ok(pog.Returned(_, [])) -> wisp.not_found()
+    Ok(pog.Returned(_, [row, ..])) ->
+      activity.from_get_activity_tag_row(row)
+      |> activity.activity_tag_to_json
+      |> json.to_string
+      |> wisp.json_response(200)
+  }
+}
+
+pub fn create_tag(req: Request, ctx: web.Context) -> Response {
+  use <- wisp.require_method(req, Post)
+  use user <- web.with_authenticated_user(ctx)
+  use <- web.require_role(user, web.ActivitiesManage)
+  use body <- wisp.require_json(req)
+  use input <- given.ok(decode.run(body, activity_tag_input_decoder()), fn(_) {
+    wisp.bad_request("Invalid JSON payload")
+  })
+  let id = uuid.v7()
+  case
+    sql.create_activity_tag(ctx.db_connection, id, input.name.sv, input.name.en)
+  {
+    Error(error) -> web.query_error(error)
+    Ok(pog.Returned(_, [])) -> wisp.internal_server_error()
+    Ok(pog.Returned(_, [row, ..])) -> {
+      let created = activity.from_create_activity_tag_row(row)
+      created
+      |> activity.activity_tag_to_json
+      |> json.to_string
+      |> wisp.json_response(201)
+      |> wisp.set_header(
+        "location",
+        web.base_path <> "/api/activity-tags/" <> uuid.to_string(created.id),
+      )
+    }
+  }
+}
+
+pub fn update_tag(req: Request, id: String, ctx: web.Context) -> Response {
+  use <- wisp.require_method(req, Put)
+  use user <- web.with_authenticated_user(ctx)
+  use <- web.require_role(user, web.ActivitiesManage)
+  use tag_id <- given.ok(uuid.from_string(id), fn(_) {
+    wisp.bad_request("Invalid activity tag ID format")
+  })
+  use body <- wisp.require_json(req)
+  use input <- given.ok(decode.run(body, activity_tag_input_decoder()), fn(_) {
+    wisp.bad_request("Invalid JSON payload")
+  })
+  case
+    sql.update_activity_tag(
+      ctx.db_connection,
+      tag_id,
+      input.name.sv,
+      input.name.en,
+    )
+  {
+    Error(error) -> web.query_error(error)
+    Ok(pog.Returned(_, [])) -> wisp.not_found()
+    Ok(pog.Returned(_, [row, ..])) ->
+      activity.from_update_activity_tag_row(row)
+      |> activity.activity_tag_to_json
+      |> json.to_string
+      |> wisp.json_response(200)
+  }
+}
+
+pub fn delete_tag(req: Request, id: String, ctx: web.Context) -> Response {
+  use <- wisp.require_method(req, Delete)
+  web.discard_body(req)
+  use user <- web.with_authenticated_user(ctx)
+  use <- web.require_role(user, web.ActivitiesManage)
+  use tag_id <- given.ok(uuid.from_string(id), fn(_) {
+    wisp.bad_request("Invalid activity tag ID format")
+  })
+  let transaction_result =
+    pog.transaction(ctx.db_connection, fn(conn) {
+      use _ <- result.try(sql.delete_activity_links_by_tag(conn, tag_id))
+      use deleted <- result.try(sql.delete_activity_tag(conn, tag_id))
+      Ok(deleted)
+    })
+  case transaction_result {
+    Ok(pog.Returned(_, [])) -> wisp.not_found()
+    Ok(pog.Returned(_, [_, ..])) -> wisp.no_content()
+    Error(error) -> transaction_error(error)
+  }
+}
+
+// --- Helpers ---------------------------------------------------------------
+
+fn transaction_error(error: pog.TransactionError(pog.QueryError)) -> Response {
+  wisp.log_error("TransactionError " <> string.inspect(error))
+  wisp.internal_server_error()
 }

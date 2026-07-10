@@ -1,12 +1,28 @@
 import gleam/dict.{type Dict}
 import gleam/float
 import gleam/json.{type Json}
-import gleam/option.{type Option, None}
+import gleam/list
+import gleam/option.{type Option, None, Some}
+import gleam/result
 import gleam/time/timestamp
 import server/model/location
 import server/sql
-import shared/model.{type Activity, type Location, Activity}
+import shared/model.{
+  type Activity, type ActivityTag, type Location, type TargetGroup, Activity,
+  ActivityTag,
+}
 import youid/uuid.{type Uuid}
+
+/// Everything the activity handlers fetch once and stitch into activities so
+/// each activity's location, tag ids and target groups can be embedded without
+/// a per-activity query.
+pub type Embeds {
+  Embeds(
+    locations: Dict(Uuid, Location),
+    tags_by_activity: Dict(Uuid, List(Uuid)),
+    target_groups_by_activity: Dict(Uuid, List(TargetGroup)),
+  )
+}
 
 /// Resolve an activity's `location_id` to the full location fetched by the
 /// handler. `None` when the activity has no location or the id is unknown.
@@ -20,9 +36,76 @@ fn resolve_location(
   }
 }
 
+fn embed_tags(embeds: Embeds, id: Uuid) -> List(Uuid) {
+  dict.get(embeds.tags_by_activity, id) |> result.unwrap([])
+}
+
+fn embed_target_groups(embeds: Embeds, id: Uuid) -> List(TargetGroup) {
+  dict.get(embeds.target_groups_by_activity, id) |> result.unwrap([])
+}
+
+// --- sql <-> model target group mapping ------------------------------------
+
+/// Map the Squirrel-generated `sql.TargetGroup` to the shared `TargetGroup`.
+/// Total and exhaustive: if a value is added to the Postgres enum, Squirrel
+/// regenerates `sql.TargetGroup` and this stops compiling until updated.
+pub fn sql_target_group_to_model(target_group: sql.TargetGroup) -> TargetGroup {
+  case target_group {
+    sql.Sparare -> model.Sparare
+    sql.Upptackare -> model.Upptackare
+    sql.Aventyrare -> model.Aventyrare
+    sql.Utmanare -> model.Utmanare
+    sql.Rover -> model.Rover
+  }
+}
+
+/// Map the shared `TargetGroup` to the Squirrel-generated `sql.TargetGroup` for
+/// use as a query parameter.
+pub fn model_target_group_to_sql(target_group: TargetGroup) -> sql.TargetGroup {
+  case target_group {
+    model.Sparare -> sql.Sparare
+    model.Upptackare -> sql.Upptackare
+    model.Aventyrare -> sql.Aventyrare
+    model.Utmanare -> sql.Utmanare
+    model.Rover -> sql.Rover
+  }
+}
+
+// --- link grouping ---------------------------------------------------------
+
+/// Groups tag links into the tag ids applied to each activity.
+pub fn group_tags_by_activity(
+  links: List(sql.ListActivityTagLinksRow),
+) -> Dict(Uuid, List(Uuid)) {
+  list.fold(links, dict.new(), fn(acc, link) {
+    use existing <- dict.upsert(acc, link.activity_id)
+    case existing {
+      Some(tag_ids) -> [link.activity_tag_id, ..tag_ids]
+      None -> [link.activity_tag_id]
+    }
+  })
+}
+
+/// Groups target-group links into the target groups applied to each activity,
+/// mapping each row's `sql.TargetGroup` to the shared type.
+pub fn group_target_groups_by_activity(
+  links: List(sql.ListActivityTargetGroupsRow),
+) -> Dict(Uuid, List(TargetGroup)) {
+  list.fold(links, dict.new(), fn(acc, link) {
+    let target_group = sql_target_group_to_model(link.target_group)
+    use existing <- dict.upsert(acc, link.activity_id)
+    case existing {
+      Some(target_groups) -> [target_group, ..target_groups]
+      None -> [target_group]
+    }
+  })
+}
+
+// --- activity row -> Activity ----------------------------------------------
+
 pub fn from_create_activity_with_max_attendees_row(
   row: sql.CreateActivityWithMaxAttendeesRow,
-  locations: Dict(Uuid, Location),
+  embeds: Embeds,
 ) -> Activity {
   Activity(
     id: row.id,
@@ -34,13 +117,15 @@ pub fn from_create_activity_with_max_attendees_row(
     max_attendees: row.max_attendees,
     start_time: row.start_time,
     end_time: row.end_time,
-    location: resolve_location(row.location_id, locations),
+    location: resolve_location(row.location_id, embeds.locations),
+    tags: embed_tags(embeds, row.id),
+    target_groups: embed_target_groups(embeds, row.id),
   )
 }
 
 pub fn from_create_activity_without_max_attendees_row(
   row: sql.CreateActivityWithoutMaxAttendeesRow,
-  locations: Dict(Uuid, Location),
+  embeds: Embeds,
 ) -> Activity {
   Activity(
     id: row.id,
@@ -52,13 +137,15 @@ pub fn from_create_activity_without_max_attendees_row(
     max_attendees: None,
     start_time: row.start_time,
     end_time: row.end_time,
-    location: resolve_location(row.location_id, locations),
+    location: resolve_location(row.location_id, embeds.locations),
+    tags: embed_tags(embeds, row.id),
+    target_groups: embed_target_groups(embeds, row.id),
   )
 }
 
 pub fn from_search_activity_row(
   row: sql.SearchActivitiesRow,
-  locations: Dict(Uuid, Location),
+  embeds: Embeds,
 ) -> Activity {
   Activity(
     id: row.id,
@@ -70,13 +157,15 @@ pub fn from_search_activity_row(
     max_attendees: row.max_attendees,
     start_time: row.start_time,
     end_time: row.end_time,
-    location: resolve_location(row.location_id, locations),
+    location: resolve_location(row.location_id, embeds.locations),
+    tags: embed_tags(embeds, row.id),
+    target_groups: embed_target_groups(embeds, row.id),
   )
 }
 
 pub fn from_get_activity_row(
   row: sql.GetActivityRow,
-  locations: Dict(Uuid, Location),
+  embeds: Embeds,
 ) -> Activity {
   Activity(
     id: row.id,
@@ -88,13 +177,15 @@ pub fn from_get_activity_row(
     max_attendees: row.max_attendees,
     start_time: row.start_time,
     end_time: row.end_time,
-    location: resolve_location(row.location_id, locations),
+    location: resolve_location(row.location_id, embeds.locations),
+    tags: embed_tags(embeds, row.id),
+    target_groups: embed_target_groups(embeds, row.id),
   )
 }
 
 pub fn from_get_activities_by_title_row(
   row: sql.GetActivitiesByTitleRow,
-  locations: Dict(Uuid, Location),
+  embeds: Embeds,
 ) -> Activity {
   Activity(
     id: row.id,
@@ -106,13 +197,15 @@ pub fn from_get_activities_by_title_row(
     max_attendees: row.max_attendees,
     start_time: row.start_time,
     end_time: row.end_time,
-    location: resolve_location(row.location_id, locations),
+    location: resolve_location(row.location_id, embeds.locations),
+    tags: embed_tags(embeds, row.id),
+    target_groups: embed_target_groups(embeds, row.id),
   )
 }
 
 pub fn from_get_activities_by_start_time_row(
   row: sql.GetActivitiesByStartTimeRow,
-  locations: Dict(Uuid, Location),
+  embeds: Embeds,
 ) -> Activity {
   Activity(
     id: row.id,
@@ -124,13 +217,15 @@ pub fn from_get_activities_by_start_time_row(
     max_attendees: row.max_attendees,
     start_time: row.start_time,
     end_time: row.end_time,
-    location: resolve_location(row.location_id, locations),
+    location: resolve_location(row.location_id, embeds.locations),
+    tags: embed_tags(embeds, row.id),
+    target_groups: embed_target_groups(embeds, row.id),
   )
 }
 
 pub fn from_list_activities_by_title_row(
   row: sql.ListActivitiesByTitleRow,
-  locations: Dict(Uuid, Location),
+  embeds: Embeds,
 ) -> Activity {
   Activity(
     id: row.id,
@@ -142,13 +237,15 @@ pub fn from_list_activities_by_title_row(
     max_attendees: row.max_attendees,
     start_time: row.start_time,
     end_time: row.end_time,
-    location: resolve_location(row.location_id, locations),
+    location: resolve_location(row.location_id, embeds.locations),
+    tags: embed_tags(embeds, row.id),
+    target_groups: embed_target_groups(embeds, row.id),
   )
 }
 
 pub fn from_list_activities_by_start_time_row(
   row: sql.ListActivitiesByStartTimeRow,
-  locations: Dict(Uuid, Location),
+  embeds: Embeds,
 ) -> Activity {
   Activity(
     id: row.id,
@@ -160,13 +257,15 @@ pub fn from_list_activities_by_start_time_row(
     max_attendees: row.max_attendees,
     start_time: row.start_time,
     end_time: row.end_time,
-    location: resolve_location(row.location_id, locations),
+    location: resolve_location(row.location_id, embeds.locations),
+    tags: embed_tags(embeds, row.id),
+    target_groups: embed_target_groups(embeds, row.id),
   )
 }
 
 pub fn from_list_beach_bus_activities_row(
   row: sql.ListBeachBusActivitiesRow,
-  locations: Dict(Uuid, Location),
+  embeds: Embeds,
 ) -> Activity {
   Activity(
     id: row.id,
@@ -178,13 +277,15 @@ pub fn from_list_beach_bus_activities_row(
     max_attendees: row.max_attendees,
     start_time: row.start_time,
     end_time: row.end_time,
-    location: resolve_location(row.location_id, locations),
+    location: resolve_location(row.location_id, embeds.locations),
+    tags: embed_tags(embeds, row.id),
+    target_groups: embed_target_groups(embeds, row.id),
   )
 }
 
 pub fn from_list_climbing_wall_activities_row(
   row: sql.ListClimbingWallActivitiesRow,
-  locations: Dict(Uuid, Location),
+  embeds: Embeds,
 ) -> Activity {
   Activity(
     id: row.id,
@@ -196,13 +297,15 @@ pub fn from_list_climbing_wall_activities_row(
     max_attendees: row.max_attendees,
     start_time: row.start_time,
     end_time: row.end_time,
-    location: resolve_location(row.location_id, locations),
+    location: resolve_location(row.location_id, embeds.locations),
+    tags: embed_tags(embeds, row.id),
+    target_groups: embed_target_groups(embeds, row.id),
   )
 }
 
 pub fn from_list_favourited_activities_row(
   row: sql.ListFavouritedActivitiesRow,
-  locations: Dict(Uuid, Location),
+  embeds: Embeds,
 ) -> Activity {
   Activity(
     id: row.id,
@@ -214,13 +317,15 @@ pub fn from_list_favourited_activities_row(
     max_attendees: row.max_attendees,
     start_time: row.start_time,
     end_time: row.end_time,
-    location: resolve_location(row.location_id, locations),
+    location: resolve_location(row.location_id, embeds.locations),
+    tags: embed_tags(embeds, row.id),
+    target_groups: embed_target_groups(embeds, row.id),
   )
 }
 
 pub fn from_update_activity_with_max_attendees_row(
   row: sql.UpdateActivityWithMaxAttendeesRow,
-  locations: Dict(Uuid, Location),
+  embeds: Embeds,
 ) -> Activity {
   Activity(
     id: row.id,
@@ -232,13 +337,15 @@ pub fn from_update_activity_with_max_attendees_row(
     max_attendees: row.max_attendees,
     start_time: row.start_time,
     end_time: row.end_time,
-    location: resolve_location(row.location_id, locations),
+    location: resolve_location(row.location_id, embeds.locations),
+    tags: embed_tags(embeds, row.id),
+    target_groups: embed_target_groups(embeds, row.id),
   )
 }
 
 pub fn from_update_activity_without_max_attendees_row(
   row: sql.UpdateActivityWithoutMaxAttendeesRow,
-  locations: Dict(Uuid, Location),
+  embeds: Embeds,
 ) -> Activity {
   Activity(
     id: row.id,
@@ -250,9 +357,49 @@ pub fn from_update_activity_without_max_attendees_row(
     max_attendees: None,
     start_time: row.start_time,
     end_time: row.end_time,
-    location: resolve_location(row.location_id, locations),
+    location: resolve_location(row.location_id, embeds.locations),
+    tags: embed_tags(embeds, row.id),
+    target_groups: embed_target_groups(embeds, row.id),
   )
 }
+
+// --- activity tag row -> ActivityTag ---------------------------------------
+
+pub fn from_list_activity_tags_row(
+  row: sql.ListActivityTagsRow,
+) -> ActivityTag {
+  ActivityTag(
+    id: row.id,
+    name: model.BilingualString(sv: row.name, en: row.name_en),
+  )
+}
+
+pub fn from_create_activity_tag_row(
+  row: sql.CreateActivityTagRow,
+) -> ActivityTag {
+  ActivityTag(
+    id: row.id,
+    name: model.BilingualString(sv: row.name, en: row.name_en),
+  )
+}
+
+pub fn from_get_activity_tag_row(row: sql.GetActivityTagRow) -> ActivityTag {
+  ActivityTag(
+    id: row.id,
+    name: model.BilingualString(sv: row.name, en: row.name_en),
+  )
+}
+
+pub fn from_update_activity_tag_row(
+  row: sql.UpdateActivityTagRow,
+) -> ActivityTag {
+  ActivityTag(
+    id: row.id,
+    name: model.BilingualString(sv: row.name, en: row.name_en),
+  )
+}
+
+// --- JSON ------------------------------------------------------------------
 
 pub fn to_json(activity: Activity) -> Json {
   let Activity(
@@ -263,6 +410,8 @@ pub fn to_json(activity: Activity) -> Json {
     start_time:,
     end_time:,
     location:,
+    tags:,
+    target_groups:,
   ) = activity
   json.object([
     #("id", id |> uuid.to_string |> json.string),
@@ -275,6 +424,8 @@ pub fn to_json(activity: Activity) -> Json {
     ),
     #("end_time", json.int(timestamp.to_unix_seconds(end_time) |> float.round)),
     #("location", json.nullable(location, location.to_json)),
+    #("tags", json.array(tags, uuid_to_json)),
+    #("target_groups", json.array(target_groups, model.target_group_to_json)),
   ])
 }
 
@@ -289,6 +440,8 @@ pub fn summary_to_json(activity: Activity) -> Json {
     start_time:,
     end_time:,
     location:,
+    tags:,
+    target_groups:,
   ) = activity
   json.object([
     #("id", id |> uuid.to_string |> json.string),
@@ -306,5 +459,19 @@ pub fn summary_to_json(activity: Activity) -> Json {
         model.bilingual_string_to_json,
       ),
     ),
+    #("tags", json.array(tags, uuid_to_json)),
+    #("target_groups", json.array(target_groups, model.target_group_to_json)),
   ])
+}
+
+pub fn activity_tag_to_json(tag: ActivityTag) -> Json {
+  let ActivityTag(id:, name:) = tag
+  json.object([
+    #("id", id |> uuid.to_string |> json.string),
+    #("name", model.bilingual_string_to_json(name)),
+  ])
+}
+
+fn uuid_to_json(id: Uuid) -> Json {
+  id |> uuid.to_string |> json.string
 }

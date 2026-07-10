@@ -33,3 +33,4 @@ When you create, finish, or touch a plan here, keep the folder consistent:
 | 05 | [Bilingual title & description for activities](05-bilingual-activity-title-description.md) | ✅ Done 2026-07-08 |
 | 06 | [Optional booker group + store booker_name from JWT](06-booking-optional-group-and-booker-name-handoff.md) | ✅ Done 2026-07-08 |
 | 07 | [Client-side shell→iframe navigation (no reload on back)](07-shell-iframe-clientside-navigation.md) | 🔲 Not started |
+| 08 | [Activity tags & målgrupp (real, not mocked)](08-activity-tags-and-malgrupp.md) | ✅ Done 2026-07-10 |

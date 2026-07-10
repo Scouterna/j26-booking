@@ -926,6 +926,149 @@ paths:
         '500':
           $ref: '#/components/responses/ServerError'
 
+  /activity-tags:
+    get:
+      tags:
+        - Activities
+      summary: List activity tags
+      description: Retrieve all activity tags, ordered by name.
+      operationId: listActivityTags
+      responses:
+        '200':
+          description: Successfully retrieved activity tags
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - activity_tags
+                properties:
+                  activity_tags:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ActivityTag'
+              example:
+                activity_tags:
+                  - id: "0190f3a1-2d3e-7f40-ab51-6c7d8e9f0a1b"
+                    name:
+                      sv: "Fysisk"
+                      en: "Physical"
+        '500':
+          $ref: '#/components/responses/ServerError'
+    post:
+      tags:
+        - Activities
+      summary: Create an activity tag
+      operationId: createActivityTag
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ActivityTagInput'
+      responses:
+        '201':
+          description: Activity tag created
+          headers:
+            Location:
+              description: URL of the created activity tag
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ActivityTag'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '500':
+          $ref: '#/components/responses/ServerError'
+
+  /activity-tags/{id}:
+    get:
+      tags:
+        - Activities
+      summary: Get an activity tag
+      operationId: getActivityTag
+      parameters:
+        - $ref: '#/components/parameters/ActivityTagIdPath'
+      responses:
+        '200':
+          description: The activity tag
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ActivityTag'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/ServerError'
+    put:
+      tags:
+        - Activities
+      summary: Update an activity tag
+      operationId: updateActivityTag
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/ActivityTagIdPath'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ActivityTagInput'
+      responses:
+        '200':
+          description: The updated activity tag
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ActivityTag'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '500':
+          $ref: '#/components/responses/ServerError'
+    delete:
+      tags:
+        - Activities
+      summary: Delete an activity tag
+      description: Deletes the tag and unlinks it from any activities.
+      operationId: deleteActivityTag
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/ActivityTagIdPath'
+      responses:
+        '204':
+          description: Activity tag deleted
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '500':
+          $ref: '#/components/responses/ServerError'
+
   /location-tags:
     get:
       tags:
@@ -1128,6 +1271,19 @@ components:
           description: The full location this activity happens at, embedded so no follow-up request is needed. Null if the activity has no location.
           allOf:
             - $ref: '#/components/schemas/Location'
+        tags:
+          type: array
+          description: Ids of the activity tags applied to this activity (resolve them via `/activity-tags`).
+          items:
+            type: string
+            format: uuid
+          example: ["0190f3a1-2d3e-7f40-ab51-6c7d8e9f0a1b"]
+        target_groups:
+          type: array
+          description: The scout age sections this activity targets.
+          items:
+            $ref: '#/components/schemas/TargetGroup'
+          example: ["sparare", "upptackare"]
 
     ActivitySummary:
       type: object
@@ -1165,6 +1321,54 @@ components:
           description: The location's name in both languages (null if the activity has no location). The client selects a variant by active language.
           allOf:
             - $ref: '#/components/schemas/BilingualString'
+        tags:
+          type: array
+          description: Ids of the activity tags applied to this activity (resolve them via `/activity-tags`). Carried on the summary so list views can filter without fetching each activity's detail.
+          items:
+            type: string
+            format: uuid
+          example: ["0190f3a1-2d3e-7f40-ab51-6c7d8e9f0a1b"]
+        target_groups:
+          type: array
+          description: The scout age sections this activity targets.
+          items:
+            $ref: '#/components/schemas/TargetGroup'
+          example: ["sparare", "upptackare"]
+
+    TargetGroup:
+      type: string
+      description: A scout age section an activity can target ("målgrupp"). A fixed, closed set.
+      enum:
+        - sparare
+        - upptackare
+        - aventyrare
+        - utmanare
+        - rover
+      example: "sparare"
+
+    ActivityTag:
+      type: object
+      description: A tag that can be applied to activities. Unlike a location tag, it carries no icon.
+      required:
+        - id
+        - name
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Unique identifier for the tag
+          example: "0190f3a1-2d3e-7f40-ab51-6c7d8e9f0a1b"
+        name:
+          $ref: '#/components/schemas/BilingualString'
+
+    ActivityTagInput:
+      type: object
+      description: Input data for creating or updating an activity tag
+      required:
+        - name
+      properties:
+        name:
+          $ref: '#/components/schemas/BilingualString'
 
     ActivitySpots:
       type: object
@@ -1541,6 +1745,19 @@ components:
           type: number
           description: End time as Unix timestamp in seconds (accepts integer or float)
           example: 1752357600
+        tags:
+          type: array
+          description: Ids of the activity tags to apply (re-synced to exactly this set). Omit or empty to clear.
+          items:
+            type: string
+            format: uuid
+          example: ["0190f3a1-2d3e-7f40-ab51-6c7d8e9f0a1b"]
+        target_groups:
+          type: array
+          description: The scout age sections this activity targets (re-synced to exactly this set). Omit or empty to clear.
+          items:
+            $ref: '#/components/schemas/TargetGroup'
+          example: ["sparare", "upptackare"]
 
     AppConfig:
       type: object
@@ -1636,6 +1853,16 @@ components:
         type: string
         format: uuid
       example: "6f5e1d46-5f58-4e23-9a9d-8c2bfc2d22a0"
+
+    ActivityTagIdPath:
+      name: id
+      in: path
+      required: true
+      description: Unique identifier of the activity tag
+      schema:
+        type: string
+        format: uuid
+      example: "0190f3a1-2d3e-7f40-ab51-6c7d8e9f0a1b"
 
     BookingId:
       name: id

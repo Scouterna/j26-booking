@@ -17,6 +17,11 @@ pub type Activity {
     end_time: Timestamp,
     /// The full location this activity happens at. `None` when the activity has no location.
     location: Option(Location),
+    /// Ids of the activity tags applied to this activity; resolve to full tags
+    /// via `/api/activity-tags`.
+    tags: List(Uuid),
+    /// The scout age sections this activity targets.
+    target_groups: List(TargetGroup),
   )
 }
 
@@ -44,6 +49,16 @@ pub fn activity_decoder() -> decode.Decoder(Activity) {
     None,
     decode.optional(location_decoder()),
   )
+  use tags <- decode.optional_field(
+    "tags",
+    [],
+    utils.decode_partial_list(of: uuid_decoder()),
+  )
+  use target_groups <- decode.optional_field(
+    "target_groups",
+    [],
+    utils.decode_partial_list(of: target_group_decoder()),
+  )
   case uuid.from_string(id_str) {
     Ok(id) ->
       decode.success(Activity(
@@ -54,6 +69,8 @@ pub fn activity_decoder() -> decode.Decoder(Activity) {
         start_time: timestamp.from_unix_seconds(start_time_secs),
         end_time: timestamp.from_unix_seconds(end_time_secs),
         location:,
+        tags:,
+        target_groups:,
       ))
     Error(_) ->
       decode.failure(
@@ -65,6 +82,8 @@ pub fn activity_decoder() -> decode.Decoder(Activity) {
           start_time: timestamp.from_unix_seconds(start_time_secs),
           end_time: timestamp.from_unix_seconds(end_time_secs),
           location:,
+          tags:,
+          target_groups:,
         ),
         "valid UUID string",
       )
@@ -95,6 +114,81 @@ pub fn bilingual_string_to_json(value: BilingualString) -> Json {
   json.object([#("sv", json.string(value.sv)), #("en", json.string(value.en))])
 }
 
+/// The scout age sections an activity can target ("målgrupp"). A fixed, closed
+/// set — the server persists it as a Postgres enum and Squirrel generates its
+/// own matching type; this shared type is the identity used across the API and
+/// client. Bilingual display labels live in the client's translations.
+pub type TargetGroup {
+  Sparare
+  Upptackare
+  Aventyrare
+  Utmanare
+  Rover
+}
+
+/// Every target group in age order — drives client filter chips and gives a
+/// stable display order the database cannot guarantee.
+pub fn target_groups_all() -> List(TargetGroup) {
+  [Sparare, Upptackare, Aventyrare, Utmanare, Rover]
+}
+
+/// The wire/DB string for a target group (matches the Postgres enum values).
+pub fn target_group_to_string(target_group: TargetGroup) -> String {
+  case target_group {
+    Sparare -> "sparare"
+    Upptackare -> "upptackare"
+    Aventyrare -> "aventyrare"
+    Utmanare -> "utmanare"
+    Rover -> "rover"
+  }
+}
+
+/// Parse a target group from its wire/DB string.
+pub fn target_group_from_string(raw: String) -> Result(TargetGroup, Nil) {
+  case raw {
+    "sparare" -> Ok(Sparare)
+    "upptackare" -> Ok(Upptackare)
+    "aventyrare" -> Ok(Aventyrare)
+    "utmanare" -> Ok(Utmanare)
+    "rover" -> Ok(Rover)
+    _ -> Error(Nil)
+  }
+}
+
+/// Decode a target group from its wire string, failing on an unknown value.
+pub fn target_group_decoder() -> decode.Decoder(TargetGroup) {
+  use raw <- decode.then(decode.string)
+  case target_group_from_string(raw) {
+    Ok(target_group) -> decode.success(target_group)
+    Error(_) -> decode.failure(Sparare, "valid target group")
+  }
+}
+
+/// Encode a target group as its wire string.
+pub fn target_group_to_json(target_group: TargetGroup) -> Json {
+  target_group |> target_group_to_string |> json.string
+}
+
+/// A tag that can be applied to activities. Unlike `LocationTag`, activity tags
+/// carry no icon — they render as plain text chips.
+pub type ActivityTag {
+  ActivityTag(id: Uuid, name: BilingualString)
+}
+
+/// Decode an `ActivityTag` from API JSON (matches the server's
+/// `activity.activity_tag_to_json`).
+pub fn activity_tag_decoder() -> decode.Decoder(ActivityTag) {
+  use id <- decode.field("id", uuid_decoder())
+  use name <- decode.field("name", bilingual_string_decoder())
+  decode.success(ActivityTag(id:, name:))
+}
+
+/// Decode the list response `{"activity_tags": [...]}`.
+pub fn activity_tags_decoder() -> decode.Decoder(List(ActivityTag)) {
+  use tags <- decode.field("activity_tags", decode.list(activity_tag_decoder()))
+  decode.success(tags)
+}
+
 /// Slim activity for list views — omits `description` to keep the payload
 /// small when the whole catalogue is fetched at once.
 pub type ActivitySummary {
@@ -107,6 +201,11 @@ pub type ActivitySummary {
     /// The location's name in both languages, embedded so list cards need no
     /// follow-up request. `None` when the activity has no location.
     location_name: Option(BilingualString),
+    /// Ids of the activity tags applied to this activity. Carried on the summary
+    /// so the list view can filter without fetching each activity's detail.
+    tags: List(Uuid),
+    /// The scout age sections this activity targets.
+    target_groups: List(TargetGroup),
   )
 }
 
@@ -133,6 +232,16 @@ pub fn activity_summary_decoder() -> decode.Decoder(ActivitySummary) {
     None,
     decode.optional(bilingual_string_decoder()),
   )
+  use tags <- decode.optional_field(
+    "tags",
+    [],
+    utils.decode_partial_list(of: uuid_decoder()),
+  )
+  use target_groups <- decode.optional_field(
+    "target_groups",
+    [],
+    utils.decode_partial_list(of: target_group_decoder()),
+  )
   case uuid.from_string(id_str) {
     Ok(id) ->
       decode.success(ActivitySummary(
@@ -142,6 +251,8 @@ pub fn activity_summary_decoder() -> decode.Decoder(ActivitySummary) {
         start_time: timestamp.from_unix_seconds(start_time_secs),
         end_time: timestamp.from_unix_seconds(end_time_secs),
         location_name:,
+        tags:,
+        target_groups:,
       ))
     Error(_) ->
       decode.failure(
@@ -152,6 +263,8 @@ pub fn activity_summary_decoder() -> decode.Decoder(ActivitySummary) {
           start_time: timestamp.from_unix_seconds(start_time_secs),
           end_time: timestamp.from_unix_seconds(end_time_secs),
           location_name:,
+          tags:,
+          target_groups:,
         ),
         "valid UUID string",
       )

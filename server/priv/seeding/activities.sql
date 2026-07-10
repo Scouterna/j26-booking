@@ -363,3 +363,97 @@ WHERE id IN (
     'b4219a53-4746-4a09-8b4e-3e2ac0c3df11',
     'c10f7b72-cc9d-44a5-9e3f-f0f89b621e3e'
 );
+
+-- Activity tags: editorial categories (no icon). Stable ids so the links below
+-- can reference them.
+INSERT INTO activity_tag (id, name, name_en)
+VALUES (
+        '0190f3b0-0001-7000-a000-000000000001',
+        'Fysisk',
+        'Physical'
+    ),
+    (
+        '0190f3b0-0002-7000-a000-000000000002',
+        'Badbuss',
+        'Beach bus'
+    ),
+    (
+        '0190f3b0-0003-7000-a000-000000000003',
+        'Mat',
+        'Food'
+    ),
+    (
+        '0190f3b0-0004-7000-a000-000000000004',
+        'Skapande',
+        'Creative'
+    ),
+    (
+        '0190f3b0-0005-7000-a000-000000000005',
+        'Lugn',
+        'Calm'
+    );
+
+-- Link tags to a representative spread of activities. Some activities stay
+-- untagged on purpose to exercise the empty-list path.
+INSERT INTO activity_tag_activity (activity_tag_id, activity_id)
+VALUES
+    -- Sång kring lägerelden: Mat, Lugn
+    ('0190f3b0-0003-7000-a000-000000000003', '6f5e1d46-5f58-4e23-9a9d-8c2bfc2d22a0'),
+    ('0190f3b0-0005-7000-a000-000000000005', '6f5e1d46-5f58-4e23-9a9d-8c2bfc2d22a0'),
+    -- Orienteringsutmaning: Fysisk
+    ('0190f3b0-0001-7000-a000-000000000001', 'b4219a53-4746-4a09-8b4e-3e2ac0c3df11'),
+    -- fa3825ab: Skapande
+    ('0190f3b0-0004-7000-a000-000000000004', 'fa3825ab-8bc1-4f59-9100-2cc6aeb3d219'),
+    -- c10f7b72: Fysisk, Lugn
+    ('0190f3b0-0001-7000-a000-000000000001', 'c10f7b72-cc9d-44a5-9e3f-f0f89b621e3e'),
+    ('0190f3b0-0005-7000-a000-000000000005', 'c10f7b72-cc9d-44a5-9e3f-f0f89b621e3e'),
+    -- d923f1ae: Mat
+    ('0190f3b0-0003-7000-a000-000000000003', 'd923f1ae-8f8e-45f2-8e7d-89e7d7b4cb75'),
+    -- 0197fda5: Skapande, Lugn
+    ('0190f3b0-0004-7000-a000-000000000004', '0197fda5-f000-7c16-ad8e-ba5fe8838e8e'),
+    ('0190f3b0-0005-7000-a000-000000000005', '0197fda5-f000-7c16-ad8e-ba5fe8838e8e'),
+    -- 01980596: Fysisk
+    ('0190f3b0-0001-7000-a000-000000000001', '01980596-6880-77c5-bfb3-797743dec7ff'),
+    -- Beach bus slots: Badbuss + Fysisk
+    ('0190f3b0-0002-7000-a000-000000000002', '0198a000-0000-7000-8000-000000000001'),
+    ('0190f3b0-0001-7000-a000-000000000001', '0198a000-0000-7000-8000-000000000001'),
+    ('0190f3b0-0002-7000-a000-000000000002', '0198a000-0000-7000-8000-000000000002'),
+    ('0190f3b0-0001-7000-a000-000000000001', '0198a000-0000-7000-8000-000000000002'),
+    ('0190f3b0-0002-7000-a000-000000000002', '0198a000-0000-7000-8000-000000000003'),
+    ('0190f3b0-0002-7000-a000-000000000002', '0198a000-0000-7000-8000-000000000004'),
+    -- Climbing wall slots: Fysisk
+    ('0190f3b0-0001-7000-a000-000000000001', '0198b000-0000-7000-8000-000000000001'),
+    ('0190f3b0-0001-7000-a000-000000000001', '0198b000-0000-7000-8000-000000000002'),
+    ('0190f3b0-0001-7000-a000-000000000001', '0198b000-0000-7000-8000-000000000003'),
+    ('0190f3b0-0001-7000-a000-000000000001', '0198b000-0000-7000-8000-000000000004');
+
+-- Target groups (målgrupp) per activity.
+INSERT INTO activity_target_group (activity_id, target_group)
+VALUES
+    ('6f5e1d46-5f58-4e23-9a9d-8c2bfc2d22a0', 'sparare'),
+    ('6f5e1d46-5f58-4e23-9a9d-8c2bfc2d22a0', 'upptackare'),
+    ('b4219a53-4746-4a09-8b4e-3e2ac0c3df11', 'aventyrare'),
+    ('b4219a53-4746-4a09-8b4e-3e2ac0c3df11', 'utmanare'),
+    ('fa3825ab-8bc1-4f59-9100-2cc6aeb3d219', 'sparare'),
+    ('c10f7b72-cc9d-44a5-9e3f-f0f89b621e3e', 'rover'),
+    ('d923f1ae-8f8e-45f2-8e7d-89e7d7b4cb75', 'upptackare'),
+    ('d923f1ae-8f8e-45f2-8e7d-89e7d7b4cb75', 'aventyrare'),
+    ('0197faa4-e500-7b23-9292-38f7bd41c955', 'sparare'),
+    ('0197faa4-e500-7b23-9292-38f7bd41c955', 'upptackare'),
+    ('0197fda5-f000-7c16-ad8e-ba5fe8838e8e', 'utmanare'),
+    ('01980596-6880-77c5-bfb3-797743dec7ff', 'utmanare'),
+    ('01980596-6880-77c5-bfb3-797743dec7ff', 'rover'),
+    -- Beach bus: open to every section
+    ('0198a000-0000-7000-8000-000000000001', 'sparare'),
+    ('0198a000-0000-7000-8000-000000000001', 'upptackare'),
+    ('0198a000-0000-7000-8000-000000000001', 'aventyrare'),
+    ('0198a000-0000-7000-8000-000000000002', 'sparare'),
+    ('0198a000-0000-7000-8000-000000000002', 'upptackare'),
+    ('0198a000-0000-7000-8000-000000000003', 'aventyrare'),
+    ('0198a000-0000-7000-8000-000000000004', 'utmanare'),
+    -- Climbing wall: older sections
+    ('0198b000-0000-7000-8000-000000000001', 'aventyrare'),
+    ('0198b000-0000-7000-8000-000000000001', 'utmanare'),
+    ('0198b000-0000-7000-8000-000000000002', 'utmanare'),
+    ('0198b000-0000-7000-8000-000000000003', 'rover'),
+    ('0198b000-0000-7000-8000-000000000004', 'rover');

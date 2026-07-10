@@ -1,6 +1,6 @@
 ---
 name: squirrel-conventions
-description: Squirrel conventions for generating type-safe Gleam code from SQL files in server/src/server/sql/. Covers SQL file naming (snake_case, one query per file), parameter syntax ($1, $2, …), RETURNING clauses, PostgreSQL-to-Gleam type mappings (UUID → Uuid, TEXT → String, INT → Int, TIMESTAMP → Timestamp, NULLABLE → Option(T), custom enums → String), reserved word quoting, generated Row types, and the workflow (apply migration → write SQL → run squirrel → format). Use this whenever editing or adding .sql files in server/src/server/sql/, regenerating server/src/server/sql.gleam, or working with database queries on the server. Never edit sql.gleam manually.
+description: Squirrel conventions for generating type-safe Gleam code from SQL files in server/src/server/sql/. Covers SQL file naming (snake_case, one query per file), parameter syntax ($1, $2, …), RETURNING clauses, PostgreSQL-to-Gleam type mappings (UUID → Uuid, TEXT → String, INT → Int, TIMESTAMP → Timestamp, NULLABLE → Option(T), user-defined enums → generated Gleam custom type), reserved word quoting, generated Row types, and the workflow (apply migration → write SQL → run squirrel → format). Use this whenever editing or adding .sql files in server/src/server/sql/, regenerating server/src/server/sql.gleam, or working with database queries on the server. Never edit sql.gleam manually.
 ---
 
 # Squirrel Conventions
@@ -29,7 +29,17 @@ description: Squirrel conventions for generating type-safe Gleam code from SQL f
   - `INT` / `INTEGER` → `Int`
   - `TIMESTAMP` → `Timestamp` (from `gleam/time/timestamp`)
   - `NULLABLE` columns → `Option(T)`
-  - Custom enums → `String` (Squirrel treats them as text)
+  - User-defined enums (`CREATE TYPE ... AS ENUM`) → a generated Gleam custom
+    type. Squirrel PascalCases the enum name and its variants, e.g.
+    `CREATE TYPE target_group AS ENUM ('sparare', 'rover')` generates
+    `pub type TargetGroup { Sparare Rover }` in `sql.gleam`, and typed row
+    fields / query params use it. If a variant name doesn't form valid Gleam
+    (e.g. starts with a digit), squirrel fails and asks you to rename it.
+    - This generated type lives in the server-only `sql` module. If a shared
+      (`shared/`) type must represent the same set (so the client and JSON can
+      use it), define a parallel custom type there and map between the two with
+      a total `case` — see `server/src/server/model/activity.gleam`
+      (`sql_target_group_to_model` / `model_target_group_to_sql`).
 - **Quote reserved words** in SQL (e.g., `"user"`) — PostgreSQL requires this for reserved identifiers.
 
 ## Generated Code Structure

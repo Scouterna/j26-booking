@@ -45,6 +45,8 @@ fn a_summary(
     start_time: timestamp.from_unix_seconds(1_750_000_000),
     end_time: timestamp.from_unix_seconds(1_750_003_600),
     location_name: None,
+    tags: [],
+    target_groups: [],
   )
 }
 
@@ -57,6 +59,8 @@ fn an_activity(id: Uuid, max: Option(Int)) -> model.Activity {
     start_time: timestamp.from_unix_seconds(1_750_000_000),
     end_time: timestamp.from_unix_seconds(1_750_003_600),
     location: None,
+    tags: [],
+    target_groups: [],
   )
 }
 
@@ -65,6 +69,8 @@ fn a_detail() -> client.ActivityDetail {
   client.ActivityDetail(
     description: model.BilingualString(sv: "Desc", en: "Desc"),
     location: None,
+    tags: [],
+    target_groups: [],
   )
 }
 
@@ -97,6 +103,7 @@ fn base_model() -> client.Model {
     details: dict.new(),
     statuses: dict.new(),
     spots: dict.new(),
+    activity_tags: dict.new(),
   )
 }
 
@@ -392,7 +399,7 @@ pub fn uri_to_page_new_activity_test() {
       parse_uri("/_services/booking/activities/new"),
       dict.new(),
     )
-  let assert client.ActivityNewPage(_, submit_error) = page
+  let assert client.ActivityNewPage(_, submit_error, _, _) = page
   assert submit_error == None
 }
 

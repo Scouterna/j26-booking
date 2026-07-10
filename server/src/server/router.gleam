@@ -49,6 +49,13 @@ fn handle_api_request(
     Delete, ["activities", activity_id, "favourite"] ->
       favourite.delete(req, activity_id, ctx)
     _, ["activities", _, "favourite"] -> wisp.method_not_allowed([Put, Delete])
+    Get, ["activity-tags"] -> activities.get_tags(req, ctx)
+    Post, ["activity-tags"] -> activities.create_tag(req, ctx)
+    _, ["activity-tags"] -> wisp.method_not_allowed([Get, Post])
+    Get, ["activity-tags", id] -> activities.get_tag(req, id, ctx)
+    Put, ["activity-tags", id] -> activities.update_tag(req, id, ctx)
+    Delete, ["activity-tags", id] -> activities.delete_tag(req, id, ctx)
+    _, ["activity-tags", _] -> wisp.method_not_allowed([Get, Put, Delete])
     Get, ["activities", id] -> activities.get_one(req, id, ctx)
     Put, ["activities", id] -> activities.update(req, id, ctx)
     Delete, ["activities", id] -> activities.delete(req, id, ctx)

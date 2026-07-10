@@ -1,6 +1,6 @@
 //// This module contains the code to run the sql queries defined in
 //// `./src/server/sql`.
-//// > 🐿️ This module was generated automatically using v4.6.0 of
+//// > 🐿️ This module was generated automatically using v4.7.0 of
 //// > the [squirrel package](https://github.com/giacomocavalieri/squirrel).
 ////
 
@@ -14,7 +14,7 @@ import youid/uuid.{type Uuid}
 /// A row you get from running the `count_favourites_by_activity` query
 /// defined in `./src/server/sql/count_favourites_by_activity.sql`.
 ///
-/// > 🐿️ This type definition was generated automatically using v4.6.0 of the
+/// > 🐿️ This type definition was generated automatically using v4.7.0 of the
 /// > [squirrel package](https://github.com/giacomocavalieri/squirrel).
 ///
 pub type CountFavouritesByActivityRow {
@@ -24,12 +24,12 @@ pub type CountFavouritesByActivityRow {
 /// Runs the `count_favourites_by_activity` query
 /// defined in `./src/server/sql/count_favourites_by_activity.sql`.
 ///
-/// > 🐿️ This function was generated automatically using v4.6.0 of
+/// > 🐿️ This function was generated automatically using v4.7.0 of
 /// > the [squirrel package](https://github.com/giacomocavalieri/squirrel).
 ///
 pub fn count_favourites_by_activity(
   db: pog.Connection,
-  arg_1: Uuid,
+  activity_id: Uuid,
 ) -> Result(pog.Returned(CountFavouritesByActivityRow), pog.QueryError) {
   let decoder = {
     use favourite_count <- decode.field(0, decode.int)
@@ -41,7 +41,50 @@ FROM favourite
 WHERE activity_id = $1
 "
   |> pog.query
+  |> pog.parameter(pog.text(uuid.to_string(activity_id)))
+  |> pog.returning(decoder)
+  |> pog.execute(db)
+}
+
+/// A row you get from running the `create_activity_tag` query
+/// defined in `./src/server/sql/create_activity_tag.sql`.
+///
+/// > 🐿️ This type definition was generated automatically using v4.7.0 of the
+/// > [squirrel package](https://github.com/giacomocavalieri/squirrel).
+///
+pub type CreateActivityTagRow {
+  CreateActivityTagRow(id: Uuid, name: String, name_en: String)
+}
+
+/// Creates an activity tag and returns it.
+///
+/// > 🐿️ This function was generated automatically using v4.7.0 of
+/// > the [squirrel package](https://github.com/giacomocavalieri/squirrel).
+///
+pub fn create_activity_tag(
+  db: pog.Connection,
+  arg_1: Uuid,
+  arg_2: String,
+  arg_3: String,
+) -> Result(pog.Returned(CreateActivityTagRow), pog.QueryError) {
+  let decoder = {
+    use id <- decode.field(0, uuid_decoder())
+    use name <- decode.field(1, decode.string)
+    use name_en <- decode.field(2, decode.string)
+    decode.success(CreateActivityTagRow(id:, name:, name_en:))
+  }
+
+  "-- Creates an activity tag and returns it.
+INSERT INTO activity_tag (id, name, name_en)
+VALUES ($1, $2, $3)
+RETURNING id,
+    name,
+    name_en;
+"
+  |> pog.query
   |> pog.parameter(pog.text(uuid.to_string(arg_1)))
+  |> pog.parameter(pog.text(arg_2))
+  |> pog.parameter(pog.text(arg_3))
   |> pog.returning(decoder)
   |> pog.execute(db)
 }
@@ -49,7 +92,7 @@ WHERE activity_id = $1
 /// A row you get from running the `create_activity_with_max_attendees` query
 /// defined in `./src/server/sql/create_activity_with_max_attendees.sql`.
 ///
-/// > 🐿️ This type definition was generated automatically using v4.6.0 of the
+/// > 🐿️ This type definition was generated automatically using v4.7.0 of the
 /// > [squirrel package](https://github.com/giacomocavalieri/squirrel).
 ///
 pub type CreateActivityWithMaxAttendeesRow {
@@ -69,7 +112,7 @@ pub type CreateActivityWithMaxAttendeesRow {
 /// Runs the `create_activity_with_max_attendees` query
 /// defined in `./src/server/sql/create_activity_with_max_attendees.sql`.
 ///
-/// > 🐿️ This function was generated automatically using v4.6.0 of
+/// > 🐿️ This function was generated automatically using v4.7.0 of
 /// > the [squirrel package](https://github.com/giacomocavalieri/squirrel).
 ///
 pub fn create_activity_with_max_attendees(
@@ -142,7 +185,7 @@ RETURNING id,
 /// A row you get from running the `create_activity_without_max_attendees` query
 /// defined in `./src/server/sql/create_activity_without_max_attendees.sql`.
 ///
-/// > 🐿️ This type definition was generated automatically using v4.6.0 of the
+/// > 🐿️ This type definition was generated automatically using v4.7.0 of the
 /// > [squirrel package](https://github.com/giacomocavalieri/squirrel).
 ///
 pub type CreateActivityWithoutMaxAttendeesRow {
@@ -161,7 +204,7 @@ pub type CreateActivityWithoutMaxAttendeesRow {
 /// Runs the `create_activity_without_max_attendees` query
 /// defined in `./src/server/sql/create_activity_without_max_attendees.sql`.
 ///
-/// > 🐿️ This function was generated automatically using v4.6.0 of
+/// > 🐿️ This function was generated automatically using v4.7.0 of
 /// > the [squirrel package](https://github.com/giacomocavalieri/squirrel).
 ///
 pub fn create_activity_without_max_attendees(
@@ -229,7 +272,7 @@ RETURNING id,
 /// A row you get from running the `create_booking_with_group` query
 /// defined in `./src/server/sql/create_booking_with_group.sql`.
 ///
-/// > 🐿️ This type definition was generated automatically using v4.6.0 of the
+/// > 🐿️ This type definition was generated automatically using v4.7.0 of the
 /// > [squirrel package](https://github.com/giacomocavalieri/squirrel).
 ///
 pub type CreateBookingWithGroupRow {
@@ -250,7 +293,7 @@ pub type CreateBookingWithGroupRow {
 /// Runs the `create_booking_with_group` query
 /// defined in `./src/server/sql/create_booking_with_group.sql`.
 ///
-/// > 🐿️ This function was generated automatically using v4.6.0 of
+/// > 🐿️ This function was generated automatically using v4.7.0 of
 /// > the [squirrel package](https://github.com/giacomocavalieri/squirrel).
 ///
 pub fn create_booking_with_group(
@@ -333,7 +376,7 @@ RETURNING id,
 /// A row you get from running the `create_booking_without_group` query
 /// defined in `./src/server/sql/create_booking_without_group.sql`.
 ///
-/// > 🐿️ This type definition was generated automatically using v4.6.0 of the
+/// > 🐿️ This type definition was generated automatically using v4.7.0 of the
 /// > [squirrel package](https://github.com/giacomocavalieri/squirrel).
 ///
 pub type CreateBookingWithoutGroupRow {
@@ -352,7 +395,7 @@ pub type CreateBookingWithoutGroupRow {
 /// Runs the `create_booking_without_group` query
 /// defined in `./src/server/sql/create_booking_without_group.sql`.
 ///
-/// > 🐿️ This function was generated automatically using v4.6.0 of
+/// > 🐿️ This function was generated automatically using v4.7.0 of
 /// > the [squirrel package](https://github.com/giacomocavalieri/squirrel).
 ///
 pub fn create_booking_without_group(
@@ -425,7 +468,7 @@ RETURNING id,
 /// A row you get from running the `create_favourite` query
 /// defined in `./src/server/sql/create_favourite.sql`.
 ///
-/// > 🐿️ This type definition was generated automatically using v4.6.0 of the
+/// > 🐿️ This type definition was generated automatically using v4.7.0 of the
 /// > [squirrel package](https://github.com/giacomocavalieri/squirrel).
 ///
 pub type CreateFavouriteRow {
@@ -435,7 +478,7 @@ pub type CreateFavouriteRow {
 /// Runs the `create_favourite` query
 /// defined in `./src/server/sql/create_favourite.sql`.
 ///
-/// > 🐿️ This function was generated automatically using v4.6.0 of
+/// > 🐿️ This function was generated automatically using v4.7.0 of
 /// > the [squirrel package](https://github.com/giacomocavalieri/squirrel).
 ///
 pub fn create_favourite(
@@ -468,7 +511,7 @@ RETURNING id,
 /// A row you get from running the `create_location` query
 /// defined in `./src/server/sql/create_location.sql`.
 ///
-/// > 🐿️ This type definition was generated automatically using v4.6.0 of the
+/// > 🐿️ This type definition was generated automatically using v4.7.0 of the
 /// > [squirrel package](https://github.com/giacomocavalieri/squirrel).
 ///
 pub type CreateLocationRow {
@@ -490,7 +533,7 @@ pub type CreateLocationRow {
 /// Creates a location and returns it. opening_hours is sent as JSON text; the
 /// parameter type is inferred as jsonb from the target column.
 ///
-/// > 🐿️ This function was generated automatically using v4.6.0 of
+/// > 🐿️ This function was generated automatically using v4.7.0 of
 /// > the [squirrel package](https://github.com/giacomocavalieri/squirrel).
 ///
 pub fn create_location(
@@ -593,7 +636,7 @@ RETURNING id,
 /// A row you get from running the `create_location_tag` query
 /// defined in `./src/server/sql/create_location_tag.sql`.
 ///
-/// > 🐿️ This type definition was generated automatically using v4.6.0 of the
+/// > 🐿️ This type definition was generated automatically using v4.7.0 of the
 /// > [squirrel package](https://github.com/giacomocavalieri/squirrel).
 ///
 pub type CreateLocationTagRow {
@@ -608,7 +651,7 @@ pub type CreateLocationTagRow {
 
 /// Creates a location tag and returns it.
 ///
-/// > 🐿️ This function was generated automatically using v4.6.0 of
+/// > 🐿️ This function was generated automatically using v4.7.0 of
 /// > the [squirrel package](https://github.com/giacomocavalieri/squirrel).
 ///
 pub fn create_location_tag(
@@ -656,7 +699,7 @@ RETURNING id,
 /// A row you get from running the `delete_activity` query
 /// defined in `./src/server/sql/delete_activity.sql`.
 ///
-/// > 🐿️ This type definition was generated automatically using v4.6.0 of the
+/// > 🐿️ This type definition was generated automatically using v4.7.0 of the
 /// > [squirrel package](https://github.com/giacomocavalieri/squirrel).
 ///
 pub type DeleteActivityRow {
@@ -666,12 +709,12 @@ pub type DeleteActivityRow {
 /// Runs the `delete_activity` query
 /// defined in `./src/server/sql/delete_activity.sql`.
 ///
-/// > 🐿️ This function was generated automatically using v4.6.0 of
+/// > 🐿️ This function was generated automatically using v4.7.0 of
 /// > the [squirrel package](https://github.com/giacomocavalieri/squirrel).
 ///
 pub fn delete_activity(
   db: pog.Connection,
-  arg_1: Uuid,
+  id: Uuid,
 ) -> Result(pog.Returned(DeleteActivityRow), pog.QueryError) {
   let decoder = {
     use id <- decode.field(0, uuid_decoder())
@@ -682,6 +725,104 @@ pub fn delete_activity(
 WHERE id = $1
 RETURNING id"
   |> pog.query
+  |> pog.parameter(pog.text(uuid.to_string(id)))
+  |> pog.returning(decoder)
+  |> pog.execute(db)
+}
+
+/// Removes all activity links for a tag (used before deleting the tag).
+///
+/// > 🐿️ This function was generated automatically using v4.7.0 of
+/// > the [squirrel package](https://github.com/giacomocavalieri/squirrel).
+///
+pub fn delete_activity_links_by_tag(
+  db: pog.Connection,
+  arg_1: Uuid,
+) -> Result(pog.Returned(Nil), pog.QueryError) {
+  let decoder = decode.map(decode.dynamic, fn(_) { Nil })
+
+  "-- Removes all activity links for a tag (used before deleting the tag).
+DELETE FROM activity_tag_activity
+WHERE activity_tag_id = $1;
+"
+  |> pog.query
+  |> pog.parameter(pog.text(uuid.to_string(arg_1)))
+  |> pog.returning(decoder)
+  |> pog.execute(db)
+}
+
+/// A row you get from running the `delete_activity_tag` query
+/// defined in `./src/server/sql/delete_activity_tag.sql`.
+///
+/// > 🐿️ This type definition was generated automatically using v4.7.0 of the
+/// > [squirrel package](https://github.com/giacomocavalieri/squirrel).
+///
+pub type DeleteActivityTagRow {
+  DeleteActivityTagRow(id: Uuid)
+}
+
+/// Deletes an activity tag, returning its id if it existed.
+///
+/// > 🐿️ This function was generated automatically using v4.7.0 of
+/// > the [squirrel package](https://github.com/giacomocavalieri/squirrel).
+///
+pub fn delete_activity_tag(
+  db: pog.Connection,
+  id: Uuid,
+) -> Result(pog.Returned(DeleteActivityTagRow), pog.QueryError) {
+  let decoder = {
+    use id <- decode.field(0, uuid_decoder())
+    decode.success(DeleteActivityTagRow(id:))
+  }
+
+  "-- Deletes an activity tag, returning its id if it existed.
+DELETE FROM activity_tag
+WHERE id = $1
+RETURNING id;
+"
+  |> pog.query
+  |> pog.parameter(pog.text(uuid.to_string(id)))
+  |> pog.returning(decoder)
+  |> pog.execute(db)
+}
+
+/// Removes all tag links for an activity (used when re-syncing or deleting).
+///
+/// > 🐿️ This function was generated automatically using v4.7.0 of
+/// > the [squirrel package](https://github.com/giacomocavalieri/squirrel).
+///
+pub fn delete_activity_tag_links(
+  db: pog.Connection,
+  arg_1: Uuid,
+) -> Result(pog.Returned(Nil), pog.QueryError) {
+  let decoder = decode.map(decode.dynamic, fn(_) { Nil })
+
+  "-- Removes all tag links for an activity (used when re-syncing or deleting).
+DELETE FROM activity_tag_activity
+WHERE activity_id = $1;
+"
+  |> pog.query
+  |> pog.parameter(pog.text(uuid.to_string(arg_1)))
+  |> pog.returning(decoder)
+  |> pog.execute(db)
+}
+
+/// Removes all target groups for an activity (used when re-syncing or deleting).
+///
+/// > 🐿️ This function was generated automatically using v4.7.0 of
+/// > the [squirrel package](https://github.com/giacomocavalieri/squirrel).
+///
+pub fn delete_activity_target_groups(
+  db: pog.Connection,
+  arg_1: Uuid,
+) -> Result(pog.Returned(Nil), pog.QueryError) {
+  let decoder = decode.map(decode.dynamic, fn(_) { Nil })
+
+  "-- Removes all target groups for an activity (used when re-syncing or deleting).
+DELETE FROM activity_target_group
+WHERE activity_id = $1;
+"
+  |> pog.query
   |> pog.parameter(pog.text(uuid.to_string(arg_1)))
   |> pog.returning(decoder)
   |> pog.execute(db)
@@ -690,7 +831,7 @@ RETURNING id"
 /// A row you get from running the `delete_booking` query
 /// defined in `./src/server/sql/delete_booking.sql`.
 ///
-/// > 🐿️ This type definition was generated automatically using v4.6.0 of the
+/// > 🐿️ This type definition was generated automatically using v4.7.0 of the
 /// > [squirrel package](https://github.com/giacomocavalieri/squirrel).
 ///
 pub type DeleteBookingRow {
@@ -700,12 +841,12 @@ pub type DeleteBookingRow {
 /// Runs the `delete_booking` query
 /// defined in `./src/server/sql/delete_booking.sql`.
 ///
-/// > 🐿️ This function was generated automatically using v4.6.0 of
+/// > 🐿️ This function was generated automatically using v4.7.0 of
 /// > the [squirrel package](https://github.com/giacomocavalieri/squirrel).
 ///
 pub fn delete_booking(
   db: pog.Connection,
-  arg_1: Uuid,
+  id: Uuid,
 ) -> Result(pog.Returned(DeleteBookingRow), pog.QueryError) {
   let decoder = {
     use id <- decode.field(0, uuid_decoder())
@@ -717,7 +858,7 @@ WHERE id = $1
 RETURNING id
 "
   |> pog.query
-  |> pog.parameter(pog.text(uuid.to_string(arg_1)))
+  |> pog.parameter(pog.text(uuid.to_string(id)))
   |> pog.returning(decoder)
   |> pog.execute(db)
 }
@@ -725,7 +866,7 @@ RETURNING id
 /// A row you get from running the `delete_favourite` query
 /// defined in `./src/server/sql/delete_favourite.sql`.
 ///
-/// > 🐿️ This type definition was generated automatically using v4.6.0 of the
+/// > 🐿️ This type definition was generated automatically using v4.7.0 of the
 /// > [squirrel package](https://github.com/giacomocavalieri/squirrel).
 ///
 pub type DeleteFavouriteRow {
@@ -735,13 +876,13 @@ pub type DeleteFavouriteRow {
 /// Runs the `delete_favourite` query
 /// defined in `./src/server/sql/delete_favourite.sql`.
 ///
-/// > 🐿️ This function was generated automatically using v4.6.0 of
+/// > 🐿️ This function was generated automatically using v4.7.0 of
 /// > the [squirrel package](https://github.com/giacomocavalieri/squirrel).
 ///
 pub fn delete_favourite(
   db: pog.Connection,
-  arg_1: Uuid,
-  arg_2: Uuid,
+  user_id: Uuid,
+  activity_id: Uuid,
 ) -> Result(pog.Returned(DeleteFavouriteRow), pog.QueryError) {
   let decoder = {
     use id <- decode.field(0, uuid_decoder())
@@ -754,8 +895,8 @@ WHERE user_id = $1
 RETURNING id
 "
   |> pog.query
-  |> pog.parameter(pog.text(uuid.to_string(arg_1)))
-  |> pog.parameter(pog.text(uuid.to_string(arg_2)))
+  |> pog.parameter(pog.text(uuid.to_string(user_id)))
+  |> pog.parameter(pog.text(uuid.to_string(activity_id)))
   |> pog.returning(decoder)
   |> pog.execute(db)
 }
@@ -763,7 +904,7 @@ RETURNING id
 /// A row you get from running the `delete_location` query
 /// defined in `./src/server/sql/delete_location.sql`.
 ///
-/// > 🐿️ This type definition was generated automatically using v4.6.0 of the
+/// > 🐿️ This type definition was generated automatically using v4.7.0 of the
 /// > [squirrel package](https://github.com/giacomocavalieri/squirrel).
 ///
 pub type DeleteLocationRow {
@@ -772,12 +913,12 @@ pub type DeleteLocationRow {
 
 /// Deletes a location, returning its id if it existed.
 ///
-/// > 🐿️ This function was generated automatically using v4.6.0 of
+/// > 🐿️ This function was generated automatically using v4.7.0 of
 /// > the [squirrel package](https://github.com/giacomocavalieri/squirrel).
 ///
 pub fn delete_location(
   db: pog.Connection,
-  arg_1: Uuid,
+  id: Uuid,
 ) -> Result(pog.Returned(DeleteLocationRow), pog.QueryError) {
   let decoder = {
     use id <- decode.field(0, uuid_decoder())
@@ -790,14 +931,14 @@ WHERE id = $1
 RETURNING id;
 "
   |> pog.query
-  |> pog.parameter(pog.text(uuid.to_string(arg_1)))
+  |> pog.parameter(pog.text(uuid.to_string(id)))
   |> pog.returning(decoder)
   |> pog.execute(db)
 }
 
 /// Removes all location links for a tag (used before deleting the tag).
 ///
-/// > 🐿️ This function was generated automatically using v4.6.0 of
+/// > 🐿️ This function was generated automatically using v4.7.0 of
 /// > the [squirrel package](https://github.com/giacomocavalieri/squirrel).
 ///
 pub fn delete_location_links_by_tag(
@@ -819,7 +960,7 @@ WHERE location_tag_id = $1;
 /// A row you get from running the `delete_location_tag` query
 /// defined in `./src/server/sql/delete_location_tag.sql`.
 ///
-/// > 🐿️ This type definition was generated automatically using v4.6.0 of the
+/// > 🐿️ This type definition was generated automatically using v4.7.0 of the
 /// > [squirrel package](https://github.com/giacomocavalieri/squirrel).
 ///
 pub type DeleteLocationTagRow {
@@ -828,12 +969,12 @@ pub type DeleteLocationTagRow {
 
 /// Deletes a location tag, returning its id if it existed.
 ///
-/// > 🐿️ This function was generated automatically using v4.6.0 of
+/// > 🐿️ This function was generated automatically using v4.7.0 of
 /// > the [squirrel package](https://github.com/giacomocavalieri/squirrel).
 ///
 pub fn delete_location_tag(
   db: pog.Connection,
-  arg_1: Uuid,
+  id: Uuid,
 ) -> Result(pog.Returned(DeleteLocationTagRow), pog.QueryError) {
   let decoder = {
     use id <- decode.field(0, uuid_decoder())
@@ -846,14 +987,14 @@ WHERE id = $1
 RETURNING id;
 "
   |> pog.query
-  |> pog.parameter(pog.text(uuid.to_string(arg_1)))
+  |> pog.parameter(pog.text(uuid.to_string(id)))
   |> pog.returning(decoder)
   |> pog.execute(db)
 }
 
 /// Removes all tag links for a location (used when re-syncing or deleting).
 ///
-/// > 🐿️ This function was generated automatically using v4.6.0 of
+/// > 🐿️ This function was generated automatically using v4.7.0 of
 /// > the [squirrel package](https://github.com/giacomocavalieri/squirrel).
 ///
 pub fn delete_location_tag_links(
@@ -875,7 +1016,7 @@ WHERE location_id = $1;
 /// A row you get from running the `get_activities_by_start_time` query
 /// defined in `./src/server/sql/get_activities_by_start_time.sql`.
 ///
-/// > 🐿️ This type definition was generated automatically using v4.6.0 of the
+/// > 🐿️ This type definition was generated automatically using v4.7.0 of the
 /// > [squirrel package](https://github.com/giacomocavalieri/squirrel).
 ///
 pub type GetActivitiesByStartTimeRow {
@@ -896,7 +1037,7 @@ pub type GetActivitiesByStartTimeRow {
 /// Runs the `get_activities_by_start_time` query
 /// defined in `./src/server/sql/get_activities_by_start_time.sql`.
 ///
-/// > 🐿️ This function was generated automatically using v4.6.0 of
+/// > 🐿️ This function was generated automatically using v4.7.0 of
 /// > the [squirrel package](https://github.com/giacomocavalieri/squirrel).
 ///
 pub fn get_activities_by_start_time(
@@ -946,7 +1087,7 @@ LIMIT $1 OFFSET $2;"
 /// A row you get from running the `get_activities_by_title` query
 /// defined in `./src/server/sql/get_activities_by_title.sql`.
 ///
-/// > 🐿️ This type definition was generated automatically using v4.6.0 of the
+/// > 🐿️ This type definition was generated automatically using v4.7.0 of the
 /// > [squirrel package](https://github.com/giacomocavalieri/squirrel).
 ///
 pub type GetActivitiesByTitleRow {
@@ -967,7 +1108,7 @@ pub type GetActivitiesByTitleRow {
 /// Runs the `get_activities_by_title` query
 /// defined in `./src/server/sql/get_activities_by_title.sql`.
 ///
-/// > 🐿️ This function was generated automatically using v4.6.0 of
+/// > 🐿️ This function was generated automatically using v4.7.0 of
 /// > the [squirrel package](https://github.com/giacomocavalieri/squirrel).
 ///
 pub fn get_activities_by_title(
@@ -1017,7 +1158,7 @@ LIMIT $1 OFFSET $2;"
 /// A row you get from running the `get_activity` query
 /// defined in `./src/server/sql/get_activity.sql`.
 ///
-/// > 🐿️ This type definition was generated automatically using v4.6.0 of the
+/// > 🐿️ This type definition was generated automatically using v4.7.0 of the
 /// > [squirrel package](https://github.com/giacomocavalieri/squirrel).
 ///
 pub type GetActivityRow {
@@ -1038,7 +1179,7 @@ pub type GetActivityRow {
 /// Runs the `get_activity` query
 /// defined in `./src/server/sql/get_activity.sql`.
 ///
-/// > 🐿️ This function was generated automatically using v4.6.0 of
+/// > 🐿️ This function was generated automatically using v4.7.0 of
 /// > the [squirrel package](https://github.com/giacomocavalieri/squirrel).
 ///
 pub fn get_activity(
@@ -1085,7 +1226,7 @@ WHERE id = $1;"
 /// A row you get from running the `get_activity_spots` query
 /// defined in `./src/server/sql/get_activity_spots.sql`.
 ///
-/// > 🐿️ This type definition was generated automatically using v4.6.0 of the
+/// > 🐿️ This type definition was generated automatically using v4.7.0 of the
 /// > [squirrel package](https://github.com/giacomocavalieri/squirrel).
 ///
 pub type GetActivitySpotsRow {
@@ -1095,12 +1236,12 @@ pub type GetActivitySpotsRow {
 /// Booked spot count for a single activity. The aggregate has no GROUP BY, so
 /// it always returns exactly one row (0 when the activity has no bookings).
 ///
-/// > 🐿️ This function was generated automatically using v4.6.0 of
+/// > 🐿️ This function was generated automatically using v4.7.0 of
 /// > the [squirrel package](https://github.com/giacomocavalieri/squirrel).
 ///
 pub fn get_activity_spots(
   db: pog.Connection,
-  arg_1: Uuid,
+  activity_id: Uuid,
 ) -> Result(pog.Returned(GetActivitySpotsRow), pog.QueryError) {
   let decoder = {
     use spots_booked <- decode.field(0, decode.int)
@@ -1114,6 +1255,45 @@ FROM booking
 WHERE activity_id = $1
 "
   |> pog.query
+  |> pog.parameter(pog.text(uuid.to_string(activity_id)))
+  |> pog.returning(decoder)
+  |> pog.execute(db)
+}
+
+/// A row you get from running the `get_activity_tag` query
+/// defined in `./src/server/sql/get_activity_tag.sql`.
+///
+/// > 🐿️ This type definition was generated automatically using v4.7.0 of the
+/// > [squirrel package](https://github.com/giacomocavalieri/squirrel).
+///
+pub type GetActivityTagRow {
+  GetActivityTagRow(id: Uuid, name: String, name_en: String)
+}
+
+/// Gets a single activity tag by id.
+///
+/// > 🐿️ This function was generated automatically using v4.7.0 of
+/// > the [squirrel package](https://github.com/giacomocavalieri/squirrel).
+///
+pub fn get_activity_tag(
+  db: pog.Connection,
+  arg_1: Uuid,
+) -> Result(pog.Returned(GetActivityTagRow), pog.QueryError) {
+  let decoder = {
+    use id <- decode.field(0, uuid_decoder())
+    use name <- decode.field(1, decode.string)
+    use name_en <- decode.field(2, decode.string)
+    decode.success(GetActivityTagRow(id:, name:, name_en:))
+  }
+
+  "-- Gets a single activity tag by id.
+SELECT id,
+    name,
+    name_en
+FROM activity_tag
+WHERE id = $1;
+"
+  |> pog.query
   |> pog.parameter(pog.text(uuid.to_string(arg_1)))
   |> pog.returning(decoder)
   |> pog.execute(db)
@@ -1122,7 +1302,7 @@ WHERE activity_id = $1
 /// A row you get from running the `get_booking` query
 /// defined in `./src/server/sql/get_booking.sql`.
 ///
-/// > 🐿️ This type definition was generated automatically using v4.6.0 of the
+/// > 🐿️ This type definition was generated automatically using v4.7.0 of the
 /// > [squirrel package](https://github.com/giacomocavalieri/squirrel).
 ///
 pub type GetBookingRow {
@@ -1143,12 +1323,12 @@ pub type GetBookingRow {
 /// Runs the `get_booking` query
 /// defined in `./src/server/sql/get_booking.sql`.
 ///
-/// > 🐿️ This function was generated automatically using v4.6.0 of
+/// > 🐿️ This function was generated automatically using v4.7.0 of
 /// > the [squirrel package](https://github.com/giacomocavalieri/squirrel).
 ///
 pub fn get_booking(
   db: pog.Connection,
-  arg_1: Uuid,
+  id: Uuid,
 ) -> Result(pog.Returned(GetBookingRow), pog.QueryError) {
   let decoder = {
     use id <- decode.field(0, uuid_decoder())
@@ -1189,7 +1369,7 @@ FROM booking
 WHERE id = $1
 "
   |> pog.query
-  |> pog.parameter(pog.text(uuid.to_string(arg_1)))
+  |> pog.parameter(pog.text(uuid.to_string(id)))
   |> pog.returning(decoder)
   |> pog.execute(db)
 }
@@ -1197,7 +1377,7 @@ WHERE id = $1
 /// A row you get from running the `get_booking_by_user_and_activity` query
 /// defined in `./src/server/sql/get_booking_by_user_and_activity.sql`.
 ///
-/// > 🐿️ This type definition was generated automatically using v4.6.0 of the
+/// > 🐿️ This type definition was generated automatically using v4.7.0 of the
 /// > [squirrel package](https://github.com/giacomocavalieri/squirrel).
 ///
 pub type GetBookingByUserAndActivityRow {
@@ -1207,13 +1387,13 @@ pub type GetBookingByUserAndActivityRow {
 /// Runs the `get_booking_by_user_and_activity` query
 /// defined in `./src/server/sql/get_booking_by_user_and_activity.sql`.
 ///
-/// > 🐿️ This function was generated automatically using v4.6.0 of
+/// > 🐿️ This function was generated automatically using v4.7.0 of
 /// > the [squirrel package](https://github.com/giacomocavalieri/squirrel).
 ///
 pub fn get_booking_by_user_and_activity(
   db: pog.Connection,
-  arg_1: Uuid,
-  arg_2: Uuid,
+  user_id: Uuid,
+  activity_id: Uuid,
 ) -> Result(pog.Returned(GetBookingByUserAndActivityRow), pog.QueryError) {
   let decoder = {
     use id <- decode.field(0, uuid_decoder())
@@ -1227,8 +1407,8 @@ WHERE user_id = $1
 LIMIT 1
 "
   |> pog.query
-  |> pog.parameter(pog.text(uuid.to_string(arg_1)))
-  |> pog.parameter(pog.text(uuid.to_string(arg_2)))
+  |> pog.parameter(pog.text(uuid.to_string(user_id)))
+  |> pog.parameter(pog.text(uuid.to_string(activity_id)))
   |> pog.returning(decoder)
   |> pog.execute(db)
 }
@@ -1236,7 +1416,7 @@ LIMIT 1
 /// A row you get from running the `get_bookings_by_activity` query
 /// defined in `./src/server/sql/get_bookings_by_activity.sql`.
 ///
-/// > 🐿️ This type definition was generated automatically using v4.6.0 of the
+/// > 🐿️ This type definition was generated automatically using v4.7.0 of the
 /// > [squirrel package](https://github.com/giacomocavalieri/squirrel).
 ///
 pub type GetBookingsByActivityRow {
@@ -1257,12 +1437,12 @@ pub type GetBookingsByActivityRow {
 /// Runs the `get_bookings_by_activity` query
 /// defined in `./src/server/sql/get_bookings_by_activity.sql`.
 ///
-/// > 🐿️ This function was generated automatically using v4.6.0 of
+/// > 🐿️ This function was generated automatically using v4.7.0 of
 /// > the [squirrel package](https://github.com/giacomocavalieri/squirrel).
 ///
 pub fn get_bookings_by_activity(
   db: pog.Connection,
-  arg_1: Uuid,
+  activity_id: Uuid,
   arg_2: Int,
   arg_3: Int,
 ) -> Result(pog.Returned(GetBookingsByActivityRow), pog.QueryError) {
@@ -1308,7 +1488,7 @@ LIMIT $2
 OFFSET $3
 "
   |> pog.query
-  |> pog.parameter(pog.text(uuid.to_string(arg_1)))
+  |> pog.parameter(pog.text(uuid.to_string(activity_id)))
   |> pog.parameter(pog.int(arg_2))
   |> pog.parameter(pog.int(arg_3))
   |> pog.returning(decoder)
@@ -1318,7 +1498,7 @@ OFFSET $3
 /// A row you get from running the `get_bookings_by_user` query
 /// defined in `./src/server/sql/get_bookings_by_user.sql`.
 ///
-/// > 🐿️ This type definition was generated automatically using v4.6.0 of the
+/// > 🐿️ This type definition was generated automatically using v4.7.0 of the
 /// > [squirrel package](https://github.com/giacomocavalieri/squirrel).
 ///
 pub type GetBookingsByUserRow {
@@ -1339,12 +1519,12 @@ pub type GetBookingsByUserRow {
 /// Runs the `get_bookings_by_user` query
 /// defined in `./src/server/sql/get_bookings_by_user.sql`.
 ///
-/// > 🐿️ This function was generated automatically using v4.6.0 of
+/// > 🐿️ This function was generated automatically using v4.7.0 of
 /// > the [squirrel package](https://github.com/giacomocavalieri/squirrel).
 ///
 pub fn get_bookings_by_user(
   db: pog.Connection,
-  arg_1: Uuid,
+  user_id: Uuid,
 ) -> Result(pog.Returned(GetBookingsByUserRow), pog.QueryError) {
   let decoder = {
     use id <- decode.field(0, uuid_decoder())
@@ -1386,7 +1566,7 @@ WHERE user_id = $1
 ORDER BY id;
 "
   |> pog.query
-  |> pog.parameter(pog.text(uuid.to_string(arg_1)))
+  |> pog.parameter(pog.text(uuid.to_string(user_id)))
   |> pog.returning(decoder)
   |> pog.execute(db)
 }
@@ -1394,7 +1574,7 @@ ORDER BY id;
 /// A row you get from running the `get_favourites_by_user` query
 /// defined in `./src/server/sql/get_favourites_by_user.sql`.
 ///
-/// > 🐿️ This type definition was generated automatically using v4.6.0 of the
+/// > 🐿️ This type definition was generated automatically using v4.7.0 of the
 /// > [squirrel package](https://github.com/giacomocavalieri/squirrel).
 ///
 pub type GetFavouritesByUserRow {
@@ -1404,12 +1584,12 @@ pub type GetFavouritesByUserRow {
 /// Runs the `get_favourites_by_user` query
 /// defined in `./src/server/sql/get_favourites_by_user.sql`.
 ///
-/// > 🐿️ This function was generated automatically using v4.6.0 of
+/// > 🐿️ This function was generated automatically using v4.7.0 of
 /// > the [squirrel package](https://github.com/giacomocavalieri/squirrel).
 ///
 pub fn get_favourites_by_user(
   db: pog.Connection,
-  arg_1: Uuid,
+  user_id: Uuid,
 ) -> Result(pog.Returned(GetFavouritesByUserRow), pog.QueryError) {
   let decoder = {
     use id <- decode.field(0, uuid_decoder())
@@ -1426,7 +1606,7 @@ WHERE user_id = $1
 ORDER BY id
 "
   |> pog.query
-  |> pog.parameter(pog.text(uuid.to_string(arg_1)))
+  |> pog.parameter(pog.text(uuid.to_string(user_id)))
   |> pog.returning(decoder)
   |> pog.execute(db)
 }
@@ -1434,7 +1614,7 @@ ORDER BY id
 /// A row you get from running the `get_location` query
 /// defined in `./src/server/sql/get_location.sql`.
 ///
-/// > 🐿️ This type definition was generated automatically using v4.6.0 of the
+/// > 🐿️ This type definition was generated automatically using v4.7.0 of the
 /// > [squirrel package](https://github.com/giacomocavalieri/squirrel).
 ///
 pub type GetLocationRow {
@@ -1455,7 +1635,7 @@ pub type GetLocationRow {
 
 /// Gets a single location by id.
 ///
-/// > 🐿️ This function was generated automatically using v4.6.0 of
+/// > 🐿️ This function was generated automatically using v4.7.0 of
 /// > the [squirrel package](https://github.com/giacomocavalieri/squirrel).
 ///
 pub fn get_location(
@@ -1513,7 +1693,7 @@ WHERE id = $1;
 /// A row you get from running the `get_location_tag` query
 /// defined in `./src/server/sql/get_location_tag.sql`.
 ///
-/// > 🐿️ This type definition was generated automatically using v4.6.0 of the
+/// > 🐿️ This type definition was generated automatically using v4.7.0 of the
 /// > [squirrel package](https://github.com/giacomocavalieri/squirrel).
 ///
 pub type GetLocationTagRow {
@@ -1528,7 +1708,7 @@ pub type GetLocationTagRow {
 
 /// Gets a single location tag by id.
 ///
-/// > 🐿️ This function was generated automatically using v4.6.0 of
+/// > 🐿️ This function was generated automatically using v4.7.0 of
 /// > the [squirrel package](https://github.com/giacomocavalieri/squirrel).
 ///
 pub fn get_location_tag(
@@ -1568,7 +1748,7 @@ WHERE id = $1;
 /// A row you get from running the `get_location_tag_ids` query
 /// defined in `./src/server/sql/get_location_tag_ids.sql`.
 ///
-/// > 🐿️ This type definition was generated automatically using v4.6.0 of the
+/// > 🐿️ This type definition was generated automatically using v4.7.0 of the
 /// > [squirrel package](https://github.com/giacomocavalieri/squirrel).
 ///
 pub type GetLocationTagIdsRow {
@@ -1577,7 +1757,7 @@ pub type GetLocationTagIdsRow {
 
 /// Lists the tag ids linked to a location.
 ///
-/// > 🐿️ This function was generated automatically using v4.6.0 of
+/// > 🐿️ This function was generated automatically using v4.7.0 of
 /// > the [squirrel package](https://github.com/giacomocavalieri/squirrel).
 ///
 pub fn get_location_tag_ids(
@@ -1600,10 +1780,65 @@ WHERE location_id = $1;
   |> pog.execute(db)
 }
 
+/// Links an activity to the given tag ids in one statement. An empty array
+/// inserts no rows.
+///
+/// > 🐿️ This function was generated automatically using v4.7.0 of
+/// > the [squirrel package](https://github.com/giacomocavalieri/squirrel).
+///
+pub fn insert_activity_tag_links(
+  db: pog.Connection,
+  arg_1: Uuid,
+  arg_2: List(Uuid),
+) -> Result(pog.Returned(Nil), pog.QueryError) {
+  let decoder = decode.map(decode.dynamic, fn(_) { Nil })
+
+  "-- Links an activity to the given tag ids in one statement. An empty array
+-- inserts no rows.
+INSERT INTO activity_tag_activity (activity_id, activity_tag_id)
+SELECT $1, unnest($2::uuid[]);
+"
+  |> pog.query
+  |> pog.parameter(pog.text(uuid.to_string(arg_1)))
+  |> pog.parameter(pog.array(
+    fn(value) { pog.text(uuid.to_string(value)) },
+    arg_2,
+  ))
+  |> pog.returning(decoder)
+  |> pog.execute(db)
+}
+
+/// Sets an activity's target groups in one statement. Casting the array to the
+/// enum type makes Squirrel type the parameter as the generated target group
+/// type. An empty array inserts no rows.
+///
+/// > 🐿️ This function was generated automatically using v4.7.0 of
+/// > the [squirrel package](https://github.com/giacomocavalieri/squirrel).
+///
+pub fn insert_activity_target_groups(
+  db: pog.Connection,
+  arg_1: Uuid,
+  arg_2: List(TargetGroup),
+) -> Result(pog.Returned(Nil), pog.QueryError) {
+  let decoder = decode.map(decode.dynamic, fn(_) { Nil })
+
+  "-- Sets an activity's target groups in one statement. Casting the array to the
+-- enum type makes Squirrel type the parameter as the generated target group
+-- type. An empty array inserts no rows.
+INSERT INTO activity_target_group (activity_id, target_group)
+SELECT $1, unnest($2::target_group[]);
+"
+  |> pog.query
+  |> pog.parameter(pog.text(uuid.to_string(arg_1)))
+  |> pog.parameter(pog.array(fn(value) { target_group_encoder(value) }, arg_2))
+  |> pog.returning(decoder)
+  |> pog.execute(db)
+}
+
 /// Links a location to the given tag ids in one statement. An empty array
 /// inserts no rows.
 ///
-/// > 🐿️ This function was generated automatically using v4.6.0 of
+/// > 🐿️ This function was generated automatically using v4.7.0 of
 /// > the [squirrel package](https://github.com/giacomocavalieri/squirrel).
 ///
 pub fn insert_location_tag_links(
@@ -1631,7 +1866,7 @@ SELECT $1, unnest($2::uuid[]);
 /// A row you get from running the `list_activities_by_start_time` query
 /// defined in `./src/server/sql/list_activities_by_start_time.sql`.
 ///
-/// > 🐿️ This type definition was generated automatically using v4.6.0 of the
+/// > 🐿️ This type definition was generated automatically using v4.7.0 of the
 /// > [squirrel package](https://github.com/giacomocavalieri/squirrel).
 ///
 pub type ListActivitiesByStartTimeRow {
@@ -1652,7 +1887,7 @@ pub type ListActivitiesByStartTimeRow {
 /// Runs the `list_activities_by_start_time` query
 /// defined in `./src/server/sql/list_activities_by_start_time.sql`.
 ///
-/// > 🐿️ This function was generated automatically using v4.6.0 of
+/// > 🐿️ This function was generated automatically using v4.7.0 of
 /// > the [squirrel package](https://github.com/giacomocavalieri/squirrel).
 ///
 pub fn list_activities_by_start_time(
@@ -1699,7 +1934,7 @@ ORDER BY start_time ASC;
 /// A row you get from running the `list_activities_by_title` query
 /// defined in `./src/server/sql/list_activities_by_title.sql`.
 ///
-/// > 🐿️ This type definition was generated automatically using v4.6.0 of the
+/// > 🐿️ This type definition was generated automatically using v4.7.0 of the
 /// > [squirrel package](https://github.com/giacomocavalieri/squirrel).
 ///
 pub type ListActivitiesByTitleRow {
@@ -1720,7 +1955,7 @@ pub type ListActivitiesByTitleRow {
 /// Runs the `list_activities_by_title` query
 /// defined in `./src/server/sql/list_activities_by_title.sql`.
 ///
-/// > 🐿️ This function was generated automatically using v4.6.0 of
+/// > 🐿️ This function was generated automatically using v4.7.0 of
 /// > the [squirrel package](https://github.com/giacomocavalieri/squirrel).
 ///
 pub fn list_activities_by_title(
@@ -1767,7 +2002,7 @@ ORDER BY title ASC;
 /// A row you get from running the `list_activity_spots` query
 /// defined in `./src/server/sql/list_activity_spots.sql`.
 ///
-/// > 🐿️ This type definition was generated automatically using v4.6.0 of the
+/// > 🐿️ This type definition was generated automatically using v4.7.0 of the
 /// > [squirrel package](https://github.com/giacomocavalieri/squirrel).
 ///
 pub type ListActivitySpotsRow {
@@ -1777,7 +2012,7 @@ pub type ListActivitySpotsRow {
 /// Booked spot count per activity. LEFT JOIN so activities with no bookings
 /// return 0 (not absent) — the client distinguishes known-zero from unknown.
 ///
-/// > 🐿️ This function was generated automatically using v4.6.0 of
+/// > 🐿️ This function was generated automatically using v4.7.0 of
 /// > the [squirrel package](https://github.com/giacomocavalieri/squirrel).
 ///
 pub fn list_activity_spots(
@@ -1802,10 +2037,119 @@ GROUP BY activity.id
   |> pog.execute(db)
 }
 
+/// A row you get from running the `list_activity_tag_links` query
+/// defined in `./src/server/sql/list_activity_tag_links.sql`.
+///
+/// > 🐿️ This type definition was generated automatically using v4.7.0 of the
+/// > [squirrel package](https://github.com/giacomocavalieri/squirrel).
+///
+pub type ListActivityTagLinksRow {
+  ListActivityTagLinksRow(activity_id: Uuid, activity_tag_id: Uuid)
+}
+
+/// Lists every activity-to-tag link. Grouped by activity in the handler to embed
+/// each activity's tag ids without an array aggregation.
+///
+/// > 🐿️ This function was generated automatically using v4.7.0 of
+/// > the [squirrel package](https://github.com/giacomocavalieri/squirrel).
+///
+pub fn list_activity_tag_links(
+  db: pog.Connection,
+) -> Result(pog.Returned(ListActivityTagLinksRow), pog.QueryError) {
+  let decoder = {
+    use activity_id <- decode.field(0, uuid_decoder())
+    use activity_tag_id <- decode.field(1, uuid_decoder())
+    decode.success(ListActivityTagLinksRow(activity_id:, activity_tag_id:))
+  }
+
+  "-- Lists every activity-to-tag link. Grouped by activity in the handler to embed
+-- each activity's tag ids without an array aggregation.
+SELECT activity_id,
+    activity_tag_id
+FROM activity_tag_activity;
+"
+  |> pog.query
+  |> pog.returning(decoder)
+  |> pog.execute(db)
+}
+
+/// A row you get from running the `list_activity_tags` query
+/// defined in `./src/server/sql/list_activity_tags.sql`.
+///
+/// > 🐿️ This type definition was generated automatically using v4.7.0 of the
+/// > [squirrel package](https://github.com/giacomocavalieri/squirrel).
+///
+pub type ListActivityTagsRow {
+  ListActivityTagsRow(id: Uuid, name: String, name_en: String)
+}
+
+/// Lists all activity tags ordered by name.
+///
+/// > 🐿️ This function was generated automatically using v4.7.0 of
+/// > the [squirrel package](https://github.com/giacomocavalieri/squirrel).
+///
+pub fn list_activity_tags(
+  db: pog.Connection,
+) -> Result(pog.Returned(ListActivityTagsRow), pog.QueryError) {
+  let decoder = {
+    use id <- decode.field(0, uuid_decoder())
+    use name <- decode.field(1, decode.string)
+    use name_en <- decode.field(2, decode.string)
+    decode.success(ListActivityTagsRow(id:, name:, name_en:))
+  }
+
+  "-- Lists all activity tags ordered by name.
+SELECT id,
+    name,
+    name_en
+FROM activity_tag
+ORDER BY name ASC;
+"
+  |> pog.query
+  |> pog.returning(decoder)
+  |> pog.execute(db)
+}
+
+/// A row you get from running the `list_activity_target_groups` query
+/// defined in `./src/server/sql/list_activity_target_groups.sql`.
+///
+/// > 🐿️ This type definition was generated automatically using v4.7.0 of the
+/// > [squirrel package](https://github.com/giacomocavalieri/squirrel).
+///
+pub type ListActivityTargetGroupsRow {
+  ListActivityTargetGroupsRow(activity_id: Uuid, target_group: TargetGroup)
+}
+
+/// Lists every activity-to-target-group link. Grouped by activity in the handler
+/// to embed each activity's target groups without an array aggregation.
+///
+/// > 🐿️ This function was generated automatically using v4.7.0 of
+/// > the [squirrel package](https://github.com/giacomocavalieri/squirrel).
+///
+pub fn list_activity_target_groups(
+  db: pog.Connection,
+) -> Result(pog.Returned(ListActivityTargetGroupsRow), pog.QueryError) {
+  let decoder = {
+    use activity_id <- decode.field(0, uuid_decoder())
+    use target_group <- decode.field(1, target_group_decoder())
+    decode.success(ListActivityTargetGroupsRow(activity_id:, target_group:))
+  }
+
+  "-- Lists every activity-to-target-group link. Grouped by activity in the handler
+-- to embed each activity's target groups without an array aggregation.
+SELECT activity_id,
+    target_group
+FROM activity_target_group;
+"
+  |> pog.query
+  |> pog.returning(decoder)
+  |> pog.execute(db)
+}
+
 /// A row you get from running the `list_beach_bus_activities` query
 /// defined in `./src/server/sql/list_beach_bus_activities.sql`.
 ///
-/// > 🐿️ This type definition was generated automatically using v4.6.0 of the
+/// > 🐿️ This type definition was generated automatically using v4.7.0 of the
 /// > [squirrel package](https://github.com/giacomocavalieri/squirrel).
 ///
 pub type ListBeachBusActivitiesRow {
@@ -1826,7 +2170,7 @@ pub type ListBeachBusActivitiesRow {
 /// Runs the `list_beach_bus_activities` query
 /// defined in `./src/server/sql/list_beach_bus_activities.sql`.
 ///
-/// > 🐿️ This function was generated automatically using v4.6.0 of
+/// > 🐿️ This function was generated automatically using v4.7.0 of
 /// > the [squirrel package](https://github.com/giacomocavalieri/squirrel).
 ///
 pub fn list_beach_bus_activities(
@@ -1873,7 +2217,7 @@ ORDER BY start_time ASC;
 /// A row you get from running the `list_climbing_wall_activities` query
 /// defined in `./src/server/sql/list_climbing_wall_activities.sql`.
 ///
-/// > 🐿️ This type definition was generated automatically using v4.6.0 of the
+/// > 🐿️ This type definition was generated automatically using v4.7.0 of the
 /// > [squirrel package](https://github.com/giacomocavalieri/squirrel).
 ///
 pub type ListClimbingWallActivitiesRow {
@@ -1894,7 +2238,7 @@ pub type ListClimbingWallActivitiesRow {
 /// Runs the `list_climbing_wall_activities` query
 /// defined in `./src/server/sql/list_climbing_wall_activities.sql`.
 ///
-/// > 🐿️ This function was generated automatically using v4.6.0 of
+/// > 🐿️ This function was generated automatically using v4.7.0 of
 /// > the [squirrel package](https://github.com/giacomocavalieri/squirrel).
 ///
 pub fn list_climbing_wall_activities(
@@ -1941,7 +2285,7 @@ ORDER BY start_time ASC;
 /// A row you get from running the `list_favourited_activities` query
 /// defined in `./src/server/sql/list_favourited_activities.sql`.
 ///
-/// > 🐿️ This type definition was generated automatically using v4.6.0 of the
+/// > 🐿️ This type definition was generated automatically using v4.7.0 of the
 /// > [squirrel package](https://github.com/giacomocavalieri/squirrel).
 ///
 pub type ListFavouritedActivitiesRow {
@@ -1962,7 +2306,7 @@ pub type ListFavouritedActivitiesRow {
 /// Runs the `list_favourited_activities` query
 /// defined in `./src/server/sql/list_favourited_activities.sql`.
 ///
-/// > 🐿️ This function was generated automatically using v4.6.0 of
+/// > 🐿️ This function was generated automatically using v4.7.0 of
 /// > the [squirrel package](https://github.com/giacomocavalieri/squirrel).
 ///
 pub fn list_favourited_activities(
@@ -2012,7 +2356,7 @@ ORDER BY activity.start_time ASC;
 /// A row you get from running the `list_location_tag_links` query
 /// defined in `./src/server/sql/list_location_tag_links.sql`.
 ///
-/// > 🐿️ This type definition was generated automatically using v4.6.0 of the
+/// > 🐿️ This type definition was generated automatically using v4.7.0 of the
 /// > [squirrel package](https://github.com/giacomocavalieri/squirrel).
 ///
 pub type ListLocationTagLinksRow {
@@ -2022,7 +2366,7 @@ pub type ListLocationTagLinksRow {
 /// Lists every location-to-tag link. Joined to locations in the handler to embed
 /// each location's tag ids without an array aggregation.
 ///
-/// > 🐿️ This function was generated automatically using v4.6.0 of
+/// > 🐿️ This function was generated automatically using v4.7.0 of
 /// > the [squirrel package](https://github.com/giacomocavalieri/squirrel).
 ///
 pub fn list_location_tag_links(
@@ -2048,7 +2392,7 @@ FROM location_tag_location;
 /// A row you get from running the `list_location_tags` query
 /// defined in `./src/server/sql/list_location_tags.sql`.
 ///
-/// > 🐿️ This type definition was generated automatically using v4.6.0 of the
+/// > 🐿️ This type definition was generated automatically using v4.7.0 of the
 /// > [squirrel package](https://github.com/giacomocavalieri/squirrel).
 ///
 pub type ListLocationTagsRow {
@@ -2063,7 +2407,7 @@ pub type ListLocationTagsRow {
 
 /// Lists all location tags ordered by name.
 ///
-/// > 🐿️ This function was generated automatically using v4.6.0 of
+/// > 🐿️ This function was generated automatically using v4.7.0 of
 /// > the [squirrel package](https://github.com/giacomocavalieri/squirrel).
 ///
 pub fn list_location_tags(
@@ -2101,7 +2445,7 @@ ORDER BY name ASC;
 /// A row you get from running the `list_locations` query
 /// defined in `./src/server/sql/list_locations.sql`.
 ///
-/// > 🐿️ This type definition was generated automatically using v4.6.0 of the
+/// > 🐿️ This type definition was generated automatically using v4.7.0 of the
 /// > [squirrel package](https://github.com/giacomocavalieri/squirrel).
 ///
 pub type ListLocationsRow {
@@ -2123,7 +2467,7 @@ pub type ListLocationsRow {
 /// Lists all locations ordered by name. `opening_hours` (jsonb) comes back as
 /// its JSON text, which Squirrel maps to a String for the model layer to parse.
 ///
-/// > 🐿️ This function was generated automatically using v4.6.0 of
+/// > 🐿️ This function was generated automatically using v4.7.0 of
 /// > the [squirrel package](https://github.com/giacomocavalieri/squirrel).
 ///
 pub fn list_locations(
@@ -2180,7 +2524,7 @@ ORDER BY name ASC;
 /// A row you get from running the `search_activities` query
 /// defined in `./src/server/sql/search_activities.sql`.
 ///
-/// > 🐿️ This type definition was generated automatically using v4.6.0 of the
+/// > 🐿️ This type definition was generated automatically using v4.7.0 of the
 /// > [squirrel package](https://github.com/giacomocavalieri/squirrel).
 ///
 pub type SearchActivitiesRow {
@@ -2200,7 +2544,7 @@ pub type SearchActivitiesRow {
 
 /// Search for activity titles
 ///
-/// > 🐿️ This function was generated automatically using v4.6.0 of
+/// > 🐿️ This function was generated automatically using v4.7.0 of
 /// > the [squirrel package](https://github.com/giacomocavalieri/squirrel).
 ///
 pub fn search_activities(
@@ -2246,10 +2590,55 @@ ORDER BY title;"
   |> pog.execute(db)
 }
 
+/// A row you get from running the `update_activity_tag` query
+/// defined in `./src/server/sql/update_activity_tag.sql`.
+///
+/// > 🐿️ This type definition was generated automatically using v4.7.0 of the
+/// > [squirrel package](https://github.com/giacomocavalieri/squirrel).
+///
+pub type UpdateActivityTagRow {
+  UpdateActivityTagRow(id: Uuid, name: String, name_en: String)
+}
+
+/// Updates an activity tag and returns it.
+///
+/// > 🐿️ This function was generated automatically using v4.7.0 of
+/// > the [squirrel package](https://github.com/giacomocavalieri/squirrel).
+///
+pub fn update_activity_tag(
+  db: pog.Connection,
+  id: Uuid,
+  arg_2: String,
+  name_en: String,
+) -> Result(pog.Returned(UpdateActivityTagRow), pog.QueryError) {
+  let decoder = {
+    use id <- decode.field(0, uuid_decoder())
+    use name <- decode.field(1, decode.string)
+    use name_en <- decode.field(2, decode.string)
+    decode.success(UpdateActivityTagRow(id:, name:, name_en:))
+  }
+
+  "-- Updates an activity tag and returns it.
+UPDATE activity_tag
+SET name = $2,
+    name_en = $3
+WHERE id = $1
+RETURNING id,
+    name,
+    name_en;
+"
+  |> pog.query
+  |> pog.parameter(pog.text(uuid.to_string(id)))
+  |> pog.parameter(pog.text(arg_2))
+  |> pog.parameter(pog.text(name_en))
+  |> pog.returning(decoder)
+  |> pog.execute(db)
+}
+
 /// A row you get from running the `update_activity_with_max_attendees` query
 /// defined in `./src/server/sql/update_activity_with_max_attendees.sql`.
 ///
-/// > 🐿️ This type definition was generated automatically using v4.6.0 of the
+/// > 🐿️ This type definition was generated automatically using v4.7.0 of the
 /// > [squirrel package](https://github.com/giacomocavalieri/squirrel).
 ///
 pub type UpdateActivityWithMaxAttendeesRow {
@@ -2269,19 +2658,19 @@ pub type UpdateActivityWithMaxAttendeesRow {
 /// Runs the `update_activity_with_max_attendees` query
 /// defined in `./src/server/sql/update_activity_with_max_attendees.sql`.
 ///
-/// > 🐿️ This function was generated automatically using v4.6.0 of
+/// > 🐿️ This function was generated automatically using v4.7.0 of
 /// > the [squirrel package](https://github.com/giacomocavalieri/squirrel).
 ///
 pub fn update_activity_with_max_attendees(
   db: pog.Connection,
-  arg_1: Uuid,
+  id: Uuid,
   arg_2: String,
   arg_3: String,
   arg_4: String,
   arg_5: String,
   arg_6: Int,
   arg_7: Timestamp,
-  arg_8: Timestamp,
+  end_time: Timestamp,
 ) -> Result(pog.Returned(UpdateActivityWithMaxAttendeesRow), pog.QueryError) {
   let decoder = {
     use id <- decode.field(0, uuid_decoder())
@@ -2325,14 +2714,14 @@ RETURNING id,
     end_time,
     location_id"
   |> pog.query
-  |> pog.parameter(pog.text(uuid.to_string(arg_1)))
+  |> pog.parameter(pog.text(uuid.to_string(id)))
   |> pog.parameter(pog.text(arg_2))
   |> pog.parameter(pog.text(arg_3))
   |> pog.parameter(pog.text(arg_4))
   |> pog.parameter(pog.text(arg_5))
   |> pog.parameter(pog.int(arg_6))
   |> pog.parameter(pog.timestamp(arg_7))
-  |> pog.parameter(pog.timestamp(arg_8))
+  |> pog.parameter(pog.timestamp(end_time))
   |> pog.returning(decoder)
   |> pog.execute(db)
 }
@@ -2340,7 +2729,7 @@ RETURNING id,
 /// A row you get from running the `update_activity_without_max_attendees` query
 /// defined in `./src/server/sql/update_activity_without_max_attendees.sql`.
 ///
-/// > 🐿️ This type definition was generated automatically using v4.6.0 of the
+/// > 🐿️ This type definition was generated automatically using v4.7.0 of the
 /// > [squirrel package](https://github.com/giacomocavalieri/squirrel).
 ///
 pub type UpdateActivityWithoutMaxAttendeesRow {
@@ -2359,18 +2748,18 @@ pub type UpdateActivityWithoutMaxAttendeesRow {
 /// Runs the `update_activity_without_max_attendees` query
 /// defined in `./src/server/sql/update_activity_without_max_attendees.sql`.
 ///
-/// > 🐿️ This function was generated automatically using v4.6.0 of
+/// > 🐿️ This function was generated automatically using v4.7.0 of
 /// > the [squirrel package](https://github.com/giacomocavalieri/squirrel).
 ///
 pub fn update_activity_without_max_attendees(
   db: pog.Connection,
-  arg_1: Uuid,
+  id: Uuid,
   arg_2: String,
   arg_3: String,
   arg_4: String,
   arg_5: String,
   arg_6: Timestamp,
-  arg_7: Timestamp,
+  end_time: Timestamp,
 ) -> Result(pog.Returned(UpdateActivityWithoutMaxAttendeesRow), pog.QueryError) {
   let decoder = {
     use id <- decode.field(0, uuid_decoder())
@@ -2411,13 +2800,13 @@ RETURNING id,
     end_time,
     location_id"
   |> pog.query
-  |> pog.parameter(pog.text(uuid.to_string(arg_1)))
+  |> pog.parameter(pog.text(uuid.to_string(id)))
   |> pog.parameter(pog.text(arg_2))
   |> pog.parameter(pog.text(arg_3))
   |> pog.parameter(pog.text(arg_4))
   |> pog.parameter(pog.text(arg_5))
   |> pog.parameter(pog.timestamp(arg_6))
-  |> pog.parameter(pog.timestamp(arg_7))
+  |> pog.parameter(pog.timestamp(end_time))
   |> pog.returning(decoder)
   |> pog.execute(db)
 }
@@ -2425,7 +2814,7 @@ RETURNING id,
 /// A row you get from running the `update_booking` query
 /// defined in `./src/server/sql/update_booking.sql`.
 ///
-/// > 🐿️ This type definition was generated automatically using v4.6.0 of the
+/// > 🐿️ This type definition was generated automatically using v4.7.0 of the
 /// > [squirrel package](https://github.com/giacomocavalieri/squirrel).
 ///
 pub type UpdateBookingRow {
@@ -2446,16 +2835,16 @@ pub type UpdateBookingRow {
 /// Runs the `update_booking` query
 /// defined in `./src/server/sql/update_booking.sql`.
 ///
-/// > 🐿️ This function was generated automatically using v4.6.0 of
+/// > 🐿️ This function was generated automatically using v4.7.0 of
 /// > the [squirrel package](https://github.com/giacomocavalieri/squirrel).
 ///
 pub fn update_booking(
   db: pog.Connection,
-  arg_1: Uuid,
+  id: Uuid,
   arg_2: String,
   arg_3: String,
   arg_4: String,
-  arg_5: Int,
+  participant_count: Int,
 ) -> Result(pog.Returned(UpdateBookingRow), pog.QueryError) {
   let decoder = {
     use id <- decode.field(0, uuid_decoder())
@@ -2500,11 +2889,11 @@ RETURNING id,
     participant_count
 "
   |> pog.query
-  |> pog.parameter(pog.text(uuid.to_string(arg_1)))
+  |> pog.parameter(pog.text(uuid.to_string(id)))
   |> pog.parameter(pog.text(arg_2))
   |> pog.parameter(pog.text(arg_3))
   |> pog.parameter(pog.text(arg_4))
-  |> pog.parameter(pog.int(arg_5))
+  |> pog.parameter(pog.int(participant_count))
   |> pog.returning(decoder)
   |> pog.execute(db)
 }
@@ -2512,7 +2901,7 @@ RETURNING id,
 /// A row you get from running the `update_location` query
 /// defined in `./src/server/sql/update_location.sql`.
 ///
-/// > 🐿️ This type definition was generated automatically using v4.6.0 of the
+/// > 🐿️ This type definition was generated automatically using v4.7.0 of the
 /// > [squirrel package](https://github.com/giacomocavalieri/squirrel).
 ///
 pub type UpdateLocationRow {
@@ -2534,12 +2923,12 @@ pub type UpdateLocationRow {
 /// Updates a location and returns it. opening_hours is sent as JSON text; the
 /// parameter type is inferred as jsonb from the target column.
 ///
-/// > 🐿️ This function was generated automatically using v4.6.0 of
+/// > 🐿️ This function was generated automatically using v4.7.0 of
 /// > the [squirrel package](https://github.com/giacomocavalieri/squirrel).
 ///
 pub fn update_location(
   db: pog.Connection,
-  arg_1: Uuid,
+  id: Uuid,
   arg_2: String,
   arg_3: String,
   arg_4: String,
@@ -2549,7 +2938,7 @@ pub fn update_location(
   arg_8: String,
   arg_9: Float,
   arg_10: Float,
-  arg_11: Json,
+  opening_hours: Json,
 ) -> Result(pog.Returned(UpdateLocationRow), pog.QueryError) {
   let decoder = {
     use id <- decode.field(0, uuid_decoder())
@@ -2605,7 +2994,7 @@ RETURNING id,
     opening_hours;
 "
   |> pog.query
-  |> pog.parameter(pog.text(uuid.to_string(arg_1)))
+  |> pog.parameter(pog.text(uuid.to_string(id)))
   |> pog.parameter(pog.text(arg_2))
   |> pog.parameter(pog.text(arg_3))
   |> pog.parameter(pog.text(arg_4))
@@ -2615,7 +3004,7 @@ RETURNING id,
   |> pog.parameter(pog.text(arg_8))
   |> pog.parameter(pog.float(arg_9))
   |> pog.parameter(pog.float(arg_10))
-  |> pog.parameter(pog.text(json.to_string(arg_11)))
+  |> pog.parameter(pog.text(json.to_string(opening_hours)))
   |> pog.returning(decoder)
   |> pog.execute(db)
 }
@@ -2623,7 +3012,7 @@ RETURNING id,
 /// A row you get from running the `update_location_tag` query
 /// defined in `./src/server/sql/update_location_tag.sql`.
 ///
-/// > 🐿️ This type definition was generated automatically using v4.6.0 of the
+/// > 🐿️ This type definition was generated automatically using v4.7.0 of the
 /// > [squirrel package](https://github.com/giacomocavalieri/squirrel).
 ///
 pub type UpdateLocationTagRow {
@@ -2638,16 +3027,16 @@ pub type UpdateLocationTagRow {
 
 /// Updates a location tag and returns it.
 ///
-/// > 🐿️ This function was generated automatically using v4.6.0 of
+/// > 🐿️ This function was generated automatically using v4.7.0 of
 /// > the [squirrel package](https://github.com/giacomocavalieri/squirrel).
 ///
 pub fn update_location_tag(
   db: pog.Connection,
-  arg_1: Uuid,
+  id: Uuid,
   arg_2: String,
   arg_3: String,
   arg_4: String,
-  arg_5: String,
+  icon_variant: String,
 ) -> Result(pog.Returned(UpdateLocationTagRow), pog.QueryError) {
   let decoder = {
     use id <- decode.field(0, uuid_decoder())
@@ -2678,11 +3067,11 @@ RETURNING id,
     icon_variant;
 "
   |> pog.query
-  |> pog.parameter(pog.text(uuid.to_string(arg_1)))
+  |> pog.parameter(pog.text(uuid.to_string(id)))
   |> pog.parameter(pog.text(arg_2))
   |> pog.parameter(pog.text(arg_3))
   |> pog.parameter(pog.text(arg_4))
-  |> pog.parameter(pog.text(arg_5))
+  |> pog.parameter(pog.text(icon_variant))
   |> pog.returning(decoder)
   |> pog.execute(db)
 }
@@ -2690,7 +3079,7 @@ RETURNING id,
 /// A row you get from running the `upsert_user` query
 /// defined in `./src/server/sql/upsert_user.sql`.
 ///
-/// > 🐿️ This type definition was generated automatically using v4.6.0 of the
+/// > 🐿️ This type definition was generated automatically using v4.7.0 of the
 /// > [squirrel package](https://github.com/giacomocavalieri/squirrel).
 ///
 pub type UpsertUserRow {
@@ -2700,7 +3089,7 @@ pub type UpsertUserRow {
 /// Creates the user row for a JWT-authenticated user on first sight, so
 /// handlers can write rows with user_id foreign keys.
 ///
-/// > 🐿️ This function was generated automatically using v4.6.0 of
+/// > 🐿️ This function was generated automatically using v4.7.0 of
 /// > the [squirrel package](https://github.com/giacomocavalieri/squirrel).
 ///
 pub fn upsert_user(
@@ -2722,6 +3111,44 @@ RETURNING id
   |> pog.parameter(pog.text(uuid.to_string(arg_1)))
   |> pog.returning(decoder)
   |> pog.execute(db)
+}
+
+// --- Enums -------------------------------------------------------------------
+
+/// Corresponds to the Postgres `target_group` enum.
+///
+/// > 🐿️ This type definition was generated automatically using v4.7.0 of the
+/// > [squirrel package](https://github.com/giacomocavalieri/squirrel).
+///
+pub type TargetGroup {
+  Rover
+  Utmanare
+  Aventyrare
+  Upptackare
+  Sparare
+}
+
+fn target_group_decoder() -> decode.Decoder(TargetGroup) {
+  use target_group <- decode.then(decode.string)
+  case target_group {
+    "rover" -> decode.success(Rover)
+    "utmanare" -> decode.success(Utmanare)
+    "aventyrare" -> decode.success(Aventyrare)
+    "upptackare" -> decode.success(Upptackare)
+    "sparare" -> decode.success(Sparare)
+    _ -> decode.failure(Rover, "TargetGroup")
+  }
+}
+
+fn target_group_encoder(target_group) -> pog.Value {
+  case target_group {
+    Rover -> "rover"
+    Utmanare -> "utmanare"
+    Aventyrare -> "aventyrare"
+    Upptackare -> "upptackare"
+    Sparare -> "sparare"
+  }
+  |> pog.text
 }
 
 // --- Encoding/decoding utils -------------------------------------------------

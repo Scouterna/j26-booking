@@ -26,8 +26,8 @@ import modem
 import rsvp
 import shared/model.{
   type Activity, type ActivitySpots, type ActivityStatus,
-  type ActivityStatusEntry, type ActivitySummary, type Booking, type Location,
-  Booked, Favourited, NotInterested,
+  type ActivityStatusEntry, type ActivitySummary, type ActivityTag, type Booking,
+  type Location, type TargetGroup, Booked, Favourited, NotInterested,
 }
 import youid/uuid.{type Uuid}
 
@@ -332,6 +332,11 @@ pub type EditState {
     activity: Activity,
     form: Form(ActivityForm),
     submit_error: Option(AppError),
+    /// Working selection of tag ids, seeded from the activity and toggled in the
+    /// edit form. Sent as-is on save (the server re-syncs to exactly this set).
+    tags: List(Uuid),
+    /// Working selection of target groups, seeded from the activity.
+    target_groups: List(TargetGroup),
   )
 }
 
@@ -348,8 +353,8 @@ pub type ListFilters {
     tab: ActivitiesFilterTab,
     day: Option(calendar.Date),
     more_open: Bool,
-    audiences: List(String),
-    tags: List(String),
+    target_groups: List(TargetGroup),
+    tags: List(Uuid),
   )
 }
 
@@ -359,7 +364,7 @@ pub fn default_filters() -> ListFilters {
     tab: TabActivities,
     day: None,
     more_open: False,
-    audiences: [],
+    target_groups: [],
     tags: [],
   )
 }
@@ -386,7 +391,14 @@ pub fn tab_from_index(index: Int) -> ActivitiesFilterTab {
 
 pub type Page {
   ActivitiesListPage(filters: ListFilters)
-  ActivityNewPage(form: Form(ActivityForm), submit_error: Option(AppError))
+  ActivityNewPage(
+    form: Form(ActivityForm),
+    submit_error: Option(AppError),
+    /// Working selection of tag ids toggled in the create form.
+    tags: List(Uuid),
+    /// Working selection of target groups toggled in the create form.
+    target_groups: List(TargetGroup),
+  )
   ActivityDetailPage(id: Uuid, booking: BookingFormState)
   ActivityEditPage(id: Uuid, state: EditState)
   NotFoundPage
@@ -399,7 +411,12 @@ pub type Page {
 /// so a list refetch can never leave an open detail view showing stale summary
 /// fields.
 pub type ActivityDetail {
-  ActivityDetail(description: model.BilingualString, location: Option(Location))
+  ActivityDetail(
+    description: model.BilingualString,
+    location: Option(Location),
+    tags: List(Uuid),
+    target_groups: List(TargetGroup),
+  )
 }
 
 pub type Model {
@@ -428,6 +445,10 @@ pub type Model {
     // UNKNOWN (not fetched / offline), not zero — so cached cards with no count
     // render "unknown" rather than falsely claiming full availability.
     spots: Dict(Uuid, Int),
+    // Activity tag vocabulary, keyed by id, fetched once from /api/activity-tags.
+    // Used to resolve the tag ids carried on activities into labels. Empty until
+    // loaded (and if the fetch fails), in which case tag chips simply don't show.
+    activity_tags: Dict(Uuid, ActivityTag),
   )
 }
 
@@ -572,12 +593,19 @@ fn to_summary(a: Activity) -> ActivitySummary {
     start_time: a.start_time,
     end_time: a.end_time,
     location_name: option.map(a.location, fn(l) { l.name }),
+    tags: a.tags,
+    target_groups: a.target_groups,
   )
 }
 
 /// Extract the detail-only fields from a full activity.
 fn to_detail(a: Activity) -> ActivityDetail {
-  ActivityDetail(description: a.description, location: a.location)
+  ActivityDetail(
+    description: a.description,
+    location: a.location,
+    tags: a.tags,
+    target_groups: a.target_groups,
+  )
 }
 
 /// Compose a full activity from a cached summary and its loaded detail fields.
@@ -590,6 +618,8 @@ fn to_activity(summary: ActivitySummary, detail: ActivityDetail) -> Activity {
     start_time: summary.start_time,
     end_time: summary.end_time,
     location: detail.location,
+    tags: detail.tags,
+    target_groups: detail.target_groups,
   )
 }
 
@@ -752,7 +782,7 @@ fn app_bar_title(translator: Translator, page: Page) -> Option(String) {
       Some(g18n.translate(translator, "app_bar.activities_list"))
     ActivityDetailPage(_, _) ->
       Some(g18n.translate(translator, "app_bar.activity_detail"))
-    ActivityNewPage(_, _) ->
+    ActivityNewPage(..) ->
       Some(g18n.translate(translator, "app_bar.activity_new"))
     ActivityEditPage(_, _) -> None
     NotFoundPage -> None
@@ -780,6 +810,7 @@ fn init(_flags) -> #(Model, Effect(Msg)) {
       details: seed_detail_loading(dict.new(), page),
       statuses: dict.new(),
       spots: dict.new(),
+      activity_tags: dict.new(),
     )
 
   let title_effect = case app_bar_title(translator, page) {
@@ -794,6 +825,7 @@ fn init(_flags) -> #(Model, Effect(Msg)) {
       observe_lang(),
       fetch_list(SourceActivities),
       fetch_spots(),
+      fetch_activity_tags(),
       page_effect,
       // Always attempt; a 401 (anonymous user) leaves the status dict empty.
       fetch_statuses(),
@@ -818,6 +850,7 @@ pub type Msg {
   ApiReturnedStatuses(Result(List(ActivityStatusEntry), rsvp.Error))
   ApiReturnedActivitySpots(Result(List(ActivitySpots), rsvp.Error))
   ApiReturnedActivitySpotsOne(Uuid, Result(Int, rsvp.Error))
+  ApiReturnedActivityTags(Result(List(ActivityTag), rsvp.Error))
   ApiCreatedActivity(Result(Activity, rsvp.Error))
   ApiUpdatedActivity(Result(Activity, rsvp.Error))
   ApiDeletedActivity(Uuid, Result(Nil, rsvp.Error))
@@ -846,8 +879,8 @@ pub type Msg {
   UserSelectedTab(Int)
   UserSelectedDay(Option(calendar.Date))
   UserToggledMoreFilters
-  UserToggledAudience(String)
-  UserToggledTag(String)
+  UserToggledTargetGroup(TargetGroup)
+  UserToggledTag(Uuid)
 }
 
 pub fn update(model: Model, msg: Msg) -> #(Model, Effect(Msg)) {
@@ -938,6 +971,17 @@ pub fn update(model: Model, msg: Msg) -> #(Model, Effect(Msg)) {
 
     ApiReturnedActivitySpotsOne(_, Error(_)) -> #(model, effect.none())
 
+    ApiReturnedActivityTags(Ok(tags)) -> {
+      let activity_tags =
+        list.fold(tags, dict.new(), fn(acc, tag) {
+          dict.insert(acc, tag.id, tag)
+        })
+      #(Model(..model, activity_tags:), effect.none())
+    }
+
+    // Keep the prior vocabulary (empty) on failure; tag chips just won't show.
+    ApiReturnedActivityTags(Error(_)) -> #(model, effect.none())
+
     ApiCreatedActivity(Ok(activity)) -> #(
       Model(
         ..model,
@@ -963,10 +1007,15 @@ pub fn update(model: Model, msg: Msg) -> #(Model, Effect(Msg)) {
 
     ApiCreatedActivity(Error(_)) ->
       case model.page {
-        ActivityNewPage(form, _) -> #(
+        ActivityNewPage(form, _, tags, target_groups) -> #(
           Model(
             ..model,
-            page: ActivityNewPage(form, Some(CreateActivityFailed)),
+            page: ActivityNewPage(
+              form,
+              Some(CreateActivityFailed),
+              tags,
+              target_groups,
+            ),
           ),
           effect.none(),
         )
@@ -978,7 +1027,13 @@ pub fn update(model: Model, msg: Msg) -> #(Model, Effect(Msg)) {
         ActivityEditPage(id, _) ->
           ActivityEditPage(
             id,
-            EditReady(activity, form_from_activity(activity), None),
+            EditReady(
+              activity,
+              form_from_activity(activity),
+              None,
+              activity.tags,
+              activity.target_groups,
+            ),
           )
         other -> other
       }
@@ -1003,12 +1058,12 @@ pub fn update(model: Model, msg: Msg) -> #(Model, Effect(Msg)) {
 
     ApiUpdatedActivity(Error(_)) ->
       case model.page {
-        ActivityEditPage(id, EditReady(activity, form, _)) -> #(
+        ActivityEditPage(id, edit) -> #(
           Model(
             ..model,
             page: ActivityEditPage(
               id,
-              EditReady(activity, form, Some(UpdateActivityFailed)),
+              EditReady(..edit, submit_error: Some(UpdateActivityFailed)),
             ),
           ),
           effect.none(),
@@ -1032,12 +1087,12 @@ pub fn update(model: Model, msg: Msg) -> #(Model, Effect(Msg)) {
 
     ApiDeletedActivity(_, Error(_)) ->
       case model.page {
-        ActivityEditPage(id, EditReady(activity, form, _)) -> #(
+        ActivityEditPage(id, edit) -> #(
           Model(
             ..model,
             page: ActivityEditPage(
               id,
-              EditReady(activity, form, Some(DeleteActivityFailed)),
+              EditReady(..edit, submit_error: Some(DeleteActivityFailed)),
             ),
           ),
           effect.none(),
@@ -1045,15 +1100,22 @@ pub fn update(model: Model, msg: Msg) -> #(Model, Effect(Msg)) {
         _ -> #(model, effect.none())
       }
 
-    UserSubmittedCreateForm(Ok(activity_form)) -> #(
-      model,
-      create_activity(activity_form),
-    )
+    UserSubmittedCreateForm(Ok(activity_form)) ->
+      case model.page {
+        ActivityNewPage(_, _, tags, target_groups) -> #(
+          model,
+          create_activity(activity_form, tags, target_groups),
+        )
+        _ -> #(model, effect.none())
+      }
 
     UserSubmittedCreateForm(Error(f)) ->
       case model.page {
-        ActivityNewPage(_, submit_error) -> #(
-          Model(..model, page: ActivityNewPage(f, submit_error)),
+        ActivityNewPage(_, submit_error, tags, target_groups) -> #(
+          Model(
+            ..model,
+            page: ActivityNewPage(f, submit_error, tags, target_groups),
+          ),
           effect.none(),
         )
         _ -> #(model, effect.none())
@@ -1061,20 +1123,17 @@ pub fn update(model: Model, msg: Msg) -> #(Model, Effect(Msg)) {
 
     UserSubmittedEditForm(Ok(activity_form)) ->
       case model.page {
-        ActivityEditPage(id, EditReady(_, _, _)) -> #(
+        ActivityEditPage(id, edit) -> #(
           model,
-          update_activity(id, activity_form),
+          update_activity(id, activity_form, edit.tags, edit.target_groups),
         )
         _ -> #(model, effect.none())
       }
 
     UserSubmittedEditForm(Error(f)) ->
       case model.page {
-        ActivityEditPage(id, EditReady(activity, _, submit_error)) -> #(
-          Model(
-            ..model,
-            page: ActivityEditPage(id, EditReady(activity, f, submit_error)),
-          ),
+        ActivityEditPage(id, edit) -> #(
+          Model(..model, page: ActivityEditPage(id, EditReady(..edit, form: f))),
           effect.none(),
         )
         _ -> #(model, effect.none())
@@ -1084,12 +1143,18 @@ pub fn update(model: Model, msg: Msg) -> #(Model, Effect(Msg)) {
 
     UserClickedCancelEdit ->
       case model.page {
-        ActivityEditPage(id, EditReady(activity, _, _)) -> #(
+        ActivityEditPage(id, edit) -> #(
           Model(
             ..model,
             page: ActivityEditPage(
               id,
-              EditReady(activity, form_from_activity(activity), None),
+              EditReady(
+                ..edit,
+                form: form_from_activity(edit.activity),
+                submit_error: None,
+                tags: edit.activity.tags,
+                target_groups: edit.activity.target_groups,
+              ),
             ),
           ),
           effect.none(),
@@ -1099,10 +1164,7 @@ pub fn update(model: Model, msg: Msg) -> #(Model, Effect(Msg)) {
 
     UserClickedDelete ->
       case model.page {
-        ActivityEditPage(id, EditReady(_, _, _)) -> #(
-          model,
-          delete_activity(id),
-        )
+        ActivityEditPage(id, EditReady(..)) -> #(model, delete_activity(id))
         _ -> #(model, effect.none())
       }
 
@@ -1132,15 +1194,74 @@ pub fn update(model: Model, msg: Msg) -> #(Model, Effect(Msg)) {
     UserToggledMoreFilters ->
       update_filters(model, fn(f) { ListFilters(..f, more_open: !f.more_open) })
 
-    UserToggledAudience(name) ->
-      update_filters(model, fn(f) {
-        ListFilters(..f, audiences: toggle_member(f.audiences, name))
-      })
+    // Target-group / tag chips are reused by both the list filter panel and the
+    // create/edit form, so the same message toggles either the active filters or
+    // the page's working selection, depending on the current page.
+    UserToggledTargetGroup(target_group) ->
+      case model.page {
+        ActivityNewPage(form, submit_error, tags, target_groups) -> #(
+          Model(
+            ..model,
+            page: ActivityNewPage(
+              form,
+              submit_error,
+              tags,
+              toggle_member(target_groups, target_group),
+            ),
+          ),
+          effect.none(),
+        )
+        ActivityEditPage(id, edit) -> #(
+          Model(
+            ..model,
+            page: ActivityEditPage(
+              id,
+              EditReady(
+                ..edit,
+                target_groups: toggle_member(edit.target_groups, target_group),
+              ),
+            ),
+          ),
+          effect.none(),
+        )
+        _ ->
+          update_filters(model, fn(f) {
+            ListFilters(
+              ..f,
+              target_groups: toggle_member(f.target_groups, target_group),
+            )
+          })
+      }
 
-    UserToggledTag(name) ->
-      update_filters(model, fn(f) {
-        ListFilters(..f, tags: toggle_member(f.tags, name))
-      })
+    UserToggledTag(tag_id) ->
+      case model.page {
+        ActivityNewPage(form, submit_error, tags, target_groups) -> #(
+          Model(
+            ..model,
+            page: ActivityNewPage(
+              form,
+              submit_error,
+              toggle_member(tags, tag_id),
+              target_groups,
+            ),
+          ),
+          effect.none(),
+        )
+        ActivityEditPage(id, edit) -> #(
+          Model(
+            ..model,
+            page: ActivityEditPage(
+              id,
+              EditReady(..edit, tags: toggle_member(edit.tags, tag_id)),
+            ),
+          ),
+          effect.none(),
+        )
+        _ ->
+          update_filters(model, fn(f) {
+            ListFilters(..f, tags: toggle_member(f.tags, tag_id))
+          })
+      }
 
     UserClickedRetryLoad -> {
       let tab = case model.page {
@@ -1418,7 +1539,7 @@ fn update_filters(
   }
 }
 
-pub fn toggle_member(items: List(String), name: String) -> List(String) {
+pub fn toggle_member(items: List(a), name: a) -> List(a) {
   case list.contains(items, name) {
     True -> list.filter(items, fn(i) { i != name })
     False -> [name, ..items]
@@ -1592,19 +1713,35 @@ fn booking_form_to_json(fields: BookingFormFields) -> json.Json {
   ])
 }
 
-fn create_activity(af: ActivityForm) -> Effect(Msg) {
+fn create_activity(
+  af: ActivityForm,
+  tags: List(Uuid),
+  target_groups: List(TargetGroup),
+) -> Effect(Msg) {
   rsvp.post(
     api_prefix <> "/api/activities",
-    activity_form_to_json(af),
+    activity_form_to_json(af, tags, target_groups),
     rsvp.expect_json(model.activity_decoder(), ApiCreatedActivity),
   )
 }
 
-fn update_activity(id: Uuid, af: ActivityForm) -> Effect(Msg) {
+fn update_activity(
+  id: Uuid,
+  af: ActivityForm,
+  tags: List(Uuid),
+  target_groups: List(TargetGroup),
+) -> Effect(Msg) {
   rsvp.put(
     api_prefix <> "/api/activities/" <> uuid.to_string(id),
-    activity_form_to_json(af),
+    activity_form_to_json(af, tags, target_groups),
     rsvp.expect_json(model.activity_decoder(), ApiUpdatedActivity),
+  )
+}
+
+fn fetch_activity_tags() -> Effect(Msg) {
+  rsvp.get(
+    api_prefix <> "/api/activity-tags",
+    rsvp.expect_json(model.activity_tags_decoder(), ApiReturnedActivityTags),
   )
 }
 
@@ -1621,7 +1758,11 @@ fn delete_activity(id: Uuid) -> Effect(Msg) {
   )
 }
 
-fn activity_form_to_json(af: ActivityForm) -> json.Json {
+fn activity_form_to_json(
+  af: ActivityForm,
+  tags: List(Uuid),
+  target_groups: List(TargetGroup),
+) -> json.Json {
   let to_secs = fn(dt: #(calendar.Date, calendar.TimeOfDay)) -> Int {
     let ts =
       timestamp.from_calendar(
@@ -1653,6 +1794,8 @@ fn activity_form_to_json(af: ActivityForm) -> json.Json {
     }),
     #("start_time", json.int(to_secs(af.start_time))),
     #("end_time", json.int(to_secs(af.end_time))),
+    #("tags", json.array(tags, fn(id) { json.string(uuid.to_string(id)) })),
+    #("target_groups", json.array(target_groups, model.target_group_to_json)),
   ])
 }
 
@@ -1668,7 +1811,7 @@ pub fn uri_to_page(
       effect.none(),
     )
     ["activities", "new"] -> #(
-      ActivityNewPage(activity_form(), None),
+      ActivityNewPage(activity_form(), None, [], []),
       effect.none(),
     )
     ["activities", id_str] ->
@@ -1703,9 +1846,17 @@ fn view(model: Model) -> Element(Msg) {
         model.statuses,
         model.spots,
         filters,
+        model.activity_tags,
       )
-    ActivityNewPage(form, submit_error) ->
-      view_activity_new(model.translator, form, submit_error)
+    ActivityNewPage(form, submit_error, tags, target_groups) ->
+      view_activity_new(
+        model.translator,
+        form,
+        submit_error,
+        tags,
+        target_groups,
+        model.activity_tags,
+      )
     ActivityDetailPage(id, booking) ->
       view_activity_detail(
         model.translator,
@@ -1713,6 +1864,7 @@ fn view(model: Model) -> Element(Msg) {
         status_of(model.statuses, id),
         dict.get(model.spots, id) |> option.from_result,
         booking,
+        model.activity_tags,
       )
     ActivityEditPage(_, _) -> view_not_found()
     NotFoundPage -> view_not_found()
@@ -1725,13 +1877,14 @@ fn view_activities_list(
   statuses: Dict(Uuid, ActivityStatus),
   spots: Dict(Uuid, Int),
   filters: ListFilters,
+  activity_tags: Dict(Uuid, ActivityTag),
 ) -> Element(Msg) {
   let t = fn(key) { g18n.translate(translator, key) }
 
   html.div([attribute.class("flex flex-col")], [
     view_list_top_bar(translator, filters, summaries),
     case filters.more_open {
-      True -> view_more_filters_panel(translator, filters)
+      True -> view_more_filters_panel(translator, filters, activity_tags)
       False -> element.none()
     },
     html.div([attribute.class("flex flex-col gap-3 mt-3")], [
@@ -1871,47 +2024,74 @@ fn view_day_select(
 fn view_more_filters_panel(
   translator: Translator,
   filters: ListFilters,
+  activity_tags: Dict(Uuid, ActivityTag),
 ) -> Element(Msg) {
-  let t = fn(key) { g18n.translate(translator, key) }
   html.div(
     [
       attribute.class(
         "bg-white border-b border-gray-200 p-3 flex flex-col gap-3",
       ),
     ],
-    [
-      html.div([attribute.class("flex flex-col gap-2")], [
-        html.h4([attribute.class("text-body-sm font-semibold")], [
-          element.text(t("list.filter.audience_label")),
-        ]),
-        html.div(
-          [attribute.class("flex flex-wrap gap-2")],
-          list.map(audience_options(), fn(name) {
-            component.filter_chip(
-              name,
-              list.contains(filters.audiences, name),
-              UserToggledAudience(name),
-            )
-          }),
-        ),
-      ]),
-      html.div([attribute.class("flex flex-col gap-2")], [
-        html.h4([attribute.class("text-body-sm font-semibold")], [
-          element.text(t("list.filter.tags_label")),
-        ]),
-        html.div(
-          [attribute.class("flex flex-wrap gap-2")],
-          list.map(tag_options(), fn(name) {
-            component.filter_chip(
-              name,
-              list.contains(filters.tags, name),
-              UserToggledTag(name),
-            )
-          }),
-        ),
-      ]),
-    ],
+    view_target_group_and_tag_pickers(
+      translator,
+      filters.target_groups,
+      filters.tags,
+      activity_tags,
+    ),
   )
+}
+
+/// The målgrupp + tags chip groups, shared by the list filter panel and the
+/// create/edit form. Selection state and the toggle messages are the same in
+/// both places — `UserToggledTargetGroup`/`UserToggledTag` act on whichever page
+/// is active.
+fn view_target_group_and_tag_pickers(
+  translator: Translator,
+  selected_target_groups: List(TargetGroup),
+  selected_tags: List(Uuid),
+  activity_tags: Dict(Uuid, ActivityTag),
+) -> List(Element(Msg)) {
+  let t = fn(key) { g18n.translate(translator, key) }
+  let tags =
+    dict.values(activity_tags)
+    |> list.sort(fn(a, b) {
+      string.compare(
+        localized(translator, a.name),
+        localized(translator, b.name),
+      )
+    })
+  [
+    html.div([attribute.class("flex flex-col gap-2")], [
+      html.h4([attribute.class("text-body-sm font-semibold")], [
+        element.text(t("list.filter.audience_label")),
+      ]),
+      html.div(
+        [attribute.class("flex flex-wrap gap-2")],
+        list.map(model.target_groups_all(), fn(target_group) {
+          component.filter_chip(
+            target_group_label(target_group),
+            list.contains(selected_target_groups, target_group),
+            UserToggledTargetGroup(target_group),
+          )
+        }),
+      ),
+    ]),
+    html.div([attribute.class("flex flex-col gap-2")], [
+      html.h4([attribute.class("text-body-sm font-semibold")], [
+        element.text(t("list.filter.tags_label")),
+      ]),
+      html.div(
+        [attribute.class("flex flex-wrap gap-2")],
+        list.map(tags, fn(tag) {
+          component.filter_chip(
+            localized(translator, tag.name),
+            list.contains(selected_tags, tag.id),
+            UserToggledTag(tag.id),
+          )
+        }),
+      ),
+    ]),
+  ]
 }
 
 fn view_grouped_activities(
@@ -2087,6 +2267,9 @@ fn view_activity_new(
   translator: g18n.Translator,
   form: Form(ActivityForm),
   submit_error: Option(AppError),
+  selected_tags: List(Uuid),
+  selected_target_groups: List(TargetGroup),
+  activity_tags: Dict(Uuid, ActivityTag),
 ) -> Element(Msg) {
   let submitted = fn(values) {
     form
@@ -2147,14 +2330,24 @@ fn view_activity_new(
               "datetime-local",
               "end_time",
             ),
-            element.element(
-              "scout-button",
+            ..list.append(
+              view_target_group_and_tag_pickers(
+                translator,
+                selected_target_groups,
+                selected_tags,
+                activity_tags,
+              ),
               [
-                attribute.attribute("variant", "primary"),
-                attribute.attribute("type", "submit"),
+                element.element(
+                  "scout-button",
+                  [
+                    attribute.attribute("variant", "primary"),
+                    attribute.attribute("type", "submit"),
+                  ],
+                  [element.text("Create")],
+                ),
               ],
-              [element.text("Create")],
-            ),
+            )
           ]),
         ]),
       ]),
@@ -2168,6 +2361,7 @@ fn view_activity_detail(
   status: ActivityStatus,
   spots_booked: Option(Int),
   booking: BookingFormState,
+  activity_tags: Dict(Uuid, ActivityTag),
 ) -> Element(Msg) {
   case state {
     NotAsked | Loading ->
@@ -2210,6 +2404,7 @@ fn view_activity_detail(
         status,
         spots_booked,
         booking,
+        activity_tags,
       )
   }
 }
@@ -2235,6 +2430,7 @@ fn view_activity_detail_loaded(
   status: ActivityStatus,
   spots_booked: Option(Int),
   booking: BookingFormState,
+  activity_tags: Dict(Uuid, ActivityTag),
 ) -> Element(Msg) {
   let heart_btn =
     component.heart_button(
@@ -2377,9 +2573,41 @@ fn view_activity_detail_loaded(
             element.text(localized(translator, activity.description)),
           ]),
         ]),
+        view_detail_chips(translator, activity, activity_tags),
       ],
     ),
   ])
+}
+
+/// The activity's målgrupp and tags rendered as read-only badges. Renders
+/// nothing when the activity has neither. Tag ids are resolved to labels via the
+/// fetched vocabulary; ids not yet resolved are skipped.
+fn view_detail_chips(
+  translator: Translator,
+  activity: Activity,
+  activity_tags: Dict(Uuid, ActivityTag),
+) -> Element(Msg) {
+  let target_group_badges =
+    activity.target_groups
+    |> list.map(fn(target_group) {
+      component.badge(component.BadgePurple, target_group_label(target_group))
+    })
+  let tag_badges =
+    activity.tags
+    |> list.filter_map(fn(id) {
+      case dict.get(activity_tags, id) {
+        Ok(tag) ->
+          Ok(component.badge(
+            component.BadgeGreen,
+            localized(translator, tag.name),
+          ))
+        Error(_) -> Error(Nil)
+      }
+    })
+  case list.append(target_group_badges, tag_badges) {
+    [] -> element.none()
+    badges -> html.div([attribute.class("flex flex-wrap gap-2")], badges)
+  }
 }
 
 /// Heading for the booking drawer, based on whether the user is creating a
@@ -2667,57 +2895,15 @@ fn view_not_found() -> Element(Msg) {
   ])
 }
 
-// MOCK -----------------------------------------------------------------------
-// TODO: replace with real data once schema is extended with tags, target
-// audience, and bookings.
-
-fn id_seed(id: Uuid) -> Int {
-  uuid.to_string(id)
-  |> string.to_utf_codepoints
-  |> list.fold(0, fn(acc, cp) { acc + string.utf_codepoint_to_int(cp) })
-}
-
-fn pick_at(items: List(a), seed: Int, default: a) -> a {
-  let n = list.length(items)
-  case n {
-    0 -> default
-    _ -> {
-      let idx = seed % n
-      case list.drop(items, idx) |> list.first {
-        Ok(value) -> value
-        Error(_) -> default
-      }
-    }
-  }
-}
-
-fn audience_options() -> List(String) {
-  ["Spårare", "Upptäckare", "Äventyrare", "Utmanare", "Rover"]
-}
-
-fn tag_options() -> List(String) {
-  ["Fysisk", "Badbuss", "Mat", "Skapande", "Lugn"]
-}
-
-fn mock_audiences(id: Uuid) -> List(String) {
-  let opts = audience_options()
-  let seed = id_seed(id)
-  let first = pick_at(opts, seed, "Spårare")
-  let second = pick_at(opts, seed / 7 + 1, "Utmanare")
-  case first == second {
-    True -> [first]
-    False -> [first, second]
-  }
-}
-
-fn mock_tags(id: Uuid) -> List(String) {
-  let opts = tag_options()
-  let seed = id_seed(id)
-  let first = pick_at(opts, seed / 3, "Fysisk")
-  let second = pick_at(opts, seed / 11 + 2, "Badbuss")
-  case first == second {
-    True -> [first]
-    False -> [first, second]
+/// The Swedish scout section label for a target group (målgrupp). Section names
+/// are proper nouns, so the same label is shown regardless of active language.
+fn target_group_label(target_group: TargetGroup) -> String {
+  case target_group {
+    model.Sparare -> "Spårare"
+    model.Upptackare -> "Upptäckare"
+    model.Aventyrare -> "Äventyrare"
+    model.Utmanare -> "Utmanare"
+    model.Rover -> "Rover"
   }
 }
 
@@ -2786,7 +2972,7 @@ fn date_of(ts: Timestamp) -> calendar.Date {
   date
 }
 
-fn lists_intersect(a: List(String), b: List(String)) -> Bool {
+fn lists_intersect(a: List(a), b: List(a)) -> Bool {
   list.any(a, fn(x) { list.contains(b, x) })
 }
 
@@ -2806,16 +2992,16 @@ pub fn apply_filters(items: List(CardItem), f: ListFilters) -> List(CardItem) {
   }
   // Membership (tab/favourites) is resolved upstream via the source id windows
   // and the statuses-derived favourites set, so every tab is pass-through on
-  // status here; only search + day + the mock facets filter client-side.
-  let audience_match = case f.audiences {
+  // status here; only search + day + target group + tags filter client-side.
+  let target_group_match = case f.target_groups {
     [] -> True
-    selected -> lists_intersect(mock_audiences(summary.id), selected)
+    selected -> lists_intersect(summary.target_groups, selected)
   }
   let tag_match = case f.tags {
     [] -> True
-    selected -> lists_intersect(mock_tags(summary.id), selected)
+    selected -> lists_intersect(summary.tags, selected)
   }
-  title_match && day_match && audience_match && tag_match
+  title_match && day_match && target_group_match && tag_match
 }
 
 fn camp_dates(summaries: List(ActivitySummary)) -> List(calendar.Date) {
