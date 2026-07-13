@@ -677,6 +677,39 @@ paths:
         '500':
           $ref: '#/components/responses/ServerError'
 
+  /me:
+    get:
+      tags:
+        - Configuration
+      summary: Get my access roles
+      description: |
+        Retrieve the authenticated user's access roles, as the Keycloak role
+        strings the client parses (from `resource_access.j26-booking.roles`).
+        Unknown roles the client does not model are ignored by the client.
+      operationId: getMe
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+      responses:
+        '200':
+          description: Successfully retrieved the current user's roles
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - roles
+                properties:
+                  roles:
+                    type: array
+                    items:
+                      type: string
+              example:
+                roles:
+                  - "activities:manage"
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
   /statuses/me:
     get:
       tags:

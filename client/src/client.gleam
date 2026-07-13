@@ -500,18 +500,6 @@ fn role_from_string(raw: String) -> Result(Role, Nil) {
   }
 }
 
-/// The current user's roles.
-///
-/// TODO(auth): the server already authenticates the user and knows their roles
-/// (`web.Role` from `resource_access.j26-booking.roles`), but does not yet
-/// expose them to the client. Wire this to a small endpoint (e.g. extend
-/// `/api/statuses/me` or add `/api/me`) instead of hardcoding. Hardcoded here so
-/// the role-gated UI works ahead of that; swap the list to `[]` to preview the
-/// no-authority view.
-fn initial_roles() -> List(Role) {
-  ["activities:manage"] |> list.filter_map(role_from_string)
-}
-
 fn can_manage_activities(model: Model) -> Bool {
   list.contains(model.roles, ManageActivities)
 }
@@ -879,7 +867,8 @@ fn init(_flags) -> #(Model, Effect(Msg)) {
       statuses: dict.new(),
       spots: dict.new(),
       activity_tags: dict.new(),
-      roles: initial_roles(),
+      // Empty until /api/me returns; the role-gated UI reveals once loaded.
+      roles: [],
     )
 
   let title_effect = case app_bar_title(translator, page) {
@@ -898,6 +887,8 @@ fn init(_flags) -> #(Model, Effect(Msg)) {
       page_effect,
       // Always attempt; a 401 (anonymous user) leaves the status dict empty.
       fetch_statuses(),
+      // Load the user's roles; a 401 leaves roles empty (restricted view).
+      fetch_me(),
       title_effect,
     ]),
   )
@@ -916,6 +907,7 @@ pub type Msg {
     Result(List(ActivitySummary), rsvp.Error),
   )
   ApiReturnedActivity(Uuid, Result(Activity, rsvp.Error))
+  ApiReturnedMe(Result(List(Role), rsvp.Error))
   ApiReturnedStatuses(Result(List(ActivityStatusEntry), rsvp.Error))
   ApiReturnedActivitySpots(Result(List(ActivitySpots), rsvp.Error))
   ApiReturnedActivitySpotsOne(Uuid, Result(Int, rsvp.Error))
@@ -1012,6 +1004,11 @@ pub fn update(model: Model, msg: Msg) -> #(Model, Effect(Msg)) {
       ),
       effect.none(),
     )
+
+    ApiReturnedMe(Ok(roles)) -> #(Model(..model, roles:), effect.none())
+
+    // 401 / network error -> no roles -> restricted view.
+    ApiReturnedMe(Error(_)) -> #(Model(..model, roles: []), effect.none())
 
     ApiReturnedStatuses(Ok(entries)) -> {
       let statuses =
@@ -1716,6 +1713,19 @@ fn fetch_statuses() -> Effect(Msg) {
   rsvp.get(
     api_prefix <> "/api/statuses/me",
     rsvp.expect_json(model.activity_statuses_decoder(), ApiReturnedStatuses),
+  )
+}
+
+/// Decode `{ "roles": [...] }`, keeping only roles the client models.
+fn me_decoder() -> decode.Decoder(List(Role)) {
+  use raw <- decode.field("roles", decode.list(decode.string))
+  decode.success(list.filter_map(raw, role_from_string))
+}
+
+fn fetch_me() -> Effect(Msg) {
+  rsvp.get(
+    api_prefix <> "/api/me",
+    rsvp.expect_json(me_decoder(), ApiReturnedMe),
   )
 }
 
