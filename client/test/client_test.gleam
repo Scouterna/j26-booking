@@ -33,7 +33,11 @@ fn id_c() -> Uuid {
   uid("00000000-0000-0000-0000-00000000000c")
 }
 
-fn a_summary(id: Uuid, title: String, max: Option(Int)) -> model.ActivitySummary {
+fn a_summary(
+  id: Uuid,
+  title: String,
+  max: Option(Int),
+) -> model.ActivitySummary {
   model.ActivitySummary(
     id:,
     title: model.BilingualString(sv: title, en: title),

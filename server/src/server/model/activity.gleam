@@ -365,7 +365,9 @@ pub fn from_update_activity_without_max_attendees_row(
 
 // --- activity tag row -> ActivityTag ---------------------------------------
 
-pub fn from_list_activity_tags_row(row: sql.ListActivityTagsRow) -> ActivityTag {
+pub fn from_list_activity_tags_row(
+  row: sql.ListActivityTagsRow,
+) -> ActivityTag {
   ActivityTag(
     id: row.id,
     name: model.BilingualString(sv: row.name, en: row.name_en),
