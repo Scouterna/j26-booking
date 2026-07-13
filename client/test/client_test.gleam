@@ -420,6 +420,13 @@ pub fn uri_to_page_not_found_for_invalid_uuid_test() {
   assert page == client.NotFoundPage
 }
 
+pub fn uri_to_page_bookings_for_valid_uuid_test() {
+  let path =
+    "/_services/booking/activities/" <> uuid.to_string(id_a()) <> "/bookings"
+  let #(page, _) = client.uri_to_page(parse_uri(path), dict.new())
+  assert page == client.ActivityBookingsPage(id_a(), client.Loading)
+}
+
 // UPDATE: favourite toggle (optimistic) ----------------------------------------
 
 pub fn toggling_favourite_marks_unfavourited_as_favourited_test() {
@@ -587,6 +594,53 @@ pub fn deleted_booking_downgrades_to_favourited_test() {
     client.update(model_, client.ApiDeletedBooking(id_a(), id_b(), Ok(Nil)))
   assert dict.get(next.statuses, id_a()) == Ok(model.Favourited)
   assert next.page == client.ActivityDetailPage(id_a(), client.BookingClosed)
+}
+
+// UPDATE: bookings list fetch --------------------------------------------------
+
+pub fn returned_bookings_land_on_matching_page_test() {
+  let booking = a_booking(id_c(), id_a())
+  let model_ =
+    client.Model(
+      ..base_model(),
+      page: client.ActivityBookingsPage(id_a(), client.Loading),
+    )
+  let #(next, _) =
+    client.update(model_, client.ApiReturnedBookings(id_a(), Ok([booking])))
+  assert next.page
+    == client.ActivityBookingsPage(id_a(), client.Loaded([booking]))
+}
+
+pub fn returned_bookings_dropped_for_other_activity_test() {
+  // A response for id_b arrives while the open page shows id_a's bookings —
+  // it's stale and must not overwrite the current page.
+  let booking = a_booking(id_c(), id_b())
+  let model_ =
+    client.Model(
+      ..base_model(),
+      page: client.ActivityBookingsPage(id_a(), client.Loading),
+    )
+  let #(next, _) =
+    client.update(model_, client.ApiReturnedBookings(id_b(), Ok([booking])))
+  assert next.page == client.ActivityBookingsPage(id_a(), client.Loading)
+}
+
+pub fn failed_bookings_fetch_marks_failed_test() {
+  let model_ =
+    client.Model(
+      ..base_model(),
+      page: client.ActivityBookingsPage(id_a(), client.Loading),
+    )
+  let #(next, _) =
+    client.update(
+      model_,
+      client.ApiReturnedBookings(id_a(), Error(rsvp.BadBody)),
+    )
+  assert next.page
+    == client.ActivityBookingsPage(
+      id_a(),
+      client.Failed(client.LoadBookingsFailed),
+    )
 }
 
 // UPDATE: statuses fetch -------------------------------------------------------
