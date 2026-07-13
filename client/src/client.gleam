@@ -56,6 +56,7 @@ fn english_translations() -> g18n.Translations {
   |> g18n.add_translation("app_bar.activities_list", "Activities")
   |> g18n.add_translation("app_bar.activity_detail", "Activity")
   |> g18n.add_translation("app_bar.activity_new", "Create activity")
+  |> g18n.add_translation("app_bar.activity_bookings", "Bookings")
   |> g18n.add_translation("activity.booked", "Booked")
   |> g18n.add_translation("activity.needs_booking", "Needs booking")
   |> g18n.add_translation("activity.show_bookings", "Show bookings")
@@ -69,6 +70,16 @@ fn english_translations() -> g18n.Translations {
   |> g18n.add_translation("booking.change", "Change booking")
   |> g18n.add_translation("booking.unbook", "Cancel booking")
   |> g18n.add_translation("booking.confirm_unbook", "Yes, cancel")
+  |> g18n.add_translation("bookings.heading", "Bookings")
+  |> g18n.add_translation("bookings.loading", "Loading bookings...")
+  |> g18n.add_translation("bookings.empty", "No bookings yet.")
+  |> g18n.add_translation("bookings.unknown_group", "Unknown group")
+  |> g18n.add_translation(
+    "bookings.spots_filled",
+    "{booked} / {max} spots filled",
+  )
+  |> g18n.add_translation("bookings.participants.one", "{count} person")
+  |> g18n.add_translation("bookings.participants.other", "{count} people")
   |> g18n.add_translation("list.search_placeholder", "Search")
   |> g18n.add_translation("list.filter.all", "All")
   |> g18n.add_translation("list.tab.activities", "Activities")
@@ -97,6 +108,7 @@ fn english_translations() -> g18n.Translations {
   |> g18n.add_translation("error.delete_activity", "Failed to delete activity")
   |> g18n.add_translation("error.create_booking", "Failed to create booking")
   |> g18n.add_translation("error.update_booking", "Failed to update booking")
+  |> g18n.add_translation("error.load_bookings", "Failed to load bookings")
 }
 
 fn swedish_translations() -> g18n.Translations {
@@ -120,6 +132,7 @@ fn swedish_translations() -> g18n.Translations {
   |> g18n.add_translation("app_bar.activities_list", "Spontanaktiviteter")
   |> g18n.add_translation("app_bar.activity_detail", "Aktivitet")
   |> g18n.add_translation("app_bar.activity_new", "Skapa aktivitet")
+  |> g18n.add_translation("app_bar.activity_bookings", "Bokningar")
   |> g18n.add_translation("activity.booked", "Bokad")
   |> g18n.add_translation("activity.needs_booking", "Behöver bokas")
   |> g18n.add_translation("activity.show_bookings", "Visa bokningar")
@@ -133,6 +146,16 @@ fn swedish_translations() -> g18n.Translations {
   |> g18n.add_translation("booking.change", "Ändra bokning")
   |> g18n.add_translation("booking.unbook", "Avboka")
   |> g18n.add_translation("booking.confirm_unbook", "Ja, avboka")
+  |> g18n.add_translation("bookings.heading", "Bokningar")
+  |> g18n.add_translation("bookings.loading", "Laddar bokningar...")
+  |> g18n.add_translation("bookings.empty", "Inga bokningar än.")
+  |> g18n.add_translation("bookings.unknown_group", "Okänd grupp")
+  |> g18n.add_translation(
+    "bookings.spots_filled",
+    "{booked} / {max} platser fyllda",
+  )
+  |> g18n.add_translation("bookings.participants.one", "{count} person")
+  |> g18n.add_translation("bookings.participants.other", "{count} personer")
   |> g18n.add_translation("list.search_placeholder", "Sök")
   |> g18n.add_translation("list.filter.all", "Alla")
   |> g18n.add_translation("list.tab.activities", "Aktiviteter")
@@ -176,6 +199,7 @@ fn swedish_translations() -> g18n.Translations {
     "error.update_booking",
     "Kunde inte uppdatera bokningen",
   )
+  |> g18n.add_translation("error.load_bookings", "Kunde inte ladda bokningarna")
 }
 
 // MAIN ------------------------------------------------------------------------
@@ -315,6 +339,7 @@ pub type AppError {
   DeleteActivityFailed
   CreateBookingFailed
   UpdateBookingFailed
+  LoadBookingsFailed
 }
 
 fn app_error_key(error: AppError) -> String {
@@ -326,6 +351,7 @@ fn app_error_key(error: AppError) -> String {
     DeleteActivityFailed -> "error.delete_activity"
     CreateBookingFailed -> "error.create_booking"
     UpdateBookingFailed -> "error.update_booking"
+    LoadBookingsFailed -> "error.load_bookings"
   }
 }
 
@@ -403,6 +429,10 @@ pub type Page {
   )
   ActivityDetailPage(id: Uuid, booking: BookingFormState)
   ActivityEditPage(id: Uuid, state: EditState)
+  /// The management-only view of every booking for one activity. The bookings
+  /// list is per-route state; the activity header (title/time/spots) reads from
+  /// the shared `details` + `spots` caches, so it can't drift from the summary.
+  ActivityBookingsPage(id: Uuid, bookings: RemoteData(List(Booking)))
   NotFoundPage
 }
 
@@ -610,7 +640,9 @@ fn seed_detail_loading(
   page: Page,
 ) -> Dict(Uuid, RemoteData(ActivityDetail)) {
   case page {
-    ActivityDetailPage(id, _) | ActivityEditPage(id, _) ->
+    ActivityDetailPage(id, _)
+    | ActivityEditPage(id, _)
+    | ActivityBookingsPage(id, _) ->
       case dict.get(details, id) {
         Ok(Loaded(_)) -> details
         _ -> dict.insert(details, id, Loading)
@@ -818,6 +850,8 @@ fn app_bar_title(translator: Translator, page: Page) -> Option(String) {
       Some(g18n.translate(translator, "app_bar.activity_detail"))
     ActivityNewPage(..) ->
       Some(g18n.translate(translator, "app_bar.activity_new"))
+    ActivityBookingsPage(_, _) ->
+      Some(g18n.translate(translator, "app_bar.activity_bookings"))
     ActivityEditPage(_, _) -> None
     NotFoundPage -> None
   }
@@ -892,6 +926,7 @@ pub type Msg {
   ApiCreatedBooking(Result(Booking, rsvp.Error))
   ApiUpdatedBooking(Result(Booking, rsvp.Error))
   ApiDeletedBooking(Uuid, Uuid, Result(Nil, rsvp.Error))
+  ApiReturnedBookings(Uuid, Result(List(Booking), rsvp.Error))
   ApiToggledFavourite(Uuid, Bool, Result(Nil, rsvp.Error))
   // Form submissions
   UserSubmittedCreateForm(Result(ActivityForm, Form(ActivityForm)))
@@ -1177,9 +1212,20 @@ pub fn update(model: Model, msg: Msg) -> #(Model, Effect(Msg)) {
 
     UserClickedEdit -> #(model, effect.none())
 
-    // The "Visa bokningar" button on the detail page: view this activity's
-    // bookings. Not yet implemented — wiring is a later task.
-    UserClickedShowBookings -> #(model, effect.none())
+    // The "Visa bokningar" button on the detail page navigates to this
+    // activity's bookings list; the route change fires the fetch (uri_to_page).
+    UserClickedShowBookings ->
+      case model.page {
+        ActivityDetailPage(id, _) -> #(
+          model,
+          modem.push(
+            api_prefix <> "/activities/" <> uuid.to_string(id) <> "/bookings",
+            None,
+            None,
+          ),
+        )
+        _ -> #(model, effect.none())
+      }
 
     UserClickedCancelEdit ->
       case model.page {
@@ -1563,6 +1609,23 @@ pub fn update(model: Model, msg: Msg) -> #(Model, Effect(Msg)) {
         )
         _ -> #(model, effect.none())
       }
+
+    // Land the fetched bookings only if their activity is still the open
+    // bookings page — a response for a page we've navigated away from is stale.
+    ApiReturnedBookings(id, result) ->
+      case model.page {
+        ActivityBookingsPage(page_id, _) if page_id == id -> {
+          let bookings = case result {
+            Ok(bookings) -> Loaded(bookings)
+            Error(_) -> Failed(LoadBookingsFailed)
+          }
+          #(
+            Model(..model, page: ActivityBookingsPage(id, bookings)),
+            effect.none(),
+          )
+        }
+        _ -> #(model, effect.none())
+      }
   }
 }
 
@@ -1731,6 +1794,18 @@ fn update_booking(booking_id: Uuid, fields: BookingFormFields) -> Effect(Msg) {
   )
 }
 
+fn fetch_bookings(activity_id: Uuid) -> Effect(Msg) {
+  rsvp.get(
+    api_prefix
+      <> "/api/activities/"
+      <> uuid.to_string(activity_id)
+      <> "/bookings",
+    rsvp.expect_json(model.bookings_decoder(), fn(result) {
+      ApiReturnedBookings(activity_id, result)
+    }),
+  )
+}
+
 fn delete_booking(activity_id: Uuid, booking_id: Uuid) -> Effect(Msg) {
   rsvp.delete(
     api_prefix <> "/api/bookings/" <> uuid.to_string(booking_id),
@@ -1854,6 +1929,27 @@ pub fn uri_to_page(
       ActivityNewPage(activity_form(), None, [], []),
       effect.none(),
     )
+    ["activities", id_str, "bookings"] ->
+      case uuid.from_string(id_str) {
+        Ok(id) -> {
+          // Reuse the cached activity for the header if present; otherwise fetch
+          // it lazily. Spots and bookings are always refetched — both are
+          // volatile and this is a management view of the live state.
+          let activity_effect = case dict.get(details, id) {
+            Ok(Loaded(_)) -> effect.none()
+            _ -> fetch_activity(id)
+          }
+          #(
+            ActivityBookingsPage(id, Loading),
+            effect.batch([
+              activity_effect,
+              fetch_activity_spots(id),
+              fetch_bookings(id),
+            ]),
+          )
+        }
+        Error(_) -> #(NotFoundPage, effect.none())
+      }
     ["activities", id_str] ->
       case uuid.from_string(id_str) {
         Ok(id) -> {
@@ -1906,6 +2002,13 @@ fn view(model: Model) -> Element(Msg) {
         booking,
         model.activity_tags,
         can_manage_activities(model),
+      )
+    ActivityBookingsPage(id, bookings) ->
+      view_activity_bookings(
+        model.translator,
+        detail_of(model, id),
+        dict.get(model.spots, id) |> option.from_result,
+        bookings,
       )
     ActivityEditPage(_, _) -> view_not_found()
     NotFoundPage -> view_not_found()
@@ -2519,81 +2622,75 @@ fn view_activity_detail_loaded(
       ],
       [
         html.div(
-          // Header row
+          // Header row: title takes the full width with the favourite toggle
+          // pinned top-right beside it.
+          [attribute.class("flex items-start gap-3")],
           [
-            attribute.class("flex gap-4"),
+            html.h1(
+              [
+                attribute.class(
+                  "flex-1 pt-1 min-w-0 text-heading-xs hyphens-auto break-words text-balance",
+                ),
+              ],
+              [element.text(localized(translator, activity.title))],
+            ),
+            heart_btn,
           ],
+        ),
+        html.div(
+          // Action bar under the title: booking actions on the left, the
+          // management-only "Visa bokningar" action on the right, with
+          // spots-remaining as a caption beneath.
+          [attribute.class("flex flex-col gap-1")],
           [
-            html.div([attribute.class("flex-1 flex pt-1 min-w-0")], [
-              html.h1(
-                [
-                  attribute.class(
-                    "text-heading-xs hyphens-auto break-words text-balance min-w-0",
-                  ),
-                ],
-                [element.text(localized(translator, activity.title))],
-              ),
-            ]),
-            html.div([attribute.class("flex flex-col gap-2 items-end")], [
-              {
-                let #(primary, secondary) =
-                  view_detail_actions(
-                    translator,
-                    activity,
-                    is_booked(status),
-                    booking,
-                  )
-                // Mobile: primary on its own row, secondary + heart on a second
-                // row. Desktop (sm+): inline together, right-aligned.
+            html.div([attribute.class("flex flex-wrap items-center gap-2")], {
+              let #(primary, secondary) =
+                view_detail_actions(
+                  translator,
+                  activity,
+                  is_booked(status),
+                  booking,
+                )
+              [
+                primary,
+                secondary,
+                // View this activity's bookings. Shown only to users who can
+                // manage activities, and only for bookable activities (others
+                // can't have bookings).
+                case can_manage && option.is_some(activity.max_attendees) {
+                  True ->
+                    html.div([attribute.class("ml-auto")], [
+                      component.scout_button_action(
+                        g18n.translate(translator, "activity.show_bookings"),
+                        "outlined",
+                        UserClickedShowBookings,
+                      ),
+                    ])
+                  False -> element.none()
+                },
+              ]
+            }),
+            case
+              spots_remaining_text(
+                translator,
+                activity.max_attendees,
+                spots_booked,
+              )
+            {
+              Some(text) ->
                 html.div(
                   [
                     attribute.class(
-                      "flex flex-col items-end gap-2 sm:flex-row sm:items-center sm:flex-wrap sm:justify-end",
+                      "flex gap-1 items-center text-body-sm text-gray-500",
                     ),
                   ],
                   [
-                    primary,
-                    html.div([attribute.class("flex items-center gap-2")], [
-                      secondary,
-                      heart_btn,
-                    ]),
+                    component.icon(icons.users, "size-4"),
+                    html.p([], [element.text(text)]),
                   ],
                 )
-              },
-              // Management-only: view this activity's bookings. Shown only to
-              // users who can manage activities, and only for bookable
-              // activities (others can't have bookings).
-              case can_manage && option.is_some(activity.max_attendees) {
-                True ->
-                  component.scout_button_action(
-                    g18n.translate(translator, "activity.show_bookings"),
-                    "outlined",
-                    UserClickedShowBookings,
-                  )
-                False -> element.none()
-              },
-              case
-                spots_remaining_text(
-                  translator,
-                  activity.max_attendees,
-                  spots_booked,
-                )
-              {
-                Some(text) ->
-                  html.div(
-                    [
-                      attribute.class(
-                        "flex gap-2 items-center text-body-sm text-gray-500",
-                      ),
-                    ],
-                    [
-                      component.icon(icons.users, "size-4"),
-                      html.p([attribute.class("flex-1")], [element.text(text)]),
-                    ],
-                  )
-                None -> element.none()
-              },
-            ]),
+              None -> element.none()
+            },
           ],
         ),
         html.div(
@@ -2934,6 +3031,191 @@ fn view_time_interval(
       ])
     DifferentDays ->
       view_cross_day_interval(translator, start_calendar, end_calendar)
+  }
+}
+
+/// The management-only bookings list for one activity: a header echoing the
+/// activity (title, time, spots filled) above a card per booking. The header
+/// reads from the shared caches via `activity_state`; `bookings` is the
+/// per-route fetch.
+fn view_activity_bookings(
+  translator: Translator,
+  activity_state: RemoteData(Activity),
+  spots_booked: Option(Int),
+  bookings: RemoteData(List(Booking)),
+) -> Element(Msg) {
+  let t = fn(key) { g18n.translate(translator, key) }
+  html.div([attribute.class("flex flex-col p-3 gap-4")], [
+    view_bookings_header(translator, activity_state, spots_booked),
+    html.div([attribute.class("flex flex-col gap-3")], [
+      html.h2([attribute.class("text-body-l font-semibold")], [
+        element.text(t("bookings.heading")),
+      ]),
+      case bookings {
+        NotAsked | Loading ->
+          html.div([attribute.class("flex justify-center py-6")], [
+            component.scout_loader(t("bookings.loading")),
+          ])
+        Failed(err) ->
+          component.error_banner(t("error.heading"), t(app_error_key(err)))
+        Loaded([]) ->
+          html.p([attribute.class("py-6 text-center text-gray-500")], [
+            element.text(t("bookings.empty")),
+          ])
+        Loaded(items) ->
+          keyed.div(
+            [attribute.class("flex flex-col gap-3")],
+            list.map(items, fn(booking) {
+              #(
+                uuid.to_string(booking.id),
+                view_booking_card(translator, booking),
+              )
+            }),
+          )
+      },
+    ]),
+  ])
+}
+
+/// The activity summary shown atop the bookings list. Mirrors the loading/error
+/// states of the shared activity cache so the header doesn't flash "not found".
+fn view_bookings_header(
+  translator: Translator,
+  activity_state: RemoteData(Activity),
+  spots_booked: Option(Int),
+) -> Element(Msg) {
+  let t = fn(key) { g18n.translate(translator, key) }
+  case activity_state {
+    NotAsked | Loading ->
+      html.div([attribute.class("flex justify-center py-6")], [
+        component.scout_loader(t("activity.loading")),
+      ])
+    Failed(err) ->
+      component.error_banner(t("error.heading"), t(app_error_key(err)))
+    Loaded(activity) ->
+      html.div(
+        [attribute.class("flex flex-col gap-2 border-b border-gray-200 pb-4")],
+        [
+          html.h1(
+            [
+              attribute.class(
+                "text-heading-xs hyphens-auto break-words text-balance",
+              ),
+            ],
+            [element.text(localized(translator, activity.title))],
+          ),
+          html.div(
+            [attribute.class("flex flex-col gap-1 text-body-sm text-gray-600")],
+            [
+              html.div([attribute.class("flex items-start gap-1")], [
+                component.icon(icons.clock, "size-4 shrink-0 mt-0.5"),
+                view_time_interval(
+                  translator,
+                  activity.start_time,
+                  activity.end_time,
+                ),
+              ]),
+              case
+                spots_filled_text(
+                  translator,
+                  activity.max_attendees,
+                  spots_booked,
+                )
+              {
+                Some(text) ->
+                  html.div([attribute.class("flex items-center gap-1")], [
+                    component.icon(icons.users, "size-4 shrink-0"),
+                    html.span([], [element.text(text)]),
+                  ])
+                None -> element.none()
+              },
+            ],
+          ),
+        ],
+      )
+  }
+}
+
+/// One booking rendered as a card: the booker group in bold, then the
+/// free-text group (when a scout group name is also present), participant
+/// count, responsible leader, and a tappable phone link.
+fn view_booking_card(translator: Translator, booking: Booking) -> Element(Msg) {
+  // Prefer the scout group name from the booker's token; fall back to the
+  // free-text group, then to a placeholder when neither is present (the
+  // free-text field is optional, so both can be empty).
+  let group_title = case booking.booker_group_name, booking.group_free_text {
+    Some(name), _ -> name
+    None, "" -> g18n.translate(translator, "bookings.unknown_group")
+    None, free_text -> free_text
+  }
+  // Match the activity-list cards' resting elevation + radius so both lists
+  // read as one system. scout-card supplies the white padded surface; the
+  // shadow lives on the wrapper (as in `component.activity_card`) to survive
+  // the shadow-DOM boundary. No hover/focus states — a booking isn't a link.
+  html.div(
+    [
+      attribute.class("shadow-sm rounded-[var(--spacing-6)]"),
+    ],
+    [
+      component.scout_card([
+        html.div([attribute.class("flex flex-col gap-1")], [
+          html.h3(
+            [
+              attribute.class(
+                "text-body-l font-semibold leading-tight break-words",
+              ),
+            ],
+            [element.text(group_title)],
+          ),
+          // Show the free-text group as a secondary line only when it isn't already
+          // the title (i.e. a token group name is present) and it's non-empty.
+          case booking.booker_group_name, booking.group_free_text {
+            Some(_), free_text if free_text != "" ->
+              html.p([attribute.class("text-body-sm text-gray-700")], [
+                element.text(free_text),
+              ])
+            _, _ -> element.none()
+          },
+          html.p([attribute.class("text-body-sm text-gray-700")], [
+            element.text(g18n.translate_plural(
+              translator,
+              "bookings.participants",
+              booking.participant_count,
+            )),
+          ]),
+          html.p([attribute.class("text-body-sm text-gray-700")], [
+            element.text(booking.responsible_name),
+          ]),
+          html.a(
+            [
+              attribute.href("tel:" <> booking.phone_number),
+              attribute.class("text-body-sm text-blue-700 no-underline"),
+            ],
+            [element.text(booking.phone_number)],
+          ),
+        ]),
+      ]),
+    ],
+  )
+}
+
+/// The "X / Y platser fyllda" caption for the bookings header. `None` for an
+/// uncapped activity or when the booked count isn't in hand.
+fn spots_filled_text(
+  translator: Translator,
+  max_attendees: Option(Int),
+  spots_booked: Option(Int),
+) -> Option(String) {
+  case max_attendees, spots_booked {
+    Some(max), Some(booked) ->
+      Some(g18n.translate_with_params(
+        translator,
+        "bookings.spots_filled",
+        g18n.new_format_params()
+          |> g18n.add_param("booked", int.to_string(booked))
+          |> g18n.add_param("max", int.to_string(max)),
+      ))
+    _, _ -> None
   }
 }
 
