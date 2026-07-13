@@ -58,6 +58,7 @@ fn english_translations() -> g18n.Translations {
   |> g18n.add_translation("app_bar.activity_new", "Create activity")
   |> g18n.add_translation("activity.booked", "Booked")
   |> g18n.add_translation("activity.needs_booking", "Needs booking")
+  |> g18n.add_translation("activity.show_bookings", "Show bookings")
   |> g18n.add_translation("booking.responsible_name", "Responsible adult")
   |> g18n.add_translation("booking.phone_number", "Phone number")
   |> g18n.add_translation("booking.group_free_text", "Group / patrol")
@@ -121,6 +122,7 @@ fn swedish_translations() -> g18n.Translations {
   |> g18n.add_translation("app_bar.activity_new", "Skapa aktivitet")
   |> g18n.add_translation("activity.booked", "Bokad")
   |> g18n.add_translation("activity.needs_booking", "Behöver bokas")
+  |> g18n.add_translation("activity.show_bookings", "Visa bokningar")
   |> g18n.add_translation("booking.responsible_name", "Ansvarig ledare")
   |> g18n.add_translation("booking.phone_number", "Telefonnummer")
   |> g18n.add_translation("booking.group_free_text", "Grupp / patrull")
@@ -449,7 +451,39 @@ pub type Model {
     // Used to resolve the tag ids carried on activities into labels. Empty until
     // loaded (and if the fetch fails), in which case tag chips simply don't show.
     activity_tags: Dict(Uuid, ActivityTag),
+    // The current user's roles, gating manage-only UI (e.g. viewing bookings).
+    roles: List(Role),
   )
+}
+
+/// Access roles the client gates UI on, parsed from the user's Keycloak roles
+/// on the `j26-booking` client. Only roles the UI acts on are modelled; the
+/// string matches the server's `web.Role` (`ActivitiesManage`).
+pub type Role {
+  ManageActivities
+}
+
+fn role_from_string(raw: String) -> Result(Role, Nil) {
+  case raw {
+    "activities:manage" -> Ok(ManageActivities)
+    _ -> Error(Nil)
+  }
+}
+
+/// The current user's roles.
+///
+/// TODO(auth): the server already authenticates the user and knows their roles
+/// (`web.Role` from `resource_access.j26-booking.roles`), but does not yet
+/// expose them to the client. Wire this to a small endpoint (e.g. extend
+/// `/api/statuses/me` or add `/api/me`) instead of hardcoding. Hardcoded here so
+/// the role-gated UI works ahead of that; swap the list to `[]` to preview the
+/// no-authority view.
+fn initial_roles() -> List(Role) {
+  ["activities:manage"] |> list.filter_map(role_from_string)
+}
+
+fn can_manage_activities(model: Model) -> Bool {
+  list.contains(model.roles, ManageActivities)
 }
 
 pub fn tab_source(tab: ActivitiesFilterTab) -> ActivityListSource {
@@ -811,6 +845,7 @@ fn init(_flags) -> #(Model, Effect(Msg)) {
       statuses: dict.new(),
       spots: dict.new(),
       activity_tags: dict.new(),
+      roles: initial_roles(),
     )
 
   let title_effect = case app_bar_title(translator, page) {
@@ -864,6 +899,7 @@ pub type Msg {
   UserSubmittedBookingForm(Result(BookingFormFields, Form(BookingFormFields)))
   // User actions
   UserClickedEdit
+  UserClickedShowBookings
   UserClickedDelete
   UserClickedCancelEdit
   UserClickedBook
@@ -1140,6 +1176,10 @@ pub fn update(model: Model, msg: Msg) -> #(Model, Effect(Msg)) {
       }
 
     UserClickedEdit -> #(model, effect.none())
+
+    // The "Visa bokningar" button on the detail page: view this activity's
+    // bookings. Not yet implemented — wiring is a later task.
+    UserClickedShowBookings -> #(model, effect.none())
 
     UserClickedCancelEdit ->
       case model.page {
@@ -1865,6 +1905,7 @@ fn view(model: Model) -> Element(Msg) {
         dict.get(model.spots, id) |> option.from_result,
         booking,
         model.activity_tags,
+        can_manage_activities(model),
       )
     ActivityEditPage(_, _) -> view_not_found()
     NotFoundPage -> view_not_found()
@@ -2362,6 +2403,7 @@ fn view_activity_detail(
   spots_booked: Option(Int),
   booking: BookingFormState,
   activity_tags: Dict(Uuid, ActivityTag),
+  can_manage: Bool,
 ) -> Element(Msg) {
   case state {
     NotAsked | Loading ->
@@ -2405,6 +2447,7 @@ fn view_activity_detail(
         spots_booked,
         booking,
         activity_tags,
+        can_manage,
       )
   }
 }
@@ -2431,6 +2474,7 @@ fn view_activity_detail_loaded(
   spots_booked: Option(Int),
   booking: BookingFormState,
   activity_tags: Dict(Uuid, ActivityTag),
+  can_manage: Bool,
 ) -> Element(Msg) {
   let heart_btn =
     component.heart_button(
@@ -2515,6 +2559,18 @@ fn view_activity_detail_loaded(
                     ]),
                   ],
                 )
+              },
+              // Management-only: view this activity's bookings. Shown only to
+              // users who can manage activities, and only for bookable
+              // activities (others can't have bookings).
+              case can_manage && option.is_some(activity.max_attendees) {
+                True ->
+                  component.scout_button_action(
+                    g18n.translate(translator, "activity.show_bookings"),
+                    "outlined",
+                    UserClickedShowBookings,
+                  )
+                False -> element.none()
               },
               case
                 spots_remaining_text(

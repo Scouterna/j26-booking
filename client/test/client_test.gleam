@@ -104,6 +104,7 @@ fn base_model() -> client.Model {
     statuses: dict.new(),
     spots: dict.new(),
     activity_tags: dict.new(),
+    roles: [client.ManageActivities],
   )
 }
 
