@@ -44,6 +44,16 @@ pub fn string_to_role(value: String) -> Result(Role, Nil) {
   }
 }
 
+pub fn role_to_string(role: Role) -> String {
+  case role {
+    ActivitiesManage -> "activities:manage"
+    BookingsOthersCreate -> "bookings:others:create"
+    BookingsRead -> "bookings:read"
+    BookingsSelfCreate -> "bookings:self:create"
+    Admin -> "admin"
+  }
+}
+
 pub type User {
   User(
     id: Uuid,
@@ -266,7 +276,11 @@ pub fn with_authenticated_user(
 
 /// Calls `next` when the user holds `role`, otherwise short-circuits with a
 /// 403 response. `Admin` implies every role.
-pub fn require_role(user: User, role: Role, next: fn() -> Response) -> Response {
+pub fn require_role(
+  user: User,
+  role: Role,
+  next: fn() -> Response,
+) -> Response {
   case list.contains(user.roles, role) || list.contains(user.roles, Admin) {
     True -> next()
     False -> wisp.response(403)

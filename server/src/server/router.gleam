@@ -1,6 +1,7 @@
 import gleam/http.{Delete, Get, Post, Put}
 import lustre/element
 import server/web.{type Context}
+import server/web/account
 import server/web/activities
 import server/web/app_config
 import server/web/booking
@@ -60,6 +61,8 @@ fn handle_api_request(
     Put, ["activities", id] -> activities.update(req, id, ctx)
     Delete, ["activities", id] -> activities.delete(req, id, ctx)
     _, ["activities", _] -> wisp.method_not_allowed([Get, Put, Delete])
+    Get, ["me"] -> account.get_me(req, ctx)
+    _, ["me"] -> wisp.method_not_allowed([Get])
     Get, ["statuses", "me"] -> status.get_mine(req, ctx)
     _, ["statuses", "me"] -> wisp.method_not_allowed([Get])
     Get, ["bookings", id] -> booking.get_one(req, id, ctx)
