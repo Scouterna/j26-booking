@@ -487,21 +487,30 @@ pub type Model {
 }
 
 /// Access roles the client gates UI on, parsed from the user's Keycloak roles
-/// on the `j26-booking` client. Only roles the UI acts on are modelled; the
-/// string matches the server's `web.Role` (`ActivitiesManage`).
+/// on the `j26-booking` client. Only roles the UI acts on are modelled (plus
+/// `Admin`, which implies all authority — mirroring the server's
+/// `web.require_role`); the strings match the server's `web.Role`.
 pub type Role {
   ManageActivities
+  Admin
 }
 
 fn role_from_string(raw: String) -> Result(Role, Nil) {
   case raw {
     "activities:manage" -> Ok(ManageActivities)
+    "admin" -> Ok(Admin)
     _ -> Error(Nil)
   }
 }
 
+/// Whether the user holds `role`. `Admin` implies every role, matching the
+/// server's `web.require_role`.
+fn has_role(model: Model, role: Role) -> Bool {
+  list.contains(model.roles, role) || list.contains(model.roles, Admin)
+}
+
 fn can_manage_activities(model: Model) -> Bool {
-  list.contains(model.roles, ManageActivities)
+  has_role(model, ManageActivities)
 }
 
 pub fn tab_source(tab: ActivitiesFilterTab) -> ActivityListSource {
