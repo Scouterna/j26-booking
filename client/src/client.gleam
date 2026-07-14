@@ -57,10 +57,33 @@ fn english_translations() -> g18n.Translations {
   |> g18n.add_translation("app_bar.activities_list", "Activities")
   |> g18n.add_translation("app_bar.activity_detail", "Activity")
   |> g18n.add_translation("app_bar.activity_new", "Create activity")
+  |> g18n.add_translation("app_bar.activity_edit", "Edit activity")
+  |> g18n.add_translation("app_bar.manage_activities", "Manage activities")
+  |> g18n.add_translation("manage.new_activity", "New activity")
+  |> g18n.add_translation("form.error.required", "Must not be blank")
+  |> g18n.add_translation("form.error.int", "Must be a number")
+  |> g18n.add_translation(
+    "form.error.datetime",
+    "Must be a valid date and time",
+  )
+  |> g18n.add_translation("form.error.invalid", "Invalid value")
   |> g18n.add_translation("app_bar.activity_bookings", "Bookings")
   |> g18n.add_translation("activity.booked", "Booked")
   |> g18n.add_translation("activity.needs_booking", "Needs booking")
   |> g18n.add_translation("activity.show_bookings", "Show bookings")
+  |> g18n.add_translation("edit.lang_sv", "Swedish")
+  |> g18n.add_translation("edit.lang_en", "English")
+  |> g18n.add_translation("edit.name", "Name")
+  |> g18n.add_translation("edit.description", "Description")
+  |> g18n.add_translation("edit.max_attendees", "Max attendees")
+  |> g18n.add_translation("edit.start_time", "Start time")
+  |> g18n.add_translation("edit.end_time", "End time")
+  |> g18n.add_translation("edit.call_off", "Call off")
+  |> g18n.add_translation("edit.cancel", "Cancel")
+  |> g18n.add_translation("edit.save", "Save")
+  |> g18n.add_translation("edit.reason", "Reason")
+  |> g18n.add_translation("edit.call_off_title", "Call off activity")
+  |> g18n.add_translation("edit.confirm_call_off", "Yes, call off")
   |> g18n.add_translation("booking.responsible_name", "Responsible adult")
   |> g18n.add_translation("booking.phone_number", "Phone number")
   |> g18n.add_translation("booking.group_free_text", "Group / patrol")
@@ -140,10 +163,33 @@ fn swedish_translations() -> g18n.Translations {
   |> g18n.add_translation("app_bar.activities_list", "Spontanaktiviteter")
   |> g18n.add_translation("app_bar.activity_detail", "Aktivitet")
   |> g18n.add_translation("app_bar.activity_new", "Skapa aktivitet")
+  |> g18n.add_translation("app_bar.activity_edit", "Redigera aktivitet")
+  |> g18n.add_translation("app_bar.manage_activities", "Hantera aktiviteter")
+  |> g18n.add_translation("manage.new_activity", "Ny aktivitet")
+  |> g18n.add_translation("form.error.required", "Får inte vara tomt")
+  |> g18n.add_translation("form.error.int", "Måste vara ett tal")
+  |> g18n.add_translation(
+    "form.error.datetime",
+    "Måste vara giltig datum och tid",
+  )
+  |> g18n.add_translation("form.error.invalid", "Ogiltigt värde")
   |> g18n.add_translation("app_bar.activity_bookings", "Bokningar")
   |> g18n.add_translation("activity.booked", "Bokad")
   |> g18n.add_translation("activity.needs_booking", "Behöver bokas")
   |> g18n.add_translation("activity.show_bookings", "Visa bokningar")
+  |> g18n.add_translation("edit.lang_sv", "Svenska")
+  |> g18n.add_translation("edit.lang_en", "Engelska")
+  |> g18n.add_translation("edit.name", "Namn")
+  |> g18n.add_translation("edit.description", "Beskrivning")
+  |> g18n.add_translation("edit.max_attendees", "Max antal deltagare")
+  |> g18n.add_translation("edit.start_time", "Starttid")
+  |> g18n.add_translation("edit.end_time", "Sluttid")
+  |> g18n.add_translation("edit.call_off", "Ställ in")
+  |> g18n.add_translation("edit.cancel", "Avbryt")
+  |> g18n.add_translation("edit.save", "Spara")
+  |> g18n.add_translation("edit.reason", "Anledning")
+  |> g18n.add_translation("edit.call_off_title", "Ställ in aktivitet")
+  |> g18n.add_translation("edit.confirm_call_off", "Ja, ställ in")
   |> g18n.add_translation("booking.responsible_name", "Ansvarig ledare")
   |> g18n.add_translation("booking.phone_number", "Telefonnummer")
   |> g18n.add_translation("booking.group_free_text", "Grupp / patrull")
@@ -372,6 +418,10 @@ fn app_error_key(error: AppError) -> String {
 }
 
 pub type EditState {
+  /// The activity is being (re)fetched before the form can open. Reached on
+  /// navigation to `/activities/:id/edit`; replaced by `EditReady` once the
+  /// fetch returns.
+  EditLoading
   EditReady(
     activity: Activity,
     form: Form(ActivityForm),
@@ -382,6 +432,36 @@ pub type EditState {
     /// Working selection of target groups, seeded from the activity.
     target_groups: List(TargetGroup),
   )
+}
+
+/// Which language variant of the activity's bilingual fields the edit form is
+/// currently showing. Toggled via the segmented control at the top of the form;
+/// the inactive language's inputs stay mounted (hidden) so their values are
+/// preserved across a toggle and still submitted.
+pub type EditLanguage {
+  EditSwedish
+  EditEnglish
+}
+
+/// Transient, edit-page-scoped view state. Kept on the `Model` (not inside the
+/// multi-variant `EditState`, whose record-update spreads Gleam forbids) so it
+/// can be updated with a plain record update. Reset each time the edit form
+/// opens.
+pub type EditUi {
+  EditUi(
+    /// Which language variant of the bilingual fields is currently shown.
+    language: EditLanguage,
+    /// Whether the "call off activity" (ställ in) confirmation modal is open.
+    cancel_open: Bool,
+    /// Reason for calling off the activity, entered in the modal. UI-only for
+    /// now — not persisted.
+    cancel_reason: String,
+  )
+}
+
+/// The edit form's default view state: Swedish variant, call-off modal closed.
+pub fn default_edit_ui() -> EditUi {
+  EditUi(language: EditSwedish, cancel_open: False, cancel_reason: "")
 }
 
 pub type ActivitiesFilterTab {
@@ -418,6 +498,16 @@ fn list_tabs() -> List(ActivitiesFilterTab) {
   [TabActivities, TabBeachBus, TabClimbingWall, TabFavourites]
 }
 
+/// Tabs shown for a given list mode. The management list has no per-user
+/// favourites, so it drops that tab; the kept tabs preserve the browse order
+/// (and their indices), so `tab_index`/`tab_from_index` still line up.
+pub fn list_tabs_for(mode: ListMode) -> List(ActivitiesFilterTab) {
+  case mode {
+    BrowseList -> list_tabs()
+    ManageList -> [TabActivities, TabBeachBus, TabClimbingWall]
+  }
+}
+
 pub fn tab_index(tab: ActivitiesFilterTab) -> Int {
   let indexed = list.index_map(list_tabs(), fn(t, i) { #(t, i) })
   case list.find(indexed, fn(pair) { pair.0 == tab }) {
@@ -433,8 +523,18 @@ pub fn tab_from_index(index: Int) -> ActivitiesFilterTab {
   }
 }
 
+/// Which variant of the activities list is showing. The two share the entire
+/// list view (top bar, tabs, filters, grouping, states); they differ only per
+/// card: `BrowseList` links to the detail page with a favourite heart,
+/// `ManageList` links to the edit page with an edit pen. `ManageList` is reached
+/// from the role-gated "Manage activities" item in the shell's "More" menu.
+pub type ListMode {
+  BrowseList
+  ManageList
+}
+
 pub type Page {
-  ActivitiesListPage(filters: ListFilters)
+  ActivitiesListPage(filters: ListFilters, mode: ListMode)
   ActivityNewPage(
     form: Form(ActivityForm),
     submit_error: Option(AppError),
@@ -497,8 +597,12 @@ pub type Model {
     // Used to resolve the tag ids carried on activities into labels. Empty until
     // loaded (and if the fetch fails), in which case tag chips simply don't show.
     activity_tags: Dict(Uuid, ActivityTag),
-    // The current user's roles, gating manage-only UI (e.g. viewing bookings).
+    // The current user's roles, gating manage-only UI (edit, view bookings).
     roles: List(Role),
+    // Transient view state for the edit form (active language, call-off reason
+    // reveal). Kept here rather than in the multi-variant `EditState` so it can
+    // be updated with a plain record update; reset whenever the form opens.
+    edit_ui: EditUi,
   )
 }
 
@@ -882,8 +986,14 @@ fn activity_form() -> Form(ActivityForm) {
       "title_en",
       form.parse_string |> form.check_not_empty,
     )
-    use description <- form.field("description", form.parse_string)
-    use description_en <- form.field("description_en", form.parse_string)
+    use description <- form.field(
+      "description",
+      form.parse_string |> form.check_not_empty,
+    )
+    use description_en <- form.field(
+      "description_en",
+      form.parse_string |> form.check_not_empty,
+    )
     use max_attendees <- form.field(
       "max_attendees",
       form.parse_optional(form.parse_int),
@@ -924,6 +1034,57 @@ fn form_from_activity(activity: Activity) -> Form(ActivityForm) {
   )
 }
 
+/// Build a fresh edit state from a just-fetched activity: seed the form and the
+/// working tag/målgrupp selections from it.
+fn edit_ready_from_activity(activity: Activity) -> EditState {
+  EditReady(
+    activity:,
+    form: form_from_activity(activity),
+    submit_error: None,
+    tags: activity.tags,
+    target_groups: activity.target_groups,
+  )
+}
+
+// Field setters for `EditReady`. Gleam forbids record-update spread on a
+// multi-variant type, so each rebuilds the record explicitly; a loading state is
+// left untouched. These keep the update handlers to one-liners.
+
+fn edit_with_error(state: EditState, error: Option(AppError)) -> EditState {
+  case state {
+    EditLoading -> state
+    EditReady(activity:, form:, tags:, target_groups:, submit_error: _) ->
+      EditReady(activity:, form:, submit_error: error, tags:, target_groups:)
+  }
+}
+
+fn edit_with_form(state: EditState, form: Form(ActivityForm)) -> EditState {
+  case state {
+    EditLoading -> state
+    EditReady(activity:, submit_error:, tags:, target_groups:, form: _) ->
+      EditReady(activity:, form:, submit_error:, tags:, target_groups:)
+  }
+}
+
+fn edit_with_tags(state: EditState, tags: List(Uuid)) -> EditState {
+  case state {
+    EditLoading -> state
+    EditReady(activity:, form:, submit_error:, target_groups:, tags: _) ->
+      EditReady(activity:, form:, submit_error:, tags:, target_groups:)
+  }
+}
+
+fn edit_with_target_groups(
+  state: EditState,
+  target_groups: List(TargetGroup),
+) -> EditState {
+  case state {
+    EditLoading -> state
+    EditReady(activity:, form:, submit_error:, tags:, target_groups: _) ->
+      EditReady(activity:, form:, submit_error:, tags:, target_groups:)
+  }
+}
+
 pub fn translator_for(lang: String) -> Translator {
   let assert Ok(en) = locale.new("en")
   let assert Ok(sv) = locale.new("sv")
@@ -960,15 +1121,18 @@ fn localized(translator: Translator, value: model.BilingualString) -> String {
 
 fn app_bar_title(translator: Translator, page: Page) -> Option(String) {
   case page {
-    ActivitiesListPage(_) ->
+    ActivitiesListPage(_, BrowseList) ->
       Some(g18n.translate(translator, "app_bar.activities_list"))
+    ActivitiesListPage(_, ManageList) ->
+      Some(g18n.translate(translator, "app_bar.manage_activities"))
     ActivityDetailPage(_, _) ->
       Some(g18n.translate(translator, "app_bar.activity_detail"))
     ActivityNewPage(..) ->
       Some(g18n.translate(translator, "app_bar.activity_new"))
     ActivityBookingsPage(_, _) ->
       Some(g18n.translate(translator, "app_bar.activity_bookings"))
-    ActivityEditPage(_, _) -> None
+    ActivityEditPage(_, _) ->
+      Some(g18n.translate(translator, "app_bar.activity_edit"))
     NotFoundPage -> None
   }
 }
@@ -978,7 +1142,10 @@ fn init(_flags) -> #(Model, Effect(Msg)) {
 
   let #(page, page_effect) = case modem.initial_uri() {
     Ok(uri) -> uri_to_page(uri, dict.new())
-    Error(_) -> #(ActivitiesListPage(default_filters()), effect.none())
+    Error(_) -> #(
+      ActivitiesListPage(default_filters(), BrowseList),
+      effect.none(),
+    )
   }
 
   let model =
@@ -997,6 +1164,7 @@ fn init(_flags) -> #(Model, Effect(Msg)) {
       activity_tags: dict.new(),
       // Empty until /api/me returns; the role-gated UI reveals once loaded.
       roles: [],
+      edit_ui: default_edit_ui(),
     )
 
   let title_effect = case app_bar_title(translator, page) {
@@ -1053,10 +1221,14 @@ pub type Msg {
   UserSubmittedEditForm(Result(ActivityForm, Form(ActivityForm)))
   UserSubmittedBookingForm(Result(BookingFormFields, Form(BookingFormFields)))
   // User actions
-  UserClickedEdit
   UserClickedShowBookings
+  UserClickedNewActivity
   UserClickedDelete
   UserClickedCancelEdit
+  UserSelectedEditLanguage(EditLanguage)
+  UserToggledCallOff
+  UserEditedCallOffReason(String)
+  UserClickedConfirmCallOff
   UserClickedBook
   UserClickedCancelBooking
   UserClickedChangeBooking
@@ -1079,13 +1251,19 @@ pub fn update(model: Model, msg: Msg) -> #(Model, Effect(Msg)) {
     OnRouteChange(uri) -> {
       let #(page, page_effect) = uri_to_page(uri, model.details)
       let details = seed_detail_loading(model.details, page)
+      // Opening the create form resets the shared form UI state (language,
+      // call-off); the edit form resets it when its fetch returns instead.
+      let edit_ui = case page {
+        ActivityNewPage(..) -> default_edit_ui()
+        _ -> model.edit_ui
+      }
       let title_effect = case app_bar_title(model.translator, page) {
         Some(title) -> set_app_bar_title(title)
         None -> effect.none()
       }
       let nav_effect = notify_navigation(uri)
       #(
-        Model(..model, page:, details:),
+        Model(..model, page:, details:, edit_ui:),
         effect.batch([page_effect, title_effect, nav_effect]),
       )
     }
@@ -1113,25 +1291,46 @@ pub fn update(model: Model, msg: Msg) -> #(Model, Effect(Msg)) {
       effect.none(),
     )
 
-    ApiReturnedActivity(id, Ok(activity)) -> #(
+    ApiReturnedActivity(id, Ok(activity)) -> {
       // A detail fetch carries the whole activity, so refresh the summary too —
       // this both keeps the two caches in sync and populates the summary on
-      // direct navigation to an activity we never listed.
-      Model(
-        ..model,
-        activities: dict.insert(model.activities, id, to_summary(activity)),
-        details: dict.insert(model.details, id, Loaded(to_detail(activity))),
-      ),
-      effect.none(),
-    )
+      // direct navigation to an activity we never listed. If we were waiting on
+      // this fetch to open the edit form, seed the form now (with fresh UI state).
+      let #(page, edit_ui) = case model.page {
+        ActivityEditPage(edit_id, EditLoading) if edit_id == id -> #(
+          ActivityEditPage(id, edit_ready_from_activity(activity)),
+          default_edit_ui(),
+        )
+        _ -> #(model.page, model.edit_ui)
+      }
+      #(
+        Model(
+          ..model,
+          activities: dict.insert(model.activities, id, to_summary(activity)),
+          details: dict.insert(model.details, id, Loaded(to_detail(activity))),
+          page:,
+          edit_ui:,
+        ),
+        effect.none(),
+      )
+    }
 
-    ApiReturnedActivity(id, Error(_)) -> #(
-      Model(
-        ..model,
-        details: dict.insert(model.details, id, Failed(LoadActivityFailed)),
-      ),
-      effect.none(),
-    )
+    ApiReturnedActivity(id, Error(_)) -> {
+      // A failed load while opening the edit form has nowhere to go — fall back
+      // to the not-found page rather than spinning forever.
+      let page = case model.page {
+        ActivityEditPage(edit_id, EditLoading) if edit_id == id -> NotFoundPage
+        _ -> model.page
+      }
+      #(
+        Model(
+          ..model,
+          details: dict.insert(model.details, id, Failed(LoadActivityFailed)),
+          page:,
+        ),
+        effect.none(),
+      )
+    }
 
     ApiReturnedMe(Ok(roles)) -> #(Model(..model, roles:), effect.none())
 
@@ -1198,7 +1397,8 @@ pub fn update(model: Model, msg: Msg) -> #(Model, Effect(Msg)) {
           Loaded(to_detail(activity)),
         ),
       ),
-      modem.push(api_prefix <> "/activities", None, None),
+      // Created from the management list, so return there.
+      modem.push(api_prefix <> "/activities/manage", None, None),
     )
 
     ApiCreatedActivity(Error(_)) ->
@@ -1218,48 +1418,37 @@ pub fn update(model: Model, msg: Msg) -> #(Model, Effect(Msg)) {
         _ -> #(model, effect.none())
       }
 
-    ApiUpdatedActivity(Ok(activity)) -> {
-      let page = case model.page {
-        ActivityEditPage(id, _) ->
-          ActivityEditPage(
-            id,
-            EditReady(
-              activity,
-              form_from_activity(activity),
-              None,
-              activity.tags,
-              activity.target_groups,
-            ),
-          )
-        other -> other
-      }
-      #(
-        Model(
-          ..model,
-          activities: dict.insert(
-            model.activities,
-            activity.id,
-            to_summary(activity),
-          ),
-          details: dict.insert(
-            model.details,
-            activity.id,
-            Loaded(to_detail(activity)),
-          ),
-          page:,
+    // A successful save refreshes both caches and returns to the detail page,
+    // where the just-saved values are shown.
+    ApiUpdatedActivity(Ok(activity)) -> #(
+      Model(
+        ..model,
+        activities: dict.insert(
+          model.activities,
+          activity.id,
+          to_summary(activity),
         ),
-        effect.none(),
-      )
-    }
+        details: dict.insert(
+          model.details,
+          activity.id,
+          Loaded(to_detail(activity)),
+        ),
+      ),
+      modem.push(
+        api_prefix <> "/activities/" <> uuid.to_string(activity.id),
+        None,
+        None,
+      ),
+    )
 
     ApiUpdatedActivity(Error(_)) ->
       case model.page {
-        ActivityEditPage(id, edit) -> #(
+        ActivityEditPage(id, EditReady(..) as edit) -> #(
           Model(
             ..model,
             page: ActivityEditPage(
               id,
-              EditReady(..edit, submit_error: Some(UpdateActivityFailed)),
+              edit_with_error(edit, Some(UpdateActivityFailed)),
             ),
           ),
           effect.none(),
@@ -1283,12 +1472,12 @@ pub fn update(model: Model, msg: Msg) -> #(Model, Effect(Msg)) {
 
     ApiDeletedActivity(_, Error(_)) ->
       case model.page {
-        ActivityEditPage(id, edit) -> #(
+        ActivityEditPage(id, EditReady(..) as edit) -> #(
           Model(
             ..model,
             page: ActivityEditPage(
               id,
-              EditReady(..edit, submit_error: Some(DeleteActivityFailed)),
+              edit_with_error(edit, Some(DeleteActivityFailed)),
             ),
           ),
           effect.none(),
@@ -1311,6 +1500,10 @@ pub fn update(model: Model, msg: Msg) -> #(Model, Effect(Msg)) {
           Model(
             ..model,
             page: ActivityNewPage(f, submit_error, tags, target_groups),
+            edit_ui: EditUi(
+              ..model.edit_ui,
+              language: language_needing_attention(f, model.edit_ui.language),
+            ),
           ),
           effect.none(),
         )
@@ -1319,23 +1512,28 @@ pub fn update(model: Model, msg: Msg) -> #(Model, Effect(Msg)) {
 
     UserSubmittedEditForm(Ok(activity_form)) ->
       case model.page {
-        ActivityEditPage(id, edit) -> #(
+        ActivityEditPage(id, EditReady(tags:, target_groups:, ..)) -> #(
           model,
-          update_activity(id, activity_form, edit.tags, edit.target_groups),
+          update_activity(id, activity_form, tags, target_groups),
         )
         _ -> #(model, effect.none())
       }
 
     UserSubmittedEditForm(Error(f)) ->
       case model.page {
-        ActivityEditPage(id, edit) -> #(
-          Model(..model, page: ActivityEditPage(id, EditReady(..edit, form: f))),
+        ActivityEditPage(id, EditReady(..) as edit) -> #(
+          Model(
+            ..model,
+            page: ActivityEditPage(id, edit_with_form(edit, f)),
+            edit_ui: EditUi(
+              ..model.edit_ui,
+              language: language_needing_attention(f, model.edit_ui.language),
+            ),
+          ),
           effect.none(),
         )
         _ -> #(model, effect.none())
       }
-
-    UserClickedEdit -> #(model, effect.none())
 
     // The "Visa bokningar" button on the detail page navigates to this
     // activity's bookings list; the route change fires the fetch (uri_to_page).
@@ -1352,26 +1550,63 @@ pub fn update(model: Model, msg: Msg) -> #(Model, Effect(Msg)) {
         _ -> #(model, effect.none())
       }
 
+    // The "New activity" button on the management list: navigate to the create
+    // form. The route change opens `ActivityNewPage` (see uri_to_page).
+    UserClickedNewActivity -> #(
+      model,
+      modem.push(api_prefix <> "/activities/new", None, None),
+    )
+
+    // "Avbryt" — discard changes. Edit returns to the detail page; create
+    // returns to the management list it was launched from.
     UserClickedCancelEdit ->
       case model.page {
-        ActivityEditPage(id, edit) -> #(
-          Model(
-            ..model,
-            page: ActivityEditPage(
-              id,
-              EditReady(
-                ..edit,
-                form: form_from_activity(edit.activity),
-                submit_error: None,
-                tags: edit.activity.tags,
-                target_groups: edit.activity.target_groups,
-              ),
-            ),
+        ActivityEditPage(id, _) -> #(
+          model,
+          modem.push(
+            api_prefix <> "/activities/" <> uuid.to_string(id),
+            None,
+            None,
           ),
-          effect.none(),
+        )
+        ActivityNewPage(..) -> #(
+          model,
+          modem.push(api_prefix <> "/activities/manage", None, None),
         )
         _ -> #(model, effect.none())
       }
+
+    UserSelectedEditLanguage(language) -> #(
+      Model(..model, edit_ui: EditUi(..model.edit_ui, language:)),
+      effect.none(),
+    )
+
+    // "Ställ in" — open/close the call-off confirmation modal. UI-only for now.
+    UserToggledCallOff -> #(
+      Model(
+        ..model,
+        edit_ui: EditUi(
+          ..model.edit_ui,
+          cancel_open: !model.edit_ui.cancel_open,
+        ),
+      ),
+      effect.none(),
+    )
+
+    UserEditedCallOffReason(reason) -> #(
+      Model(..model, edit_ui: EditUi(..model.edit_ui, cancel_reason: reason)),
+      effect.none(),
+    )
+
+    // Confirm the call-off from the modal. UI-only for now — not persisted; it
+    // just closes the modal and clears the reason. (Server call to come.)
+    UserClickedConfirmCallOff -> #(
+      Model(
+        ..model,
+        edit_ui: EditUi(..model.edit_ui, cancel_open: False, cancel_reason: ""),
+      ),
+      effect.none(),
+    )
 
     UserClickedDelete ->
       case model.page {
@@ -1384,14 +1619,14 @@ pub fn update(model: Model, msg: Msg) -> #(Model, Effect(Msg)) {
 
     UserSelectedTab(index) ->
       case model.page {
-        ActivitiesListPage(filters) -> {
+        ActivitiesListPage(filters, mode) -> {
           let tab = tab_from_index(index)
           let #(model, fetch_effect) =
             ensure_source_loaded(model, tab_source(tab))
           #(
             Model(
               ..model,
-              page: ActivitiesListPage(ListFilters(..filters, tab:)),
+              page: ActivitiesListPage(ListFilters(..filters, tab:), mode),
             ),
             fetch_effect,
           )
@@ -1422,14 +1657,14 @@ pub fn update(model: Model, msg: Msg) -> #(Model, Effect(Msg)) {
           ),
           effect.none(),
         )
-        ActivityEditPage(id, edit) -> #(
+        ActivityEditPage(id, EditReady(target_groups:, ..) as edit) -> #(
           Model(
             ..model,
             page: ActivityEditPage(
               id,
-              EditReady(
-                ..edit,
-                target_groups: toggle_member(edit.target_groups, target_group),
+              edit_with_target_groups(
+                edit,
+                toggle_member(target_groups, target_group),
               ),
             ),
           ),
@@ -1458,12 +1693,12 @@ pub fn update(model: Model, msg: Msg) -> #(Model, Effect(Msg)) {
           ),
           effect.none(),
         )
-        ActivityEditPage(id, edit) -> #(
+        ActivityEditPage(id, EditReady(tags:, ..) as edit) -> #(
           Model(
             ..model,
             page: ActivityEditPage(
               id,
-              EditReady(..edit, tags: toggle_member(edit.tags, tag_id)),
+              edit_with_tags(edit, toggle_member(tags, tag_id)),
             ),
           ),
           effect.none(),
@@ -1476,7 +1711,7 @@ pub fn update(model: Model, msg: Msg) -> #(Model, Effect(Msg)) {
 
     UserClickedRetryLoad -> {
       let tab = case model.page {
-        ActivitiesListPage(filters) -> filters.tab
+        ActivitiesListPage(filters, _) -> filters.tab
         _ -> TabActivities
       }
       let source = tab_source(tab)
@@ -1792,8 +2027,8 @@ fn update_filters(
   f: fn(ListFilters) -> ListFilters,
 ) -> #(Model, Effect(Msg)) {
   case model.page {
-    ActivitiesListPage(filters) -> #(
-      Model(..model, page: ActivitiesListPage(f(filters))),
+    ActivitiesListPage(filters, mode) -> #(
+      Model(..model, page: ActivitiesListPage(f(filters), mode)),
       effect.none(),
     )
     _ -> #(model, effect.none())
@@ -2093,11 +2328,18 @@ pub fn uri_to_page(
 ) -> #(Page, Effect(Msg)) {
   case uri.path_segments(uri.path) |> list.drop(2) {
     ["activities"] | [] -> #(
-      ActivitiesListPage(default_filters()),
+      ActivitiesListPage(default_filters(), BrowseList),
       effect.none(),
     )
     ["activities", "new"] -> #(
       ActivityNewPage(activity_form(), None, [], []),
+      effect.none(),
+    )
+    // The management copy of the activities list. Cards link to the edit view;
+    // the menu item is only surfaced to managers (server-gated in app-config),
+    // and edits are enforced server-side regardless of who reaches this route.
+    ["activities", "manage"] -> #(
+      ActivitiesListPage(default_filters(), ManageList),
       effect.none(),
     )
     ["activities", id_str, "bookings"] ->
@@ -2138,6 +2380,13 @@ pub fn uri_to_page(
         }
         Error(_) -> #(NotFoundPage, effect.none())
       }
+    ["activities", id_str, "edit"] ->
+      case uuid.from_string(id_str) {
+        // Always fetch the activity fresh before editing, so the form reflects
+        // the latest server state; `ApiReturnedActivity` seeds the form on reply.
+        Ok(id) -> #(ActivityEditPage(id, EditLoading), fetch_activity(id))
+        Error(_) -> #(NotFoundPage, effect.none())
+      }
     _ -> #(NotFoundPage, effect.none())
   }
 }
@@ -2146,7 +2395,7 @@ pub fn uri_to_page(
 
 fn view(model: Model) -> Element(Msg) {
   case model.page {
-    ActivitiesListPage(filters) ->
+    ActivitiesListPage(filters, mode) ->
       view_activities_list(
         model.translator,
         tab_summaries(model, filters.tab),
@@ -2154,15 +2403,18 @@ fn view(model: Model) -> Element(Msg) {
         model.spots,
         filters,
         model.activity_tags,
+        mode,
       )
     ActivityNewPage(form, submit_error, tags, target_groups) ->
-      view_activity_new(
+      view_activity_form(
         model.translator,
         form,
         submit_error,
         tags,
         target_groups,
+        model.edit_ui,
         model.activity_tags,
+        CreateActivity,
       )
     ActivityDetailPage(id, booking) ->
       view_activity_detail(
@@ -2181,7 +2433,27 @@ fn view(model: Model) -> Element(Msg) {
         dict.get(model.spots, id) |> option.from_result,
         bookings,
       )
-    ActivityEditPage(_, _) -> view_not_found()
+    ActivityEditPage(_, EditLoading) ->
+      html.div([attribute.class("flex justify-center py-8")], [
+        component.scout_loader(g18n.translate(
+          model.translator,
+          "activity.loading",
+        )),
+      ])
+    ActivityEditPage(
+      _,
+      EditReady(form:, submit_error:, tags:, target_groups:, ..),
+    ) ->
+      view_activity_form(
+        model.translator,
+        form,
+        submit_error,
+        tags,
+        target_groups,
+        model.edit_ui,
+        model.activity_tags,
+        EditActivity,
+      )
     NotFoundPage -> view_not_found()
   }
 }
@@ -2193,11 +2465,12 @@ fn view_activities_list(
   spots: Dict(Uuid, Int),
   filters: ListFilters,
   activity_tags: Dict(Uuid, ActivityTag),
+  mode: ListMode,
 ) -> Element(Msg) {
   let t = fn(key) { g18n.translate(translator, key) }
 
   html.div([attribute.class("flex flex-col")], [
-    view_list_top_bar(translator, filters, summaries),
+    view_list_top_bar(translator, filters, summaries, mode),
     case filters.more_open {
       True -> view_more_filters_panel(translator, filters, activity_tags)
       False -> element.none()
@@ -2223,6 +2496,7 @@ fn view_activities_list(
             translator,
             to_card_items(items, statuses, spots),
             filters,
+            mode,
           )
       },
     ]),
@@ -2233,13 +2507,15 @@ fn view_list_top_bar(
   translator: Translator,
   filters: ListFilters,
   summaries: RemoteData(List(ActivitySummary)),
+  mode: ListMode,
 ) -> Element(Msg) {
   let t = fn(key) { g18n.translate(translator, key) }
   let dates = case summaries {
     Loaded(items) -> camp_dates(items)
     _ -> []
   }
-  let tab_labels = list.map(list_tabs(), fn(tab) { tab_label(translator, tab) })
+  let tab_labels =
+    list.map(list_tabs_for(mode), fn(tab) { tab_label(translator, tab) })
   html.div(
     [
       attribute.class(
@@ -2247,6 +2523,12 @@ fn view_list_top_bar(
       ),
     ],
     [
+      // The management list leads with a prominent create action; the browse
+      // list has none.
+      case mode {
+        ManageList -> view_new_activity_button(translator)
+        BrowseList -> element.none()
+      },
       component.scout_segmented_control(
         tab_index(filters.tab),
         tab_labels,
@@ -2278,6 +2560,23 @@ fn view_list_top_bar(
         ),
       ]),
     ],
+  )
+}
+
+/// Primary call-to-action on the management list: start creating a new
+/// activity. Navigates to the create form via `UserClickedNewActivity`; the
+/// create flow itself is unchanged.
+fn view_new_activity_button(translator: Translator) -> Element(Msg) {
+  element.element(
+    "scout-button",
+    [
+      attribute.attribute("variant", "primary"),
+      attribute.attribute("icon", icons.plus),
+      attribute.attribute("icon-position", "before"),
+      attribute.class("w-full"),
+      event.on("scoutClick", decode.success(UserClickedNewActivity)),
+    ],
+    [element.text(g18n.translate(translator, "manage.new_activity"))],
   )
 }
 
@@ -2413,6 +2712,7 @@ fn view_grouped_activities(
   translator: Translator,
   items: List(CardItem),
   filters: ListFilters,
+  mode: ListMode,
 ) -> Element(Msg) {
   let t = fn(key) { g18n.translate(translator, key) }
   let filtered =
@@ -2447,7 +2747,7 @@ fn view_grouped_activities(
         list.map(groups, fn(group) {
           let #(#(date, bucket), items) = group
           let is_current = date == today && bucket == now_bucket
-          view_section(translator, date, bucket, items, is_current)
+          view_section(translator, date, bucket, items, is_current, mode)
         }),
       )
     }
@@ -2494,6 +2794,7 @@ fn view_section(
   bucket: TimeBucket,
   items: List(CardItem),
   is_current: Bool,
+  mode: ListMode,
 ) -> Element(Msg) {
   let t = fn(key) { g18n.translate(translator, key) }
   let bucket_label = t(bucket_translation_key(bucket))
@@ -2526,7 +2827,9 @@ fn view_section(
     ]),
     html.div(
       [attribute.class("flex flex-col gap-2")],
-      list.map(items, fn(item) { view_activity_card(translator, date, item) }),
+      list.map(items, fn(item) {
+        view_activity_card(translator, date, item, mode)
+      }),
     ),
   ])
 }
@@ -2535,6 +2838,7 @@ fn view_activity_card(
   translator: Translator,
   section_date: calendar.Date,
   item: CardItem,
+  mode: ListMode,
 ) -> Element(Msg) {
   let summary = item.summary
   let id = uuid.to_string(summary.id)
@@ -2547,13 +2851,33 @@ fn view_activity_card(
     )
   let spots_text =
     spots_remaining_text(translator, summary.max_attendees, item.spots_booked)
-  let status = card_status(translator, summary, item.status)
+  // The status chip ("Bokad"/"Behöver bokas") reflects the viewer's own booking
+  // state, which is irrelevant on the management list — show it only in browse.
+  let status = case mode {
+    BrowseList -> card_status(translator, summary, item.status)
+    ManageList -> component.StatusNone
+  }
+  // Browse cards link to the detail page and carry a favourite heart; manage
+  // cards link to the edit page and carry an edit pen. Everything else about
+  // the card is identical, so the two lists share the whole view.
+  let #(href, action) = case mode {
+    BrowseList -> #(
+      api_prefix <> "/activities/" <> id,
+      component.FavouriteAction(
+        favourited: is_favourited(item.status),
+        on_toggle: UserToggledFavourite(summary.id),
+      ),
+    )
+    ManageList -> #(
+      api_prefix <> "/activities/" <> id <> "/edit",
+      component.EditAction,
+    )
+  }
   component.activity_card(
-    api_prefix <> "/activities/" <> id,
+    href,
     localized(translator, summary.title),
     status,
-    is_favourited(item.status),
-    UserToggledFavourite(summary.id),
+    action,
     time,
     option.map(summary.location_name, fn(n) { localized(translator, n) }),
     spots_text,
@@ -2578,70 +2902,152 @@ fn card_status(
   }
 }
 
-fn view_activity_new(
-  translator: g18n.Translator,
+/// Localized validation error messages for the activity form (formal's built-in
+/// messages are English only). Applied via `form.language` in the form view.
+fn form_error_message(
+  translator: Translator,
+  error: form.FieldError,
+) -> String {
+  let t = fn(key) { g18n.translate(translator, key) }
+  case error {
+    form.MustBePresent -> t("form.error.required")
+    form.MustBeInt -> t("form.error.int")
+    form.MustBeDateTime -> t("form.error.datetime")
+    _ -> t("form.error.invalid")
+  }
+}
+
+/// After a failed submit, pick the language whose bilingual fields still have
+/// errors so they're visible under the sv/en toggle. Stays on the current
+/// language if it already has errors (or if neither language does).
+fn language_needing_attention(
+  form: Form(ActivityForm),
+  current: EditLanguage,
+) -> EditLanguage {
+  let has = fn(name) { form.field_errors(form, name) != [] }
+  let sv_err = has("title") || has("description")
+  let en_err = has("title_en") || has("description_en")
+  case current {
+    EditSwedish ->
+      case sv_err, en_err {
+        False, True -> EditEnglish
+        _, _ -> EditSwedish
+      }
+    EditEnglish ->
+      case en_err, sv_err {
+        False, True -> EditSwedish
+        _, _ -> EditEnglish
+      }
+  }
+}
+
+/// Whether the shared activity form is creating a new activity or editing an
+/// existing one. Create hides the "Ställ in" (call off) action and returns to
+/// the management list on cancel; edit keeps call-off and returns to the detail
+/// page.
+pub type ActivityFormMode {
+  CreateActivity
+  EditActivity
+}
+
+/// Shared create/edit form. `/activities/new` (`CreateActivity`) and
+/// `/activities/:id/edit` (`EditActivity`) render the same UI; they differ only
+/// in the submit message, the action row, and the cancel destination.
+fn view_activity_form(
+  translator: Translator,
   form: Form(ActivityForm),
   submit_error: Option(AppError),
   selected_tags: List(Uuid),
   selected_target_groups: List(TargetGroup),
+  edit_ui: EditUi,
   activity_tags: Dict(Uuid, ActivityTag),
+  mode: ActivityFormMode,
 ) -> Element(Msg) {
+  let t = fn(key) { g18n.translate(translator, key) }
+  // Localize validation errors — formal's built-in messages are English only.
+  let form = form.language(form, form_error_message(translator, _))
   let submitted = fn(values) {
-    form
-    |> form.add_values(values)
-    |> form.run
-    |> UserSubmittedCreateForm
+    let result = form |> form.add_values(values) |> form.run
+    case mode {
+      CreateActivity -> UserSubmittedCreateForm(result)
+      EditActivity -> UserSubmittedEditForm(result)
+    }
+  }
+  let sv_active = edit_ui.language == EditSwedish
+  let lang_index = case edit_ui.language {
+    EditSwedish -> 0
+    EditEnglish -> 1
+  }
+  // Both language variants stay mounted so their (uncontrolled) values survive a
+  // toggle and are all submitted; only the active one is shown. A failed submit
+  // switches to whichever language has errors (see update), so a required field
+  // in the other language is never stuck invisible behind the toggle.
+  let hidden_unless = fn(active: Bool) {
+    attribute.class(case active {
+      True -> ""
+      False -> "hidden"
+    })
+  }
+  let field = fn(active: Bool, label: String, input_type: String, name: String) {
+    html.div([hidden_unless(active)], [
+      component.scout_form_field(form, label, input_type, name),
+    ])
+  }
+  let area = fn(active: Bool, label: String, name: String) {
+    html.div([hidden_unless(active)], [
+      component.scout_textarea_field(form, label, name, 4),
+    ])
   }
   html.div([attribute.class("flex flex-col")], [
-    html.div([attribute.styles([#("padding", "var(--spacing-4)")])], [
-      html.h1([], [element.text("New Activity")]),
-    ]),
-    html.div([attribute.styles([#("padding", "var(--spacing-4)")])], [
+    // Call-off confirmation modal — edit only (you can't call off an activity
+    // that doesn't exist yet). Rendered outside the form so its confirm button
+    // never submits.
+    case mode {
+      EditActivity -> view_call_off_drawer(translator, edit_ui)
+      CreateActivity -> element.none()
+    },
+    html.div([attribute.class("flex flex-col gap-4 p-3")], [
+      // Language toggle for the activity's bilingual fields.
+      html.div([attribute.class("flex justify-end")], [
+        component.scout_segmented_control(
+          lang_index,
+          [t("edit.lang_sv"), t("edit.lang_en")],
+          fn(index) {
+            case index {
+              0 -> UserSelectedEditLanguage(EditSwedish)
+              _ -> UserSelectedEditLanguage(EditEnglish)
+            }
+          },
+          [],
+        ),
+      ]),
       case submit_error {
         Some(err) ->
-          component.error_banner(
-            g18n.translate(translator, "error.heading"),
-            g18n.translate(translator, app_error_key(err)),
-          )
+          component.error_banner(t("error.heading"), t(app_error_key(err)))
         None -> element.none()
       },
       html.form([event.on_submit(submitted)], [
         component.scout_card([
           html.div([attribute.class("flex flex-col gap-2")], [
-            component.scout_form_field(form, "Title (Swedish)", "text", "title"),
+            field(sv_active, t("edit.name"), "text", "title"),
+            field(!sv_active, t("edit.name"), "text", "title_en"),
+            area(sv_active, t("edit.description"), "description"),
+            area(!sv_active, t("edit.description"), "description_en"),
             component.scout_form_field(
               form,
-              "Title (English)",
-              "text",
-              "title_en",
-            ),
-            component.scout_form_field(
-              form,
-              "Description (Swedish)",
-              "text",
-              "description",
-            ),
-            component.scout_form_field(
-              form,
-              "Description (English)",
-              "text",
-              "description_en",
-            ),
-            component.scout_form_field(
-              form,
-              "Max attendees",
+              t("edit.max_attendees"),
               "number",
               "max_attendees",
             ),
             component.scout_form_field(
               form,
-              "Start time",
+              t("edit.start_time"),
               "datetime-local",
               "start_time",
             ),
             component.scout_form_field(
               form,
-              "End time",
+              t("edit.end_time"),
               "datetime-local",
               "end_time",
             ),
@@ -2652,22 +3058,99 @@ fn view_activity_new(
                 selected_tags,
                 activity_tags,
               ),
-              [
-                element.element(
-                  "scout-button",
-                  [
-                    attribute.attribute("variant", "primary"),
-                    attribute.attribute("type", "submit"),
-                  ],
-                  [element.text("Create")],
-                ),
-              ],
+              [view_form_actions(translator, mode)],
             )
           ]),
         ]),
       ]),
     ]),
   ])
+}
+
+/// The form's action row. Edit shows call off (ställ in) + cancel (avbryt) +
+/// save (spara); create drops call-off (nothing to call off yet). Only "save"
+/// submits the form (`type=submit`); the others are `type=button`.
+fn view_form_actions(
+  translator: Translator,
+  mode: ActivityFormMode,
+) -> Element(Msg) {
+  let t = fn(key) { g18n.translate(translator, key) }
+  let call_off = case mode {
+    EditActivity -> [
+      element.element(
+        "scout-button",
+        [
+          attribute.attribute("variant", "danger"),
+          attribute.attribute("type", "button"),
+          event.on("scoutClick", decode.success(UserToggledCallOff)),
+        ],
+        [element.text(t("edit.call_off"))],
+      ),
+    ]
+    CreateActivity -> []
+  }
+  html.div(
+    [attribute.class("flex flex-wrap gap-2 pt-2")],
+    list.flatten([
+      call_off,
+      [
+        element.element(
+          "scout-button",
+          [
+            attribute.attribute("variant", "outlined"),
+            attribute.attribute("type", "button"),
+            event.on("scoutClick", decode.success(UserClickedCancelEdit)),
+          ],
+          [element.text(t("edit.cancel"))],
+        ),
+        element.element(
+          "scout-button",
+          [
+            attribute.attribute("variant", "primary"),
+            attribute.attribute("type", "submit"),
+          ],
+          [element.text(t("edit.save"))],
+        ),
+      ],
+    ]),
+  )
+}
+
+/// The call-off confirmation modal: a drawer holding the reason input and a
+/// danger "confirm" button. Opened by the "Ställ in" action; the exit button or
+/// a confirm closes it. UI-only for now — the reason is captured in `edit_ui`
+/// but not yet persisted.
+fn view_call_off_drawer(
+  translator: Translator,
+  edit_ui: EditUi,
+) -> Element(Msg) {
+  let t = fn(key) { g18n.translate(translator, key) }
+  component.scout_drawer(
+    edit_ui.cancel_open,
+    t("edit.call_off_title"),
+    UserToggledCallOff,
+    [
+      html.div([attribute.class("flex flex-col gap-4")], [
+        component.scout_field(
+          t("edit.reason"),
+          element.element(
+            "scout-input",
+            [
+              attribute.attribute("type", "text"),
+              attribute.attribute("value", edit_ui.cancel_reason),
+              event.on_input(UserEditedCallOffReason),
+            ],
+            [],
+          ),
+        ),
+        component.scout_button_action(
+          t("edit.confirm_call_off"),
+          "danger",
+          UserClickedConfirmCallOff,
+        ),
+      ]),
+    ],
+  )
 }
 
 fn view_activity_detail(

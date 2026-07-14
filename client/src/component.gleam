@@ -95,6 +95,38 @@ pub fn scout_form_number_field(
   )
 }
 
+/// Like `scout_form_field` but a multi-line `scout-text-area` for longer text
+/// (e.g. descriptions). Uncontrolled (no `on_input`) so its value is seeded once
+/// and read from the form on submit, matching the other fields.
+pub fn scout_textarea_field(
+  f: Form(a),
+  label: String,
+  name: String,
+  rows: Int,
+) -> Element(msg) {
+  let errors = form.field_error_messages(f, name)
+  scout_field(
+    label,
+    element.fragment([
+      element.element(
+        "scout-text-area",
+        [
+          attribute.attribute("name", name),
+          attribute.attribute("rows", int.to_string(rows)),
+          attribute.attribute("value", form.field_value(f, name)),
+        ],
+        [],
+      ),
+      ..list.map(errors, fn(msg) {
+        html.small(
+          [attribute.styles([#("color", "var(--color-text-danger-base)")])],
+          [element.text(msg)],
+        )
+      })
+    ]),
+  )
+}
+
 pub fn scout_button_action(
   text: String,
   variant: String,
@@ -337,6 +369,14 @@ pub type CardStatus {
   StatusNeedsBooking(label: String)
 }
 
+/// The action shown in a card's top-right corner. `FavouriteAction` is the
+/// interactive favourite heart (browse list); `EditAction` is a decorative edit
+/// pen (manage list) whose click is left to bubble up to the card's edit link.
+pub type CardAction(msg) {
+  FavouriteAction(favourited: Bool, on_toggle: msg)
+  EditAction
+}
+
 /// Favourite toggle rendered as an outlined, icon-only round button.
 /// `locked` (e.g. an activity the user has booked) renders a non-interactive,
 /// muted heart. `in_link` stops the click from triggering an enclosing `<a>`.
@@ -386,22 +426,43 @@ pub fn heart_button(
   }
 }
 
+/// Edit affordance for a manage-list card, mirroring the favourite heart's
+/// chrome so the two read as one family. Purely decorative: it carries no
+/// handler, so a click bubbles to the enclosing card link (which points at the
+/// activity's edit page), matching a click anywhere else on the card.
+fn pen_button() -> Element(msg) {
+  element.element(
+    "scout-button",
+    [
+      attribute.attribute("variant", "outlined"),
+      attribute.attribute("size", "small"),
+      attribute.attribute("icon", icons.pencil),
+      attribute.attribute("icon-only", ""),
+      attribute.attribute("aria-label", "Edit activity"),
+    ],
+    [],
+  )
+}
+
 pub fn activity_card(
   href: String,
   title: String,
   status: CardStatus,
-  favourited: Bool,
-  on_toggle_favourite: option_msg,
-  time: Element(option_msg),
+  action: CardAction(msg),
+  time: Element(msg),
   location: Option(String),
   spots_remaining_text: Option(String),
-) -> Element(option_msg) {
-  let heart_locked = case status {
-    StatusBooked(_) -> True
-    _ -> False
+) -> Element(msg) {
+  let corner = case action {
+    FavouriteAction(favourited:, on_toggle:) -> {
+      let heart_locked = case status {
+        StatusBooked(_) -> True
+        _ -> False
+      }
+      heart_button(favourited, heart_locked, on_toggle, True)
+    }
+    EditAction -> pen_button()
   }
-  let heart_btn =
-    heart_button(favourited, heart_locked, on_toggle_favourite, True)
   let status_badge = case status {
     StatusBooked(label) -> badge(BadgeGreen, label)
     StatusNeedsBooking(label) -> badge(BadgePurple, label)
@@ -420,7 +481,8 @@ pub fn activity_card(
     [
       scout_card([
         html.div([attribute.class("flex flex-col gap-2")], [
-          // Header: title, status badge and heart share one row.
+          // Header: title, status badge and the corner action (heart or pen)
+          // share one row.
           html.div([attribute.class("flex items-start gap-3")], [
             html.h3(
               [
@@ -432,7 +494,7 @@ pub fn activity_card(
             ),
             html.div([attribute.class("shrink-0 flex items-start gap-2")], [
               status_badge,
-              heart_btn,
+              corner,
             ]),
           ]),
           // Meta: time and place (plus spots when capped) on a single row.
