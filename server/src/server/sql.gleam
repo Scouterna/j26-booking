@@ -2521,6 +2521,46 @@ ORDER BY name ASC;
   |> pog.execute(db)
 }
 
+/// A row you get from running the `lock_activity_max_attendees` query
+/// defined in `./src/server/sql/lock_activity_max_attendees.sql`.
+///
+/// > 🐿️ This type definition was generated automatically using v4.7.0 of the
+/// > [squirrel package](https://github.com/giacomocavalieri/squirrel).
+///
+pub type LockActivityMaxAttendeesRow {
+  LockActivityMaxAttendeesRow(max_attendees: Option(Int))
+}
+
+/// Lock a single activity row for the duration of the transaction and return
+/// its capacity. Used by the booking create/update flow to serialise concurrent
+/// bookings for the same activity so the capacity check can't be raced.
+///
+/// > 🐿️ This function was generated automatically using v4.7.0 of
+/// > the [squirrel package](https://github.com/giacomocavalieri/squirrel).
+///
+pub fn lock_activity_max_attendees(
+  db: pog.Connection,
+  id: Uuid,
+) -> Result(pog.Returned(LockActivityMaxAttendeesRow), pog.QueryError) {
+  let decoder = {
+    use max_attendees <- decode.field(0, decode.optional(decode.int))
+    decode.success(LockActivityMaxAttendeesRow(max_attendees:))
+  }
+
+  "-- Lock a single activity row for the duration of the transaction and return
+-- its capacity. Used by the booking create/update flow to serialise concurrent
+-- bookings for the same activity so the capacity check can't be raced.
+SELECT max_attendees
+FROM activity
+WHERE id = $1
+FOR UPDATE;
+"
+  |> pog.query
+  |> pog.parameter(pog.text(uuid.to_string(id)))
+  |> pog.returning(decoder)
+  |> pog.execute(db)
+}
+
 /// A row you get from running the `search_activities` query
 /// defined in `./src/server/sql/search_activities.sql`.
 ///

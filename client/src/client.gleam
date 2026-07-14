@@ -41,6 +41,7 @@ fn english_translations() -> g18n.Translations {
   |> g18n.add_translation("activity.not_found_title", "Not Found")
   |> g18n.add_translation("activity.not_found_message", "Activity not found.")
   |> g18n.add_translation("activity.book", "Book")
+  |> g18n.add_translation("activity.full", "Full")
   |> g18n.add_translation(
     "activity.spots_remaining.one",
     "{count} spot remaining",
@@ -64,6 +65,8 @@ fn english_translations() -> g18n.Translations {
   |> g18n.add_translation("booking.phone_number", "Phone number")
   |> g18n.add_translation("booking.group_free_text", "Group / patrol")
   |> g18n.add_translation("booking.participant_count", "Number of participants")
+  |> g18n.add_translation("booking.count_min", "At least 1 participant")
+  |> g18n.add_translation("booking.count_max", "Only {count} spots left")
   |> g18n.add_translation("booking.submit", "Save")
   |> g18n.add_translation("booking.cancel", "Cancel")
   |> g18n.add_translation("booking.submitting", "Saving booking...")
@@ -109,6 +112,10 @@ fn english_translations() -> g18n.Translations {
   |> g18n.add_translation("error.create_booking", "Failed to create booking")
   |> g18n.add_translation("error.update_booking", "Failed to update booking")
   |> g18n.add_translation("error.load_bookings", "Failed to load bookings")
+  |> g18n.add_translation(
+    "error.booking_full",
+    "This activity is full — not enough spots left",
+  )
 }
 
 fn swedish_translations() -> g18n.Translations {
@@ -120,6 +127,7 @@ fn swedish_translations() -> g18n.Translations {
     "Aktiviteten hittades inte.",
   )
   |> g18n.add_translation("activity.book", "Boka")
+  |> g18n.add_translation("activity.full", "Fullbokad")
   |> g18n.add_translation("activity.spots_remaining.one", "{count} plats kvar")
   |> g18n.add_translation(
     "activity.spots_remaining.other",
@@ -140,6 +148,8 @@ fn swedish_translations() -> g18n.Translations {
   |> g18n.add_translation("booking.phone_number", "Telefonnummer")
   |> g18n.add_translation("booking.group_free_text", "Grupp / patrull")
   |> g18n.add_translation("booking.participant_count", "Antal deltagare")
+  |> g18n.add_translation("booking.count_min", "Minst 1 deltagare")
+  |> g18n.add_translation("booking.count_max", "Endast {count} platser kvar")
   |> g18n.add_translation("booking.submit", "Spara")
   |> g18n.add_translation("booking.cancel", "Avbryt")
   |> g18n.add_translation("booking.submitting", "Sparar bokning...")
@@ -200,6 +210,10 @@ fn swedish_translations() -> g18n.Translations {
     "Kunde inte uppdatera bokningen",
   )
   |> g18n.add_translation("error.load_bookings", "Kunde inte ladda bokningarna")
+  |> g18n.add_translation(
+    "error.booking_full",
+    "Aktiviteten är fullbokad — inte tillräckligt med platser kvar",
+  )
 }
 
 // MAIN ------------------------------------------------------------------------
@@ -339,6 +353,7 @@ pub type AppError {
   DeleteActivityFailed
   CreateBookingFailed
   UpdateBookingFailed
+  BookingCapacityExceeded
   LoadBookingsFailed
 }
 
@@ -351,6 +366,7 @@ fn app_error_key(error: AppError) -> String {
     DeleteActivityFailed -> "error.delete_activity"
     CreateBookingFailed -> "error.create_booking"
     UpdateBookingFailed -> "error.update_booking"
+    BookingCapacityExceeded -> "error.booking_full"
     LoadBookingsFailed -> "error.load_bookings"
   }
 }
@@ -722,7 +738,14 @@ pub fn remove_id(
   list.filter(ids, fn(x) { x != id })
 }
 
-fn new_booking_form() -> Form(BookingFormFields) {
+/// `max_participants` caps the participant count (the spots the user may claim,
+/// already accounting for their own booking on an edit). `None` leaves it
+/// uncapped client-side (uncapped activity, or the booked count is unknown) —
+/// the server still enforces the real limit.
+fn new_booking_form(
+  translator: Translator,
+  max_participants: Option(Int),
+) -> Form(BookingFormFields) {
   form.new({
     use group_free_text <- form.field("group_free_text", form.parse_string)
     use responsible_name <- form.field(
@@ -733,7 +756,11 @@ fn new_booking_form() -> Form(BookingFormFields) {
       "phone_number",
       form.parse_string |> form.check_not_empty,
     )
-    use participant_count <- form.field("participant_count", form.parse_int)
+    use participant_count <- form.field(
+      "participant_count",
+      form.parse_int
+        |> form.check(participant_count_check(translator, max_participants)),
+    )
     form.success(BookingFormFields(
       group_free_text:,
       responsible_name:,
@@ -742,6 +769,39 @@ fn new_booking_form() -> Form(BookingFormFields) {
     ))
   })
   |> form.add_string("participant_count", "1")
+}
+
+/// Validates a submitted participant count: at least 1, and within the cap when
+/// one is known. Returns a translated message on failure.
+fn participant_count_check(
+  translator: Translator,
+  max_participants: Option(Int),
+) -> fn(Int) -> Result(Int, String) {
+  fn(count) {
+    case count < 1, max_participants {
+      True, _ -> Error(g18n.translate(translator, "booking.count_min"))
+      False, Some(max) if count > max ->
+        Error(g18n.translate_with_params(
+          translator,
+          "booking.count_max",
+          g18n.new_format_params()
+            |> g18n.add_param("count", int.to_string(max)),
+        ))
+      False, _ -> Ok(count)
+    }
+  }
+}
+
+/// The participant-count cap for a fresh booking, derived from the activity cap
+/// and current booked count. `None` when uncapped or the count is unknown.
+fn booking_cap(
+  max_attendees: Option(Int),
+  spots_booked: Option(Int),
+) -> Option(Int) {
+  case model.spots_remaining(max_attendees, spots_booked) {
+    model.Remaining(remaining) -> Some(remaining)
+    model.Unlimited | model.UnknownSpots -> None
+  }
 }
 
 fn empty_booking_fields() -> BookingFormFields {
@@ -753,12 +813,66 @@ fn empty_booking_fields() -> BookingFormFields {
   )
 }
 
-fn booking_form_from(b: Booking) -> Form(BookingFormFields) {
-  new_booking_form()
+fn booking_form_from(
+  b: Booking,
+  translator: Translator,
+  max_participants: Option(Int),
+) -> Form(BookingFormFields) {
+  new_booking_form(translator, max_participants)
   |> form.add_string("group_free_text", b.group_free_text)
   |> form.add_string("responsible_name", b.responsible_name)
   |> form.add_string("phone_number", b.phone_number)
   |> form.add_string("participant_count", int.to_string(b.participant_count))
+}
+
+/// Classifies a failed booking request: a `409` means the server rejected it
+/// for capacity (e.g. a race the client's cap didn't catch); anything else is
+/// the generic `fallback` error.
+fn booking_error(error: rsvp.Error, fallback: AppError) -> AppError {
+  case error {
+    rsvp.HttpError(response) if response.status == 409 ->
+      BookingCapacityExceeded
+    _ -> fallback
+  }
+}
+
+/// After a capacity rejection, refresh the activity's booked count so the cap
+/// reflects reality; other errors need no refresh.
+fn capacity_refresh(app_error: AppError, id: Uuid) -> Effect(Msg) {
+  case app_error {
+    BookingCapacityExceeded -> fetch_activity_spots(id)
+    _ -> effect.none()
+  }
+}
+
+/// Cap for the booking form on activity `id`, given the booking `mode`.
+fn booking_cap_for(model: Model, id: Uuid, mode: BookingMode) -> Option(Int) {
+  let max_attendees = case detail_of(model, id) {
+    Loaded(activity) -> activity.max_attendees
+    _ -> None
+  }
+  let spots_booked = dict.get(model.spots, id) |> option.from_result
+  cap_for_mode(max_attendees, spots_booked, status_of(model.statuses, id), mode)
+}
+
+/// The participant cap for a given booking mode. On an edit the booking's own
+/// participants are added back, since they're already in the activity's booked
+/// count.
+fn cap_for_mode(
+  max_attendees: Option(Int),
+  spots_booked: Option(Int),
+  status: ActivityStatus,
+  mode: BookingMode,
+) -> Option(Int) {
+  let base = booking_cap(max_attendees, spots_booked)
+  case mode, base {
+    BookingEdit(booking_id), Some(remaining) ->
+      case booking_of(status) {
+        Some(b) if b.id == booking_id -> Some(remaining + b.participant_count)
+        _ -> base
+      }
+    _, _ -> base
+  }
 }
 
 fn activity_form() -> Form(ActivityForm) {
@@ -1411,16 +1525,25 @@ pub fn update(model: Model, msg: Msg) -> #(Model, Effect(Msg)) {
                 activity.max_attendees
               {
                 True, _ -> #(model, effect.none())
-                False, Some(_) -> #(
-                  Model(
-                    ..model,
-                    page: ActivityDetailPage(
-                      id,
-                      BookingOpen(new_booking_form(), None, BookingNew),
-                    ),
-                  ),
-                  effect.none(),
-                )
+                False, Some(_) ->
+                  case booking_cap_for(model, id, BookingNew) {
+                    // No spots left — the Book button is disabled, so ignore.
+                    Some(0) -> #(model, effect.none())
+                    cap -> #(
+                      Model(
+                        ..model,
+                        page: ActivityDetailPage(
+                          id,
+                          BookingOpen(
+                            new_booking_form(model.translator, cap),
+                            None,
+                            BookingNew,
+                          ),
+                        ),
+                      ),
+                      effect.none(),
+                    )
+                  }
                 False, None -> #(
                   Model(
                     ..model,
@@ -1444,7 +1567,11 @@ pub fn update(model: Model, msg: Msg) -> #(Model, Effect(Msg)) {
                 page: ActivityDetailPage(
                   id,
                   BookingOpen(
-                    booking_form_from(booking),
+                    booking_form_from(
+                      booking,
+                      model.translator,
+                      booking_cap_for(model, id, BookingEdit(booking.id)),
+                    ),
                     None,
                     BookingEdit(booking.id),
                   ),
@@ -1550,18 +1677,28 @@ pub fn update(model: Model, msg: Msg) -> #(Model, Effect(Msg)) {
       )
     }
 
-    ApiCreatedBooking(Error(_)) ->
+    ApiCreatedBooking(Error(err)) ->
       case model.page {
-        ActivityDetailPage(id, BookingSubmitting(mode)) -> #(
-          Model(
-            ..model,
-            page: ActivityDetailPage(
-              id,
-              BookingOpen(new_booking_form(), Some(CreateBookingFailed), mode),
+        ActivityDetailPage(id, BookingSubmitting(mode)) -> {
+          let app_error = booking_error(err, CreateBookingFailed)
+          #(
+            Model(
+              ..model,
+              page: ActivityDetailPage(
+                id,
+                BookingOpen(
+                  new_booking_form(
+                    model.translator,
+                    booking_cap_for(model, id, mode),
+                  ),
+                  Some(app_error),
+                  mode,
+                ),
+              ),
             ),
-          ),
-          effect.none(),
-        )
+            capacity_refresh(app_error, id),
+          )
+        }
         ActivityDetailPage(id, _) -> #(
           Model(..model, page: ActivityDetailPage(id, BookingClosed)),
           effect.none(),
@@ -1582,18 +1719,28 @@ pub fn update(model: Model, msg: Msg) -> #(Model, Effect(Msg)) {
       )
     }
 
-    ApiUpdatedBooking(Error(_)) ->
+    ApiUpdatedBooking(Error(err)) ->
       case model.page {
-        ActivityDetailPage(id, BookingSubmitting(mode)) -> #(
-          Model(
-            ..model,
-            page: ActivityDetailPage(
-              id,
-              BookingOpen(new_booking_form(), Some(UpdateBookingFailed), mode),
+        ActivityDetailPage(id, BookingSubmitting(mode)) -> {
+          let app_error = booking_error(err, UpdateBookingFailed)
+          #(
+            Model(
+              ..model,
+              page: ActivityDetailPage(
+                id,
+                BookingOpen(
+                  new_booking_form(
+                    model.translator,
+                    booking_cap_for(model, id, mode),
+                  ),
+                  Some(app_error),
+                  mode,
+                ),
+              ),
             ),
-          ),
-          effect.none(),
-        )
+            capacity_refresh(app_error, id),
+          )
+        }
         ActivityDetailPage(id, _) -> #(
           Model(..model, page: ActivityDetailPage(id, BookingClosed)),
           effect.none(),
@@ -2618,7 +2765,15 @@ fn view_activity_detail_loaded(
       },
       booking_drawer_heading(translator, booking),
       UserClickedCancelBooking,
-      [view_booking_form_section(translator, booking)],
+      [
+        view_booking_form_section(
+          translator,
+          booking,
+          activity.max_attendees,
+          spots_booked,
+          status,
+        ),
+      ],
     ),
     case activity.location {
       Some(location) ->
@@ -2675,6 +2830,7 @@ fn view_activity_detail_loaded(
                   activity,
                   is_booked(status),
                   booking,
+                  spots_booked,
                 )
               [
                 primary,
@@ -2811,6 +2967,7 @@ fn view_detail_actions(
   activity: Activity,
   booked: Bool,
   booking: BookingFormState,
+  spots_booked: Option(Int),
 ) -> #(Element(Msg), Element(Msg)) {
   case booked, booking {
     // Booked activity: ask the user to confirm before deleting their booking.
@@ -2848,17 +3005,28 @@ fn view_detail_actions(
       ),
     )
 
-    // Not booked: only the "Boka" button if the activity has capacity.
+    // Not booked: the "Boka" button if the activity has capacity, shown as a
+    // disabled "Full" button when no spots remain (known count only).
     False, _ ->
       case activity.max_attendees {
-        Some(_) -> #(
-          component.scout_button_action(
-            g18n.translate(translator, "activity.book"),
-            "primary",
-            UserClickedBook,
-          ),
-          element.none(),
-        )
+        Some(_) ->
+          case model.spots_remaining(activity.max_attendees, spots_booked) {
+            model.Remaining(0) -> #(
+              component.scout_button_disabled(
+                g18n.translate(translator, "activity.full"),
+                "primary",
+              ),
+              element.none(),
+            )
+            _ -> #(
+              component.scout_button_action(
+                g18n.translate(translator, "activity.book"),
+                "primary",
+                UserClickedBook,
+              ),
+              element.none(),
+            )
+          }
         None -> #(element.none(), element.none())
       }
   }
@@ -2867,6 +3035,9 @@ fn view_detail_actions(
 fn view_booking_form_section(
   translator: Translator,
   booking: BookingFormState,
+  max_attendees: Option(Int),
+  spots_booked: Option(Int),
+  status: ActivityStatus,
 ) -> Element(Msg) {
   case booking {
     BookingClosed -> element.none()
@@ -2876,7 +3047,9 @@ fn view_booking_form_section(
       html.div([attribute.class("flex justify-center py-4")], [
         component.scout_loader(g18n.translate(translator, "booking.submitting")),
       ])
-    BookingOpen(form, submit_error, _) -> {
+    BookingOpen(form, submit_error, mode) -> {
+      let max_participants =
+        cap_for_mode(max_attendees, spots_booked, status, mode)
       let submitted = fn(values) {
         form
         |> form.add_values(values)
@@ -2911,11 +3084,12 @@ fn view_booking_form_section(
             "text",
             "group_free_text",
           ),
-          component.scout_form_field(
+          component.scout_form_number_field(
             form,
             g18n.translate(translator, "booking.participant_count"),
-            "number",
             "participant_count",
+            1,
+            max_participants,
           ),
           html.div([attribute.class("flex gap-2 justify-end")], [
             component.scout_button_action(

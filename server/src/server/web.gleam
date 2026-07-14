@@ -2,6 +2,7 @@ import given
 import gleam/dynamic/decode
 import gleam/http/request
 import gleam/int
+import gleam/json
 import gleam/list
 import gleam/option.{type Option}
 import gleam/result
@@ -308,6 +309,32 @@ pub fn require_any_role(
 pub fn query_error(error: pog.QueryError) -> Response {
   wisp.log_error("QueryError " <> string.inspect(error))
   wisp.internal_server_error()
+}
+
+/// True when booking `requested` more spots on top of `already_booked` would
+/// push past the cap. `None` means the activity is uncapped, so it never
+/// exceeds. Kept pure so it can be unit-tested without a database.
+pub fn exceeds_capacity(
+  max: Option(Int),
+  already_booked: Int,
+  requested: Int,
+) -> Bool {
+  case max {
+    option.None -> False
+    option.Some(limit) -> already_booked + requested > limit
+  }
+}
+
+/// 409 response for a booking that would overbook an activity. Carries the cap
+/// and the count already booked so the client can refresh its view.
+pub fn capacity_exceeded(max_attendees: Int, spots_booked: Int) -> Response {
+  json.object([
+    #("error", json.string("capacity_exceeded")),
+    #("max_attendees", json.int(max_attendees)),
+    #("spots_booked", json.int(spots_booked)),
+  ])
+  |> json.to_string
+  |> wisp.json_response(409)
 }
 
 /// Reads and discards the request body.

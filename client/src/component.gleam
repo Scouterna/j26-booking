@@ -52,6 +52,49 @@ pub fn scout_form_field(
   )
 }
 
+/// A `scout-input type="number"` form field with a `min` and an optional `max`
+/// bound. `max` is `None` for an uncapped field. Mirrors `scout_form_field`,
+/// including the error `<small>`s beneath the input.
+pub fn scout_form_number_field(
+  f: Form(a),
+  label: String,
+  name: String,
+  min: Int,
+  max: Option(Int),
+) -> Element(msg) {
+  let errors = form.field_error_messages(f, name)
+  let max_attr = case max {
+    Some(limit) -> [attribute.attribute("max", int.to_string(limit))]
+    None -> []
+  }
+  scout_field(
+    label,
+    element.fragment([
+      element.element(
+        "scout-input",
+        [
+          attribute.attribute("type", "number"),
+          attribute.attribute("name", name),
+          attribute.attribute("value", form.field_value(f, name)),
+          attribute.attribute("min", int.to_string(min)),
+          ..max_attr
+        ],
+        [],
+      ),
+      ..list.map(errors, fn(msg) {
+        html.small(
+          [
+            attribute.styles([
+              #("color", "var(--color-text-danger-base)"),
+            ]),
+          ],
+          [element.text(msg)],
+        )
+      })
+    ]),
+  )
+}
+
 pub fn scout_button_action(
   text: String,
   variant: String,
@@ -71,6 +114,17 @@ pub fn scout_button_el(text: String, variant: String) -> Element(msg) {
   element.element("scout-button", [attribute.attribute("variant", variant)], [
     element.text(text),
   ])
+}
+
+pub fn scout_button_disabled(text: String, variant: String) -> Element(msg) {
+  element.element(
+    "scout-button",
+    [
+      attribute.attribute("variant", variant),
+      attribute.attribute("disabled", ""),
+    ],
+    [element.text(text)],
+  )
 }
 
 pub fn scout_button_icon(

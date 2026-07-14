@@ -525,6 +525,10 @@ paths:
           $ref: '#/components/responses/Unauthorized'
         '403':
           $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/CapacityExceeded'
         '500':
           $ref: '#/components/responses/ServerError'
 
@@ -618,6 +622,8 @@ paths:
           $ref: '#/components/responses/NotFound'
         '401':
           $ref: '#/components/responses/Unauthorized'
+        '409':
+          $ref: '#/components/responses/CapacityExceeded'
         '500':
           $ref: '#/components/responses/ServerError'
 
@@ -2052,3 +2058,28 @@ components:
 
     Forbidden:
       description: Forbidden - the authenticated user lacks the required role
+
+    CapacityExceeded:
+      description: >-
+        The booking would push the activity past its `max_attendees` cap. The
+        body reports the cap and the count already booked so the client can
+        refresh its view.
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [error, max_attendees, spots_booked]
+            properties:
+              error:
+                type: string
+                enum: [capacity_exceeded]
+              max_attendees:
+                type: integer
+                description: The activity's attendee cap.
+              spots_booked:
+                type: integer
+                description: Spots already booked at the time of the check.
+          example:
+            error: "capacity_exceeded"
+            max_attendees: 20
+            spots_booked: 18

@@ -12,6 +12,7 @@ import server/model/booking
 import server/sql
 import server/utils
 import server/web
+import shared/model.{type Booking}
 import wisp.{type Request, type Response}
 import youid/uuid
 
@@ -41,6 +42,15 @@ fn booking_input_decoder() -> decode.Decoder(BookingInput) {
   ))
 }
 
+/// Rollback reasons for the booking create/update transactions, so the handler
+/// can map each to the right HTTP status.
+type BookingError {
+  ActivityNotFound
+  BookingNotFound
+  CapacityExceeded(max: Int, spots_booked: Int)
+  BookingQueryFailed(pog.QueryError)
+}
+
 pub fn create(
   req: Request,
   activity_id_str: String,
@@ -59,56 +69,35 @@ pub fn create(
   use input <- given.ok(decode.run(json_body, booking_input_decoder()), fn(_) {
     wisp.bad_request("Invalid JSON payload")
   })
+  use <- given.that(input.participant_count >= 1, else_return: fn() {
+    wisp.bad_request("participant_count must be at least 1")
+  })
   let id = uuid.v7()
   let user_id = user.id
-  // The booker group comes from the token. A token without one still creates a
-  // booking — the group columns are simply left NULL.
-  let booking_result = case user.group_id {
-    option.Some(group_id) ->
-      sql.create_booking_with_group(
-        ctx.db_connection,
-        id,
-        user_id,
-        activity_id,
-        user.name,
-        group_id,
-        web.group_id_to_name(group_id),
-        input.group_free_text,
-        input.responsible_name,
-        input.phone_number,
-        input.participant_count,
-      )
-      |> result.map(fn(returned) {
-        pog.Returned(
-          returned.count,
-          list.map(returned.rows, booking.from_create_booking_with_group_row),
-        )
-      })
-    option.None ->
-      sql.create_booking_without_group(
-        ctx.db_connection,
-        id,
-        user_id,
-        activity_id,
-        user.name,
-        input.group_free_text,
-        input.responsible_name,
-        input.phone_number,
-        input.participant_count,
-      )
-      |> result.map(fn(returned) {
-        pog.Returned(
-          returned.count,
-          list.map(returned.rows, booking.from_create_booking_without_group_row),
-        )
-      })
-  }
 
-  case booking_result {
-    Error(error) -> web.query_error(error)
-    Ok(pog.Returned(_, [])) -> wisp.internal_server_error()
-    Ok(pog.Returned(_, [created_booking, ..])) -> {
-      // Auto-favourite on booking. Idempotent via ON CONFLICT DO NOTHING.
+  // Lock the activity row, verify capacity, and insert in one transaction so
+  // concurrent bookings for the same activity serialise and can't overbook.
+  let transaction_result =
+    pog.transaction(ctx.db_connection, fn(conn) {
+      use max_attendees <- result.try(lock_activity(conn, activity_id))
+      use spots_booked <- result.try(booked_spots(conn, activity_id))
+      case
+        web.exceeds_capacity(
+          max_attendees,
+          spots_booked,
+          input.participant_count,
+        )
+      {
+        True ->
+          Error(CapacityExceeded(option.unwrap(max_attendees, 0), spots_booked))
+        False -> insert_booking(conn, id, user_id, user, activity_id, input)
+      }
+    })
+
+  case transaction_result {
+    Ok(created_booking) -> {
+      // Auto-favourite on booking. Idempotent via ON CONFLICT DO NOTHING. Kept
+      // outside the transaction so a favourite failure can't undo the booking.
       case
         sql.create_favourite(ctx.db_connection, uuid.v7(), user_id, activity_id)
       {
@@ -126,6 +115,95 @@ pub fn create(
       )
       |> wisp.set_header("location", location)
     }
+    Error(pog.TransactionRolledBack(ActivityNotFound)) -> wisp.not_found()
+    Error(pog.TransactionRolledBack(CapacityExceeded(max, spots_booked))) ->
+      web.capacity_exceeded(max, spots_booked)
+    Error(pog.TransactionRolledBack(BookingQueryFailed(error))) ->
+      web.query_error(error)
+    Error(error) -> {
+      wisp.log_error("TransactionError " <> string.inspect(error))
+      wisp.internal_server_error()
+    }
+  }
+}
+
+/// Locks the activity row for the transaction and returns its cap. Missing
+/// activity rolls back the transaction as `ActivityNotFound`.
+fn lock_activity(
+  conn: pog.Connection,
+  activity_id: uuid.Uuid,
+) -> Result(option.Option(Int), BookingError) {
+  case sql.lock_activity_max_attendees(conn, activity_id) {
+    Error(error) -> Error(BookingQueryFailed(error))
+    Ok(pog.Returned(_, [])) -> Error(ActivityNotFound)
+    Ok(pog.Returned(_, [row, ..])) -> Ok(row.max_attendees)
+  }
+}
+
+/// Current summed `participant_count` for an activity. The aggregate always
+/// returns one row, so an empty result is treated as a query failure.
+fn booked_spots(
+  conn: pog.Connection,
+  activity_id: uuid.Uuid,
+) -> Result(Int, BookingError) {
+  case sql.get_activity_spots(conn, activity_id) {
+    Error(error) -> Error(BookingQueryFailed(error))
+    Ok(pog.Returned(_, [row, ..])) -> Ok(row.spots_booked)
+    Ok(pog.Returned(_, [])) ->
+      Error(BookingQueryFailed(pog.UnexpectedResultType([])))
+  }
+}
+
+/// Inserts the booking, choosing the with/without-group variant from the
+/// user's token group. Assumes capacity has already been checked.
+fn insert_booking(
+  conn: pog.Connection,
+  id: uuid.Uuid,
+  user_id: uuid.Uuid,
+  user: web.User,
+  activity_id: uuid.Uuid,
+  input: BookingInput,
+) -> Result(Booking, BookingError) {
+  // The booker group comes from the token. A token without one still creates a
+  // booking — the group columns are simply left NULL.
+  let inserted = case user.group_id {
+    option.Some(group_id) ->
+      sql.create_booking_with_group(
+        conn,
+        id,
+        user_id,
+        activity_id,
+        user.name,
+        group_id,
+        web.group_id_to_name(group_id),
+        input.group_free_text,
+        input.responsible_name,
+        input.phone_number,
+        input.participant_count,
+      )
+      |> result.map(fn(returned) {
+        list.map(returned.rows, booking.from_create_booking_with_group_row)
+      })
+    option.None ->
+      sql.create_booking_without_group(
+        conn,
+        id,
+        user_id,
+        activity_id,
+        user.name,
+        input.group_free_text,
+        input.responsible_name,
+        input.phone_number,
+        input.participant_count,
+      )
+      |> result.map(fn(returned) {
+        list.map(returned.rows, booking.from_create_booking_without_group_row)
+      })
+  }
+  case inserted {
+    Error(error) -> Error(BookingQueryFailed(error))
+    Ok([created_booking, ..]) -> Ok(created_booking)
+    Ok([]) -> Error(BookingQueryFailed(pog.UnexpectedResultType([])))
   }
 }
 
@@ -202,10 +280,70 @@ pub fn update(req: Request, id: String, ctx: web.Context) -> Response {
   use input <- given.ok(decode.run(json_body, booking_input_decoder()), fn(_) {
     wisp.bad_request("Invalid JSON payload")
   })
+  use <- given.that(input.participant_count >= 1, else_return: fn() {
+    wisp.bad_request("participant_count must be at least 1")
+  })
 
+  // Same locking transaction as create: an edit that raises participant_count
+  // must not push the activity past its cap. The booking's own current count is
+  // excluded from the "already booked" figure it's checked against.
+  let transaction_result =
+    pog.transaction(ctx.db_connection, fn(conn) {
+      use existing <- result.try(load_booking(conn, booking_id))
+      use max_attendees <- result.try(lock_activity(conn, existing.activity_id))
+      use spots_booked <- result.try(booked_spots(conn, existing.activity_id))
+      let already_booked = spots_booked - existing.participant_count
+      case
+        web.exceeds_capacity(
+          max_attendees,
+          already_booked,
+          input.participant_count,
+        )
+      {
+        True ->
+          Error(CapacityExceeded(option.unwrap(max_attendees, 0), spots_booked))
+        False -> update_booking(conn, booking_id, input)
+      }
+    })
+
+  case transaction_result {
+    Ok(updated) ->
+      wisp.json_response(updated |> booking.to_json |> json.to_string, 200)
+    Error(pog.TransactionRolledBack(BookingNotFound)) -> wisp.not_found()
+    Error(pog.TransactionRolledBack(ActivityNotFound)) -> wisp.not_found()
+    Error(pog.TransactionRolledBack(CapacityExceeded(max, spots_booked))) ->
+      web.capacity_exceeded(max, spots_booked)
+    Error(pog.TransactionRolledBack(BookingQueryFailed(error))) ->
+      web.query_error(error)
+    Error(error) -> {
+      wisp.log_error("TransactionError " <> string.inspect(error))
+      wisp.internal_server_error()
+    }
+  }
+}
+
+/// Loads the booking being edited (for its activity + current count). Missing
+/// booking rolls back the transaction as `BookingNotFound`.
+fn load_booking(
+  conn: pog.Connection,
+  booking_id: uuid.Uuid,
+) -> Result(Booking, BookingError) {
+  case sql.get_booking(conn, booking_id) {
+    Error(error) -> Error(BookingQueryFailed(error))
+    Ok(pog.Returned(_, [])) -> Error(BookingNotFound)
+    Ok(pog.Returned(_, [row, ..])) -> Ok(booking.from_get_booking_row(row))
+  }
+}
+
+/// Applies the edit. Assumes capacity has already been checked.
+fn update_booking(
+  conn: pog.Connection,
+  booking_id: uuid.Uuid,
+  input: BookingInput,
+) -> Result(Booking, BookingError) {
   case
     sql.update_booking(
-      ctx.db_connection,
+      conn,
       booking_id,
       input.group_free_text,
       input.responsible_name,
@@ -213,16 +351,9 @@ pub fn update(req: Request, id: String, ctx: web.Context) -> Response {
       input.participant_count,
     )
   {
-    Error(error) -> web.query_error(error)
-    Ok(pog.Returned(_, [])) -> wisp.not_found()
-    Ok(pog.Returned(_, [row, ..])) ->
-      wisp.json_response(
-        row
-          |> booking.from_update_booking_row
-          |> booking.to_json
-          |> json.to_string,
-        200,
-      )
+    Error(error) -> Error(BookingQueryFailed(error))
+    Ok(pog.Returned(_, [])) -> Error(BookingNotFound)
+    Ok(pog.Returned(_, [row, ..])) -> Ok(booking.from_update_booking_row(row))
   }
 }
 

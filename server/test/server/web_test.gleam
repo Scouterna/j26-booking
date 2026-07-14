@@ -361,3 +361,25 @@ pub fn require_any_role_admin_implies_all_test() {
 
   assert response.status == 200
 }
+
+pub fn exceeds_capacity_uncapped_never_exceeds_test() {
+  // No cap: any request is fine, even a huge one.
+  assert web.exceeds_capacity(None, 0, 1) == False
+  assert web.exceeds_capacity(None, 1000, 1000) == False
+}
+
+pub fn exceeds_capacity_boundary_test() {
+  // Filling the last spots exactly is allowed; one over is not.
+  assert web.exceeds_capacity(Some(20), 18, 2) == False
+  assert web.exceeds_capacity(Some(20), 18, 3) == True
+  // Exactly at the cap already: any further request exceeds.
+  assert web.exceeds_capacity(Some(20), 20, 1) == True
+  // Empty activity, request within the cap.
+  assert web.exceeds_capacity(Some(20), 0, 20) == False
+}
+
+pub fn capacity_exceeded_response_is_409_json_test() {
+  let response = web.capacity_exceeded(20, 18)
+
+  assert response.status == 409
+}
