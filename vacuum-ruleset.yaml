@@ -1,0 +1,9 @@
+extends: [[vacuum:oas, recommended]]
+rules:
+  # snake_case is the JSON wire contract for this API (the Gleam server
+  # serializes these exact keys); camelCase would break every client.
+  camel-case-properties: false
+  # Repeated descriptions are intentional and correct here — every
+  # BilingualString has sv/en, every id is a "Unique identifier…", and
+  # start_time/end_time share wording. Deduping would make docs worse.
+  description-duplication: false

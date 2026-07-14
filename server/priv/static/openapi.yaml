@@ -51,22 +51,21 @@ paths:
                     type: array
                     items:
                       $ref: '#/components/schemas/ActivitySummary'
-              example:
-                activities:
-                  - id: "6f5e1d46-5f58-4e23-9a9d-8c2bfc2d22a0"
-                    title:
-                      sv: "Lägereldssånger"
-                      en: "Campfire Songs"
-                    max_attendees: 50
-                    start_time: 1752350400
-                    end_time: 1752357600
-                  - id: "b4219a53-4746-4a09-8b4e-3e2ac0c3df11"
-                    title:
-                      sv: "Orienteringsutmaning"
-                      en: "Orienteering Challenge"
-                    max_attendees: 30
-                    start_time: 1752400800
-                    end_time: 1752411600
+                    example:
+                      - id: "6f5e1d46-5f58-4e23-9a9d-8c2bfc2d22a0"
+                        title:
+                          sv: "Lägereldssånger"
+                          en: "Campfire Songs"
+                        max_attendees: 50
+                        start_time: 1752350400
+                        end_time: 1752357600
+                      - id: "b4219a53-4746-4a09-8b4e-3e2ac0c3df11"
+                        title:
+                          sv: "Orienteringsutmaning"
+                          en: "Orienteering Challenge"
+                        max_attendees: 30
+                        start_time: 1752400800
+                        end_time: 1752411600
         '400':
           $ref: '#/components/responses/BadRequest'
         '500':
@@ -82,6 +81,7 @@ paths:
         - bearerAuth: []
         - cookieAuth: []
       requestBody:
+        description: The activity to create.
         required: true
         content:
           application/json:
@@ -148,6 +148,14 @@ paths:
                     type: array
                     items:
                       $ref: '#/components/schemas/ActivitySummary'
+                    example:
+                      - id: "c1d2e3f4-0000-4000-8000-000000000001"
+                        title:
+                          sv: "Badbuss 09:00"
+                          en: "Beach bus 09:00"
+                        max_attendees: 40
+                        start_time: 1752390000
+                        end_time: 1752393600
         '500':
           $ref: '#/components/responses/ServerError'
 
@@ -175,6 +183,14 @@ paths:
                     type: array
                     items:
                       $ref: '#/components/schemas/ActivitySummary'
+                    example:
+                      - id: "c1d2e3f4-0000-4000-8000-000000000002"
+                        title:
+                          sv: "Klättervägg 10:00"
+                          en: "Climbing wall 10:00"
+                        max_attendees: 12
+                        start_time: 1752393600
+                        end_time: 1752397200
         '500':
           $ref: '#/components/responses/ServerError'
 
@@ -207,6 +223,14 @@ paths:
                     type: array
                     items:
                       $ref: '#/components/schemas/ActivitySummary'
+                    example:
+                      - id: "6f5e1d46-5f58-4e23-9a9d-8c2bfc2d22a0"
+                        title:
+                          sv: "Lägereldssånger"
+                          en: "Campfire Songs"
+                        max_attendees: 50
+                        start_time: 1752350400
+                        end_time: 1752357600
         '401':
           $ref: '#/components/responses/Unauthorized'
         '500':
@@ -238,6 +262,11 @@ paths:
                     type: array
                     items:
                       $ref: '#/components/schemas/ActivitySpots'
+                    example:
+                      - activity_id: "6f5e1d46-5f58-4e23-9a9d-8c2bfc2d22a0"
+                        spots_booked: 12
+                      - activity_id: "b4219a53-4746-4a09-8b4e-3e2ac0c3df11"
+                        spots_booked: 0
         '500':
           $ref: '#/components/responses/ServerError'
 
@@ -318,6 +347,7 @@ paths:
       parameters:
         - $ref: '#/components/parameters/ActivityId'
       requestBody:
+        description: The new activity details, replacing the existing activity.
         required: true
         content:
           application/json:
@@ -417,18 +447,17 @@ paths:
                     type: array
                     items:
                       $ref: '#/components/schemas/Booking'
-              example:
-                bookings:
-                  - id: "dd000001-0000-4000-8000-000000000001"
-                    user_id: "a1b2c3d4-e5f6-4a90-abcd-ef1234567890"
-                    activity_id: "6f5e1d46-5f58-4e23-9a9d-8c2bfc2d22a0"
-                    booker_name: "Anna Svensson"
-                    booker_group_id: 101
-                    booker_group_name: "Sjöscoutkåren Dansen"
-                    group_free_text: "Patrull Örnarna"
-                    responsible_name: "Anna Svensson"
-                    phone_number: "+46701234567"
-                    participant_count: 12
+                    example:
+                      - id: "dd000001-0000-4000-8000-000000000001"
+                        user_id: "a1b2c3d4-e5f6-4a90-abcd-ef1234567890"
+                        activity_id: "6f5e1d46-5f58-4e23-9a9d-8c2bfc2d22a0"
+                        booker_name: "Anna Svensson"
+                        booker_group_id: 101
+                        booker_group_name: "Sjöscoutkåren Dansen"
+                        group_free_text: "Patrull Örnarna"
+                        responsible_name: "Anna Svensson"
+                        phone_number: "+46701234567"
+                        participant_count: 12
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':
@@ -456,6 +485,7 @@ paths:
       parameters:
         - $ref: '#/components/parameters/ActivityIdPath'
       requestBody:
+        description: The booking details for the authenticated user.
         required: true
         content:
           application/json:
@@ -553,6 +583,7 @@ paths:
       parameters:
         - $ref: '#/components/parameters/BookingId'
       requestBody:
+        description: The updated booking details (only mutable fields are applied).
         required: true
         content:
           application/json:
@@ -677,8 +708,7 @@ paths:
                 properties:
                   error:
                     type: string
-                example:
-                  error: "Cannot unfavourite a booked activity"
+                    example: "Cannot unfavourite a booked activity"
         '500':
           $ref: '#/components/responses/ServerError'
 
@@ -709,9 +739,8 @@ paths:
                     type: array
                     items:
                       type: string
-              example:
-                roles:
-                  - "activities:manage"
+                    example:
+                      - "activities:manage"
         '401':
           $ref: '#/components/responses/Unauthorized'
 
@@ -744,23 +773,22 @@ paths:
                     type: array
                     items:
                       $ref: '#/components/schemas/ActivityStatusEntry'
-              example:
-                statuses:
-                  - activity_id: "6f5e1d46-5f58-4e23-9a9d-8c2bfc2d22a0"
-                    status: "booked"
-                    booking:
-                      id: "aa000001-0000-4000-8000-000000000001"
-                      user_id: "a1b2c3d4-e5f6-4a90-abcd-ef1234567890"
-                      activity_id: "6f5e1d46-5f58-4e23-9a9d-8c2bfc2d22a0"
-                      booker_name: "Anna Svensson"
-                      booker_group_id: 0
-                      booker_group_name: "Patrull Räven"
-                      group_free_text: "Vi är glada!"
-                      responsible_name: "Anna Svensson"
-                      phone_number: "+46701234567"
-                      participant_count: 5
-                  - activity_id: "b4219a53-4746-4a09-8b4e-3e2ac0c3df11"
-                    status: "favourited"
+                    example:
+                      - activity_id: "6f5e1d46-5f58-4e23-9a9d-8c2bfc2d22a0"
+                        status: "booked"
+                        booking:
+                          id: "aa000001-0000-4000-8000-000000000001"
+                          user_id: "a1b2c3d4-e5f6-4a90-abcd-ef1234567890"
+                          activity_id: "6f5e1d46-5f58-4e23-9a9d-8c2bfc2d22a0"
+                          booker_name: "Anna Svensson"
+                          booker_group_id: 0
+                          booker_group_name: "Patrull Räven"
+                          group_free_text: "Vi är glada!"
+                          responsible_name: "Anna Svensson"
+                          phone_number: "+46701234567"
+                          participant_count: 5
+                      - activity_id: "b4219a53-4746-4a09-8b4e-3e2ac0c3df11"
+                        status: "favourited"
         '401':
           $ref: '#/components/responses/Unauthorized'
         '500':
@@ -821,28 +849,27 @@ paths:
                     type: array
                     items:
                       $ref: '#/components/schemas/Location'
-              example:
-                locations:
-                  - id: "0190f3a1-1c2d-7e3f-9a4b-5c6d7e8f9a0b"
-                    name:
-                      sv: "Infotält"
-                      en: "Info tent"
-                    description:
-                      sv: "Information och hjälp för deltagare."
-                      en: "Information and help for participants."
-                    icon_name: "tabler-badge-wc"
-                    icon_variant: "filled"
-                    color: "#2563eb"
-                    latitude: 55.979798511431689
-                    longitude: 14.134385999313892
-                    opening_hours:
-                      "2026-07-25":
-                        - from: "09:00"
-                          to: "12:00"
-                        - from: "13:00"
-                          to: "18:00"
-                    tags:
-                      - "0190f3a1-2d3e-7f40-ab51-6c7d8e9f0a1b"
+                    example:
+                      - id: "0190f3a1-1c2d-7e3f-9a4b-5c6d7e8f9a0b"
+                        name:
+                          sv: "Infotält"
+                          en: "Info tent"
+                        description:
+                          sv: "Information och hjälp för deltagare."
+                          en: "Information and help for participants."
+                        icon_name: "tabler-badge-wc"
+                        icon_variant: "filled"
+                        color: "#2563eb"
+                        latitude: 55.979798511431689
+                        longitude: 14.134385999313892
+                        opening_hours:
+                          "2026-07-25":
+                            - from: "09:00"
+                              to: "12:00"
+                            - from: "13:00"
+                              to: "18:00"
+                        tags:
+                          - "0190f3a1-2d3e-7f40-ab51-6c7d8e9f0a1b"
         '500':
           $ref: '#/components/responses/ServerError'
     post:
@@ -858,6 +885,7 @@ paths:
         - bearerAuth: []
         - cookieAuth: []
       requestBody:
+        description: The location to create.
         required: true
         content:
           application/json:
@@ -889,6 +917,7 @@ paths:
       tags:
         - Locations
       summary: Get a location
+      description: Retrieve a single location by its ID, with its embedded tag ids and opening hours.
       operationId: getLocation
       parameters:
         - $ref: '#/components/parameters/LocationIdPath'
@@ -917,6 +946,7 @@ paths:
       parameters:
         - $ref: '#/components/parameters/LocationIdPath'
       requestBody:
+        description: The new location details, replacing all fields including tag links.
         required: true
         content:
           application/json:
@@ -985,23 +1015,24 @@ paths:
                     type: array
                     items:
                       $ref: '#/components/schemas/ActivityTag'
-              example:
-                activity_tags:
-                  - id: "0190f3a1-2d3e-7f40-ab51-6c7d8e9f0a1b"
-                    name:
-                      sv: "Fysisk"
-                      en: "Physical"
+                    example:
+                      - id: "0190f3a1-2d3e-7f40-ab51-6c7d8e9f0a1b"
+                        name:
+                          sv: "Fysisk"
+                          en: "Physical"
         '500':
           $ref: '#/components/responses/ServerError'
     post:
       tags:
         - Activities
       summary: Create an activity tag
+      description: Create a new activity tag with a bilingual name.
       operationId: createActivityTag
       security:
         - bearerAuth: []
         - cookieAuth: []
       requestBody:
+        description: The activity tag to create.
         required: true
         content:
           application/json:
@@ -1033,6 +1064,7 @@ paths:
       tags:
         - Activities
       summary: Get an activity tag
+      description: Retrieve a single activity tag by its ID.
       operationId: getActivityTag
       parameters:
         - $ref: '#/components/parameters/ActivityTagIdPath'
@@ -1053,6 +1085,7 @@ paths:
       tags:
         - Activities
       summary: Update an activity tag
+      description: Update an existing activity tag's bilingual name.
       operationId: updateActivityTag
       security:
         - bearerAuth: []
@@ -1060,6 +1093,7 @@ paths:
       parameters:
         - $ref: '#/components/parameters/ActivityTagIdPath'
       requestBody:
+        description: The new activity tag details.
         required: true
         content:
           application/json:
@@ -1128,25 +1162,26 @@ paths:
                     type: array
                     items:
                       $ref: '#/components/schemas/LocationTag'
-              example:
-                location_tags:
-                  - id: "0190f3a1-2d3e-7f40-ab51-6c7d8e9f0a1b"
-                    name:
-                      sv: "Service"
-                      en: "Service"
-                    icon_name: "tabler-info-circle"
-                    icon_variant: "outline"
+                    example:
+                      - id: "0190f3a1-2d3e-7f40-ab51-6c7d8e9f0a1b"
+                        name:
+                          sv: "Service"
+                          en: "Service"
+                        icon_name: "tabler-info-circle"
+                        icon_variant: "outline"
         '500':
           $ref: '#/components/responses/ServerError'
     post:
       tags:
         - Locations
       summary: Create a location tag
+      description: Create a new location tag with a bilingual name and icon.
       operationId: createLocationTag
       security:
         - bearerAuth: []
         - cookieAuth: []
       requestBody:
+        description: The location tag to create.
         required: true
         content:
           application/json:
@@ -1178,6 +1213,7 @@ paths:
       tags:
         - Locations
       summary: Get a location tag
+      description: Retrieve a single location tag by its ID.
       operationId: getLocationTag
       parameters:
         - $ref: '#/components/parameters/LocationTagIdPath'
@@ -1198,6 +1234,7 @@ paths:
       tags:
         - Locations
       summary: Update a location tag
+      description: Update an existing location tag's bilingual name and icon.
       operationId: updateLocationTag
       security:
         - bearerAuth: []
@@ -1205,6 +1242,7 @@ paths:
       parameters:
         - $ref: '#/components/parameters/LocationTagIdPath'
       requestBody:
+        description: The new location tag details.
         required: true
         content:
           application/json:
@@ -1305,10 +1343,26 @@ components:
           description: End time as Unix timestamp in seconds
           example: 1752357600
         location:
+          type: object
           nullable: true
           description: The full location this activity happens at, embedded so no follow-up request is needed. Null if the activity has no location.
           allOf:
             - $ref: '#/components/schemas/Location'
+          example:
+            id: "0190f3a1-1c2d-7e3f-9a4b-5c6d7e8f9a0b"
+            name:
+              sv: "Infotält"
+              en: "Info tent"
+            description:
+              sv: "Information och hjälp för deltagare."
+              en: "Information and help for participants."
+            icon_name: "tabler-badge-wc"
+            icon_variant: "filled"
+            color: "#2563eb"
+            latitude: 55.979798511431689
+            longitude: 14.134385999313892
+            opening_hours: {}
+            tags: []
         tags:
           type: array
           description: Ids of the activity tags applied to this activity (resolve them via `/activity-tags`).
@@ -1355,6 +1409,7 @@ components:
           description: End time as Unix timestamp in seconds
           example: 1752357600
         location_name:
+          type: object
           nullable: true
           description: The location's name in both languages (null if the activity has no location). The client selects a variant by active language.
           allOf:
@@ -1808,6 +1863,16 @@ components:
           description: Navigation menu structure
           items:
             $ref: '#/components/schemas/NavigationGroup'
+          example:
+            - type: "group"
+              id: "group_booking"
+              label: "booking.schedule.label"
+              children:
+                - type: "page"
+                  id: "page_all_activities"
+                  label: "booking.all_activities.label"
+                  icon: "campfire"
+                  path: "../activities"
 
     NavigationGroup:
       type: object
