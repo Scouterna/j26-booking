@@ -283,6 +283,22 @@ pub fn require_role(user: User, role: Role, next: fn() -> Response) -> Response 
   }
 }
 
+/// Calls `next` when the user holds at least one of `roles`, otherwise
+/// short-circuits with a 403 response. `Admin` implies every role.
+pub fn require_any_role(
+  user: User,
+  roles: List(Role),
+  next: fn() -> Response,
+) -> Response {
+  let holds_any =
+    list.contains(user.roles, Admin)
+    || list.any(roles, list.contains(user.roles, _))
+  case holds_any {
+    True -> next()
+    False -> wisp.response(403)
+  }
+}
+
 /// Logs a database query error and responds with a 500. Shared by handlers so
 /// the log-and-500 shape stays consistent across the API.
 pub fn query_error(error: pog.QueryError) -> Response {

@@ -328,3 +328,36 @@ pub fn require_role_admin_implies_all_test() {
 
   assert response.status == 200
 }
+
+pub fn require_any_role_with_one_of_the_roles_test() {
+  let user = web.User(..expected_user(), roles: [web.ActivitiesManage])
+
+  let response =
+    web.require_any_role(user, [web.BookingsRead, web.ActivitiesManage], fn() {
+      wisp.ok()
+    })
+
+  assert response.status == 200
+}
+
+pub fn require_any_role_without_any_role_test() {
+  let user = web.User(..expected_user(), roles: [web.BookingsSelfCreate])
+
+  let response =
+    web.require_any_role(user, [web.BookingsRead, web.ActivitiesManage], fn() {
+      wisp.ok()
+    })
+
+  assert response.status == 403
+}
+
+pub fn require_any_role_admin_implies_all_test() {
+  let user = web.User(..expected_user(), roles: [web.Admin])
+
+  let response =
+    web.require_any_role(user, [web.BookingsRead, web.ActivitiesManage], fn() {
+      wisp.ok()
+    })
+
+  assert response.status == 200
+}
