@@ -805,8 +805,19 @@ paths:
       tags:
         - Configuration
       summary: Get application configuration
-      description: Retrieve the application navigation configuration.
+      description: |
+        Retrieve the application navigation configuration the shell merges into
+        its global menu (bottom bar / side menu / "More").
+
+        The `page_manage_activities` item — the management copy of the
+        activities list that links each card to its edit view — is included only
+        when the request's user holds the `activities:manage` role (or `admin`).
+        Requests without a valid token receive only the public items.
       operationId: getAppConfig
+      security:
+        - {}
+        - bearerAuth: []
+        - cookieAuth: []
       responses:
         '200':
           description: Successfully retrieved application configuration
@@ -816,20 +827,16 @@ paths:
                 $ref: '#/components/schemas/AppConfig'
               example:
                 navigation:
-                  - type: "group"
-                    id: "group_booking"
-                    label: "booking.schedule.label"
-                    children:
-                      - type: "page"
-                        id: "page_all_activities"
-                        label: "booking.all_activities.label"
-                        icon: "campfire"
-                        path: "../activities"
-                      - type: "page"
-                        id: "page_my_schedule"
-                        label: "booking.my_schedule.label"
-                        icon: "calendar-event"
-                        path: "../"
+                  - type: "page"
+                    id: "page_activities"
+                    label: "booking.activities.label"
+                    icon: "campfire"
+                    path: "../activities"
+                  - type: "page"
+                    id: "page_manage_activities"
+                    label: "booking.manage_activities.label"
+                    icon: "pencil"
+                    path: "../activities/manage"
 
   /locations:
     get:

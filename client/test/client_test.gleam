@@ -93,7 +93,7 @@ fn a_booking(id: Uuid, activity_id: Uuid) -> model.Booking {
 /// (`activities_ids`) loads eagerly; the other sources start `NotAsked`.
 fn base_model() -> client.Model {
   client.Model(
-    page: client.ActivitiesListPage(client.default_filters()),
+    page: client.ActivitiesListPage(client.default_filters(), client.BrowseList),
     translator: client.translator_for("sv"),
     activities: dict.new(),
     activities_ids: client.Loading,
@@ -105,6 +105,7 @@ fn base_model() -> client.Model {
     spots: dict.new(),
     activity_tags: dict.new(),
     roles: [client.ManageActivities],
+    edit_ui: client.default_edit_ui(),
   )
 }
 
@@ -183,6 +184,21 @@ pub fn tab_source_maps_each_tab_test() {
   assert client.tab_source(client.TabBeachBus) == client.SourceBeachBus
   assert client.tab_source(client.TabClimbingWall) == client.SourceClimbingWall
   assert client.tab_source(client.TabFavourites) == client.SourceFavourites
+}
+
+pub fn manage_list_omits_favourites_tab_test() {
+  let tabs = client.list_tabs_for(client.ManageList)
+  assert !list.contains(tabs, client.TabFavourites)
+  assert list.contains(tabs, client.TabActivities)
+  assert list.contains(tabs, client.TabBeachBus)
+  assert list.contains(tabs, client.TabClimbingWall)
+}
+
+pub fn browse_list_includes_favourites_tab_test() {
+  assert list.contains(
+    client.list_tabs_for(client.BrowseList),
+    client.TabFavourites,
+  )
 }
 
 // PURE HELPERS: status accessors -----------------------------------------------
@@ -391,7 +407,8 @@ pub fn ensure_source_loaded_leaves_loaded_source_untouched_test() {
 pub fn uri_to_page_lists_activities_test() {
   let #(page, _) =
     client.uri_to_page(parse_uri("/_services/booking/activities"), dict.new())
-  assert page == client.ActivitiesListPage(client.default_filters())
+  assert page
+    == client.ActivitiesListPage(client.default_filters(), client.BrowseList)
 }
 
 pub fn uri_to_page_new_activity_test() {
@@ -425,6 +442,16 @@ pub fn uri_to_page_bookings_for_valid_uuid_test() {
     "/_services/booking/activities/" <> uuid.to_string(id_a()) <> "/bookings"
   let #(page, _) = client.uri_to_page(parse_uri(path), dict.new())
   assert page == client.ActivityBookingsPage(id_a(), client.Loading)
+}
+
+pub fn uri_to_page_manage_lists_activities_in_manage_mode_test() {
+  let #(page, _) =
+    client.uri_to_page(
+      parse_uri("/_services/booking/activities/manage"),
+      dict.new(),
+    )
+  assert page
+    == client.ActivitiesListPage(client.default_filters(), client.ManageList)
 }
 
 // UPDATE: favourite toggle (optimistic) ----------------------------------------
@@ -759,9 +786,26 @@ pub fn deleted_activity_purges_caches_and_all_windows_test() {
 pub fn selecting_tab_updates_filter_and_lazily_loads_source_test() {
   // index 1 == TabBeachBus, whose source starts NotAsked in base_model.
   let #(next, _) = client.update(base_model(), client.UserSelectedTab(1))
-  let assert client.ActivitiesListPage(filters) = next.page
+  let assert client.ActivitiesListPage(filters, _) = next.page
   assert filters.tab == client.TabBeachBus
   assert next.beach_bus_ids == client.Loading
+}
+
+pub fn selecting_tab_preserves_manage_mode_test() {
+  // The manage list reuses the whole browse view, so switching tabs must keep
+  // the page in ManageList mode (cards keep linking to the edit view).
+  let manage =
+    client.Model(
+      ..base_model(),
+      page: client.ActivitiesListPage(
+        client.default_filters(),
+        client.ManageList,
+      ),
+    )
+  let #(next, _) = client.update(manage, client.UserSelectedTab(1))
+  let assert client.ActivitiesListPage(filters, mode) = next.page
+  assert filters.tab == client.TabBeachBus
+  assert mode == client.ManageList
 }
 
 pub fn retrying_load_marks_current_tab_source_loading_test() {
@@ -777,7 +821,7 @@ pub fn retrying_load_marks_current_tab_source_loading_test() {
 pub fn searching_updates_filters_on_list_page_test() {
   let #(next, _) =
     client.update(base_model(), client.UserSearchedActivities("bad"))
-  let assert client.ActivitiesListPage(filters) = next.page
+  let assert client.ActivitiesListPage(filters, _) = next.page
   assert filters.search == "bad"
 }
 

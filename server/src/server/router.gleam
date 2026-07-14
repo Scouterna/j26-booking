@@ -83,7 +83,7 @@ fn handle_api_request(
     Put, ["location-tags", id] -> location.update_tag(req, id, ctx)
     Delete, ["location-tags", id] -> location.delete_tag(req, id, ctx)
     _, ["location-tags", _] -> wisp.method_not_allowed([Get, Put, Delete])
-    Get, ["app-config"] -> app_config.navigation()
+    Get, ["app-config"] -> app_config.navigation(ctx)
     _, ["app-config"] -> wisp.method_not_allowed([Get])
     Get, ["docs"] -> api_documentation()
     _, ["docs"] -> wisp.method_not_allowed([Get])
