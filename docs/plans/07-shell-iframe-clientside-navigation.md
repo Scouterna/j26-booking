@@ -370,19 +370,90 @@ paths this plan leaves untouched (genuine cold entry, deep-links, refresh, and
 cross-sub-app switches, which always reload by design). But only client-side
 navigation makes *back* instant and state-preserving, so this plan stands.
 
-## Edge cases
+## Edge cases & open risks (Approach A)
 
-- **Switching to a different sub-app** — a cross-app URL change reassigns `src`
-  in both approaches (Approach A: `sameSubApp` is false; Approach B: it's still a
-  different document). Back into a torn-down app necessarily reloads it — expected.
-- **iOS PWAShell** — no system back button; the in-app back button is primary.
-  Because the fix lives in the shell's URL-change reaction (not the button), the
-  app button, swipe-back, and any native back get identical no-reload behavior.
-- **Approach B, nav before first load** — falls back to `src` (which is the load
-  anyway); no message is lost because the booking listener registers during
-  `init`, before the iframe `load` event fires.
-- **Approach B, origin/source spoofing** — the booking listener rejects messages
-  whose `source` is not `window.parent` or whose origin differs.
+Verified so far: **desktop Chromium only** (Playwright), within-booking
+back/forward, one-press, no reload, back-button visibility. The items below are
+reasoned about, not all tested. Grouped by likelihood/impact.
+
+### Real functional risks
+
+1. **Real mobile WebViews — the biggest unknown (untested).** The approach rests
+   on same-origin joint-history + `popstate` propagating into the iframe. That is
+   standard behavior, but the **Android TWA** and **iOS WKWebView** are exactly
+   where it can drift — iOS edge-swipe-back over nested iframe history is
+   historically finicky. **Must be tested on real devices** before trusting it in
+   production. If it reloads or desyncs there, fall back to Approach B.
+2. **Same-origin is a hard requirement.** Everything depends on booking being
+   same-origin with the shell (reading `contentWindow.location`, joint history,
+   popstate). Today both are `local.j26.se`. If any environment serves booking
+   from a different origin/subdomain, the `sameSubApp` check throws → falls back
+   to `src` reassignment → **silent reload**, and cross-origin history won't
+   propagate the same way. Assert same-origin in every environment
+   (dev/stage/prod); the failure is silent.
+3. **Cross-sub-app switches still reload — and their history is the murkiest
+   area.** State is preserved only *within* booking. booking → map/notifications
+   reassigns `src` (cold-loads the new app, tears down booking's document), so
+   back into booking reloads it cold (expected). More subtly: `src=` assignment
+   itself manipulates the iframe's history, and how that interleaves with the
+   pre-existing booking `pushState` entries in the joint stack can make
+   back/forward *across* an app boundary behave unpredictably. **Not tested.**
+4. **The `"client-side"` strategy has an implicit contract.** It works for booking
+   only because booking (a) mirrors its route via `j26:navigate` and (b) handles
+   `popstate` (modem). Any future sub-app added to the registry as `client-side`
+   that doesn't do **both** will break — the shell does nothing on back and the
+   iframe never re-renders. This precondition must be documented on the registry
+   (`sub-apps.ts`) and checked before adding an entry.
+
+### UX imprecision (works, but not perfect)
+
+5. **`window.history.length > 1` is a rough proxy for the back button
+   (`AppBar.tsx`).** It counts the *entire tab* session history (including entries
+   from before the app loaded, and forward entries). Consequences:
+   - Deep-link straight to a booking detail page → `length` may be 1 → back button
+     hidden (user must use the bottom nav to reach the list).
+   - Entered the app from another site → `length` already > 1 → button shows, but
+     pressing back exits to that external site rather than going "up" in booking.
+   TanStack's `useCanGoBack()` would be precise, but `replace` freezes it — this
+   heuristic is the tradeoff. A fully accurate signal needs booking to report its
+   own history depth (small protocol addition — see follow-up below).
+6. **Scroll restoration is not guaranteed.** "No reload" preserves the in-memory
+   store (no refetch), but if booking's list unmounts/re-renders on route change,
+   the *scroll position* may still reset on back — the DOM survives but SPA
+   re-rendering can lose scroll. Better than before (data cached), but "back
+   returns you exactly where you were" depends on whether Lustre keeps the list
+   mounted. Worth checking on a long, scrolled list.
+
+### Low-probability
+
+7. **Rapid-navigation races.** The mirror is async (iframe `pushState` →
+   `postMessage` → shell `navigate({replace})` a task later). Fast double-clicks
+   or programmatic bursts could land the `replace` on the wrong entry (transient
+   URL/view mismatch) or overwrite the single `iframeInitiatedUrl` guard. The
+   `sameSubApp` check is a safety net — within booking it won't *reload* even if
+   the guard is wrong — but the URL bar could briefly disagree. Self-heals on the
+   next nav.
+
+### Not "breaks" — just doesn't help
+
+8. **Hard refresh (F5), the PWA "reload to update" prompt, and cold deep-links**
+   still fully reboot booking (no SSR). Approach A only covers in-session
+   back/forward. These are the paths the caching/SSR alternative would address.
+
+### Top follow-ups
+
+- **(a)** Test on a real Android TWA and iOS WKWebView (risk #1) — make-or-break.
+- **(b)** Decide whether the back-button heuristic (#5) is good enough, or have
+  booking report its own `canGoBack` (e.g. a `j26:canGoBack` message or a field
+  on `j26:navigate`) so the shell shows the button precisely.
+
+### Approach B notes
+
+- **Nav before first load** — falls back to `src` (which is the load anyway); no
+  message is lost because the booking listener registers during `init`, before
+  the iframe `load` event fires.
+- **Origin/source spoofing** — the booking listener rejects messages whose
+  `source` is not `window.parent` or whose origin differs.
 
 ## Verification
 
