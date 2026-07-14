@@ -2,5 +2,5 @@
   "tailwindCSS.includeLanguages": {
     "gleam": "html"
   },
-  "tailwindCSS.experimental.classRegex": [["attribute\\.class\\(\"([^\"]*)\""]]
+  "tailwindCSS.experimental.classRegex": [["attribute\\.class\\(\\s*\"([^\"]*)\""]]
 }
