@@ -132,7 +132,7 @@ pub fn create(
 pub fn get_one(req: Request, id: String, ctx: web.Context) -> Response {
   use <- wisp.require_method(req, Get)
   use user <- web.with_authenticated_user(ctx)
-  use <- web.require_role(user, web.BookingsRead)
+  use <- web.require_any_role(user, [web.BookingsRead, web.ActivitiesManage])
   use booking_id <- given.ok(uuid.from_string(id), fn(_) {
     wisp.bad_request("Invalid booking ID format")
   })
@@ -157,7 +157,7 @@ pub fn get_by_activity(
 ) -> Response {
   use <- wisp.require_method(req, Get)
   use user <- web.with_authenticated_user(ctx)
-  use <- web.require_role(user, web.BookingsRead)
+  use <- web.require_any_role(user, [web.BookingsRead, web.ActivitiesManage])
   use activity_id <- given.ok(uuid.from_string(activity_id_str), fn(_) {
     wisp.bad_request("Invalid activity ID format")
   })

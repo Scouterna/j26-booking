@@ -392,7 +392,10 @@ paths:
       tags:
         - Bookings
       summary: List bookings for activity
-      description: Retrieve a paginated list of bookings for a specific activity, ordered by responsible name.
+      description: >-
+        Retrieve a paginated list of bookings for a specific activity, ordered
+        by responsible name. Requires the `bookings:read` or `activities:manage`
+        role.
       operationId: listBookingsByActivity
       security:
         - bearerAuth: []
@@ -500,7 +503,9 @@ paths:
       tags:
         - Bookings
       summary: Get booking
-      description: Retrieve a single booking by its ID.
+      description: >-
+        Retrieve a single booking by its ID. Requires the `bookings:read` or
+        `activities:manage` role.
       operationId: getBooking
       security:
         - bearerAuth: []
