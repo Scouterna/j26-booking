@@ -142,9 +142,7 @@ pub fn fetch_all_dict(
   })
 }
 
-pub fn from_list_location_tags_row(
-  row: sql.ListLocationTagsRow,
-) -> LocationTag {
+pub fn from_list_location_tags_row(row: sql.ListLocationTagsRow) -> LocationTag {
   LocationTag(
     id: row.id,
     name: model.BilingualString(sv: row.name, en: row.name_en),
