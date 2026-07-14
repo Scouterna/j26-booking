@@ -492,12 +492,14 @@ pub type Model {
 /// `web.require_role`); the strings match the server's `web.Role`.
 pub type Role {
   ManageActivities
+  BookingsRead
   Admin
 }
 
 fn role_from_string(raw: String) -> Result(Role, Nil) {
   case raw {
     "activities:manage" -> Ok(ManageActivities)
+    "bookings:read" -> Ok(BookingsRead)
     "admin" -> Ok(Admin)
     _ -> Error(Nil)
   }
@@ -509,8 +511,11 @@ fn has_role(model: Model, role: Role) -> Bool {
   list.contains(model.roles, role) || list.contains(model.roles, Admin)
 }
 
-fn can_manage_activities(model: Model) -> Bool {
-  has_role(model, ManageActivities)
+/// Whether the user may view an activity's bookings, gating the "Show bookings"
+/// action. Mirrors the server's `bookings:read` guard; `activities:manage` and
+/// `Admin` also qualify.
+fn can_view_bookings(model: Model) -> Bool {
+  has_role(model, BookingsRead) || has_role(model, ManageActivities)
 }
 
 pub fn tab_source(tab: ActivitiesFilterTab) -> ActivityListSource {
@@ -2020,7 +2025,7 @@ fn view(model: Model) -> Element(Msg) {
         dict.get(model.spots, id) |> option.from_result,
         booking,
         model.activity_tags,
-        can_manage_activities(model),
+        can_view_bookings(model),
       )
     ActivityBookingsPage(id, bookings) ->
       view_activity_bookings(
@@ -2525,7 +2530,7 @@ fn view_activity_detail(
   spots_booked: Option(Int),
   booking: BookingFormState,
   activity_tags: Dict(Uuid, ActivityTag),
-  can_manage: Bool,
+  can_view_bookings: Bool,
 ) -> Element(Msg) {
   case state {
     NotAsked | Loading ->
@@ -2569,7 +2574,7 @@ fn view_activity_detail(
         spots_booked,
         booking,
         activity_tags,
-        can_manage,
+        can_view_bookings,
       )
   }
 }
@@ -2596,7 +2601,7 @@ fn view_activity_detail_loaded(
   spots_booked: Option(Int),
   booking: BookingFormState,
   activity_tags: Dict(Uuid, ActivityTag),
-  can_manage: Bool,
+  can_view_bookings: Bool,
 ) -> Element(Msg) {
   let heart_btn =
     component.heart_button(
@@ -2657,9 +2662,10 @@ fn view_activity_detail_loaded(
           ],
         ),
         html.div(
-          // Action bar under the title: booking actions on the left, the
-          // management-only "Visa bokningar" action on the right, with
-          // spots-remaining as a caption beneath.
+          // Action bar under the title: booking actions followed by the
+          // management-only "Visa bokningar" action, wrapping to a new row
+          // when they fill the width, with spots-remaining as a caption
+          // beneath.
           [attribute.class("flex flex-col gap-1")],
           [
             html.div([attribute.class("flex flex-wrap items-center gap-2")], {
@@ -2673,18 +2679,18 @@ fn view_activity_detail_loaded(
               [
                 primary,
                 secondary,
-                // View this activity's bookings. Shown only to users who can
-                // manage activities, and only for bookable activities (others
+                // View this activity's bookings. Shown only to users who may
+                // read bookings, and only for bookable activities (others
                 // can't have bookings).
-                case can_manage && option.is_some(activity.max_attendees) {
+                case
+                  can_view_bookings && option.is_some(activity.max_attendees)
+                {
                   True ->
-                    html.div([attribute.class("ml-auto")], [
-                      component.scout_button_action(
-                        g18n.translate(translator, "activity.show_bookings"),
-                        "outlined",
-                        UserClickedShowBookings,
-                      ),
-                    ])
+                    component.scout_button_action(
+                      g18n.translate(translator, "activity.show_bookings"),
+                      "outlined",
+                      UserClickedShowBookings,
+                    )
                   False -> element.none()
                 },
               ]
