@@ -79,6 +79,9 @@ fn english_translations() -> g18n.Translations {
   |> g18n.add_translation("edit.max_attendees", "Max attendees")
   |> g18n.add_translation("edit.start_time", "Start time")
   |> g18n.add_translation("edit.end_time", "End time")
+  |> g18n.add_translation("edit.location", "Location")
+  |> g18n.add_translation("edit.location_none", "No location")
+  |> g18n.add_translation("edit.location_search", "Search location")
   |> g18n.add_translation("edit.call_off", "Call off")
   |> g18n.add_translation("edit.cancel", "Cancel")
   |> g18n.add_translation("edit.save", "Save")
@@ -190,6 +193,9 @@ fn swedish_translations() -> g18n.Translations {
   |> g18n.add_translation("edit.max_attendees", "Max antal deltagare")
   |> g18n.add_translation("edit.start_time", "Starttid")
   |> g18n.add_translation("edit.end_time", "Sluttid")
+  |> g18n.add_translation("edit.location", "Plats")
+  |> g18n.add_translation("edit.location_none", "Ingen plats")
+  |> g18n.add_translation("edit.location_search", "Sök plats")
   |> g18n.add_translation("edit.call_off", "Ställ in")
   |> g18n.add_translation("edit.cancel", "Avbryt")
   |> g18n.add_translation("edit.save", "Spara")
@@ -468,12 +474,30 @@ pub type EditUi {
     /// Reason for calling off the activity, entered in the modal. UI-only for
     /// now — not persisted.
     cancel_reason: String,
+    /// The activity's chosen location, or `None` for no location. Working state
+    /// for the location picker; sent as `location_id` on save. Seeded from the
+    /// activity when the edit form opens, and `None` on the create form.
+    location_id: Option(Uuid),
+    /// Free-text filter typed into the location combobox (case-insensitive match
+    /// on the localized name). Shown in the field while the dropdown is open;
+    /// reset when a location is chosen.
+    location_query: String,
+    /// Whether the location combobox's dropdown list is open.
+    location_open: Bool,
   )
 }
 
-/// The edit form's default view state: Swedish variant, call-off modal closed.
+/// The edit form's default view state: Swedish variant, call-off modal closed,
+/// no location chosen, empty location filter, dropdown closed.
 pub fn default_edit_ui() -> EditUi {
-  EditUi(language: EditSwedish, cancel_open: False, cancel_reason: "")
+  EditUi(
+    language: EditSwedish,
+    cancel_open: False,
+    cancel_reason: "",
+    location_id: None,
+    location_query: "",
+    location_open: False,
+  )
 }
 
 pub type ActivitiesFilterTab {
@@ -609,6 +633,10 @@ pub type Model {
     // Used to resolve the tag ids carried on activities into labels. Empty until
     // loaded (and if the fetch fails), in which case tag chips simply don't show.
     activity_tags: Dict(Uuid, ActivityTag),
+    // Location vocabulary, keyed by id, fetched once from /api/locations. Feeds
+    // the create/edit form's location picker. Empty until loaded (and if the
+    // fetch fails), in which case the picker shows only the "no location" option.
+    locations: Dict(Uuid, Location),
     // The current user's roles, gating manage-only UI (edit, view bookings).
     roles: List(Role),
     // Transient view state for the edit form (active language, call-off reason
@@ -1186,6 +1214,7 @@ fn init(_flags) -> #(Model, Effect(Msg)) {
       statuses: dict.new(),
       spots: dict.new(),
       activity_tags: dict.new(),
+      locations: dict.new(),
       // Empty until /api/me returns; the role-gated UI reveals once loaded.
       roles: [],
       edit_ui: default_edit_ui(),
@@ -1204,6 +1233,7 @@ fn init(_flags) -> #(Model, Effect(Msg)) {
       fetch_list(SourceActivities),
       fetch_spots(),
       fetch_activity_tags(),
+      fetch_locations(),
       page_effect,
       // Always attempt; a 401 (anonymous user) leaves the status dict empty.
       fetch_statuses(),
@@ -1232,6 +1262,7 @@ pub type Msg {
   ApiReturnedActivitySpots(Result(List(ActivitySpots), rsvp.Error))
   ApiReturnedActivitySpotsOne(Uuid, Result(Int, rsvp.Error))
   ApiReturnedActivityTags(Result(List(ActivityTag), rsvp.Error))
+  ApiReturnedLocations(Result(List(Location), rsvp.Error))
   ApiCreatedActivity(Result(Activity, rsvp.Error))
   ApiUpdatedActivity(Result(Activity, rsvp.Error))
   ApiCancelledActivity(Result(Activity, rsvp.Error))
@@ -1269,6 +1300,11 @@ pub type Msg {
   UserToggledMoreFilters
   UserToggledTargetGroup(TargetGroup)
   UserToggledTag(Uuid)
+  // Location picker (create/edit form)
+  UserSelectedLocation(Option(Uuid))
+  UserSearchedLocation(String)
+  UserOpenedLocationDropdown
+  UserClosedLocationDropdown
 }
 
 pub fn update(model: Model, msg: Msg) -> #(Model, Effect(Msg)) {
@@ -1324,15 +1360,26 @@ pub fn update(model: Model, msg: Msg) -> #(Model, Effect(Msg)) {
       let #(page, edit_ui) = case model.page {
         ActivityEditPage(edit_id, EditLoading) if edit_id == id -> #(
           ActivityEditPage(id, edit_ready_from_activity(activity)),
-          default_edit_ui(),
+          // Seed the location picker from the activity; other UI state defaults.
+          EditUi(
+            ..default_edit_ui(),
+            location_id: option.map(activity.location, fn(l) { l.id }),
+          ),
         )
         _ -> #(model.page, model.edit_ui)
+      }
+      // The detail fetch carries the full location too; fold it into the cache
+      // so the picker can name it even if the bulk /api/locations fetch failed.
+      let locations = case activity.location {
+        Some(l) -> dict.insert(model.locations, l.id, l)
+        None -> model.locations
       }
       #(
         Model(
           ..model,
           activities: dict.insert(model.activities, id, to_summary(activity)),
           details: dict.insert(model.details, id, Loaded(to_detail(activity))),
+          locations:,
           page:,
           edit_ui:,
         ),
@@ -1401,6 +1448,18 @@ pub fn update(model: Model, msg: Msg) -> #(Model, Effect(Msg)) {
 
     // Keep the prior vocabulary (empty) on failure; tag chips just won't show.
     ApiReturnedActivityTags(Error(_)) -> #(model, effect.none())
+
+    ApiReturnedLocations(Ok(locations)) -> {
+      let locations =
+        list.fold(locations, dict.new(), fn(acc, location) {
+          dict.insert(acc, location.id, location)
+        })
+      #(Model(..model, locations:), effect.none())
+    }
+
+    // Keep the prior vocabulary (empty) on failure; the picker just shows the
+    // "no location" option only.
+    ApiReturnedLocations(Error(_)) -> #(model, effect.none())
 
     ApiCreatedActivity(Ok(activity)) -> #(
       Model(
@@ -1545,7 +1604,12 @@ pub fn update(model: Model, msg: Msg) -> #(Model, Effect(Msg)) {
       case model.page {
         ActivityNewPage(_, _, tags, target_groups) -> #(
           model,
-          create_activity(activity_form, tags, target_groups),
+          create_activity(
+            activity_form,
+            tags,
+            target_groups,
+            model.edit_ui.location_id,
+          ),
         )
         _ -> #(model, effect.none())
       }
@@ -1570,7 +1634,13 @@ pub fn update(model: Model, msg: Msg) -> #(Model, Effect(Msg)) {
       case model.page {
         ActivityEditPage(id, EditReady(tags:, target_groups:, ..)) -> #(
           model,
-          update_activity(id, activity_form, tags, target_groups),
+          update_activity(
+            id,
+            activity_form,
+            tags,
+            target_groups,
+            model.edit_ui.location_id,
+          ),
         )
         _ -> #(model, effect.none())
       }
@@ -1759,6 +1829,61 @@ pub fn update(model: Model, msg: Msg) -> #(Model, Effect(Msg)) {
             ListFilters(..f, tags: toggle_member(f.tags, tag_id))
           })
       }
+
+    // Location combobox: single-select, so a pick replaces the working location
+    // (rather than toggling a set). Kept on `edit_ui` since both the create and
+    // edit forms read it there. Choosing clears the filter and closes the list.
+    UserSelectedLocation(location_id) -> #(
+      Model(
+        ..model,
+        edit_ui: EditUi(
+          ..model.edit_ui,
+          location_id:,
+          location_query: "",
+          location_open: False,
+        ),
+      ),
+      effect.none(),
+    )
+
+    // Typing filters the list and keeps it open.
+    UserSearchedLocation(query) -> #(
+      Model(
+        ..model,
+        edit_ui: EditUi(
+          ..model.edit_ui,
+          location_query: query,
+          location_open: True,
+        ),
+      ),
+      effect.none(),
+    )
+
+    // Clicking the field opens the list on a clean filter, so the full list of
+    // locations shows.
+    UserOpenedLocationDropdown -> {
+      // Opening from closed starts on a clean filter so the full list shows; a
+      // click while already open (e.g. to move the cursor mid-search) must not
+      // wipe what the user has typed.
+      let location_query = case model.edit_ui.location_open {
+        True -> model.edit_ui.location_query
+        False -> ""
+      }
+      #(
+        Model(
+          ..model,
+          edit_ui: EditUi(..model.edit_ui, location_query:, location_open: True),
+        ),
+        effect.none(),
+      )
+    }
+
+    // Blurring the field closes the list. Option clicks fire on `mousedown`,
+    // before this blur, so a selection is never lost to the close.
+    UserClosedLocationDropdown -> #(
+      Model(..model, edit_ui: EditUi(..model.edit_ui, location_open: False)),
+      effect.none(),
+    )
 
     UserClickedRetryLoad -> {
       let tab = case model.page {
@@ -2289,10 +2414,11 @@ fn create_activity(
   af: ActivityForm,
   tags: List(Uuid),
   target_groups: List(TargetGroup),
+  location_id: Option(Uuid),
 ) -> Effect(Msg) {
   rsvp.post(
     api_prefix <> "/api/activities",
-    activity_form_to_json(af, tags, target_groups),
+    activity_form_to_json(af, tags, target_groups, location_id),
     rsvp.expect_json(model.activity_decoder(), ApiCreatedActivity),
   )
 }
@@ -2302,10 +2428,11 @@ fn update_activity(
   af: ActivityForm,
   tags: List(Uuid),
   target_groups: List(TargetGroup),
+  location_id: Option(Uuid),
 ) -> Effect(Msg) {
   rsvp.put(
     api_prefix <> "/api/activities/" <> uuid.to_string(id),
-    activity_form_to_json(af, tags, target_groups),
+    activity_form_to_json(af, tags, target_groups, location_id),
     rsvp.expect_json(model.activity_decoder(), ApiUpdatedActivity),
   )
 }
@@ -2327,6 +2454,13 @@ fn fetch_activity_tags() -> Effect(Msg) {
   )
 }
 
+fn fetch_locations() -> Effect(Msg) {
+  rsvp.get(
+    api_prefix <> "/api/locations",
+    rsvp.expect_json(model.locations_decoder(), ApiReturnedLocations),
+  )
+}
+
 fn delete_activity(id: Uuid) -> Effect(Msg) {
   rsvp.delete(
     api_prefix <> "/api/activities/" <> uuid.to_string(id),
@@ -2344,6 +2478,7 @@ fn activity_form_to_json(
   af: ActivityForm,
   tags: List(Uuid),
   target_groups: List(TargetGroup),
+  location_id: Option(Uuid),
 ) -> json.Json {
   let to_secs = fn(dt: #(calendar.Date, calendar.TimeOfDay)) -> Int {
     let ts =
@@ -2378,6 +2513,10 @@ fn activity_form_to_json(
     #("end_time", json.int(to_secs(af.end_time))),
     #("tags", json.array(tags, fn(id) { json.string(uuid.to_string(id)) })),
     #("target_groups", json.array(target_groups, model.target_group_to_json)),
+    #(
+      "location_id",
+      json.nullable(location_id, fn(id) { json.string(uuid.to_string(id)) }),
+    ),
   ])
 }
 
@@ -2475,6 +2614,7 @@ fn view(model: Model) -> Element(Msg) {
         target_groups,
         model.edit_ui,
         model.activity_tags,
+        model.locations,
         CreateActivity,
       )
     ActivityDetailPage(id, booking) ->
@@ -2513,6 +2653,7 @@ fn view(model: Model) -> Element(Msg) {
         target_groups,
         model.edit_ui,
         model.activity_tags,
+        model.locations,
         EditActivity,
       )
     NotFoundPage -> view_not_found()
@@ -2767,6 +2908,116 @@ fn view_target_group_and_tag_pickers(
       ),
     ]),
   ]
+}
+
+/// The create/edit form's location picker: a searchable dropdown (combobox).
+/// The text field filters locations by localized name; matches drop down in a
+/// list below, and clicking one selects it (a leading "no location" entry
+/// clears the choice). While open the field shows the live query; while closed
+/// it shows the chosen location's name.
+///
+/// Options are selected on `mousedown` — which fires before the field's blur —
+/// so the blur that closes the list never swallows the click.
+fn view_location_picker(
+  translator: Translator,
+  locations: Dict(Uuid, Location),
+  selected: Option(Uuid),
+  query: String,
+  open: Bool,
+) -> Element(Msg) {
+  let t = fn(key) { g18n.translate(translator, key) }
+  let name_of = fn(id) {
+    case dict.get(locations, id) {
+      Ok(l) -> localized(translator, l.name)
+      Error(_) -> ""
+    }
+  }
+  let matches =
+    dict.values(locations)
+    |> list.sort(fn(a, b) {
+      string.compare(
+        localized(translator, a.name),
+        localized(translator, b.name),
+      )
+    })
+    |> list.filter(fn(l) {
+      case query |> string.trim |> string.lowercase {
+        "" -> True
+        needle ->
+          string.contains(
+            string.lowercase(localized(translator, l.name)),
+            needle,
+          )
+      }
+    })
+  // Field text: the live query while searching, else the chosen location's name.
+  let field_value = case open, selected {
+    True, _ -> query
+    False, Some(id) -> name_of(id)
+    False, None -> ""
+  }
+  let option_button = fn(label: String, is_selected: Bool, msg: Msg) {
+    let base =
+      "w-full text-left px-3 py-2 text-body-sm cursor-pointer hover:bg-gray-100 "
+    html.button(
+      [
+        attribute.type_("button"),
+        attribute.class(case is_selected {
+          True -> base <> "bg-gray-100 font-semibold"
+          False -> base
+        }),
+        // mousedown (not click) so selection lands before the field's blur.
+        event.on("mousedown", decode.success(msg)),
+      ],
+      [element.text(label)],
+    )
+  }
+  html.div([attribute.class("flex flex-col gap-2")], [
+    html.h4([attribute.class("text-body-sm font-semibold")], [
+      element.text(t("edit.location")),
+    ]),
+    html.div([attribute.class("relative")], [
+      // Clicking the field opens the list; typing filters it; blur closes it.
+      html.div([event.on("click", decode.success(UserOpenedLocationDropdown))], [
+        element.element(
+          "scout-input",
+          [
+            attribute.attribute("type", "text"),
+            attribute.attribute("placeholder", t("edit.location_search")),
+            attribute.attribute("value", field_value),
+            event.on_input(UserSearchedLocation),
+            event.on("scoutBlur", decode.success(UserClosedLocationDropdown)),
+          ],
+          [],
+        ),
+      ]),
+      case open {
+        False -> element.none()
+        True ->
+          html.div(
+            [
+              attribute.class(
+                "absolute left-0 right-0 z-10 mt-1 max-h-56 overflow-y-auto rounded-md border border-gray-300 bg-white shadow-lg",
+              ),
+            ],
+            [
+              option_button(
+                t("edit.location_none"),
+                selected == None,
+                UserSelectedLocation(None),
+              ),
+              ..list.map(matches, fn(l) {
+                option_button(
+                  localized(translator, l.name),
+                  selected == Some(l.id),
+                  UserSelectedLocation(Some(l.id)),
+                )
+              })
+            ],
+          )
+      },
+    ]),
+  ])
 }
 
 fn view_grouped_activities(
@@ -3033,6 +3284,7 @@ fn view_activity_form(
   selected_target_groups: List(TargetGroup),
   edit_ui: EditUi,
   activity_tags: Dict(Uuid, ActivityTag),
+  locations: Dict(Uuid, Location),
   mode: ActivityFormMode,
 ) -> Element(Msg) {
   let t = fn(key) { g18n.translate(translator, key) }
@@ -3130,7 +3382,16 @@ fn view_activity_form(
                 selected_tags,
                 activity_tags,
               ),
-              [view_form_actions(translator, mode)],
+              [
+                view_location_picker(
+                  translator,
+                  locations,
+                  edit_ui.location_id,
+                  edit_ui.location_query,
+                  edit_ui.location_open,
+                ),
+                view_form_actions(translator, mode),
+              ],
             )
           ]),
         ]),

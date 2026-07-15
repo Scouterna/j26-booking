@@ -115,6 +115,77 @@ fn call_offs_for_one(
   }
 }
 
+/// Rejects a `location_id` that doesn't refer to a known location, so an unknown
+/// (but well-formed) id fails fast with 400 rather than tripping the `location_id`
+/// foreign key mid-transaction and surfacing as a 500. `None` always passes.
+fn require_valid_location(
+  locations: Dict(Uuid, Location),
+  location_id: Option(Uuid),
+  next: fn() -> Response,
+) -> Response {
+  case location_id {
+    None -> next()
+    Some(id) ->
+      case dict.has_key(locations, id) {
+        True -> next()
+        False -> wisp.bad_request("Unknown location_id")
+      }
+  }
+}
+
+/// Sets a newly-created activity's location, inside the create transaction. The
+/// inserted row already has `location_id = NULL`, so `None` needs no write —
+/// unlike an update, which must clear any previously-set location.
+fn set_new_activity_location(
+  conn: pog.Connection,
+  activity_id: Uuid,
+  location_id: Option(Uuid),
+) -> Result(pog.Returned(Nil), pog.QueryError) {
+  case location_id {
+    Some(id) -> sql.set_activity_location(conn, activity_id, id)
+    None -> Ok(pog.Returned(0, []))
+  }
+}
+
+/// Writes an activity's location during an update, inside the transaction.
+/// `location_id` is nullable but Squirrel params are not, so setting a location
+/// and clearing it are two queries. Clearing matters on update because the row
+/// may already hold a location; a fresh create uses `set_new_activity_location`.
+fn write_activity_location(
+  conn: pog.Connection,
+  activity_id: Uuid,
+  location_id: Option(Uuid),
+) -> Result(pog.Returned(Nil), pog.QueryError) {
+  case location_id {
+    Some(id) -> sql.set_activity_location(conn, activity_id, id)
+    None -> sql.clear_activity_location(conn, activity_id)
+  }
+}
+
+/// Resolve the chosen `location_id` to the full location, for embedding into the
+/// create/update response. `None` when no location was chosen (unknown ids are
+/// rejected upstream by `require_valid_location`). Used to override the response's
+/// location, since the insert/update queries return a stale/NULL `location_id`.
+fn chosen_location(
+  locations: Dict(Uuid, Location),
+  location_id: Option(Uuid),
+) -> Option(Location) {
+  case location_id {
+    None -> None
+    Some(id) -> dict.get(locations, id) |> option.from_result
+  }
+}
+
+/// Replaces an activity's location with `location`, so a create/update response
+/// reflects the location just written rather than the stale value the main query
+/// returned.
+fn with_location(
+  activity: model.Activity,
+  location: Option(Location),
+) -> model.Activity {
+  model.Activity(..activity, location:)
+}
+
 fn response_from_db_activity_summaries(
   query_result: Result(pog.Returned(a), pog.QueryError),
   to_activity: fn(a) -> model.Activity,
@@ -262,6 +333,9 @@ pub type ActivityInput {
     end_time: Int,
     tags: List(Uuid),
     target_groups: List(TargetGroup),
+    /// The chosen location's id, or `None` for no location. Omitting the field
+    /// or sending `null` both clear the location.
+    location_id: Option(Uuid),
   )
 }
 
@@ -290,6 +364,11 @@ fn activity_input_decoder() -> decode.Decoder(ActivityInput) {
     [],
     decode.list(model.target_group_decoder()),
   )
+  use location_id <- decode.optional_field(
+    "location_id",
+    None,
+    decode.optional(uuid_decoder()),
+  )
   decode.success(ActivityInput(
     title:,
     description:,
@@ -298,6 +377,7 @@ fn activity_input_decoder() -> decode.Decoder(ActivityInput) {
     end_time:,
     tags:,
     target_groups:,
+    location_id:,
   ))
 }
 
@@ -336,11 +416,17 @@ pub fn create(req: Request, ctx: web.Context) -> Response {
   let end_time = timestamp.from_unix_seconds(input.end_time)
   let target_groups_sql =
     list.map(input.target_groups, activity.model_target_group_to_sql)
+  // Locations are fetched so the chosen id can be validated and resolved for
+  // the response. The insert doesn't set `location_id` (it's written separately,
+  // below), so the response location is stitched in afterwards.
+  use locations <- with_locations(ctx)
+  use <- require_valid_location(locations, input.location_id)
+  let location = chosen_location(locations, input.location_id)
 
-  // A newly created activity never has a location (the form cannot set one), so
-  // resolving against an empty map always yields `None`. Tags and target groups
-  // come from the request body we just wrote; a new activity is never called
-  // off.
+  // Tags and target groups come from the request body we just wrote; a new
+  // activity is never called off. A created row's `location_id` is NULL and the
+  // response location is set by `with_location` below, so no locations are
+  // needed in the embeds here.
   let embeds =
     embeds_for_one(dict.new(), id, input.tags, input.target_groups, dict.new())
 
@@ -364,12 +450,17 @@ pub fn create(req: Request, ctx: web.Context) -> Response {
           id,
           target_groups_sql,
         ))
+        use _ <- result.try(set_new_activity_location(
+          conn,
+          id,
+          input.location_id,
+        ))
         Ok(created)
       })
-      |> creation_response(activity.from_create_activity_with_max_attendees_row(
-        _,
-        embeds,
-      ))
+      |> creation_response(fn(row) {
+        activity.from_create_activity_with_max_attendees_row(row, embeds)
+        |> with_location(location)
+      })
     None ->
       pog.transaction(ctx.db_connection, fn(conn) {
         use created <- result.try(sql.create_activity_without_max_attendees(
@@ -388,11 +479,17 @@ pub fn create(req: Request, ctx: web.Context) -> Response {
           id,
           target_groups_sql,
         ))
+        use _ <- result.try(set_new_activity_location(
+          conn,
+          id,
+          input.location_id,
+        ))
         Ok(created)
       })
-      |> creation_response(
-        activity.from_create_activity_without_max_attendees_row(_, embeds),
-      )
+      |> creation_response(fn(row) {
+        activity.from_create_activity_without_max_attendees_row(row, embeds)
+        |> with_location(location)
+      })
   }
 }
 
@@ -461,6 +558,7 @@ pub fn update(req: Request, id: String, ctx: web.Context) -> Response {
     wisp.bad_request("Invalid JSON payload")
   })
   use locations <- with_locations(ctx)
+  use <- require_valid_location(locations, input.location_id)
   let start_time = timestamp.from_unix_seconds(input.start_time)
   let end_time = timestamp.from_unix_seconds(input.end_time)
   let target_groups_sql =
@@ -473,6 +571,10 @@ pub fn update(req: Request, id: String, ctx: web.Context) -> Response {
       input.target_groups,
       call_offs_for_one(ctx, activity_id),
     )
+  // The update query returns the *old* `location_id` (its SET doesn't touch it;
+  // the new location is written separately, below), so the response location is
+  // stitched in afterwards via `with_location`.
+  let location = chosen_location(locations, input.location_id)
 
   case input.max_attendees {
     Some(max_attendees) ->
@@ -500,14 +602,18 @@ pub fn update(req: Request, id: String, ctx: web.Context) -> Response {
               input.tags,
               target_groups_sql,
             ))
+            use _ <- result.try(
+              write_activity_location(conn, activity_id, input.location_id)
+              |> result.map_error(UpdateQueryFailed),
+            )
             Ok(row)
           }
         }
       })
-      |> update_response(activity.from_update_activity_with_max_attendees_row(
-        _,
-        embeds,
-      ))
+      |> update_response(fn(row) {
+        activity.from_update_activity_with_max_attendees_row(row, embeds)
+        |> with_location(location)
+      })
     None ->
       pog.transaction(ctx.db_connection, fn(conn) {
         use updated <- result.try(
@@ -532,13 +638,18 @@ pub fn update(req: Request, id: String, ctx: web.Context) -> Response {
               input.tags,
               target_groups_sql,
             ))
+            use _ <- result.try(
+              write_activity_location(conn, activity_id, input.location_id)
+              |> result.map_error(UpdateQueryFailed),
+            )
             Ok(row)
           }
         }
       })
-      |> update_response(
-        activity.from_update_activity_without_max_attendees_row(_, embeds),
-      )
+      |> update_response(fn(row) {
+        activity.from_update_activity_without_max_attendees_row(row, embeds)
+        |> with_location(location)
+      })
   }
 }
 

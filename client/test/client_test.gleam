@@ -1,5 +1,6 @@
 import client
 import gleam/dict
+import gleam/json
 import gleam/list
 import gleam/option.{type Option, None, Some}
 import gleam/time/calendar
@@ -66,6 +67,21 @@ fn an_activity(id: Uuid, max: Option(Int)) -> model.Activity {
   )
 }
 
+fn a_location(id: Uuid, name: String) -> model.Location {
+  model.Location(
+    id:,
+    name: model.BilingualString(sv: name, en: name),
+    description: model.BilingualString(sv: "", en: ""),
+    icon_name: "pin",
+    icon_variant: "outline",
+    color: "#000000",
+    latitude: 0.0,
+    longitude: 0.0,
+    opening_hours: json.object([]),
+    tags: [],
+  )
+}
+
 /// The detail-only slice of `an_activity` — description "Desc", no location.
 fn a_detail() -> client.ActivityDetail {
   client.ActivityDetail(
@@ -106,6 +122,7 @@ fn base_model() -> client.Model {
     statuses: dict.new(),
     spots: dict.new(),
     activity_tags: dict.new(),
+    locations: dict.new(),
     roles: [client.ManageActivities],
     edit_ui: client.default_edit_ui(),
   )
@@ -865,4 +882,128 @@ pub fn searching_is_noop_off_the_list_page_test() {
     )
   let #(next, _) = client.update(model_, client.UserSearchedActivities("bad"))
   assert next.page == model_.page
+}
+
+// UPDATE: location combobox ----------------------------------------------------
+
+pub fn location_search_sets_query_and_opens_test() {
+  let #(next, _) =
+    client.update(base_model(), client.UserSearchedLocation("info"))
+  assert next.edit_ui.location_query == "info"
+  assert next.edit_ui.location_open == True
+}
+
+pub fn location_open_from_closed_clears_query_test() {
+  let model_ =
+    client.Model(
+      ..base_model(),
+      edit_ui: client.EditUi(
+        ..client.default_edit_ui(),
+        location_query: "stale",
+      ),
+    )
+  let #(next, _) = client.update(model_, client.UserOpenedLocationDropdown)
+  assert next.edit_ui.location_query == ""
+  assert next.edit_ui.location_open == True
+}
+
+pub fn location_open_while_open_keeps_query_test() {
+  let model_ =
+    client.Model(
+      ..base_model(),
+      edit_ui: client.EditUi(
+        ..client.default_edit_ui(),
+        location_query: "info",
+        location_open: True,
+      ),
+    )
+  let #(next, _) = client.update(model_, client.UserOpenedLocationDropdown)
+  assert next.edit_ui.location_query == "info"
+  assert next.edit_ui.location_open == True
+}
+
+pub fn location_select_sets_choice_clears_query_and_closes_test() {
+  let model_ =
+    client.Model(
+      ..base_model(),
+      edit_ui: client.EditUi(
+        ..client.default_edit_ui(),
+        location_query: "info",
+        location_open: True,
+      ),
+    )
+  let #(next, _) =
+    client.update(model_, client.UserSelectedLocation(Some(id_a())))
+  assert next.edit_ui.location_id == Some(id_a())
+  assert next.edit_ui.location_query == ""
+  assert next.edit_ui.location_open == False
+}
+
+pub fn location_select_none_clears_choice_test() {
+  let model_ =
+    client.Model(
+      ..base_model(),
+      edit_ui: client.EditUi(
+        ..client.default_edit_ui(),
+        location_id: Some(id_a()),
+        location_open: True,
+      ),
+    )
+  let #(next, _) = client.update(model_, client.UserSelectedLocation(None))
+  assert next.edit_ui.location_id == None
+  assert next.edit_ui.location_open == False
+}
+
+pub fn location_blur_closes_dropdown_test() {
+  let model_ =
+    client.Model(
+      ..base_model(),
+      edit_ui: client.EditUi(..client.default_edit_ui(), location_open: True),
+    )
+  let #(next, _) = client.update(model_, client.UserClosedLocationDropdown)
+  assert next.edit_ui.location_open == False
+}
+
+// UPDATE: edit form location seeding ------------------------------------------
+
+pub fn edit_open_seeds_location_id_from_activity_test() {
+  let activity =
+    model.Activity(
+      ..an_activity(id_a(), None),
+      location: Some(a_location(id_b(), "HQ")),
+    )
+  let model_ =
+    client.Model(
+      ..base_model(),
+      page: client.ActivityEditPage(id_a(), client.EditLoading),
+    )
+  let #(next, _) =
+    client.update(model_, client.ApiReturnedActivity(id_a(), Ok(activity)))
+  assert next.edit_ui.location_id == Some(id_b())
+}
+
+pub fn edit_open_seeds_none_when_activity_has_no_location_test() {
+  let model_ =
+    client.Model(
+      ..base_model(),
+      page: client.ActivityEditPage(id_a(), client.EditLoading),
+    )
+  let #(next, _) =
+    client.update(
+      model_,
+      client.ApiReturnedActivity(id_a(), Ok(an_activity(id_a(), None))),
+    )
+  assert next.edit_ui.location_id == None
+}
+
+pub fn detail_fetch_caches_activity_location_test() {
+  let location = a_location(id_b(), "HQ")
+  let activity =
+    model.Activity(..an_activity(id_a(), None), location: Some(location))
+  let #(next, _) =
+    client.update(
+      base_model(),
+      client.ApiReturnedActivity(id_a(), Ok(activity)),
+    )
+  assert dict.get(next.locations, id_b()) == Ok(location)
 }

@@ -1962,6 +1962,12 @@ components:
           items:
             $ref: '#/components/schemas/TargetGroup'
           example: ["sparare", "upptackare"]
+        location_id:
+          type: string
+          format: uuid
+          nullable: true
+          description: Id of an existing location to hold this activity at. Null or omit for no location.
+          example: "0190f3a1-1c2d-7e3f-9a4b-5c6d7e8f9a0b"
 
     AppConfig:
       type: object

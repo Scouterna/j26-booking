@@ -11,6 +11,28 @@ import gleam/time/timestamp.{type Timestamp}
 import pog
 import youid/uuid.{type Uuid}
 
+/// Runs the `clear_activity_location` query
+/// defined in `./src/server/sql/clear_activity_location.sql`.
+///
+/// > 🐿️ This function was generated automatically using v4.7.0 of
+/// > the [squirrel package](https://github.com/giacomocavalieri/squirrel).
+///
+pub fn clear_activity_location(
+  db: pog.Connection,
+  id: Uuid,
+) -> Result(pog.Returned(Nil), pog.QueryError) {
+  let decoder = decode.map(decode.dynamic, fn(_) { Nil })
+
+  "UPDATE activity
+SET location_id = NULL
+WHERE id = $1
+"
+  |> pog.query
+  |> pog.parameter(pog.text(uuid.to_string(id)))
+  |> pog.returning(decoder)
+  |> pog.execute(db)
+}
+
 /// A row you get from running the `count_favourites_by_activity` query
 /// defined in `./src/server/sql/count_favourites_by_activity.sql`.
 ///
@@ -2796,6 +2818,30 @@ WHERE title ILIKE '%' || $1 || '%'
 ORDER BY title;"
   |> pog.query
   |> pog.parameter(pog.text(arg_1))
+  |> pog.returning(decoder)
+  |> pog.execute(db)
+}
+
+/// Runs the `set_activity_location` query
+/// defined in `./src/server/sql/set_activity_location.sql`.
+///
+/// > 🐿️ This function was generated automatically using v4.7.0 of
+/// > the [squirrel package](https://github.com/giacomocavalieri/squirrel).
+///
+pub fn set_activity_location(
+  db: pog.Connection,
+  id: Uuid,
+  location_id: Uuid,
+) -> Result(pog.Returned(Nil), pog.QueryError) {
+  let decoder = decode.map(decode.dynamic, fn(_) { Nil })
+
+  "UPDATE activity
+SET location_id = $2
+WHERE id = $1
+"
+  |> pog.query
+  |> pog.parameter(pog.text(uuid.to_string(id)))
+  |> pog.parameter(pog.text(uuid.to_string(location_id)))
   |> pog.returning(decoder)
   |> pog.execute(db)
 }
