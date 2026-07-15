@@ -50,6 +50,9 @@ fn handle_api_request(
     Delete, ["activities", activity_id, "favourite"] ->
       favourite.delete(req, activity_id, ctx)
     _, ["activities", _, "favourite"] -> wisp.method_not_allowed([Put, Delete])
+    Post, ["activities", activity_id, "cancel"] ->
+      activities.cancel(req, activity_id, ctx)
+    _, ["activities", _, "cancel"] -> wisp.method_not_allowed([Post])
     Get, ["activity-tags"] -> activities.get_tags(req, ctx)
     Post, ["activity-tags"] -> activities.create_tag(req, ctx)
     _, ["activity-tags"] -> wisp.method_not_allowed([Get, Post])

@@ -22,6 +22,9 @@ pub type Activity {
     tags: List(Uuid),
     /// The scout age sections this activity targets.
     target_groups: List(TargetGroup),
+    /// The call-off reason when this activity has been cancelled, else `None`.
+    /// `Some(reason)` means the activity is called off ("inställd").
+    cancellation: Option(String),
   )
 }
 
@@ -59,6 +62,11 @@ pub fn activity_decoder() -> decode.Decoder(Activity) {
     [],
     utils.decode_partial_list(of: target_group_decoder()),
   )
+  use cancellation <- decode.optional_field(
+    "cancellation",
+    None,
+    decode.optional(decode.string),
+  )
   case uuid.from_string(id_str) {
     Ok(id) ->
       decode.success(Activity(
@@ -71,6 +79,7 @@ pub fn activity_decoder() -> decode.Decoder(Activity) {
         location:,
         tags:,
         target_groups:,
+        cancellation:,
       ))
     Error(_) ->
       decode.failure(
@@ -84,6 +93,7 @@ pub fn activity_decoder() -> decode.Decoder(Activity) {
           location:,
           tags:,
           target_groups:,
+          cancellation:,
         ),
         "valid UUID string",
       )
@@ -206,6 +216,9 @@ pub type ActivitySummary {
     tags: List(Uuid),
     /// The scout age sections this activity targets.
     target_groups: List(TargetGroup),
+    /// The call-off reason when this activity has been cancelled, else `None`.
+    /// `Some(reason)` means the activity is called off ("inställd").
+    cancellation: Option(String),
   )
 }
 
@@ -242,6 +255,11 @@ pub fn activity_summary_decoder() -> decode.Decoder(ActivitySummary) {
     [],
     utils.decode_partial_list(of: target_group_decoder()),
   )
+  use cancellation <- decode.optional_field(
+    "cancellation",
+    None,
+    decode.optional(decode.string),
+  )
   case uuid.from_string(id_str) {
     Ok(id) ->
       decode.success(ActivitySummary(
@@ -253,6 +271,7 @@ pub fn activity_summary_decoder() -> decode.Decoder(ActivitySummary) {
         location_name:,
         tags:,
         target_groups:,
+        cancellation:,
       ))
     Error(_) ->
       decode.failure(
@@ -265,6 +284,7 @@ pub fn activity_summary_decoder() -> decode.Decoder(ActivitySummary) {
           location_name:,
           tags:,
           target_groups:,
+          cancellation:,
         ),
         "valid UUID string",
       )

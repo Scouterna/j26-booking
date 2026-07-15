@@ -216,6 +216,19 @@ pub fn error_banner(heading: String, message: String) -> Element(msg) {
   )
 }
 
+/// A warning-variant callout, used for the "called off" notice on a cancelled
+/// activity's detail page.
+pub fn warning_banner(heading: String, message: String) -> Element(msg) {
+  element.element(
+    "scout-callout",
+    [
+      attribute.attribute("variant", "warning"),
+      attribute.attribute("heading", heading),
+    ],
+    [element.text(message)],
+  )
+}
+
 pub fn quick_info_tile(
   svg: String,
   title: String,
@@ -343,6 +356,7 @@ pub fn filter_chip(label: String, selected: Bool, msg: msg) -> Element(msg) {
 pub type BadgeTone {
   BadgeGreen
   BadgePurple
+  BadgeRed
 }
 
 /// Rounded, coloured pill used for status labels.
@@ -351,6 +365,7 @@ pub fn badge(tone: BadgeTone, label: String) -> Element(msg) {
   let tone_classes = case tone {
     BadgeGreen -> "text-(--color-green-600) bg-(--color-green-100)"
     BadgePurple -> "text-(--color-purple-600) bg-(--color-purple-100)"
+    BadgeRed -> "text-(--color-red-600) bg-(--color-red-100)"
   }
   html.span(
     [
@@ -367,6 +382,7 @@ pub type CardStatus {
   StatusNone
   StatusBooked(label: String)
   StatusNeedsBooking(label: String)
+  StatusCancelled(label: String)
 }
 
 /// The action shown in a card's top-right corner. `FavouriteAction` is the
@@ -466,6 +482,7 @@ pub fn activity_card(
   let status_badge = case status {
     StatusBooked(label) -> badge(BadgeGreen, label)
     StatusNeedsBooking(label) -> badge(BadgePurple, label)
+    StatusCancelled(label) -> badge(BadgeRed, label)
     StatusNone -> element.none()
   }
   // Whole card is a link; scout-card supplies the surface (white, rounded,

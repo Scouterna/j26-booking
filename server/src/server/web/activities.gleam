@@ -68,13 +68,18 @@ fn with_embeds(
       case sql.list_activity_target_groups(ctx.db_connection) {
         Error(error) -> web.query_error(error)
         Ok(pog.Returned(_, target_group_links)) ->
-          next(activity.Embeds(
-            locations:,
-            tags_by_activity: activity.group_tags_by_activity(tag_links),
-            target_groups_by_activity: activity.group_target_groups_by_activity(
-              target_group_links,
-            ),
-          ))
+          case sql.list_call_offs(ctx.db_connection) {
+            Error(error) -> web.query_error(error)
+            Ok(pog.Returned(_, call_off_rows)) ->
+              next(activity.Embeds(
+                locations:,
+                tags_by_activity: activity.group_tags_by_activity(tag_links),
+                target_groups_by_activity: activity.group_target_groups_by_activity(
+                  target_group_links,
+                ),
+                call_offs: activity.group_call_offs_by_activity(call_off_rows),
+              ))
+          }
       }
   }
 }
@@ -86,12 +91,28 @@ fn embeds_for_one(
   id: Uuid,
   tags: List(Uuid),
   target_groups: List(TargetGroup),
+  call_offs: Dict(Uuid, String),
 ) -> activity.Embeds {
   activity.Embeds(
     locations:,
     tags_by_activity: dict.from_list([#(id, tags)]),
     target_groups_by_activity: dict.from_list([#(id, target_groups)]),
+    call_offs:,
   )
+}
+
+/// The call-off map for a single activity — `{id: reason}` if it is called off,
+/// empty otherwise. A query failure is treated as "not called off" since the
+/// caller only uses it to embed the reason into a response the client refetches.
+fn call_offs_for_one(
+  ctx: web.Context,
+  activity_id: Uuid,
+) -> Dict(Uuid, String) {
+  case sql.get_call_off_by_activity(ctx.db_connection, activity_id) {
+    Ok(pog.Returned(_, [row, ..])) ->
+      dict.from_list([#(activity_id, row.reason)])
+    _ -> dict.new()
+  }
 }
 
 fn response_from_db_activity_summaries(
@@ -118,6 +139,10 @@ fn response_from_db_activity_summaries(
 /// endpoints. Unpaginated; `sort` is honoured.
 pub fn get_page(req: Request, ctx: web.Context) -> Response {
   use <- wisp.require_method(req, Get)
+  // Authenticated so a called-off activity can be hidden from everyone except
+  // the users who booked/favourited it (and managers, who see all).
+  use user <- web.with_authenticated_user(ctx)
+  let can_manage = web.has_role(user, web.ActivitiesManage)
   let request_query = wisp.get_query(req)
 
   use sort <- web.ensure_valid_query_param(
@@ -132,12 +157,16 @@ pub fn get_page(req: Request, ctx: web.Context) -> Response {
   case sort {
     StartTime ->
       response_from_db_activity_summaries(
-        sql.list_activities_by_start_time(ctx.db_connection),
+        sql.list_activities_by_start_time(
+          ctx.db_connection,
+          can_manage,
+          user.id,
+        ),
         activity.from_list_activities_by_start_time_row(_, embeds),
       )
     Title ->
       response_from_db_activity_summaries(
-        sql.list_activities_by_title(ctx.db_connection),
+        sql.list_activities_by_title(ctx.db_connection, can_manage, user.id),
         activity.from_list_activities_by_title_row(_, embeds),
       )
   }
@@ -146,9 +175,11 @@ pub fn get_page(req: Request, ctx: web.Context) -> Response {
 /// Returns all beach bus slots as slim summaries, ordered by start time.
 pub fn get_beach_bus(req: Request, ctx: web.Context) -> Response {
   use <- wisp.require_method(req, Get)
+  use user <- web.with_authenticated_user(ctx)
+  let can_manage = web.has_role(user, web.ActivitiesManage)
   use embeds <- with_embeds(ctx)
   response_from_db_activity_summaries(
-    sql.list_beach_bus_activities(ctx.db_connection),
+    sql.list_beach_bus_activities(ctx.db_connection, can_manage, user.id),
     activity.from_list_beach_bus_activities_row(_, embeds),
   )
 }
@@ -156,9 +187,11 @@ pub fn get_beach_bus(req: Request, ctx: web.Context) -> Response {
 /// Returns all climbing wall slots as slim summaries, ordered by start time.
 pub fn get_climbing_wall(req: Request, ctx: web.Context) -> Response {
   use <- wisp.require_method(req, Get)
+  use user <- web.with_authenticated_user(ctx)
+  let can_manage = web.has_role(user, web.ActivitiesManage)
   use embeds <- with_embeds(ctx)
   response_from_db_activity_summaries(
-    sql.list_climbing_wall_activities(ctx.db_connection),
+    sql.list_climbing_wall_activities(ctx.db_connection, can_manage, user.id),
     activity.from_list_climbing_wall_activities_row(_, embeds),
   )
 }
@@ -306,8 +339,10 @@ pub fn create(req: Request, ctx: web.Context) -> Response {
 
   // A newly created activity never has a location (the form cannot set one), so
   // resolving against an empty map always yields `None`. Tags and target groups
-  // come from the request body we just wrote.
-  let embeds = embeds_for_one(dict.new(), id, input.tags, input.target_groups)
+  // come from the request body we just wrote; a new activity is never called
+  // off.
+  let embeds =
+    embeds_for_one(dict.new(), id, input.tags, input.target_groups, dict.new())
 
   case input.max_attendees {
     Some(max_attendees) ->
@@ -431,7 +466,13 @@ pub fn update(req: Request, id: String, ctx: web.Context) -> Response {
   let target_groups_sql =
     list.map(input.target_groups, activity.model_target_group_to_sql)
   let embeds =
-    embeds_for_one(locations, activity_id, input.tags, input.target_groups)
+    embeds_for_one(
+      locations,
+      activity_id,
+      input.tags,
+      input.target_groups,
+      call_offs_for_one(ctx, activity_id),
+    )
 
   case input.max_attendees {
     Some(max_attendees) ->
@@ -498,6 +539,60 @@ pub fn update(req: Request, id: String, ctx: web.Context) -> Response {
       |> update_response(
         activity.from_update_activity_without_max_attendees_row(_, embeds),
       )
+  }
+}
+
+// --- Call off --------------------------------------------------------------
+
+type CallOffInput {
+  CallOffInput(reason: String)
+}
+
+fn call_off_input_decoder() -> decode.Decoder(CallOffInput) {
+  use reason <- decode.field("reason", decode.string)
+  decode.success(CallOffInput(reason:))
+}
+
+/// Calls off (cancels) an activity with a reason. The activity stays in the
+/// database and remains visible to users who booked or favourited it — the
+/// call-off row just hides it from everyone else's browse lists and shows the
+/// reason. Manager-only; idempotent (re-calling-off updates the reason).
+pub fn cancel(req: Request, id: String, ctx: web.Context) -> Response {
+  use <- wisp.require_method(req, Post)
+  use user <- web.with_authenticated_user(ctx)
+  use <- web.require_role(user, web.ActivitiesManage)
+  use activity_id <- given.ok(uuid.from_string(id), fn(_) {
+    wisp.bad_request("Invalid activity ID format")
+  })
+  use json_body <- wisp.require_json(req)
+  use input <- given.ok(decode.run(json_body, call_off_input_decoder()), fn(_) {
+    wisp.bad_request("Invalid JSON payload")
+  })
+
+  case sql.get_activity(ctx.db_connection, activity_id) {
+    Error(error) -> web.query_error(error)
+    Ok(pog.Returned(_, [])) -> wisp.not_found()
+    Ok(pog.Returned(_, [row, ..])) ->
+      case
+        sql.create_call_off(
+          ctx.db_connection,
+          uuid.v7(),
+          activity_id,
+          input.reason,
+        )
+      {
+        Error(error) -> web.query_error(error)
+        Ok(_) -> {
+          use embeds <- with_embeds(ctx)
+          wisp.json_response(
+            row
+              |> activity.from_get_activity_row(embeds)
+              |> activity.to_json
+              |> json.to_string,
+            200,
+          )
+        }
+      }
   }
 }
 
