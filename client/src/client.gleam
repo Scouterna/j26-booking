@@ -15,6 +15,7 @@ import gleam/option.{type Option, None, Some}
 import gleam/order
 import gleam/string
 import gleam/time/calendar
+import gleam/time/duration
 import gleam/time/timestamp.{type Timestamp}
 import gleam/uri.{type Uri}
 import icons
@@ -30,7 +31,8 @@ import rsvp
 import shared/model.{
   type Activity, type ActivitySpots, type ActivityStatus,
   type ActivityStatusEntry, type ActivitySummary, type ActivityTag, type Booking,
-  type Location, type TargetGroup, Booked, Favourited, NotInterested,
+  type BookingSlot, type GroupCount, type Location, type TargetGroup, Booked,
+  Favourited, NotInterested,
 }
 import youid/uuid.{type Uuid}
 
@@ -71,6 +73,14 @@ fn english_translations() -> g18n.Translations {
   )
   |> g18n.add_translation("form.error.invalid", "Invalid value")
   |> g18n.add_translation("app_bar.activity_bookings", "Bookings")
+  |> g18n.add_translation("app_bar.beach_bus_bookings", "Beach bus bookings")
+  |> g18n.add_translation(
+    "app_bar.climbing_wall_bookings",
+    "Climbing wall bookings",
+  )
+  |> g18n.add_translation("overview.fully_booked", "Fully booked!")
+  |> g18n.add_translation("overview.empty", "No bookings for this day.")
+  |> g18n.add_translation("overview.refresh", "Refresh")
   |> g18n.add_translation("activity.booked", "Booked")
   |> g18n.add_translation("activity.needs_booking", "Needs booking")
   |> g18n.add_translation("activity.called_off", "Called off")
@@ -185,6 +195,14 @@ fn swedish_translations() -> g18n.Translations {
   )
   |> g18n.add_translation("form.error.invalid", "Ogiltigt värde")
   |> g18n.add_translation("app_bar.activity_bookings", "Bokningar")
+  |> g18n.add_translation("app_bar.beach_bus_bookings", "Bokningar badbuss")
+  |> g18n.add_translation(
+    "app_bar.climbing_wall_bookings",
+    "Bokningar klättervägg",
+  )
+  |> g18n.add_translation("overview.fully_booked", "Fullbokat!")
+  |> g18n.add_translation("overview.empty", "Inga bokningar den här dagen.")
+  |> g18n.add_translation("overview.refresh", "Uppdatera")
   |> g18n.add_translation("activity.booked", "Bokad")
   |> g18n.add_translation("activity.needs_booking", "Behöver bokas")
   |> g18n.add_translation("activity.called_off", "Inställd")
@@ -584,6 +602,15 @@ pub type ListMode {
   ManageList
 }
 
+/// A kind of recurring activity that gets its own booking-overview page
+/// (Badbuss / Klättervägg). Both pages share one view, differing only in which
+/// slots they load and their heading; the kind also maps to the server's
+/// `recurring_activity_kind` and picks the overview endpoint.
+pub type RecurringKind {
+  BeachBus
+  ClimbingWall
+}
+
 pub type Page {
   ActivitiesListPage(filters: ListFilters, mode: ListMode)
   ActivityNewPage(
@@ -600,6 +627,16 @@ pub type Page {
   /// list is per-route state; the activity header (title/time/spots) reads from
   /// the shared `details` + `spots` caches, so it can't drift from the summary.
   ActivityBookingsPage(id: Uuid, bookings: RemoteData(List(Booking)))
+  /// Today's-bookings overview for a recurring activity kind (Badbuss /
+  /// Klättervägg): every live slot for `kind`, grouped by kår, filtered to
+  /// `selected_day` at view time (default today). Auto-refreshes on a timer.
+  /// Reached from the role-gated menu items in the shell's "More" menu; each
+  /// card drills into that slot's full `ActivityBookingsPage`.
+  RecurringBookingsPage(
+    kind: RecurringKind,
+    selected_day: calendar.Date,
+    overview: RemoteData(List(BookingSlot)),
+  )
   NotFoundPage
 }
 
@@ -1217,6 +1254,10 @@ fn app_bar_title(translator: Translator, page: Page) -> Option(String) {
       Some(g18n.translate(translator, "app_bar.activity_bookings"))
     ActivityEditPage(_, _) ->
       Some(g18n.translate(translator, "app_bar.activity_edit"))
+    RecurringBookingsPage(BeachBus, _, _) ->
+      Some(g18n.translate(translator, "app_bar.beach_bus_bookings"))
+    RecurringBookingsPage(ClimbingWall, _, _) ->
+      Some(g18n.translate(translator, "app_bar.climbing_wall_bookings"))
     NotFoundPage -> None
   }
 }
@@ -1263,6 +1304,7 @@ fn init(_flags) -> #(Model, Effect(Msg)) {
     effect.batch([
       modem.init(OnRouteChange),
       observe_lang(),
+      start_refresh_timer(),
       fetch_list(model, SourceActivities),
       fetch_spots(),
       fetch_activity_tags(),
@@ -1337,6 +1379,16 @@ pub type Msg {
   UserSearchedLocation(String)
   UserOpenedLocationDropdown
   UserClosedLocationDropdown
+  // Recurring-activity booking overview (Badbuss / Klättervägg)
+  ApiReturnedRecurringBookings(
+    RecurringKind,
+    Result(List(BookingSlot), rsvp.Error),
+  )
+  UserSelectedOverviewDay(Option(calendar.Date))
+  UserClickedRefreshOverview
+  UserClickedSlot(Uuid)
+  // Fires once a minute; refetches the overview when one is open (no-op else).
+  TimerTicked
 }
 
 pub fn update(model: Model, msg: Msg) -> #(Model, Effect(Msg)) {
@@ -1952,6 +2004,70 @@ pub fn update(model: Model, msg: Msg) -> #(Model, Effect(Msg)) {
       effect.none(),
     )
 
+    // Overview data arrived. Only apply it if we're still on the matching
+    // overview page (the user may have navigated away, or switched kind, since
+    // the fetch fired). The selected day is preserved.
+    ApiReturnedRecurringBookings(kind, result) ->
+      case model.page {
+        RecurringBookingsPage(page_kind, day, _) if page_kind == kind -> {
+          let overview = case result {
+            Ok(slots) -> Loaded(slots)
+            Error(_) -> Failed(LoadBookingsFailed)
+          }
+          #(
+            Model(..model, page: RecurringBookingsPage(kind, day, overview)),
+            effect.none(),
+          )
+        }
+        _ -> #(model, effect.none())
+      }
+
+    // Change the selected day. `None` (an unparseable option) is ignored so the
+    // current day sticks.
+    UserSelectedOverviewDay(maybe_day) ->
+      case model.page, maybe_day {
+        RecurringBookingsPage(kind, _, overview), Some(day) -> #(
+          Model(..model, page: RecurringBookingsPage(kind, day, overview)),
+          effect.none(),
+        )
+        _, _ -> #(model, effect.none())
+      }
+
+    // Manual refresh. Keep the current data on screen while the refetch runs so
+    // the list doesn't blank out (matches the silent once-a-minute refresh).
+    UserClickedRefreshOverview ->
+      case model.page {
+        RecurringBookingsPage(kind, _, _) -> #(
+          model,
+          fetch_recurring_bookings(kind),
+        )
+        _ -> #(model, effect.none())
+      }
+
+    // A card links into that slot's full per-activity bookings view.
+    UserClickedSlot(activity_id) -> #(
+      model,
+      modem.push(
+        api_prefix
+          <> "/activities/"
+          <> uuid.to_string(activity_id)
+          <> "/bookings",
+        None,
+        None,
+      ),
+    )
+
+    // Once-a-minute tick: silently refetch the open overview; a no-op on every
+    // other page.
+    TimerTicked ->
+      case model.page {
+        RecurringBookingsPage(kind, _, _) -> #(
+          model,
+          fetch_recurring_bookings(kind),
+        )
+        _ -> #(model, effect.none())
+      }
+
     UserClickedRetryLoad -> {
       let tab = case model.page {
         ActivitiesListPage(filters, _) -> filters.tab
@@ -2534,6 +2650,151 @@ fn fetch_bookings(activity_id: Uuid) -> Effect(Msg) {
   )
 }
 
+/// The booking-overview endpoint path for a recurring kind. Not yet wired (see
+/// `fetch_recurring_bookings`, which serves mock data) — kept here as the
+/// single place the real URLs live for when the backend endpoint exists.
+fn recurring_bookings_path(kind: RecurringKind) -> String {
+  case kind {
+    BeachBus -> "/api/beach-bus-bookings"
+    ClimbingWall -> "/api/climbing-wall-bookings"
+  }
+}
+
+// MOCK: the booking-overview aggregate endpoints don't exist server-side yet,
+// so this returns hardcoded slots dated *today* to make the UI demoable. Swap
+// the body for the real request once the backend ships the endpoint:
+//
+//   fn fetch_recurring_bookings(kind: RecurringKind) -> Effect(Msg) {
+//     rsvp.get(
+//       api_prefix <> recurring_bookings_path(kind),
+//       rsvp.expect_json(model.booking_slots_decoder(), fn(result) {
+//         ApiReturnedRecurringBookings(kind, result)
+//       }),
+//     )
+//   }
+fn fetch_recurring_bookings(kind: RecurringKind) -> Effect(Msg) {
+  let _ = recurring_bookings_path
+  effect.from(fn(dispatch) {
+    dispatch(ApiReturnedRecurringBookings(kind, Ok(mock_slots(kind))))
+  })
+}
+
+/// Today's date in the local time zone — the overview's default selected day.
+fn today() -> calendar.Date {
+  date_of(timestamp.system_time())
+}
+
+/// A local-time timestamp at `date` and the given clock time. Used to build the
+/// mock slots; harmless helper otherwise.
+fn at(date: calendar.Date, hours: Int, minutes: Int) -> Timestamp {
+  timestamp.from_calendar(
+    date,
+    calendar.TimeOfDay(hours, minutes, 0, 0),
+    calendar.local_offset(),
+  )
+}
+
+/// MOCK slot data mirroring the design: a few slots today (one full, one busy,
+/// one quiet) plus one tomorrow so the day dropdown has more than one option.
+/// Climbing-wall slots use a smaller cap so the two pages look distinct.
+fn mock_slots(kind: RecurringKind) -> List(BookingSlot) {
+  let d = today()
+  let tomorrow =
+    date_of(timestamp.add(timestamp.system_time(), duration.hours(24)))
+  let group = fn(id, name, count) {
+    model.GroupCount(group_id: Some(id), group_name: Some(name), count:)
+  }
+  case kind {
+    BeachBus -> [
+      model.BookingSlot(
+        uid("0198a000-0000-7000-8000-000000000001"),
+        at(d, 10, 20),
+        at(d, 10, 40),
+        Some(45),
+        43,
+        [
+          group(1, "Abbekås", 3),
+          group(2, "Blentarps Scoutkår", 8),
+          group(3, "Ölagets Scoutkår", 32),
+        ],
+      ),
+      model.BookingSlot(
+        uid("0198a000-0000-7000-8000-000000000002"),
+        at(d, 10, 40),
+        at(d, 11, 0),
+        Some(45),
+        45,
+        [
+          group(1, "Abbekås", 3),
+          group(2, "Blentarps Scoutkår", 10),
+          group(3, "Ölagets Scoutkår", 32),
+        ],
+      ),
+      model.BookingSlot(
+        uid("0198a000-0000-7000-8000-000000000003"),
+        at(d, 11, 0),
+        at(d, 11, 20),
+        Some(45),
+        12,
+        [group(4, "Gärds Härads Scoutkår", 12)],
+      ),
+      model.BookingSlot(
+        uid("0198a000-0000-7000-8000-000000000004"),
+        at(tomorrow, 10, 20),
+        at(tomorrow, 10, 40),
+        Some(45),
+        5,
+        [group(1, "Abbekås", 5)],
+      ),
+    ]
+    ClimbingWall -> [
+      model.BookingSlot(
+        uid("0198b000-0000-7000-8000-000000000001"),
+        at(d, 9, 0),
+        at(d, 9, 30),
+        Some(12),
+        12,
+        [group(2, "Blentarps Scoutkår", 4), group(3, "Ölagets Scoutkår", 8)],
+      ),
+      model.BookingSlot(
+        uid("0198b000-0000-7000-8000-000000000002"),
+        at(d, 9, 30),
+        at(d, 10, 0),
+        Some(12),
+        6,
+        [group(1, "Abbekås", 2), group(4, "Gärds Härads Scoutkår", 4)],
+      ),
+      model.BookingSlot(
+        uid("0198b000-0000-7000-8000-000000000003"),
+        at(tomorrow, 9, 0),
+        at(tomorrow, 9, 30),
+        Some(12),
+        3,
+        [group(3, "Ölagets Scoutkår", 3)],
+      ),
+    ]
+  }
+}
+
+/// Parse a hardcoded UUID literal (the mock slot ids). Asserts on a malformed
+/// literal — these are compile-time constants, so a bad one is a programming
+/// error, mirroring the locale asserts in `translator_for`.
+fn uid(s: String) -> Uuid {
+  let assert Ok(id) = uuid.from_string(s)
+  id
+}
+
+@external(javascript, "./client_ffi.mjs", "set_interval")
+fn set_interval(ms: Int, callback: fn() -> Nil) -> Nil
+
+/// Start the once-a-minute refresh tick. Fired once at startup; `TimerTicked`
+/// only does work while an overview page is open, so it's cheap elsewhere.
+fn start_refresh_timer() -> Effect(Msg) {
+  effect.from(fn(dispatch) {
+    set_interval(60_000, fn() { dispatch(TimerTicked) })
+  })
+}
+
 fn delete_booking(activity_id: Uuid, booking_id: Uuid) -> Effect(Msg) {
   rsvp.delete(
     api_prefix <> "/api/bookings/" <> uuid.to_string(booking_id),
@@ -2688,6 +2949,17 @@ pub fn uri_to_page(
       ActivitiesListPage(default_filters(), ManageList),
       effect.none(),
     )
+    // The Badbuss / Klättervägg booking-overview pages. Each loads its kind's
+    // slots and defaults the day filter to today; the timer + manual refresh
+    // refetch from here on.
+    ["beach-bus"] -> #(
+      RecurringBookingsPage(BeachBus, today(), Loading),
+      fetch_recurring_bookings(BeachBus),
+    )
+    ["climbing-wall"] -> #(
+      RecurringBookingsPage(ClimbingWall, today(), Loading),
+      fetch_recurring_bookings(ClimbingWall),
+    )
     ["activities", id_str, "bookings"] ->
       case uuid.from_string(id_str) {
         Ok(id) -> {
@@ -2780,6 +3052,8 @@ fn view(model: Model) -> Element(Msg) {
         dict.get(model.spots, id) |> option.from_result,
         bookings,
       )
+    RecurringBookingsPage(kind, selected_day, overview) ->
+      view_recurring_bookings(model.translator, kind, selected_day, overview)
     ActivityEditPage(_, EditLoading) ->
       html.div([attribute.class("flex justify-center py-8")], [
         component.scout_loader(g18n.translate(
@@ -4257,6 +4531,213 @@ fn view_activity_bookings(
       },
     ]),
   ])
+}
+
+// RECURRING BOOKINGS OVERVIEW -------------------------------------------------
+
+/// The heading text for a kind's overview (also the app-bar title).
+fn recurring_title(translator: Translator, kind: RecurringKind) -> String {
+  case kind {
+    BeachBus -> g18n.translate(translator, "app_bar.beach_bus_bookings")
+    ClimbingWall -> g18n.translate(translator, "app_bar.climbing_wall_bookings")
+  }
+}
+
+/// The Badbuss / Klättervägg booking overview: a heading with a manual-refresh
+/// button, a day dropdown, then one card per slot for the selected day — each
+/// showing the slot time, the X / Y filled count (red "Fullbokat!" when full),
+/// and the per-kår participant tally, sorted by kår name. The page also
+/// auto-refreshes once a minute; each card drills into that slot's full
+/// bookings view.
+fn view_recurring_bookings(
+  translator: Translator,
+  kind: RecurringKind,
+  selected_day: calendar.Date,
+  overview: RemoteData(List(BookingSlot)),
+) -> Element(Msg) {
+  let t = fn(key) { g18n.translate(translator, key) }
+  html.div([attribute.class("flex flex-col p-3 gap-4")], [
+    html.div([attribute.class("flex items-center justify-between gap-2")], [
+      html.h1([attribute.class("text-heading-xs")], [
+        element.text(recurring_title(translator, kind)),
+      ]),
+      html.button(
+        [
+          attribute.class(
+            "shrink-0 cursor-pointer text-gray-600 hover:text-gray-900",
+          ),
+          attribute.attribute("type", "button"),
+          attribute.attribute("aria-label", t("overview.refresh")),
+          event.on_click(UserClickedRefreshOverview),
+        ],
+        [component.icon(icons.refresh, "size-6")],
+      ),
+    ]),
+    // The day dropdown appears as soon as data is loaded, so the user can switch
+    // days even when the current one has no slots.
+    case overview {
+      Loaded(slots) -> view_overview_day_select(translator, selected_day, slots)
+      NotAsked | Loading | Failed(_) -> element.none()
+    },
+    case overview {
+      NotAsked | Loading ->
+        html.div([attribute.class("flex justify-center py-6")], [
+          component.scout_loader(t("bookings.loading")),
+        ])
+      Failed(err) ->
+        component.error_banner(t("error.heading"), t(app_error_key(err)))
+      Loaded(slots) -> {
+        let day_slots =
+          slots
+          |> list.filter(fn(s) { date_of(s.start_time) == selected_day })
+          |> list.sort(fn(a, b) {
+            timestamp.compare(a.start_time, b.start_time)
+          })
+        case day_slots {
+          [] ->
+            html.p([attribute.class("py-6 text-center text-gray-500")], [
+              element.text(t("overview.empty")),
+            ])
+          _ ->
+            keyed.div(
+              [attribute.class("flex flex-col gap-4")],
+              list.map(day_slots, fn(slot) {
+                #(
+                  uuid.to_string(slot.activity_id),
+                  view_slot_card(translator, slot),
+                )
+              }),
+            )
+        }
+      }
+    },
+  ])
+}
+
+/// The day dropdown for the overview. Options are every day that has slots, plus
+/// the selected day (so today still appears when it has none). Keyed by its date
+/// set because `scout-select` owns its `<option>` children (see `view_day_select`).
+fn view_overview_day_select(
+  translator: Translator,
+  selected: calendar.Date,
+  slots: List(BookingSlot),
+) -> Element(Msg) {
+  let selected_value = date_to_iso(selected)
+  let dates =
+    [selected, ..list.map(slots, fn(s) { date_of(s.start_time) })]
+    |> list.unique
+    |> list.sort(calendar.naive_date_compare)
+  let options =
+    list.map(dates, fn(date) {
+      let value = date_to_iso(date)
+      html.option(
+        [attribute.value(value), attribute.selected(value == selected_value)],
+        g18n.format_date(translator, date, g18n.Custom("EEEE d/M")),
+      )
+    })
+  keyed.div([attribute.class("flex")], [
+    #(
+      "overview-day-" <> string.join(list.map(dates, date_to_iso), ","),
+      element.element(
+        "scout-select",
+        [
+          attribute.class("min-w-0"),
+          attribute.attribute("name", "day"),
+          attribute.attribute("value", selected_value),
+          event.on("scoutInputChange", {
+            use value <- decode.subfield(["detail", "value"], decode.string)
+            decode.success(UserSelectedOverviewDay(parse_date_iso(value)))
+          }),
+        ],
+        options,
+      ),
+    ),
+  ])
+}
+
+/// One slot rendered as a tappable card: a time + "X / Y" (or red "Fullbokat!")
+/// header row above a card listing each kår and its participant count.
+fn view_slot_card(translator: Translator, slot: BookingSlot) -> Element(Msg) {
+  let #(_, start_time) =
+    timestamp.to_calendar(slot.start_time, calendar.local_offset())
+  let full = case slot.max_attendees {
+    Some(max) -> slot.total_booked >= max
+    None -> False
+  }
+  let count_label = case slot.max_attendees {
+    Some(max) -> int.to_string(slot.total_booked) <> " / " <> int.to_string(max)
+    None -> int.to_string(slot.total_booked)
+  }
+  let groups =
+    list.sort(slot.groups, fn(a, b) {
+      string.compare(
+        group_display_name(translator, a),
+        group_display_name(translator, b),
+      )
+    })
+  html.div(
+    [
+      attribute.class("flex flex-col gap-1 cursor-pointer"),
+      event.on_click(UserClickedSlot(slot.activity_id)),
+    ],
+    [
+      html.div(
+        [attribute.class("flex items-baseline justify-between gap-2 px-1")],
+        [
+          html.span([attribute.class("text-body-l font-semibold")], [
+            element.text(format_clock(translator, start_time)),
+          ]),
+          case full {
+            True ->
+              html.span(
+                [attribute.class("text-body-l font-semibold text-red-600")],
+                [
+                  element.text(
+                    g18n.translate(translator, "overview.fully_booked")
+                    <> " "
+                    <> count_label,
+                  ),
+                ],
+              )
+            False ->
+              html.span([attribute.class("text-body-l text-gray-700")], [
+                element.text(count_label),
+              ])
+          },
+        ],
+      ),
+      html.div([attribute.class("shadow-sm rounded-[var(--spacing-6)]")], [
+        component.scout_card([
+          html.div(
+            [attribute.class("flex flex-col gap-1")],
+            list.map(groups, fn(group) {
+              html.div(
+                [attribute.class("flex items-baseline justify-between gap-3")],
+                [
+                  html.span([attribute.class("text-body-l break-words")], [
+                    element.text(group_display_name(translator, group)),
+                  ]),
+                  html.span(
+                    [attribute.class("text-body-l font-semibold shrink-0")],
+                    [element.text(int.to_string(group.count))],
+                  ),
+                ],
+              )
+            }),
+          ),
+        ]),
+      ]),
+    ],
+  )
+}
+
+/// A kår's display name, falling back to the "unknown group" label for bookings
+/// made without a kår.
+fn group_display_name(translator: Translator, group: GroupCount) -> String {
+  case group.group_name {
+    Some(name) -> name
+    None -> g18n.translate(translator, "bookings.unknown_group")
+  }
 }
 
 /// The activity summary shown atop the bookings list. Mirrors the loading/error

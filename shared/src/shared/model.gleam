@@ -438,6 +438,97 @@ pub fn bookings_decoder() -> decode.Decoder(List(Booking)) {
   decode.success(bookings)
 }
 
+/// One scout corps' (kår) participant tally within a recurring-activity slot,
+/// for the Badbuss / Klättervägg booking overview. `group_id` is the kår-ID
+/// (from the booker's token) and `group_name` the kår name; both are `None`
+/// for bookings made without a kår, which the server buckets under a single
+/// unknown-group entry.
+pub type GroupCount {
+  GroupCount(group_id: Option(Int), group_name: Option(String), count: Int)
+}
+
+/// Decode a `GroupCount` from `{"group_id": ..., "group_name": ..., "count": ...}`.
+pub fn group_count_decoder() -> decode.Decoder(GroupCount) {
+  use group_id <- decode.optional_field(
+    "group_id",
+    None,
+    decode.optional(decode.int),
+  )
+  use group_name <- decode.optional_field(
+    "group_name",
+    None,
+    decode.optional(decode.string),
+  )
+  use count <- decode.field("count", decode.int)
+  decode.success(GroupCount(group_id:, group_name:, count:))
+}
+
+/// One time slot in a recurring-activity booking overview: a single activity's
+/// schedule and capacity, its total booked participants, and the per-kår
+/// breakdown. Powers the Badbuss / Klättervägg overview pages, which list every
+/// slot of a `recurring_activity_kind` and let the user drill into one slot's
+/// full bookings.
+pub type BookingSlot {
+  BookingSlot(
+    activity_id: Uuid,
+    start_time: Timestamp,
+    end_time: Timestamp,
+    max_attendees: Option(Int),
+    total_booked: Int,
+    groups: List(GroupCount),
+  )
+}
+
+/// Decode a `BookingSlot` from API JSON. Timestamps are unix seconds (matching
+/// the activity summary encoding); `activity_id` is a UUID string.
+pub fn booking_slot_decoder() -> decode.Decoder(BookingSlot) {
+  use activity_id_str <- decode.field("activity_id", decode.string)
+  use start_time_secs <- decode.field(
+    "start_time",
+    decode.one_of(decode.int, [decode.float |> decode.map(float.round)]),
+  )
+  use end_time_secs <- decode.field(
+    "end_time",
+    decode.one_of(decode.int, [decode.float |> decode.map(float.round)]),
+  )
+  use max_attendees <- decode.optional_field(
+    "max_attendees",
+    None,
+    decode.optional(decode.int),
+  )
+  use total_booked <- decode.field("total_booked", decode.int)
+  use groups <- decode.field("groups", decode.list(group_count_decoder()))
+  case uuid.from_string(activity_id_str) {
+    Ok(activity_id) ->
+      decode.success(BookingSlot(
+        activity_id:,
+        start_time: timestamp.from_unix_seconds(start_time_secs),
+        end_time: timestamp.from_unix_seconds(end_time_secs),
+        max_attendees:,
+        total_booked:,
+        groups:,
+      ))
+    Error(_) ->
+      decode.failure(
+        BookingSlot(
+          activity_id: uuid.v7(),
+          start_time: timestamp.from_unix_seconds(start_time_secs),
+          end_time: timestamp.from_unix_seconds(end_time_secs),
+          max_attendees:,
+          total_booked:,
+          groups:,
+        ),
+        "valid UUID string for activity_id",
+      )
+  }
+}
+
+/// Decode the overview response `{"slots": [...]}`.
+pub fn booking_slots_decoder() -> decode.Decoder(List(BookingSlot)) {
+  use slots <- decode.field("slots", decode.list(booking_slot_decoder()))
+  decode.success(slots)
+}
+
 pub type Favourite {
   Favourite(id: Uuid, user_id: Uuid, activity_id: Uuid)
 }

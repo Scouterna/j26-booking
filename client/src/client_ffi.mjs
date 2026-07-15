@@ -32,3 +32,13 @@ export function observe_html_lang(callback) {
     once: true,
   });
 }
+
+// Fire `callback` every `ms` milliseconds. Used by the booking-overview pages
+// to auto-refresh once a minute so they can be left open on a display. The
+// interval is cleared on pagehide so it doesn't outlive the document.
+export function set_interval(ms, callback) {
+  const id = window.setInterval(callback, ms);
+  window.addEventListener("pagehide", () => window.clearInterval(id), {
+    once: true,
+  });
+}
