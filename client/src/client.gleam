@@ -1418,8 +1418,8 @@ pub fn update(model: Model, msg: Msg) -> #(Model, Effect(Msg)) {
         _ -> #(model, effect.none())
       }
 
-    // A successful save refreshes both caches and returns to the detail page,
-    // where the just-saved values are shown.
+    // A successful save refreshes both caches and returns to the management
+    // list it was launched from, matching the create flow and Avbryt.
     ApiUpdatedActivity(Ok(activity)) -> #(
       Model(
         ..model,
@@ -1434,11 +1434,7 @@ pub fn update(model: Model, msg: Msg) -> #(Model, Effect(Msg)) {
           Loaded(to_detail(activity)),
         ),
       ),
-      modem.push(
-        api_prefix <> "/activities/" <> uuid.to_string(activity.id),
-        None,
-        None,
-      ),
+      modem.push(api_prefix <> "/activities/manage", None, None),
     )
 
     ApiUpdatedActivity(Error(_)) ->
@@ -1557,19 +1553,11 @@ pub fn update(model: Model, msg: Msg) -> #(Model, Effect(Msg)) {
       modem.push(api_prefix <> "/activities/new", None, None),
     )
 
-    // "Avbryt" — discard changes. Edit returns to the detail page; create
-    // returns to the management list it was launched from.
+    // "Avbryt" — discard changes. Both edit and create return to the
+    // management list they were launched from.
     UserClickedCancelEdit ->
       case model.page {
-        ActivityEditPage(id, _) -> #(
-          model,
-          modem.push(
-            api_prefix <> "/activities/" <> uuid.to_string(id),
-            None,
-            None,
-          ),
-        )
-        ActivityNewPage(..) -> #(
+        ActivityEditPage(..) | ActivityNewPage(..) -> #(
           model,
           modem.push(api_prefix <> "/activities/manage", None, None),
         )
