@@ -21,6 +21,9 @@ pub type Embeds {
     locations: Dict(Uuid, Location),
     tags_by_activity: Dict(Uuid, List(Uuid)),
     target_groups_by_activity: Dict(Uuid, List(TargetGroup)),
+    /// Call-off reason keyed by activity id. An entry means the activity is
+    /// called off; its value is the reason shown to booked/favourited users.
+    call_offs: Dict(Uuid, String),
   )
 }
 
@@ -42,6 +45,20 @@ fn embed_tags(embeds: Embeds, id: Uuid) -> List(Uuid) {
 
 fn embed_target_groups(embeds: Embeds, id: Uuid) -> List(TargetGroup) {
   dict.get(embeds.target_groups_by_activity, id) |> result.unwrap([])
+}
+
+/// The activity's call-off reason, or `None` when it is not called off.
+fn embed_cancellation(embeds: Embeds, id: Uuid) -> Option(String) {
+  dict.get(embeds.call_offs, id) |> option.from_result
+}
+
+/// Groups call-off rows into a reason-by-activity map for embedding.
+pub fn group_call_offs_by_activity(
+  rows: List(sql.ListCallOffsRow),
+) -> Dict(Uuid, String) {
+  list.fold(rows, dict.new(), fn(acc, row) {
+    dict.insert(acc, row.activity_id, row.reason)
+  })
 }
 
 // --- sql <-> model target group mapping ------------------------------------
@@ -120,6 +137,7 @@ pub fn from_create_activity_with_max_attendees_row(
     location: resolve_location(row.location_id, embeds.locations),
     tags: embed_tags(embeds, row.id),
     target_groups: embed_target_groups(embeds, row.id),
+    cancellation: embed_cancellation(embeds, row.id),
   )
 }
 
@@ -140,6 +158,7 @@ pub fn from_create_activity_without_max_attendees_row(
     location: resolve_location(row.location_id, embeds.locations),
     tags: embed_tags(embeds, row.id),
     target_groups: embed_target_groups(embeds, row.id),
+    cancellation: embed_cancellation(embeds, row.id),
   )
 }
 
@@ -160,6 +179,7 @@ pub fn from_search_activity_row(
     location: resolve_location(row.location_id, embeds.locations),
     tags: embed_tags(embeds, row.id),
     target_groups: embed_target_groups(embeds, row.id),
+    cancellation: embed_cancellation(embeds, row.id),
   )
 }
 
@@ -180,6 +200,7 @@ pub fn from_get_activity_row(
     location: resolve_location(row.location_id, embeds.locations),
     tags: embed_tags(embeds, row.id),
     target_groups: embed_target_groups(embeds, row.id),
+    cancellation: embed_cancellation(embeds, row.id),
   )
 }
 
@@ -200,6 +221,7 @@ pub fn from_get_activities_by_title_row(
     location: resolve_location(row.location_id, embeds.locations),
     tags: embed_tags(embeds, row.id),
     target_groups: embed_target_groups(embeds, row.id),
+    cancellation: embed_cancellation(embeds, row.id),
   )
 }
 
@@ -220,6 +242,7 @@ pub fn from_get_activities_by_start_time_row(
     location: resolve_location(row.location_id, embeds.locations),
     tags: embed_tags(embeds, row.id),
     target_groups: embed_target_groups(embeds, row.id),
+    cancellation: embed_cancellation(embeds, row.id),
   )
 }
 
@@ -240,6 +263,7 @@ pub fn from_list_activities_by_title_row(
     location: resolve_location(row.location_id, embeds.locations),
     tags: embed_tags(embeds, row.id),
     target_groups: embed_target_groups(embeds, row.id),
+    cancellation: embed_cancellation(embeds, row.id),
   )
 }
 
@@ -260,6 +284,7 @@ pub fn from_list_activities_by_start_time_row(
     location: resolve_location(row.location_id, embeds.locations),
     tags: embed_tags(embeds, row.id),
     target_groups: embed_target_groups(embeds, row.id),
+    cancellation: embed_cancellation(embeds, row.id),
   )
 }
 
@@ -280,6 +305,7 @@ pub fn from_list_beach_bus_activities_row(
     location: resolve_location(row.location_id, embeds.locations),
     tags: embed_tags(embeds, row.id),
     target_groups: embed_target_groups(embeds, row.id),
+    cancellation: embed_cancellation(embeds, row.id),
   )
 }
 
@@ -300,6 +326,7 @@ pub fn from_list_climbing_wall_activities_row(
     location: resolve_location(row.location_id, embeds.locations),
     tags: embed_tags(embeds, row.id),
     target_groups: embed_target_groups(embeds, row.id),
+    cancellation: embed_cancellation(embeds, row.id),
   )
 }
 
@@ -320,6 +347,7 @@ pub fn from_list_favourited_activities_row(
     location: resolve_location(row.location_id, embeds.locations),
     tags: embed_tags(embeds, row.id),
     target_groups: embed_target_groups(embeds, row.id),
+    cancellation: embed_cancellation(embeds, row.id),
   )
 }
 
@@ -340,6 +368,7 @@ pub fn from_update_activity_with_max_attendees_row(
     location: resolve_location(row.location_id, embeds.locations),
     tags: embed_tags(embeds, row.id),
     target_groups: embed_target_groups(embeds, row.id),
+    cancellation: embed_cancellation(embeds, row.id),
   )
 }
 
@@ -360,6 +389,7 @@ pub fn from_update_activity_without_max_attendees_row(
     location: resolve_location(row.location_id, embeds.locations),
     tags: embed_tags(embeds, row.id),
     target_groups: embed_target_groups(embeds, row.id),
+    cancellation: embed_cancellation(embeds, row.id),
   )
 }
 
@@ -412,6 +442,7 @@ pub fn to_json(activity: Activity) -> Json {
     location:,
     tags:,
     target_groups:,
+    cancellation:,
   ) = activity
   json.object([
     #("id", id |> uuid.to_string |> json.string),
@@ -426,6 +457,7 @@ pub fn to_json(activity: Activity) -> Json {
     #("location", json.nullable(location, location.to_json)),
     #("tags", json.array(tags, uuid_to_json)),
     #("target_groups", json.array(target_groups, model.target_group_to_json)),
+    #("cancellation", json.nullable(cancellation, json.string)),
   ])
 }
 
@@ -442,6 +474,7 @@ pub fn summary_to_json(activity: Activity) -> Json {
     location:,
     tags:,
     target_groups:,
+    cancellation:,
   ) = activity
   json.object([
     #("id", id |> uuid.to_string |> json.string),
@@ -461,6 +494,7 @@ pub fn summary_to_json(activity: Activity) -> Json {
     ),
     #("tags", json.array(tags, uuid_to_json)),
     #("target_groups", json.array(target_groups, model.target_group_to_json)),
+    #("cancellation", json.nullable(cancellation, json.string)),
   ])
 }
 

@@ -46,6 +46,7 @@ fn booking_input_decoder() -> decode.Decoder(BookingInput) {
 /// can map each to the right HTTP status.
 type BookingError {
   ActivityNotFound
+  ActivityCalledOff
   BookingNotFound
   CapacityExceeded(max: Int, spots_booked: Int)
   BookingQueryFailed(pog.QueryError)
@@ -80,6 +81,10 @@ pub fn create(
   let transaction_result =
     pog.transaction(ctx.db_connection, fn(conn) {
       use max_attendees <- result.try(lock_activity(conn, activity_id))
+      // A called-off activity accepts no new bookings. Checked inside the same
+      // transaction that locks the activity so it can't race a concurrent
+      // call-off.
+      use _ <- result.try(ensure_not_called_off(conn, activity_id))
       use spots_booked <- result.try(booked_spots(conn, activity_id))
       case
         web.exceeds_capacity(
@@ -116,6 +121,12 @@ pub fn create(
       |> wisp.set_header("location", location)
     }
     Error(pog.TransactionRolledBack(ActivityNotFound)) -> wisp.not_found()
+    Error(pog.TransactionRolledBack(ActivityCalledOff)) ->
+      wisp.json_response(
+        json.object([#("error", json.string("Activity is called off"))])
+          |> json.to_string,
+        409,
+      )
     Error(pog.TransactionRolledBack(CapacityExceeded(max, spots_booked))) ->
       web.capacity_exceeded(max, spots_booked)
     Error(pog.TransactionRolledBack(BookingQueryFailed(error))) ->
@@ -124,6 +135,20 @@ pub fn create(
       wisp.log_error("TransactionError " <> string.inspect(error))
       wisp.internal_server_error()
     }
+  }
+}
+
+/// Rolls back the booking transaction with `ActivityCalledOff` when a call-off
+/// row exists for the activity, so a called-off activity accepts no new
+/// bookings.
+fn ensure_not_called_off(
+  conn: pog.Connection,
+  activity_id: uuid.Uuid,
+) -> Result(Nil, BookingError) {
+  case sql.get_call_off_by_activity(conn, activity_id) {
+    Error(error) -> Error(BookingQueryFailed(error))
+    Ok(pog.Returned(_, [])) -> Ok(Nil)
+    Ok(pog.Returned(_, [_, ..])) -> Error(ActivityCalledOff)
   }
 }
 

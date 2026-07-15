@@ -47,6 +47,7 @@ fn a_summary(
     location_name: None,
     tags: [],
     target_groups: [],
+    cancellation: None,
   )
 }
 
@@ -61,6 +62,7 @@ fn an_activity(id: Uuid, max: Option(Int)) -> model.Activity {
     location: None,
     tags: [],
     target_groups: [],
+    cancellation: None,
   )
 }
 
@@ -324,7 +326,7 @@ pub fn tab_summaries_browse_maps_id_window_through_cache_test() {
       activities: dict.from_list([#(id_a(), summary_a), #(id_b(), summary_b)]),
       activities_ids: client.Loaded([id_a(), id_b()]),
     )
-  assert client.tab_summaries(model_, client.TabActivities)
+  assert client.tab_summaries(model_, client.TabActivities, client.BrowseList)
     == client.Loaded([summary_a, summary_b])
 }
 
@@ -337,12 +339,16 @@ pub fn tab_summaries_browse_drops_uncached_ids_test() {
       // id_b is in the window but not yet in the entity cache.
       activities_ids: client.Loaded([id_a(), id_b()]),
     )
-  assert client.tab_summaries(model_, client.TabActivities)
+  assert client.tab_summaries(model_, client.TabActivities, client.BrowseList)
     == client.Loaded([summary_a])
 }
 
 pub fn tab_summaries_browse_reflects_fetch_state_test() {
-  assert client.tab_summaries(base_model(), client.TabBeachBus)
+  assert client.tab_summaries(
+      base_model(),
+      client.TabBeachBus,
+      client.BrowseList,
+    )
     == client.NotAsked
 }
 
@@ -361,7 +367,7 @@ pub fn tab_summaries_favourites_derived_from_statuses_test() {
       favourited: client.Loaded([]),
     )
   let assert client.Loaded(summaries) =
-    client.tab_summaries(model_, client.TabFavourites)
+    client.tab_summaries(model_, client.TabFavourites, client.BrowseList)
   // dict key order is unspecified, so assert membership rather than order.
   assert list.length(summaries) == 2
   assert list.contains(summaries, summary_a)
@@ -370,10 +376,36 @@ pub fn tab_summaries_favourites_derived_from_statuses_test() {
 
 pub fn tab_summaries_favourites_empty_reflects_fetch_state_test() {
   // Nothing favourited yet => mirror the favourited fetch state.
-  assert client.tab_summaries(base_model(), client.TabFavourites)
+  assert client.tab_summaries(
+      base_model(),
+      client.TabFavourites,
+      client.BrowseList,
+    )
     == client.NotAsked
   let loading = client.Model(..base_model(), favourited: client.Loading)
-  assert client.tab_summaries(loading, client.TabFavourites) == client.Loading
+  assert client.tab_summaries(loading, client.TabFavourites, client.BrowseList)
+    == client.Loading
+}
+
+pub fn tab_summaries_browse_hides_called_off_manage_shows_it_test() {
+  let active = a_summary(id_a(), "Active", None)
+  let called_off =
+    model.ActivitySummary(
+      ..a_summary(id_b(), "Called off", None),
+      cancellation: Some("Inställd"),
+    )
+  let model_ =
+    client.Model(
+      ..base_model(),
+      activities: dict.from_list([#(id_a(), active), #(id_b(), called_off)]),
+      activities_ids: client.Loaded([id_a(), id_b()]),
+    )
+  // Browse: the called-off activity is filtered out.
+  assert client.tab_summaries(model_, client.TabActivities, client.BrowseList)
+    == client.Loaded([active])
+  // Manage: both are shown.
+  assert client.tab_summaries(model_, client.TabActivities, client.ManageList)
+    == client.Loaded([active, called_off])
 }
 
 // LIST SOURCES: source_remote / set_source_remote / ensure_source_loaded -------

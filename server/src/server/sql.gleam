@@ -465,6 +465,34 @@ RETURNING id,
   |> pog.execute(db)
 }
 
+/// Runs the `create_call_off` query
+/// defined in `./src/server/sql/create_call_off.sql`.
+///
+/// > 🐿️ This function was generated automatically using v4.7.0 of
+/// > the [squirrel package](https://github.com/giacomocavalieri/squirrel).
+///
+pub fn create_call_off(
+  db: pog.Connection,
+  arg_1: Uuid,
+  arg_2: Uuid,
+  arg_3: String,
+) -> Result(pog.Returned(Nil), pog.QueryError) {
+  let decoder = decode.map(decode.dynamic, fn(_) { Nil })
+
+  "INSERT INTO call_off (id, activity_id, reason)
+VALUES ($1, $2, $3) ON CONFLICT (activity_id) DO
+UPDATE
+SET reason = EXCLUDED.reason,
+    cancelled_at = NOW();
+"
+  |> pog.query
+  |> pog.parameter(pog.text(uuid.to_string(arg_1)))
+  |> pog.parameter(pog.text(uuid.to_string(arg_2)))
+  |> pog.parameter(pog.text(arg_3))
+  |> pog.returning(decoder)
+  |> pog.execute(db)
+}
+
 /// A row you get from running the `create_favourite` query
 /// defined in `./src/server/sql/create_favourite.sql`.
 ///
@@ -1571,6 +1599,57 @@ ORDER BY id;
   |> pog.execute(db)
 }
 
+/// A row you get from running the `get_call_off_by_activity` query
+/// defined in `./src/server/sql/get_call_off_by_activity.sql`.
+///
+/// > 🐿️ This type definition was generated automatically using v4.7.0 of the
+/// > [squirrel package](https://github.com/giacomocavalieri/squirrel).
+///
+pub type GetCallOffByActivityRow {
+  GetCallOffByActivityRow(
+    id: Uuid,
+    activity_id: Uuid,
+    reason: String,
+    cancelled_at: Timestamp,
+  )
+}
+
+/// Runs the `get_call_off_by_activity` query
+/// defined in `./src/server/sql/get_call_off_by_activity.sql`.
+///
+/// > 🐿️ This function was generated automatically using v4.7.0 of
+/// > the [squirrel package](https://github.com/giacomocavalieri/squirrel).
+///
+pub fn get_call_off_by_activity(
+  db: pog.Connection,
+  arg_1: Uuid,
+) -> Result(pog.Returned(GetCallOffByActivityRow), pog.QueryError) {
+  let decoder = {
+    use id <- decode.field(0, uuid_decoder())
+    use activity_id <- decode.field(1, uuid_decoder())
+    use reason <- decode.field(2, decode.string)
+    use cancelled_at <- decode.field(3, pog.timestamp_decoder())
+    decode.success(GetCallOffByActivityRow(
+      id:,
+      activity_id:,
+      reason:,
+      cancelled_at:,
+    ))
+  }
+
+  "SELECT id,
+    activity_id,
+    reason,
+    cancelled_at
+FROM call_off
+WHERE activity_id = $1;
+"
+  |> pog.query
+  |> pog.parameter(pog.text(uuid.to_string(arg_1)))
+  |> pog.returning(decoder)
+  |> pog.execute(db)
+}
+
 /// A row you get from running the `get_favourites_by_user` query
 /// defined in `./src/server/sql/get_favourites_by_user.sql`.
 ///
@@ -1892,6 +1971,8 @@ pub type ListActivitiesByStartTimeRow {
 ///
 pub fn list_activities_by_start_time(
   db: pog.Connection,
+  arg_1: Bool,
+  arg_2: Uuid,
 ) -> Result(pog.Returned(ListActivitiesByStartTimeRow), pog.QueryError) {
   let decoder = {
     use id <- decode.field(0, uuid_decoder())
@@ -1924,9 +2005,19 @@ pub fn list_activities_by_start_time(
   "SELECT *
 FROM activity
 WHERE recurring_activity_kind IS NULL
+    AND (
+        NOT EXISTS (
+            SELECT 1 FROM call_off c WHERE c.activity_id = activity.id
+        )
+        OR $1 = TRUE
+        OR activity.id IN (SELECT activity_id FROM favourite WHERE user_id = $2)
+        OR activity.id IN (SELECT activity_id FROM booking WHERE user_id = $2)
+    )
 ORDER BY start_time ASC;
 "
   |> pog.query
+  |> pog.parameter(pog.bool(arg_1))
+  |> pog.parameter(pog.text(uuid.to_string(arg_2)))
   |> pog.returning(decoder)
   |> pog.execute(db)
 }
@@ -1960,6 +2051,8 @@ pub type ListActivitiesByTitleRow {
 ///
 pub fn list_activities_by_title(
   db: pog.Connection,
+  arg_1: Bool,
+  arg_2: Uuid,
 ) -> Result(pog.Returned(ListActivitiesByTitleRow), pog.QueryError) {
   let decoder = {
     use id <- decode.field(0, uuid_decoder())
@@ -1992,9 +2085,19 @@ pub fn list_activities_by_title(
   "SELECT *
 FROM activity
 WHERE recurring_activity_kind IS NULL
+    AND (
+        NOT EXISTS (
+            SELECT 1 FROM call_off c WHERE c.activity_id = activity.id
+        )
+        OR $1 = TRUE
+        OR activity.id IN (SELECT activity_id FROM favourite WHERE user_id = $2)
+        OR activity.id IN (SELECT activity_id FROM booking WHERE user_id = $2)
+    )
 ORDER BY title ASC;
 "
   |> pog.query
+  |> pog.parameter(pog.bool(arg_1))
+  |> pog.parameter(pog.text(uuid.to_string(arg_2)))
   |> pog.returning(decoder)
   |> pog.execute(db)
 }
@@ -2175,6 +2278,8 @@ pub type ListBeachBusActivitiesRow {
 ///
 pub fn list_beach_bus_activities(
   db: pog.Connection,
+  arg_1: Bool,
+  arg_2: Uuid,
 ) -> Result(pog.Returned(ListBeachBusActivitiesRow), pog.QueryError) {
   let decoder = {
     use id <- decode.field(0, uuid_decoder())
@@ -2207,7 +2312,60 @@ pub fn list_beach_bus_activities(
   "SELECT *
 FROM activity
 WHERE recurring_activity_kind = 'beach-bus'
+    AND (
+        NOT EXISTS (
+            SELECT 1 FROM call_off c WHERE c.activity_id = activity.id
+        )
+        OR $1 = TRUE
+        OR activity.id IN (SELECT activity_id FROM favourite WHERE user_id = $2)
+        OR activity.id IN (SELECT activity_id FROM booking WHERE user_id = $2)
+    )
 ORDER BY start_time ASC;
+"
+  |> pog.query
+  |> pog.parameter(pog.bool(arg_1))
+  |> pog.parameter(pog.text(uuid.to_string(arg_2)))
+  |> pog.returning(decoder)
+  |> pog.execute(db)
+}
+
+/// A row you get from running the `list_call_offs` query
+/// defined in `./src/server/sql/list_call_offs.sql`.
+///
+/// > 🐿️ This type definition was generated automatically using v4.7.0 of the
+/// > [squirrel package](https://github.com/giacomocavalieri/squirrel).
+///
+pub type ListCallOffsRow {
+  ListCallOffsRow(
+    id: Uuid,
+    activity_id: Uuid,
+    reason: String,
+    cancelled_at: Timestamp,
+  )
+}
+
+/// Runs the `list_call_offs` query
+/// defined in `./src/server/sql/list_call_offs.sql`.
+///
+/// > 🐿️ This function was generated automatically using v4.7.0 of
+/// > the [squirrel package](https://github.com/giacomocavalieri/squirrel).
+///
+pub fn list_call_offs(
+  db: pog.Connection,
+) -> Result(pog.Returned(ListCallOffsRow), pog.QueryError) {
+  let decoder = {
+    use id <- decode.field(0, uuid_decoder())
+    use activity_id <- decode.field(1, uuid_decoder())
+    use reason <- decode.field(2, decode.string)
+    use cancelled_at <- decode.field(3, pog.timestamp_decoder())
+    decode.success(ListCallOffsRow(id:, activity_id:, reason:, cancelled_at:))
+  }
+
+  "SELECT id,
+    activity_id,
+    reason,
+    cancelled_at
+FROM call_off;
 "
   |> pog.query
   |> pog.returning(decoder)
@@ -2243,6 +2401,8 @@ pub type ListClimbingWallActivitiesRow {
 ///
 pub fn list_climbing_wall_activities(
   db: pog.Connection,
+  arg_1: Bool,
+  arg_2: Uuid,
 ) -> Result(pog.Returned(ListClimbingWallActivitiesRow), pog.QueryError) {
   let decoder = {
     use id <- decode.field(0, uuid_decoder())
@@ -2275,9 +2435,19 @@ pub fn list_climbing_wall_activities(
   "SELECT *
 FROM activity
 WHERE recurring_activity_kind = 'climbing-wall'
+    AND (
+        NOT EXISTS (
+            SELECT 1 FROM call_off c WHERE c.activity_id = activity.id
+        )
+        OR $1 = TRUE
+        OR activity.id IN (SELECT activity_id FROM favourite WHERE user_id = $2)
+        OR activity.id IN (SELECT activity_id FROM booking WHERE user_id = $2)
+    )
 ORDER BY start_time ASC;
 "
   |> pog.query
+  |> pog.parameter(pog.bool(arg_1))
+  |> pog.parameter(pog.text(uuid.to_string(arg_2)))
   |> pog.returning(decoder)
   |> pog.execute(db)
 }

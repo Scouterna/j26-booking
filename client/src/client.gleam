@@ -70,6 +70,7 @@ fn english_translations() -> g18n.Translations {
   |> g18n.add_translation("app_bar.activity_bookings", "Bookings")
   |> g18n.add_translation("activity.booked", "Booked")
   |> g18n.add_translation("activity.needs_booking", "Needs booking")
+  |> g18n.add_translation("activity.called_off", "Called off")
   |> g18n.add_translation("activity.show_bookings", "Show bookings")
   |> g18n.add_translation("edit.lang_sv", "Swedish")
   |> g18n.add_translation("edit.lang_en", "English")
@@ -131,6 +132,10 @@ fn english_translations() -> g18n.Translations {
   |> g18n.add_translation("error.load_activity", "Failed to load activity")
   |> g18n.add_translation("error.create_activity", "Failed to create activity")
   |> g18n.add_translation("error.update_activity", "Failed to update activity")
+  |> g18n.add_translation(
+    "error.call_off_activity",
+    "Failed to call off activity",
+  )
   |> g18n.add_translation("error.delete_activity", "Failed to delete activity")
   |> g18n.add_translation("error.create_booking", "Failed to create booking")
   |> g18n.add_translation("error.update_booking", "Failed to update booking")
@@ -176,6 +181,7 @@ fn swedish_translations() -> g18n.Translations {
   |> g18n.add_translation("app_bar.activity_bookings", "Bokningar")
   |> g18n.add_translation("activity.booked", "Bokad")
   |> g18n.add_translation("activity.needs_booking", "Behöver bokas")
+  |> g18n.add_translation("activity.called_off", "Inställd")
   |> g18n.add_translation("activity.show_bookings", "Visa bokningar")
   |> g18n.add_translation("edit.lang_sv", "Svenska")
   |> g18n.add_translation("edit.lang_en", "Engelska")
@@ -245,6 +251,10 @@ fn swedish_translations() -> g18n.Translations {
   |> g18n.add_translation(
     "error.update_activity",
     "Kunde inte uppdatera aktiviteten",
+  )
+  |> g18n.add_translation(
+    "error.call_off_activity",
+    "Kunde inte ställa in aktiviteten",
   )
   |> g18n.add_translation(
     "error.delete_activity",
@@ -396,6 +406,7 @@ pub type AppError {
   LoadActivityFailed
   CreateActivityFailed
   UpdateActivityFailed
+  CallOffActivityFailed
   DeleteActivityFailed
   CreateBookingFailed
   UpdateBookingFailed
@@ -409,6 +420,7 @@ fn app_error_key(error: AppError) -> String {
     LoadActivityFailed -> "error.load_activity"
     CreateActivityFailed -> "error.create_activity"
     UpdateActivityFailed -> "error.update_activity"
+    CallOffActivityFailed -> "error.call_off_activity"
     DeleteActivityFailed -> "error.delete_activity"
     CreateBookingFailed -> "error.create_booking"
     UpdateBookingFailed -> "error.update_booking"
@@ -693,6 +705,7 @@ pub fn ensure_source_loaded(
 pub fn tab_summaries(
   model: Model,
   tab: ActivitiesFilterTab,
+  mode: ListMode,
 ) -> RemoteData(List(ActivitySummary)) {
   case tab {
     TabFavourites -> {
@@ -721,10 +734,19 @@ pub fn tab_summaries(
         NotAsked -> NotAsked
         Loading -> Loading
         Failed(err) -> Failed(err)
-        Loaded(ids) ->
-          Loaded(
-            list.filter_map(ids, fn(id) { dict.get(model.activities, id) }),
-          )
+        Loaded(ids) -> {
+          let summaries =
+            list.filter_map(ids, fn(id) { dict.get(model.activities, id) })
+          // Browse lists never render called-off activities — they surface only
+          // in the management list. Booked/favourited users still reach their
+          // called-off activities via the Favourites tab and the detail page.
+          let visible = case mode {
+            BrowseList ->
+              list.filter(summaries, fn(s) { option.is_none(s.cancellation) })
+            ManageList -> summaries
+          }
+          Loaded(visible)
+        }
       }
   }
 }
@@ -783,6 +805,7 @@ fn to_summary(a: Activity) -> ActivitySummary {
     location_name: option.map(a.location, fn(l) { l.name }),
     tags: a.tags,
     target_groups: a.target_groups,
+    cancellation: a.cancellation,
   )
 }
 
@@ -808,6 +831,7 @@ fn to_activity(summary: ActivitySummary, detail: ActivityDetail) -> Activity {
     location: detail.location,
     tags: detail.tags,
     target_groups: detail.target_groups,
+    cancellation: summary.cancellation,
   )
 }
 
@@ -1210,6 +1234,7 @@ pub type Msg {
   ApiReturnedActivityTags(Result(List(ActivityTag), rsvp.Error))
   ApiCreatedActivity(Result(Activity, rsvp.Error))
   ApiUpdatedActivity(Result(Activity, rsvp.Error))
+  ApiCancelledActivity(Result(Activity, rsvp.Error))
   ApiDeletedActivity(Uuid, Result(Nil, rsvp.Error))
   ApiCreatedBooking(Result(Booking, rsvp.Error))
   ApiUpdatedBooking(Result(Booking, rsvp.Error))
@@ -1452,6 +1477,41 @@ pub fn update(model: Model, msg: Msg) -> #(Model, Effect(Msg)) {
         _ -> #(model, effect.none())
       }
 
+    // A successful call-off refreshes both caches (so the cancelled state and
+    // reason show immediately) and returns to the management list, matching the
+    // save flow.
+    ApiCancelledActivity(Ok(activity)) -> #(
+      Model(
+        ..model,
+        activities: dict.insert(
+          model.activities,
+          activity.id,
+          to_summary(activity),
+        ),
+        details: dict.insert(
+          model.details,
+          activity.id,
+          Loaded(to_detail(activity)),
+        ),
+      ),
+      modem.push(api_prefix <> "/activities/manage", None, None),
+    )
+
+    ApiCancelledActivity(Error(_)) ->
+      case model.page {
+        ActivityEditPage(id, EditReady(..) as edit) -> #(
+          Model(
+            ..model,
+            page: ActivityEditPage(
+              id,
+              edit_with_error(edit, Some(CallOffActivityFailed)),
+            ),
+          ),
+          effect.none(),
+        )
+        _ -> #(model, effect.none())
+      }
+
     ApiDeletedActivity(id, Ok(_)) -> #(
       Model(
         ..model,
@@ -1586,15 +1646,18 @@ pub fn update(model: Model, msg: Msg) -> #(Model, Effect(Msg)) {
       effect.none(),
     )
 
-    // Confirm the call-off from the modal. UI-only for now — not persisted; it
-    // just closes the modal and clears the reason. (Server call to come.)
-    UserClickedConfirmCallOff -> #(
-      Model(
-        ..model,
-        edit_ui: EditUi(..model.edit_ui, cancel_open: False, cancel_reason: ""),
-      ),
-      effect.none(),
-    )
+    // Confirm the call-off from the modal: persist it via the API. Closes the
+    // modal immediately; the reason is kept so it can be shown/retried if the
+    // request fails. On success `ApiCancelledActivity(Ok)` refreshes the caches
+    // and returns to the management list.
+    UserClickedConfirmCallOff ->
+      case model.page {
+        ActivityEditPage(id, _) -> #(
+          Model(..model, edit_ui: EditUi(..model.edit_ui, cancel_open: False)),
+          cancel_activity(id, model.edit_ui.cancel_reason),
+        )
+        _ -> #(model, effect.none())
+      }
 
     UserClickedDelete ->
       case model.page {
@@ -2247,6 +2310,16 @@ fn update_activity(
   )
 }
 
+/// Calls off (cancels) an activity with a reason. The server keeps the activity
+/// but hides it from browse lists for everyone except booked/favourited users.
+fn cancel_activity(id: Uuid, reason: String) -> Effect(Msg) {
+  rsvp.post(
+    api_prefix <> "/api/activities/" <> uuid.to_string(id) <> "/cancel",
+    json.object([#("reason", json.string(reason))]),
+    rsvp.expect_json(model.activity_decoder(), ApiCancelledActivity),
+  )
+}
+
 fn fetch_activity_tags() -> Effect(Msg) {
   rsvp.get(
     api_prefix <> "/api/activity-tags",
@@ -2386,7 +2459,7 @@ fn view(model: Model) -> Element(Msg) {
     ActivitiesListPage(filters, mode) ->
       view_activities_list(
         model.translator,
-        tab_summaries(model, filters.tab),
+        tab_summaries(model, filters.tab, mode),
         model.statuses,
         model.spots,
         filters,
@@ -2839,11 +2912,22 @@ fn view_activity_card(
     )
   let spots_text =
     spots_remaining_text(translator, summary.max_attendees, item.spots_booked)
-  // The status chip ("Bokad"/"Behöver bokas") reflects the viewer's own booking
-  // state, which is irrelevant on the management list — show it only in browse.
-  let status = case mode {
-    BrowseList -> card_status(translator, summary, item.status)
-    ManageList -> component.StatusNone
+  // A called-off activity shows an "Inställd" chip in both lists — it's an
+  // intrinsic property, not the viewer's booking state, and managers need to
+  // see it on the management list. Otherwise the chip ("Bokad"/"Behöver bokas")
+  // reflects the viewer's own booking state, which is irrelevant when managing,
+  // so it shows only in browse.
+  let status = case summary.cancellation {
+    Some(_) ->
+      component.StatusCancelled(g18n.translate(
+        translator,
+        "activity.called_off",
+      ))
+    None ->
+      case mode {
+        BrowseList -> card_status(translator, summary, item.status)
+        ManageList -> component.StatusNone
+      }
   }
   // Browse cards link to the detail page and carry a favourite heart; manage
   // cards link to the edit page and carry an edit pen. Everything else about
@@ -3287,6 +3371,16 @@ fn view_activity_detail_loaded(
             heart_btn,
           ],
         ),
+        // Called-off notice: shown to the booked/favourited users who can still
+        // see the activity, with the reason the manager gave.
+        case activity.cancellation {
+          Some(reason) ->
+            component.warning_banner(
+              g18n.translate(translator, "activity.called_off"),
+              reason,
+            )
+          None -> element.none()
+        },
         html.div(
           // Action bar under the title: booking actions followed by the
           // management-only "Visa bokningar" action, wrapping to a new row
@@ -3462,13 +3556,19 @@ fn view_detail_actions(
 
     // Booked: offer "Ändra bokning" + "Avboka" — kept visible even while the
     // booking drawer is open/submitting, since the drawer no longer hides
-    // the row behind it.
+    // the row behind it. A called-off activity drops "Ändra bokning" (no
+    // changes to a cancelled activity) but keeps "Avboka" so booked users can
+    // still remove themselves.
     True, _ -> #(
-      component.scout_button_action(
-        g18n.translate(translator, "booking.change"),
-        "primary",
-        UserClickedChangeBooking,
-      ),
+      case activity.cancellation {
+        Some(_) -> element.none()
+        None ->
+          component.scout_button_action(
+            g18n.translate(translator, "booking.change"),
+            "primary",
+            UserClickedChangeBooking,
+          )
+      },
       component.scout_button_action(
         g18n.translate(translator, "booking.unbook"),
         "danger",
@@ -3477,28 +3577,33 @@ fn view_detail_actions(
     )
 
     // Not booked: the "Boka" button if the activity has capacity, shown as a
-    // disabled "Full" button when no spots remain (known count only).
+    // disabled "Full" button when no spots remain (known count only). A
+    // called-off activity offers no booking action at all.
     False, _ ->
-      case activity.max_attendees {
-        Some(_) ->
-          case model.spots_remaining(activity.max_attendees, spots_booked) {
-            model.Remaining(0) -> #(
-              component.scout_button_disabled(
-                g18n.translate(translator, "activity.full"),
-                "primary",
-              ),
-              element.none(),
-            )
-            _ -> #(
-              component.scout_button_action(
-                g18n.translate(translator, "activity.book"),
-                "primary",
-                UserClickedBook,
-              ),
-              element.none(),
-            )
+      case activity.cancellation {
+        Some(_) -> #(element.none(), element.none())
+        None ->
+          case activity.max_attendees {
+            Some(_) ->
+              case model.spots_remaining(activity.max_attendees, spots_booked) {
+                model.Remaining(0) -> #(
+                  component.scout_button_disabled(
+                    g18n.translate(translator, "activity.full"),
+                    "primary",
+                  ),
+                  element.none(),
+                )
+                _ -> #(
+                  component.scout_button_action(
+                    g18n.translate(translator, "activity.book"),
+                    "primary",
+                    UserClickedBook,
+                  ),
+                  element.none(),
+                )
+              }
+            None -> #(element.none(), element.none())
           }
-        None -> #(element.none(), element.none())
       }
   }
 }

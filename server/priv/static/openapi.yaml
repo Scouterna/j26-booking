@@ -33,8 +33,13 @@ paths:
       description: |
         Retrieve ordinary activities as slim summaries (without `description`),
         with optional sorting. Excludes recurring-kind slots (beach bus, climbing
-        wall), which have their own endpoints. Not paginated.
+        wall), which have their own endpoints. Not paginated. Requires
+        authentication: called-off activities are hidden except from users who
+        booked or favourited them, and from managers (who see all).
       operationId: listActivities
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
       parameters:
         - $ref: '#/components/parameters/SortParam'
       responses:
@@ -68,6 +73,8 @@ paths:
                         end_time: 1752411600
         '400':
           $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
         '500':
           $ref: '#/components/responses/ServerError'
 
@@ -132,8 +139,13 @@ paths:
       description: |
         Retrieve all beach bus (badbuss) slots as slim summaries (without
         `description`), ordered by start time. These are bookable slots of the
-        recurring "beach-bus" kind. Not paginated.
+        recurring "beach-bus" kind. Not paginated. Requires authentication so
+        called-off slots stay hidden except from booked/favourited users and
+        managers.
       operationId: listBeachBusActivities
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
       responses:
         '200':
           description: Successfully retrieved beach bus slots
@@ -156,6 +168,8 @@ paths:
                         max_attendees: 40
                         start_time: 1752390000
                         end_time: 1752393600
+        '401':
+          $ref: '#/components/responses/Unauthorized'
         '500':
           $ref: '#/components/responses/ServerError'
 
@@ -167,8 +181,13 @@ paths:
       description: |
         Retrieve all climbing wall (klättervägg) slots as slim summaries
         (without `description`), ordered by start time. These are bookable slots
-        of the recurring "climbing-wall" kind. Not paginated.
+        of the recurring "climbing-wall" kind. Not paginated. Requires
+        authentication so called-off slots stay hidden except from
+        booked/favourited users and managers.
       operationId: listClimbingWallActivities
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
       responses:
         '200':
           description: Successfully retrieved climbing wall slots
@@ -191,6 +210,8 @@ paths:
                         max_attendees: 12
                         start_time: 1752393600
                         end_time: 1752397200
+        '401':
+          $ref: '#/components/responses/Unauthorized'
         '500':
           $ref: '#/components/responses/ServerError'
 
@@ -718,6 +739,69 @@ paths:
         '500':
           $ref: '#/components/responses/ServerError'
 
+  /activities/{activity_id}/cancel:
+    post:
+      tags:
+        - Activities
+      summary: Call off (cancel) an activity
+      description: |
+        Call off an activity with a reason ("ställ in"). The activity is kept in
+        the database and stays visible to users who booked or favourited it (and
+        to managers), with the reason shown; everyone else stops seeing it in
+        the browse lists. New bookings are rejected once an activity is called
+        off. Manager-only. Idempotent — calling this again updates the reason.
+      operationId: cancelActivity
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/ActivityIdPath'
+      requestBody:
+        description: The reason the activity is being called off.
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - reason
+              properties:
+                reason:
+                  type: string
+                  description: Why the activity was called off, shown to booked/favourited users.
+                  example: "Inställd på grund av väder"
+            example:
+              reason: "Inställd på grund av väder"
+      responses:
+        '200':
+          description: Activity called off; the updated activity is returned.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Activity'
+              example:
+                id: "6f5e1d46-5f58-4e23-9a9d-8c2bfc2d22a0"
+                title:
+                  sv: "Lägereldssånger"
+                  en: "Campfire Songs"
+                description:
+                  sv: "En kväll med klassiska scoutsånger vid lägerelden."
+                  en: "An evening of classic scout songs around the campfire."
+                max_attendees: 50
+                start_time: 1752350400
+                end_time: 1752357600
+                cancellation: "Inställd på grund av väder"
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          description: No activity with this id
+        '500':
+          $ref: '#/components/responses/ServerError'
+
   /me:
     get:
       tags:
@@ -827,16 +911,20 @@ paths:
                 $ref: '#/components/schemas/AppConfig'
               example:
                 navigation:
-                  - type: "page"
-                    id: "page_activities"
-                    label: "booking.activities.label"
-                    icon: "campfire"
-                    path: "../activities"
-                  - type: "page"
-                    id: "page_manage_activities"
-                    label: "booking.manage_activities.label"
-                    icon: "pencil"
-                    path: "../activities/manage"
+                  - type: "group"
+                    id: "group_booking"
+                    label: "booking.schedule.label"
+                    children:
+                      - type: "page"
+                        id: "page_activities"
+                        label: "booking.activities.label"
+                        icon: "campfire"
+                        path: "../activities"
+                      - type: "page"
+                        id: "page_manage_activities"
+                        label: "booking.manage_activities.label"
+                        icon: "pencil"
+                        path: "../activities/manage"
 
   /locations:
     get:
@@ -1389,6 +1477,11 @@ components:
           items:
             $ref: '#/components/schemas/TargetGroup'
           example: ["sparare", "upptackare"]
+        cancellation:
+          type: string
+          nullable: true
+          description: The reason the activity was called off, or null when it is active. A non-null value means the activity is cancelled ("inställd") and only booked/favourited users (and managers) see it.
+          example: "Inställd på grund av väder"
 
     ActivitySummary:
       type: object
@@ -1440,6 +1533,11 @@ components:
           items:
             $ref: '#/components/schemas/TargetGroup'
           example: ["sparare", "upptackare"]
+        cancellation:
+          type: string
+          nullable: true
+          description: The reason the activity was called off, or null when it is active. A non-null value means the activity is cancelled ("inställd") and only booked/favourited users (and managers) see it.
+          example: "Inställd på grund av väder"
 
     TargetGroup:
       type: string
@@ -2080,12 +2178,15 @@ components:
               error:
                 type: string
                 enum: [capacity_exceeded]
+                example: "capacity_exceeded"
               max_attendees:
                 type: integer
                 description: The activity's attendee cap.
+                example: 20
               spots_booked:
                 type: integer
                 description: Spots already booked at the time of the check.
+                example: 18
           example:
             error: "capacity_exceeded"
             max_attendees: 20

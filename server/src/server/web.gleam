@@ -275,6 +275,13 @@ pub fn with_authenticated_user(
   }
 }
 
+/// True when the user holds `role`. `Admin` implies every role, matching
+/// `require_role`. Use when a handler needs the boolean rather than the
+/// short-circuiting guard (e.g. to vary a query instead of rejecting).
+pub fn has_role(user: User, role: Role) -> Bool {
+  list.contains(user.roles, role) || list.contains(user.roles, Admin)
+}
+
 /// Calls `next` when the user holds `role`, otherwise short-circuits with a
 /// 403 response. `Admin` implies every role.
 pub fn require_role(
@@ -282,7 +289,7 @@ pub fn require_role(
   role: Role,
   next: fn() -> Response,
 ) -> Response {
-  case list.contains(user.roles, role) || list.contains(user.roles, Admin) {
+  case has_role(user, role) {
     True -> next()
     False -> wisp.response(403)
   }
