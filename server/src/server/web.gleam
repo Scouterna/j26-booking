@@ -1,4 +1,6 @@
 import given
+import gleam/bit_array
+import gleam/crypto
 import gleam/dynamic/decode
 import gleam/http/request
 import gleam/int
@@ -309,6 +311,39 @@ pub fn require_any_role(
     True -> next()
     False -> wisp.response(403)
   }
+}
+
+/// Serves `body` as a JSON response carrying a strong ETag derived from the
+/// body bytes, or a `304 Not Modified` when the request's `If-None-Match`
+/// already matches. Hashing the exact bytes keeps the validator correct even
+/// for responses that differ per caller. `cache_control` is set verbatim, and
+/// `Vary: Cookie` is always added because API responses are scoped to the
+/// caller's auth cookie, so no shared cache may serve one to another user.
+pub fn json_response_with_etag(
+  req: Request,
+  body: String,
+  status: Int,
+  cache_control: String,
+) -> Response {
+  let etag = strong_etag(body)
+  let response = case request.get_header(req, "if-none-match") {
+    Ok(client_etag) if client_etag == etag -> wisp.response(304)
+    _ -> wisp.json_response(body, status)
+  }
+  response
+  |> wisp.set_header("etag", etag)
+  |> wisp.set_header("cache-control", cache_control)
+  |> wisp.set_header("vary", "cookie")
+}
+
+/// A strong ETag: the SHA-256 of the response body, base16-encoded and quoted.
+fn strong_etag(body: String) -> String {
+  let digest =
+    body
+    |> bit_array.from_string
+    |> crypto.hash(crypto.Sha256, _)
+    |> bit_array.base16_encode
+  "\"" <> digest <> "\""
 }
 
 /// Logs a database query error and responds with a 500. Shared by handlers so

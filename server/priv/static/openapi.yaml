@@ -34,17 +34,25 @@ paths:
         Retrieve ordinary activities as slim summaries (without `description`),
         with optional sorting. Excludes recurring-kind slots (beach bus, climbing
         wall), which have their own endpoints. Not paginated. Requires
-        authentication: called-off activities are hidden except from users who
-        booked or favourited them, and from managers (who see all).
+        authentication. Called-off activities are excluded by default, so the
+        response is identical for every user; managers can pass
+        `include_call_offs=true` to see them (used by the manage-activities
+        view). Responses carry a strong `ETag`; send it as `If-None-Match` to
+        get a `304 Not Modified` when nothing changed.
       operationId: listActivities
       security:
         - bearerAuth: []
         - cookieAuth: []
       parameters:
         - $ref: '#/components/parameters/SortParam'
+        - $ref: '#/components/parameters/IncludeCallOffsParam'
+        - $ref: '#/components/parameters/IfNoneMatchParam'
       responses:
         '200':
           description: Successfully retrieved activities
+          headers:
+            ETag:
+              $ref: '#/components/headers/ETag'
           content:
             application/json:
               schema:
@@ -71,10 +79,14 @@ paths:
                         max_attendees: 30
                         start_time: 1752400800
                         end_time: 1752411600
+        '304':
+          $ref: '#/components/responses/NotModified'
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':
           $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
         '500':
           $ref: '#/components/responses/ServerError'
 
@@ -139,16 +151,24 @@ paths:
       description: |
         Retrieve all beach bus (badbuss) slots as slim summaries (without
         `description`), ordered by start time. These are bookable slots of the
-        recurring "beach-bus" kind. Not paginated. Requires authentication so
-        called-off slots stay hidden except from booked/favourited users and
-        managers.
+        recurring "beach-bus" kind. Not paginated. Requires authentication.
+        Called-off slots are excluded by default (response identical for every
+        user); managers can pass `include_call_offs=true` to see them. Responses
+        carry a strong `ETag`; send it as `If-None-Match` to get a `304` when
+        nothing changed.
       operationId: listBeachBusActivities
       security:
         - bearerAuth: []
         - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/IncludeCallOffsParam'
+        - $ref: '#/components/parameters/IfNoneMatchParam'
       responses:
         '200':
           description: Successfully retrieved beach bus slots
+          headers:
+            ETag:
+              $ref: '#/components/headers/ETag'
           content:
             application/json:
               schema:
@@ -168,8 +188,12 @@ paths:
                         max_attendees: 40
                         start_time: 1752390000
                         end_time: 1752393600
+        '304':
+          $ref: '#/components/responses/NotModified'
         '401':
           $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
         '500':
           $ref: '#/components/responses/ServerError'
 
@@ -182,15 +206,23 @@ paths:
         Retrieve all climbing wall (klättervägg) slots as slim summaries
         (without `description`), ordered by start time. These are bookable slots
         of the recurring "climbing-wall" kind. Not paginated. Requires
-        authentication so called-off slots stay hidden except from
-        booked/favourited users and managers.
+        authentication. Called-off slots are excluded by default (response
+        identical for every user); managers can pass `include_call_offs=true` to
+        see them. Responses carry a strong `ETag`; send it as `If-None-Match` to
+        get a `304` when nothing changed.
       operationId: listClimbingWallActivities
       security:
         - bearerAuth: []
         - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/IncludeCallOffsParam'
+        - $ref: '#/components/parameters/IfNoneMatchParam'
       responses:
         '200':
           description: Successfully retrieved climbing wall slots
+          headers:
+            ETag:
+              $ref: '#/components/headers/ETag'
           content:
             application/json:
               schema:
@@ -210,8 +242,12 @@ paths:
                         max_attendees: 12
                         start_time: 1752393600
                         end_time: 1752397200
+        '304':
+          $ref: '#/components/responses/NotModified'
         '401':
           $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
         '500':
           $ref: '#/components/responses/ServerError'
 
@@ -225,14 +261,22 @@ paths:
         slim summaries (without `description`), ordered by start time. Used to
         hydrate the client's activity cache with favourites the user may not
         have browsed to; Favourites tab membership is derived from
-        `/statuses/me`, not from this list. Not paginated.
+        `/statuses/me`, not from this list. Not paginated. Always includes
+        called-off activities (this is where a user sees that something they
+        booked or favourited was called off). Per-user, so its `ETag` differs
+        between users; send it as `If-None-Match` to get a `304` when unchanged.
       operationId: listFavouritedActivities
       security:
         - bearerAuth: []
         - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/IfNoneMatchParam'
       responses:
         '200':
           description: Successfully retrieved favourited and booked activities
+          headers:
+            ETag:
+              $ref: '#/components/headers/ETag'
           content:
             application/json:
               schema:
@@ -252,6 +296,8 @@ paths:
                         max_attendees: 50
                         start_time: 1752350400
                         end_time: 1752357600
+        '304':
+          $ref: '#/components/responses/NotModified'
         '401':
           $ref: '#/components/responses/Unauthorized'
         '500':
@@ -2139,6 +2185,43 @@ components:
         default: 0
       example: 0
 
+    IncludeCallOffsParam:
+      name: include_call_offs
+      in: query
+      required: false
+      description: |
+        Include called-off activities in the list. Manager-only: requesting
+        `true` without the `activities:manage` role returns `403`. Defaults to
+        `false`, which excludes called-off activities so the response is
+        identical for every user (used by the manage-activities view). The
+        favourited-activities endpoint always includes call-offs and ignores
+        this parameter.
+      schema:
+        type: boolean
+        default: false
+      example: true
+
+    IfNoneMatchParam:
+      name: If-None-Match
+      in: header
+      required: false
+      description: |
+        The `ETag` from a previous response for this resource. If it still
+        matches, the server responds `304 Not Modified` with no body so the
+        client can reuse its cached copy.
+      schema:
+        type: string
+      example: '"a1b2c3"'
+
+  headers:
+    ETag:
+      description: |
+        Strong validator (SHA-256 of the response body). Send it back as
+        `If-None-Match` on the next request to revalidate.
+      schema:
+        type: string
+      example: '"a1b2c3"'
+
   responses:
     BadRequest:
       description: Bad request - invalid parameters or request body
@@ -2166,6 +2249,14 @@ components:
 
     Unauthorized:
       description: Unauthenticated - missing or invalid access token
+
+    NotModified:
+      description: |
+        The client's `If-None-Match` matches the current `ETag`; the resource is
+        unchanged. No body is returned — reuse the cached copy.
+      headers:
+        ETag:
+          $ref: '#/components/headers/ETag'
 
     Forbidden:
       description: Forbidden - the authenticated user lacks the required role

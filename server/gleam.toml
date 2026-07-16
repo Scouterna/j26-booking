@@ -31,6 +31,7 @@ given = ">= 6.0.1 and < 7.0.0"
 ywt_erlang = ">= 2.0.0 and < 3.0.0"
 ywt_core = ">= 2.0.0 and < 3.0.0"
 gleam_httpc = ">= 5.0.0 and < 6.0.0"
+gleam_crypto = ">= 1.6.0 and < 2.0.0"
 
 [dev-dependencies]
 gleeunit = ">= 1.0.0 and < 2.0.0"

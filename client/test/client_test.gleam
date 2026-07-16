@@ -118,6 +118,7 @@ fn base_model() -> client.Model {
     beach_bus_ids: client.NotAsked,
     climbing_wall_ids: client.NotAsked,
     favourited: client.NotAsked,
+    etags: dict.new(),
     details: dict.new(),
     statuses: dict.new(),
     spots: dict.new(),
@@ -749,14 +750,40 @@ pub fn returned_activity_list_hydrates_cache_and_sets_window_test() {
   let #(next, _) =
     client.update(
       base_model(),
-      client.ApiReturnedActivityList(
+      client.ApiReturnedActivityWindow(
         client.SourceBeachBus,
-        Ok([summary_a, summary_b]),
+        True,
+        client.WindowLoaded([summary_a, summary_b], Some("\"etag-1\"")),
       ),
     )
   assert next.beach_bus_ids == client.Loaded([id_a(), id_b()])
   assert dict.get(next.activities, id_a()) == Ok(summary_a)
   assert dict.get(next.activities, id_b()) == Ok(summary_b)
+  // The response's ETag is stored keyed by (source, include_call_offs).
+  assert dict.get(next.etags, #(client.SourceBeachBus, True))
+    == Ok("\"etag-1\"")
+}
+
+pub fn unchanged_activity_window_keeps_cache_untouched_test() {
+  // A 304 leaves the loaded window and its cached summaries exactly as they were.
+  let summary_a = a_summary(id_a(), "A", None)
+  let model_ =
+    client.Model(
+      ..base_model(),
+      activities: dict.from_list([#(id_a(), summary_a)]),
+      beach_bus_ids: client.Loaded([id_a()]),
+    )
+  let #(next, _) =
+    client.update(
+      model_,
+      client.ApiReturnedActivityWindow(
+        client.SourceBeachBus,
+        True,
+        client.WindowUnchanged,
+      ),
+    )
+  assert next.beach_bus_ids == client.Loaded([id_a()])
+  assert dict.get(next.activities, id_a()) == Ok(summary_a)
 }
 
 pub fn list_refetch_refreshes_summary_without_touching_loaded_detail_test() {
@@ -773,7 +800,11 @@ pub fn list_refetch_refreshes_summary_without_touching_loaded_detail_test() {
   let #(next, _) =
     client.update(
       model_,
-      client.ApiReturnedActivityList(client.SourceActivities, Ok([refreshed])),
+      client.ApiReturnedActivityWindow(
+        client.SourceActivities,
+        True,
+        client.WindowLoaded([refreshed], None),
+      ),
     )
   assert dict.get(next.activities, id_a()) == Ok(refreshed)
   assert dict.get(next.details, id_a()) == Ok(client.Loaded(a_detail()))
@@ -783,9 +814,10 @@ pub fn failed_activity_list_marks_source_failed_test() {
   let #(next, _) =
     client.update(
       base_model(),
-      client.ApiReturnedActivityList(
+      client.ApiReturnedActivityWindow(
         client.SourceClimbingWall,
-        Error(rsvp.BadBody),
+        True,
+        client.WindowFailed,
       ),
     )
   let assert client.Failed(_) = next.climbing_wall_ids

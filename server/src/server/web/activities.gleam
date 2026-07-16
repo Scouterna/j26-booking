@@ -25,11 +25,51 @@ type SortQueryParams {
 
 const default_sort = Title
 
+/// Browse/list responses are scoped to the caller's auth cookie and revalidated
+/// via ETag on every visit, so they may be stored but must be re-checked.
+const list_cache_control = "private, no-cache"
+
 fn parse_sort(value: String) -> Result(SortQueryParams, Nil) {
   case value {
     "title" -> Ok(Title)
     "start_time" -> Ok(StartTime)
     _ -> Error(Nil)
+  }
+}
+
+fn parse_bool(value: String) -> Result(Bool, Nil) {
+  case value {
+    "true" -> Ok(True)
+    "false" -> Ok(False)
+    _ -> Error(Nil)
+  }
+}
+
+/// Resolves the manager-only `include_call_offs` query param. Absent or `false`
+/// yields the cacheable default (`False` — called-off activities excluded, so
+/// the response is identical for every user). `true` requires the
+/// `ActivitiesManage` role: a non-manager asking for call-offs gets a 403 so a
+/// cached default response can never be mistaken for a manager view. A
+/// malformed value is a 400.
+fn with_include_call_offs(
+  req: Request,
+  user: web.User,
+  next: fn(Bool) -> Response,
+) -> Response {
+  use requested <- web.ensure_valid_query_param(
+    in: wisp.get_query(req),
+    with_name: "include_call_offs",
+    if_missing_return: False,
+    using: parse_bool,
+    else_respond_with: "Invalid include_call_offs parameter. Allowed values: true, false",
+  )
+  case requested {
+    False -> next(False)
+    True ->
+      case web.has_role(user, web.ActivitiesManage) {
+        True -> next(True)
+        False -> wisp.response(403)
+      }
   }
 }
 
@@ -187,6 +227,7 @@ fn with_location(
 }
 
 fn response_from_db_activity_summaries(
+  req: Request,
   query_result: Result(pog.Returned(a), pog.QueryError),
   to_activity: fn(a) -> model.Activity,
 ) -> Response {
@@ -194,13 +235,12 @@ fn response_from_db_activity_summaries(
     Error(error) -> web.query_error(error)
     Ok(pog.Returned(_, rows)) -> {
       let activities = rows |> list.map(to_activity)
-      wisp.json_response(
+      let body =
         json.object([
           #("activities", json.array(activities, activity.summary_to_json)),
         ])
-          |> json.to_string,
-        200,
-      )
+        |> json.to_string
+      web.json_response_with_etag(req, body, 200, list_cache_control)
     }
   }
 }
@@ -210,34 +250,32 @@ fn response_from_db_activity_summaries(
 /// endpoints. Unpaginated; `sort` is honoured.
 pub fn get_page(req: Request, ctx: web.Context) -> Response {
   use <- wisp.require_method(req, Get)
-  // Authenticated so a called-off activity can be hidden from everyone except
-  // the users who booked/favourited it (and managers, who see all).
+  // Authenticated because the whole API requires auth; the list itself no longer
+  // varies by user unless `include_call_offs` is requested (managers only), so
+  // the default response is byte-identical for everyone and shares one ETag.
   use user <- web.with_authenticated_user(ctx)
-  let can_manage = web.has_role(user, web.ActivitiesManage)
-  let request_query = wisp.get_query(req)
 
   use sort <- web.ensure_valid_query_param(
-    in: request_query,
+    in: wisp.get_query(req),
     with_name: "sort",
     if_missing_return: default_sort,
     using: parse_sort,
     else_respond_with: "Invalid sort parameter. Allowed values: title, start_time",
   )
+  use include_call_offs <- with_include_call_offs(req, user)
   use embeds <- with_embeds(ctx)
 
   case sort {
     StartTime ->
       response_from_db_activity_summaries(
-        sql.list_activities_by_start_time(
-          ctx.db_connection,
-          can_manage,
-          user.id,
-        ),
+        req,
+        sql.list_activities_by_start_time(ctx.db_connection, include_call_offs),
         activity.from_list_activities_by_start_time_row(_, embeds),
       )
     Title ->
       response_from_db_activity_summaries(
-        sql.list_activities_by_title(ctx.db_connection, can_manage, user.id),
+        req,
+        sql.list_activities_by_title(ctx.db_connection, include_call_offs),
         activity.from_list_activities_by_title_row(_, embeds),
       )
   }
@@ -247,10 +285,11 @@ pub fn get_page(req: Request, ctx: web.Context) -> Response {
 pub fn get_beach_bus(req: Request, ctx: web.Context) -> Response {
   use <- wisp.require_method(req, Get)
   use user <- web.with_authenticated_user(ctx)
-  let can_manage = web.has_role(user, web.ActivitiesManage)
+  use include_call_offs <- with_include_call_offs(req, user)
   use embeds <- with_embeds(ctx)
   response_from_db_activity_summaries(
-    sql.list_beach_bus_activities(ctx.db_connection, can_manage, user.id),
+    req,
+    sql.list_beach_bus_activities(ctx.db_connection, include_call_offs),
     activity.from_list_beach_bus_activities_row(_, embeds),
   )
 }
@@ -259,10 +298,11 @@ pub fn get_beach_bus(req: Request, ctx: web.Context) -> Response {
 pub fn get_climbing_wall(req: Request, ctx: web.Context) -> Response {
   use <- wisp.require_method(req, Get)
   use user <- web.with_authenticated_user(ctx)
-  let can_manage = web.has_role(user, web.ActivitiesManage)
+  use include_call_offs <- with_include_call_offs(req, user)
   use embeds <- with_embeds(ctx)
   response_from_db_activity_summaries(
-    sql.list_climbing_wall_activities(ctx.db_connection, can_manage, user.id),
+    req,
+    sql.list_climbing_wall_activities(ctx.db_connection, include_call_offs),
     activity.from_list_climbing_wall_activities_row(_, embeds),
   )
 }
@@ -276,6 +316,7 @@ pub fn get_favourited(req: Request, ctx: web.Context) -> Response {
   use user <- web.with_authenticated_user(ctx)
   use embeds <- with_embeds(ctx)
   response_from_db_activity_summaries(
+    req,
     sql.list_favourited_activities(ctx.db_connection, user.id),
     activity.from_list_favourited_activities_row(_, embeds),
   )

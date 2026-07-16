@@ -1,6 +1,19 @@
 # 09. ETag revalidation for per-day activity lists
 
-> **Status: 🔲 Not started** (as of 2026-07-16)
+> **Status: ✅ Done 2026-07-16** (committed on branch `feat/activity-list-etag`).
+> Implemented and verified end-to-end: server 28 + client 79 tests pass; `curl`
+> confirmed shared ETags, `304` revalidation, the manager 403 gate, and a real
+> browser session produced a `304` on tab revisit. Diverged from the plan:
+> (1) **`include_call_offs` is role-based, not mode-based** — the client view
+> already filters call-offs per mode (`BrowseList` hides, `ManageList` shows), so
+> managers fetch the superset once and both modes read it; this sidesteps a
+> browse/manage window conflict. (2) Built on the **current per-source windows**
+> (day-windowing is still pending, see plan 11), so the window/ETag key is
+> `(source, include_call_offs)`, not `(source, day)`. (3) rsvp 1.2.0 exposes
+> `Handler(msg)` (one type arg); used `expect_any_response` + `parse_relative_uri`
+> (a JS FFI that resolves relative URLs in-browser). (4) Response interpretation
+> lives in the effect handler via a `WindowResult` type, keeping `update` pure.
+> (5) Added `gleam_crypto` (server) and `gleam_http` (client) as direct deps.
 
 ## Context
 

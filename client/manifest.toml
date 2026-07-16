@@ -55,6 +55,7 @@ packages = [
 [requirements]
 formal = { version = ">= 3.0.1 and < 4.0.0" }
 g18n = { git = "https://github.com/m4reko/g18n", ref = "feat/cldr-custom-date-tokens" }
+gleam_http = { version = ">= 4.3.0 and < 5.0.0" }
 gleam_json = { version = ">= 3.1.0 and < 4.0.0" }
 gleam_stdlib = { version = ">= 1.0.0 and < 2.0.0" }
 gleam_time = { version = ">= 1.7.0 and < 2.0.0" }

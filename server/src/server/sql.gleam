@@ -1994,7 +1994,6 @@ pub type ListActivitiesByStartTimeRow {
 pub fn list_activities_by_start_time(
   db: pog.Connection,
   arg_1: Bool,
-  arg_2: Uuid,
 ) -> Result(pog.Returned(ListActivitiesByStartTimeRow), pog.QueryError) {
   let decoder = {
     use id <- decode.field(0, uuid_decoder())
@@ -2028,18 +2027,15 @@ pub fn list_activities_by_start_time(
 FROM activity
 WHERE recurring_activity_kind IS NULL
     AND (
-        NOT EXISTS (
+        $1 = TRUE
+        OR NOT EXISTS (
             SELECT 1 FROM call_off c WHERE c.activity_id = activity.id
         )
-        OR $1 = TRUE
-        OR activity.id IN (SELECT activity_id FROM favourite WHERE user_id = $2)
-        OR activity.id IN (SELECT activity_id FROM booking WHERE user_id = $2)
     )
 ORDER BY start_time ASC;
 "
   |> pog.query
   |> pog.parameter(pog.bool(arg_1))
-  |> pog.parameter(pog.text(uuid.to_string(arg_2)))
   |> pog.returning(decoder)
   |> pog.execute(db)
 }
@@ -2074,7 +2070,6 @@ pub type ListActivitiesByTitleRow {
 pub fn list_activities_by_title(
   db: pog.Connection,
   arg_1: Bool,
-  arg_2: Uuid,
 ) -> Result(pog.Returned(ListActivitiesByTitleRow), pog.QueryError) {
   let decoder = {
     use id <- decode.field(0, uuid_decoder())
@@ -2108,18 +2103,15 @@ pub fn list_activities_by_title(
 FROM activity
 WHERE recurring_activity_kind IS NULL
     AND (
-        NOT EXISTS (
+        $1 = TRUE
+        OR NOT EXISTS (
             SELECT 1 FROM call_off c WHERE c.activity_id = activity.id
         )
-        OR $1 = TRUE
-        OR activity.id IN (SELECT activity_id FROM favourite WHERE user_id = $2)
-        OR activity.id IN (SELECT activity_id FROM booking WHERE user_id = $2)
     )
 ORDER BY title ASC;
 "
   |> pog.query
   |> pog.parameter(pog.bool(arg_1))
-  |> pog.parameter(pog.text(uuid.to_string(arg_2)))
   |> pog.returning(decoder)
   |> pog.execute(db)
 }
@@ -2301,7 +2293,6 @@ pub type ListBeachBusActivitiesRow {
 pub fn list_beach_bus_activities(
   db: pog.Connection,
   arg_1: Bool,
-  arg_2: Uuid,
 ) -> Result(pog.Returned(ListBeachBusActivitiesRow), pog.QueryError) {
   let decoder = {
     use id <- decode.field(0, uuid_decoder())
@@ -2335,18 +2326,15 @@ pub fn list_beach_bus_activities(
 FROM activity
 WHERE recurring_activity_kind = 'beach-bus'
     AND (
-        NOT EXISTS (
+        $1 = TRUE
+        OR NOT EXISTS (
             SELECT 1 FROM call_off c WHERE c.activity_id = activity.id
         )
-        OR $1 = TRUE
-        OR activity.id IN (SELECT activity_id FROM favourite WHERE user_id = $2)
-        OR activity.id IN (SELECT activity_id FROM booking WHERE user_id = $2)
     )
 ORDER BY start_time ASC;
 "
   |> pog.query
   |> pog.parameter(pog.bool(arg_1))
-  |> pog.parameter(pog.text(uuid.to_string(arg_2)))
   |> pog.returning(decoder)
   |> pog.execute(db)
 }
@@ -2424,7 +2412,6 @@ pub type ListClimbingWallActivitiesRow {
 pub fn list_climbing_wall_activities(
   db: pog.Connection,
   arg_1: Bool,
-  arg_2: Uuid,
 ) -> Result(pog.Returned(ListClimbingWallActivitiesRow), pog.QueryError) {
   let decoder = {
     use id <- decode.field(0, uuid_decoder())
@@ -2458,18 +2445,15 @@ pub fn list_climbing_wall_activities(
 FROM activity
 WHERE recurring_activity_kind = 'climbing-wall'
     AND (
-        NOT EXISTS (
+        $1 = TRUE
+        OR NOT EXISTS (
             SELECT 1 FROM call_off c WHERE c.activity_id = activity.id
         )
-        OR $1 = TRUE
-        OR activity.id IN (SELECT activity_id FROM favourite WHERE user_id = $2)
-        OR activity.id IN (SELECT activity_id FROM booking WHERE user_id = $2)
     )
 ORDER BY start_time ASC;
 "
   |> pog.query
   |> pog.parameter(pog.bool(arg_1))
-  |> pog.parameter(pog.text(uuid.to_string(arg_2)))
   |> pog.returning(decoder)
   |> pog.execute(db)
 }

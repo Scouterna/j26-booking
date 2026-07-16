@@ -5,6 +5,9 @@ import g18n/locale
 import gleam/dict.{type Dict}
 import gleam/dynamic/decode
 import gleam/float
+import gleam/http
+import gleam/http/request
+import gleam/http/response
 import gleam/int
 import gleam/json
 import gleam/list
@@ -359,6 +362,18 @@ pub type ActivityListSource {
   SourceFavourites
 }
 
+/// The outcome of a (conditional) list fetch, derived from the HTTP response in
+/// the effect handler so `update` never touches raw responses.
+///  - `WindowLoaded`: a `200` with decoded summaries and the new `ETag` (if the
+///    server sent one).
+///  - `WindowUnchanged`: a `304` — the cached window is still current.
+///  - `WindowFailed`: a network error, non-success status, or decode failure.
+pub type WindowResult {
+  WindowLoaded(summaries: List(ActivitySummary), etag: Option(String))
+  WindowUnchanged
+  WindowFailed
+}
+
 pub type ActivityForm {
   ActivityForm(
     title: String,
@@ -617,6 +632,11 @@ pub type Model {
     // Drives the Favourites tab's /api/favourited-activities fetch state and
     // cache hydration. Membership is DERIVED from `statuses`, not this list.
     favourited: RemoteData(List(Uuid)),
+    // Strong ETag of the last successful list response per fetch identity
+    // (source + include_call_offs). Sent back as `If-None-Match` to revalidate;
+    // a `304` means the cached window is still current. Keyed by include-call-offs
+    // too so a manager's superset and the default view never share a validator.
+    etags: Dict(#(ActivityListSource, Bool), String),
     // Detail-only fields (description + full location), fetched lazily per
     // detail view. Composed with the summary from `activities` at read time.
     details: Dict(Uuid, RemoteData(ActivityDetail)),
@@ -721,8 +741,30 @@ pub fn ensure_source_loaded(
   source: ActivityListSource,
 ) -> #(Model, Effect(Msg)) {
   case source_remote(model, source) {
-    NotAsked -> #(set_source_remote(model, source, Loading), fetch_list(source))
+    NotAsked -> #(
+      set_source_remote(model, source, Loading),
+      fetch_list(model, source),
+    )
     Loading | Loaded(_) | Failed(_) -> #(model, effect.none())
+  }
+}
+
+/// Show-then-revalidate a source: an unfetched source flips to `Loading` and
+/// fetches; an already-loaded source refetches conditionally in the background
+/// (a `304` keeps what's shown), so revisiting a tab/page is cheap and stays
+/// fresh without blanking to a spinner. A source mid-flight or awaiting retry is
+/// left alone.
+pub fn load_or_revalidate(
+  model: Model,
+  source: ActivityListSource,
+) -> #(Model, Effect(Msg)) {
+  case source_remote(model, source) {
+    NotAsked -> #(
+      set_source_remote(model, source, Loading),
+      fetch_list(model, source),
+    )
+    Loaded(_) -> #(model, fetch_list(model, source))
+    Loading | Failed(_) -> #(model, effect.none())
   }
 }
 
@@ -1210,6 +1252,7 @@ fn init(_flags) -> #(Model, Effect(Msg)) {
       beach_bus_ids: NotAsked,
       climbing_wall_ids: NotAsked,
       favourited: NotAsked,
+      etags: dict.new(),
       details: seed_detail_loading(dict.new(), page),
       statuses: dict.new(),
       spots: dict.new(),
@@ -1230,7 +1273,7 @@ fn init(_flags) -> #(Model, Effect(Msg)) {
     effect.batch([
       modem.init(OnRouteChange),
       observe_lang(),
-      fetch_list(SourceActivities),
+      fetch_list(model, SourceActivities),
       fetch_spots(),
       fetch_activity_tags(),
       fetch_locations(),
@@ -1251,11 +1294,10 @@ pub type Msg {
   OnRouteChange(Uri)
   // Locale
   LangChanged(String)
-  // API responses
-  ApiReturnedActivityList(
-    ActivityListSource,
-    Result(List(ActivitySummary), rsvp.Error),
-  )
+  // API responses. `ApiReturnedActivityWindow` carries the include-call-offs the
+  // request used (to key the stored ETag) and a `WindowResult` — the raw HTTP
+  // response is interpreted in the effect handler so `update` stays pure.
+  ApiReturnedActivityWindow(ActivityListSource, Bool, WindowResult)
   ApiReturnedActivity(Uuid, Result(Activity, rsvp.Error))
   ApiReturnedMe(Result(List(Role), rsvp.Error))
   ApiReturnedStatuses(Result(List(ActivityStatusEntry), rsvp.Error))
@@ -1323,9 +1365,17 @@ pub fn update(model: Model, msg: Msg) -> #(Model, Effect(Msg)) {
         None -> effect.none()
       }
       let nav_effect = notify_navigation(uri)
+      let model = Model(..model, page:, details:, edit_ui:)
+      // Entering a list page revalidates the active tab (cheap 304 when
+      // unchanged), so a returning view stays fresh without a blocking reload.
+      let #(model, list_effect) = case page {
+        ActivitiesListPage(filters, _) ->
+          load_or_revalidate(model, tab_source(filters.tab))
+        _ -> #(model, effect.none())
+      }
       #(
-        Model(..model, page:, details:, edit_ui:),
-        effect.batch([page_effect, title_effect, nav_effect]),
+        model,
+        effect.batch([page_effect, title_effect, nav_effect, list_effect]),
       )
     }
 
@@ -1338,16 +1388,31 @@ pub fn update(model: Model, msg: Msg) -> #(Model, Effect(Msg)) {
       #(Model(..model, translator:), title_effect)
     }
 
-    ApiReturnedActivityList(source, Ok(items)) -> {
+    ApiReturnedActivityWindow(source, inc, WindowLoaded(items, etag)) -> {
       let activities = hydrate(model.activities, items)
       let ids = list.map(items, fn(s) { s.id })
+      let etags = case etag {
+        Some(tag) -> dict.insert(model.etags, #(source, inc), tag)
+        None -> model.etags
+      }
       #(
-        set_source_remote(Model(..model, activities:), source, Loaded(ids)),
+        set_source_remote(
+          Model(..model, activities:, etags:),
+          source,
+          Loaded(ids),
+        ),
         effect.none(),
       )
     }
 
-    ApiReturnedActivityList(source, Error(_)) -> #(
+    // A 304: the cached window is still current, so leave it (and its ETag)
+    // untouched.
+    ApiReturnedActivityWindow(_source, _inc, WindowUnchanged) -> #(
+      model,
+      effect.none(),
+    )
+
+    ApiReturnedActivityWindow(source, _inc, WindowFailed) -> #(
       set_source_remote(model, source, Failed(LoadActivitiesFailed)),
       effect.none(),
     )
@@ -1404,7 +1469,19 @@ pub fn update(model: Model, msg: Msg) -> #(Model, Effect(Msg)) {
       )
     }
 
-    ApiReturnedMe(Ok(roles)) -> #(Model(..model, roles:), effect.none())
+    ApiReturnedMe(Ok(roles)) -> {
+      let model = Model(..model, roles:)
+      // Roles gate `include_call_offs`, so once they load re-fetch the visible
+      // list: a manager's window upgrades to the call-off superset the manage
+      // view needs, and a non-manager just gets a cheap revalidation.
+      case model.page {
+        ActivitiesListPage(filters, _) -> #(
+          model,
+          fetch_list(model, tab_source(filters.tab)),
+        )
+        _ -> #(model, effect.none())
+      }
+    }
 
     // 401 / network error -> no roles -> restricted view.
     ApiReturnedMe(Error(_)) -> #(Model(..model, roles: []), effect.none())
@@ -1743,7 +1820,7 @@ pub fn update(model: Model, msg: Msg) -> #(Model, Effect(Msg)) {
         ActivitiesListPage(filters, mode) -> {
           let tab = tab_from_index(index)
           let #(model, fetch_effect) =
-            ensure_source_loaded(model, tab_source(tab))
+            load_or_revalidate(model, tab_source(tab))
           #(
             Model(
               ..model,
@@ -1891,7 +1968,7 @@ pub fn update(model: Model, msg: Msg) -> #(Model, Effect(Msg)) {
         _ -> TabActivities
       }
       let source = tab_source(tab)
-      #(set_source_remote(model, source, Loading), fetch_list(source))
+      #(set_source_remote(model, source, Loading), fetch_list(model, source))
     }
 
     UserToggledFavourite(activity_id) ->
@@ -2263,13 +2340,92 @@ fn list_source_path(source: ActivityListSource) -> String {
   }
 }
 
-fn fetch_list(source: ActivityListSource) -> Effect(Msg) {
-  rsvp.get(
-    api_prefix <> list_source_path(source),
-    rsvp.expect_json(model.activity_summaries_decoder(), fn(result) {
-      ApiReturnedActivityList(source, result)
-    }),
-  )
+/// Whether this fetch should ask the server to include called-off activities.
+/// Managers fetch the superset (the view filters call-offs out of browse tabs
+/// itself, and shows them in the manage list); the favourited endpoint always
+/// includes call-offs and ignores the parameter, so it never needs it.
+fn source_include_call_offs(model: Model, source: ActivityListSource) -> Bool {
+  case source {
+    SourceFavourites -> False
+    SourceActivities | SourceBeachBus | SourceClimbingWall ->
+      has_role(model, ManageActivities)
+  }
+}
+
+fn source_url(source: ActivityListSource, include_call_offs: Bool) -> String {
+  let path = api_prefix <> list_source_path(source)
+  case include_call_offs {
+    True -> path <> "?include_call_offs=true"
+    False -> path
+  }
+}
+
+fn set_if_none_match(
+  req: request.Request(String),
+  etag: Option(String),
+) -> request.Request(String) {
+  case etag {
+    Some(tag) -> request.set_header(req, "if-none-match", tag)
+    None -> req
+  }
+}
+
+/// Conditionally fetch a list source. Sends `If-None-Match` only when we already
+/// have a loaded window for this exact `(source, include_call_offs)` — so a
+/// `304` can only ever tell us to keep data we're already showing, and a
+/// first/failed load always fetches unconditionally. `rsvp.send` (needed to set
+/// the header) loses the convenience helpers' relative-URL resolution, so we
+/// resolve against the iframe base ourselves; that only works in the browser,
+/// which is the only place fetches run.
+fn fetch_list(model: Model, source: ActivityListSource) -> Effect(Msg) {
+  let include_call_offs = source_include_call_offs(model, source)
+  let etag = case source_remote(model, source) {
+    Loaded(_) ->
+      dict.get(model.etags, #(source, include_call_offs))
+      |> option.from_result
+    NotAsked | Loading | Failed(_) -> None
+  }
+  case rsvp.parse_relative_uri(source_url(source, include_call_offs)) {
+    Error(_) -> effect.none()
+    Ok(uri) ->
+      case request.from_uri(uri) {
+        Error(_) -> effect.none()
+        Ok(req) ->
+          req
+          |> request.set_method(http.Get)
+          |> set_if_none_match(etag)
+          |> rsvp.send(activity_window_handler(source, include_call_offs))
+      }
+  }
+}
+
+/// Interprets the raw HTTP response into a `WindowResult` (see its docs): `304`
+/// → unchanged, `2xx` + decodable body → loaded with the new ETag, anything
+/// else → failed.
+fn activity_window_handler(
+  source: ActivityListSource,
+  include_call_offs: Bool,
+) -> rsvp.Handler(Msg) {
+  rsvp.expect_any_response(fn(result) {
+    let outcome = case result {
+      Ok(resp) ->
+        case resp.status {
+          304 -> WindowUnchanged
+          status if status >= 200 && status < 300 ->
+            case json.parse(resp.body, model.activity_summaries_decoder()) {
+              Ok(summaries) ->
+                WindowLoaded(
+                  summaries,
+                  response.get_header(resp, "etag") |> option.from_result,
+                )
+              Error(_) -> WindowFailed
+            }
+          _ -> WindowFailed
+        }
+      Error(_) -> WindowFailed
+    }
+    ApiReturnedActivityWindow(source, include_call_offs, outcome)
+  })
 }
 
 fn fetch_activity(id: Uuid) -> Effect(Msg) {
