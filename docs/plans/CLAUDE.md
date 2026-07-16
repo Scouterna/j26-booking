@@ -36,3 +36,4 @@ When you create, finish, or touch a plan here, keep the folder consistent:
 | 08 | [Activity tags & målgrupp (real, not mocked)](08-activity-tags-and-malgrupp.md) | ✅ Done 2026-07-10 |
 | 09 | [ETag revalidation for per-day activity lists](09-etag-revalidation-per-day-activity-lists.md) | ✅ Done 2026-07-16 |
 | 10 | [Activity add/edit form in a drawer (consistent with booking)](10-activity-form-drawer.md) | 🔲 Not started |
+| 11 | [Day-windowed activity lists](11-day-windowed-activity-lists.md) | 🔲 Not started |
