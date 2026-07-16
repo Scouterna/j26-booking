@@ -500,33 +500,6 @@ type UpdateError {
   UpdateQueryFailed(pog.QueryError)
 }
 
-/// Re-syncs an activity's tag links and target groups to match the request
-/// body, inside the update transaction.
-fn resync_links(
-  conn: pog.Connection,
-  activity_id: Uuid,
-  tags: List(Uuid),
-  target_groups_sql: List(sql.TargetGroup),
-) -> Result(Nil, UpdateError) {
-  use _ <- result.try(
-    sql.delete_activity_tag_links(conn, activity_id)
-    |> result.map_error(UpdateQueryFailed),
-  )
-  use _ <- result.try(
-    sql.insert_activity_tag_links(conn, activity_id, tags)
-    |> result.map_error(UpdateQueryFailed),
-  )
-  use _ <- result.try(
-    sql.delete_activity_target_groups(conn, activity_id)
-    |> result.map_error(UpdateQueryFailed),
-  )
-  use _ <- result.try(
-    sql.insert_activity_target_groups(conn, activity_id, target_groups_sql)
-    |> result.map_error(UpdateQueryFailed),
-  )
-  Ok(Nil)
-}
-
 /// Renders the 200 response for an updated activity, or the appropriate error.
 fn update_response(
   transaction_result: Result(a, pog.TransactionError(UpdateError)),
@@ -596,12 +569,15 @@ pub fn update(req: Request, id: String, ctx: web.Context) -> Response {
         case updated.rows {
           [] -> Error(ActivityNotFound)
           [row, ..] -> {
-            use _ <- result.try(resync_links(
-              conn,
-              activity_id,
-              input.tags,
-              target_groups_sql,
-            ))
+            use _ <- result.try(
+              sql.resync_activity_tags_and_target_groups(
+                conn,
+                activity_id,
+                input.tags,
+                target_groups_sql,
+              )
+              |> result.map_error(UpdateQueryFailed),
+            )
             use _ <- result.try(
               write_activity_location(conn, activity_id, input.location_id)
               |> result.map_error(UpdateQueryFailed),
@@ -632,12 +608,15 @@ pub fn update(req: Request, id: String, ctx: web.Context) -> Response {
         case updated.rows {
           [] -> Error(ActivityNotFound)
           [row, ..] -> {
-            use _ <- result.try(resync_links(
-              conn,
-              activity_id,
-              input.tags,
-              target_groups_sql,
-            ))
+            use _ <- result.try(
+              sql.resync_activity_tags_and_target_groups(
+                conn,
+                activity_id,
+                input.tags,
+                target_groups_sql,
+              )
+              |> result.map_error(UpdateQueryFailed),
+            )
             use _ <- result.try(
               write_activity_location(conn, activity_id, input.location_id)
               |> result.map_error(UpdateQueryFailed),
