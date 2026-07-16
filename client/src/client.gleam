@@ -610,12 +610,7 @@ pub type Page {
 /// so a list refetch can never leave an open detail view showing stale summary
 /// fields.
 pub type ActivityDetail {
-  ActivityDetail(
-    description: model.BilingualString,
-    location: Option(Location),
-    tags: List(Uuid),
-    target_groups: List(TargetGroup),
-  )
+  ActivityDetail(description: model.BilingualString, location: Option(Location))
 }
 
 pub type Model {
@@ -881,12 +876,7 @@ fn to_summary(a: Activity) -> ActivitySummary {
 
 /// Extract the detail-only fields from a full activity.
 fn to_detail(a: Activity) -> ActivityDetail {
-  ActivityDetail(
-    description: a.description,
-    location: a.location,
-    tags: a.tags,
-    target_groups: a.target_groups,
-  )
+  ActivityDetail(description: a.description, location: a.location)
 }
 
 /// Compose a full activity from a cached summary and its loaded detail fields.
@@ -899,8 +889,8 @@ fn to_activity(summary: ActivitySummary, detail: ActivityDetail) -> Activity {
     start_time: summary.start_time,
     end_time: summary.end_time,
     location: detail.location,
-    tags: detail.tags,
-    target_groups: detail.target_groups,
+    tags: summary.tags,
+    target_groups: summary.target_groups,
     cancellation: summary.cancellation,
   )
 }

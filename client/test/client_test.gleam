@@ -87,8 +87,6 @@ fn a_detail() -> client.ActivityDetail {
   client.ActivityDetail(
     description: model.BilingualString(sv: "Desc", en: "Desc"),
     location: None,
-    tags: [],
-    target_groups: [],
   )
 }
 
