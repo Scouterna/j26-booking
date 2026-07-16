@@ -34,3 +34,5 @@ When you create, finish, or touch a plan here, keep the folder consistent:
 | 06 | [Optional booker group + store booker_name from JWT](06-booking-optional-group-and-booker-name-handoff.md) | ✅ Done 2026-07-08 |
 | 07 | [Client-side shell→iframe navigation (no reload on back)](07-shell-iframe-clientside-navigation.md) | 🚧 In progress ([PR #6](https://github.com/Scouterna/j26-app/pull/6)) |
 | 08 | [Activity tags & målgrupp (real, not mocked)](08-activity-tags-and-malgrupp.md) | ✅ Done 2026-07-10 |
+| 09 | [ETag revalidation for per-day activity lists](09-etag-revalidation-per-day-activity-lists.md) | 🔲 Not started |
+| 10 | [Activity add/edit form in a drawer (consistent with booking)](10-activity-form-drawer.md) | 🔲 Not started |
