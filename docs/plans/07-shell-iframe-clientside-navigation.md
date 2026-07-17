@@ -1,10 +1,37 @@
 # 07. Client-side shell→iframe navigation (no SPA reload on back)
 
-> **Status: 🚧 In progress** (as of 2026-07-10) — Approach A implemented in
-> j26-app and verified locally. PR: [Scouterna/j26-app#6](https://github.com/Scouterna/j26-app/pull/6) (not yet merged).
+> **Status: ✅ Done 2026-07-14** (j26-app commit `fa57af0`; shipped with a
+> different, more general design than either approach below). This plan's
+> proof-of-concept — [Scouterna/j26-app#6](https://github.com/Scouterna/j26-app/pull/6)
+> (Approach A) — was **closed unmerged**; Malcolm re-implemented the same goal in
+> a single file with no per-sub-app registry.
 >
-> Revised 2026-07-10: **Approach A (native history)** is the chosen design.
-> **Approach B** is retained below as the deterministic fallback.
+> **What actually shipped (`fa57af0`, `IframeRouter.tsx` only):** on a
+> shell-driven nav that stays within the same sub-app, the shell **actively
+> drives the iframe** — `win.history.replaceState({}, "", url)` then dispatches a
+> synthetic `PopStateEvent` on the iframe window so the sub-app's router
+> re-renders with no reload. Cross-sub-app navs and any cross-origin/unexpected
+> access (reading `contentWindow.location.href` throws) fall back to reassigning
+> `src`. This is a hybrid of the two designs below: like **Approach A** it needs
+> **no booking-side changes** (booking already handles `popstate` via modem) and
+> uses `replaceState` so the shell's router stays the sole owner of browser
+> history (fixing the double-entry bug); like **Approach B** the shell
+> *explicitly* moves the iframe rather than relying on native joint-history
+> traversal to propagate `popstate` — but it does so by directly manipulating the
+> same-origin iframe's history instead of a `postMessage` protocol.
+>
+> **Diverged from the plan by dropping:** the `sub-apps.ts` capability registry
+> (Malcolm's version derives the sub-app segment generically from `baseUrl` and
+> treats every same-origin sub-app the same — matching Markus's PR-review
+> comment that the registry was unnecessary if all sub-apps behave alike), and
+> the `AppBar.tsx` `canGoBack` change (not needed — the shell router keeps
+> owning history, so `useCanGoBack()` stays accurate).
+>
+> ---
+> _Original design notes (Approach A / B) retained below for reference._
+>
+> Revised 2026-07-10: **Approach A (native history)** was the chosen design.
+> **Approach B** was retained as the deterministic fallback.
 >
 > **Verified 2026-07-10** (Playwright, local `j26 up` stack, booking iframe):
 > forward nav mirrors the deep route to the shell URL; app-bar back button,
