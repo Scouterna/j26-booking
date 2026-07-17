@@ -1906,7 +1906,15 @@ pub fn update(model: Model, msg: Msg) -> #(Model, Effect(Msg)) {
       case model.page {
         ActivitiesListPage(filters, _) -> {
           let model = case filters.tab {
-            TabFavourites -> Model(..model, favourites_day_filter: d)
+            // Picking a concrete day on Favourites also moves the browse day
+            // there, so switching back to a browse tab lands on the same day;
+            // "all days" (`None`) leaves the browse day untouched.
+            TabFavourites ->
+              case d {
+                Some(_) ->
+                  Model(..model, favourites_day_filter: d, browse_day_filter: d)
+                None -> Model(..model, favourites_day_filter: d)
+              }
             _ -> Model(..model, browse_day_filter: d)
           }
           load_or_revalidate(

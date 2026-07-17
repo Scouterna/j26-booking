@@ -1006,21 +1006,32 @@ pub fn selecting_day_on_browse_sets_browse_day_and_fetches_window_test() {
   assert client.window_remote(next, day_window) == client.Loading
 }
 
-pub fn selecting_day_on_favourites_sets_favourites_day_only_test() {
-  // On Favourites, picking a day persists it to `favourites_day_filter` only;
-  // the browse day stays at its default (`None`, i.e. today).
-  let model_ =
-    client.Model(
-      ..base_model(),
-      page: client.ActivitiesListPage(
-        filters_for(client.TabFavourites),
-        client.BrowseList,
-      ),
-    )
+fn favourites_model() -> client.Model {
+  client.Model(
+    ..base_model(),
+    page: client.ActivitiesListPage(
+      filters_for(client.TabFavourites),
+      client.BrowseList,
+    ),
+  )
+}
+
+pub fn selecting_concrete_day_on_favourites_also_moves_browse_day_test() {
+  // Picking a concrete day on Favourites carries the browse day along, so
+  // switching back to a browse tab lands on the same day.
   let #(next, _) =
-    client.update(model_, client.UserSelectedDay(Some(other_day())))
+    client.update(favourites_model(), client.UserSelectedDay(Some(other_day())))
   assert next.favourites_day_filter == Some(other_day())
-  assert next.browse_day_filter == None
+  assert next.browse_day_filter == Some(other_day())
+}
+
+pub fn selecting_all_days_on_favourites_leaves_browse_day_untouched_test() {
+  // "All days" (`None`) on Favourites must not clobber a browse day the user set.
+  let model_ =
+    client.Model(..favourites_model(), browse_day_filter: Some(other_day()))
+  let #(next, _) = client.update(model_, client.UserSelectedDay(None))
+  assert next.favourites_day_filter == None
+  assert next.browse_day_filter == Some(other_day())
 }
 
 pub fn browse_day_survives_page_rebuild_via_route_change_test() {
