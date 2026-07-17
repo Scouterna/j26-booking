@@ -1,6 +1,14 @@
 # 10. Activity add/edit form in a drawer (consistent with booking)
 
-> **Status: 🔲 Not started** (as of 2026-07-15)
+> **Status: ✅ Done 2026-07-17** — Implemented as designed: `ActivityFormState`
+> overlay on the `Model`, rendered in a single `scout-drawer` over the manage
+> list (`view_activity_form_drawer`); `/activities/new` and `/:id/edit` routes
+> removed; manage cards intercept the click (with `stop_propagation` so modem
+> doesn't SPA-navigate) to open the drawer; call-off is a content swap
+> (`view_call_off_confirm`), never a nested drawer. Verified end-to-end in the
+> real app (Playwright): open/edit/create/cancel/exit all keep the list mounted
+> on `/manage`, the call-off swap stays a single drawer, and a save round-trips
+> (`200 PUT`) → drawer closes → list refreshes. 85 client tests pass.
 >
 > **Nested-drawer gotcha spiked 2026-07-17** (standalone harness loading the
 > patched `scout-drawer`, driven with Playwright at 390×780). Naive nesting is

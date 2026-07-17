@@ -149,6 +149,7 @@ fn base_model() -> client.Model {
     locations: dict.new(),
     roles: [client.ManageActivities],
     edit_ui: client.default_edit_ui(),
+    activity_form: client.ActivityFormClosed,
   )
 }
 
@@ -521,14 +522,45 @@ pub fn uri_to_page_lists_activities_test() {
     == client.ActivitiesListPage(client.default_filters(), client.BrowseList)
 }
 
-pub fn uri_to_page_new_activity_test() {
+// The create/edit form is a drawer overlay opened by a message, not a route, so
+// the old `/new` and `/:id/edit` paths no longer resolve to a page.
+pub fn uri_to_page_new_activity_route_removed_test() {
   let #(page, _) =
     client.uri_to_page(
       parse_uri("/_services/booking/activities/new"),
       dict.new(),
     )
-  let assert client.ActivityNewPage(_, submit_error, _, _) = page
+  assert page == client.NotFoundPage
+}
+
+pub fn uri_to_page_edit_activity_route_removed_test() {
+  let path =
+    "/_services/booking/activities/" <> uuid.to_string(id_a()) <> "/edit"
+  let #(page, _) = client.uri_to_page(parse_uri(path), dict.new())
+  assert page == client.NotFoundPage
+}
+
+pub fn new_activity_click_opens_form_drawer_test() {
+  let #(next, _) = client.update(base_model(), client.UserClickedNewActivity)
+  let assert client.ActivityFormNew(_, submit_error, _, _) = next.activity_form
   assert submit_error == None
+}
+
+pub fn edit_activity_click_opens_loading_drawer_test() {
+  let #(next, _) =
+    client.update(base_model(), client.UserClickedEditActivity(id_a()))
+  assert next.activity_form
+    == client.ActivityFormEdit(id_a(), client.EditLoading)
+}
+
+pub fn cancel_edit_closes_form_drawer_test() {
+  let model_ =
+    client.Model(
+      ..base_model(),
+      activity_form: client.ActivityFormEdit(id_a(), client.EditLoading),
+    )
+  let #(next, _) = client.update(model_, client.UserClickedCancelEdit)
+  assert next.activity_form == client.ActivityFormClosed
 }
 
 pub fn uri_to_page_detail_for_valid_uuid_test() {
@@ -891,8 +923,10 @@ pub fn failed_activity_list_marks_source_failed_test() {
 }
 
 pub fn created_activity_caches_summary_and_invalidates_browse_windows_test() {
-  // A create can't be mapped to a single day/kind window, so every browse
-  // window is dropped (refetched on next open); the summary + detail are cached.
+  // A create can't be mapped to a single day/kind window, so every browse window
+  // is dropped; the summary + detail are cached. Closing the form then refreshes
+  // the list's current window in place (→ Loading), so the new activity shows
+  // without a navigation; the other dropped windows stay NotAsked until reopened.
   let model_ =
     client.set_window_remote(
       client.set_window_remote(
@@ -910,7 +944,7 @@ pub fn created_activity_caches_summary_and_invalidates_browse_windows_test() {
   let activity = an_activity(id_a(), Some(5))
   let #(next, _) =
     client.update(model_, client.ApiCreatedActivity(Ok(activity)))
-  assert client.window_remote(next, activities_window()) == client.NotAsked
+  assert client.window_remote(next, activities_window()) == client.Loading
   assert client.window_remote(next, beach_bus_window()) == client.NotAsked
   assert client.window_remote(next, climbing_wall_window()) == client.NotAsked
   // The summary lands in `activities`; only the detail-only fields in `details`.
@@ -1182,7 +1216,7 @@ pub fn edit_open_seeds_location_id_from_activity_test() {
   let model_ =
     client.Model(
       ..base_model(),
-      page: client.ActivityEditPage(id_a(), client.EditLoading),
+      activity_form: client.ActivityFormEdit(id_a(), client.EditLoading),
     )
   let #(next, _) =
     client.update(model_, client.ApiReturnedActivity(id_a(), Ok(activity)))
@@ -1193,7 +1227,7 @@ pub fn edit_open_seeds_none_when_activity_has_no_location_test() {
   let model_ =
     client.Model(
       ..base_model(),
-      page: client.ActivityEditPage(id_a(), client.EditLoading),
+      activity_form: client.ActivityFormEdit(id_a(), client.EditLoading),
     )
   let #(next, _) =
     client.update(

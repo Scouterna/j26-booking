@@ -386,11 +386,12 @@ pub type CardStatus {
 }
 
 /// The action shown in a card's top-right corner. `FavouriteAction` is the
-/// interactive favourite heart (browse list); `EditAction` is a decorative edit
-/// pen (manage list) whose click is left to bubble up to the card's edit link.
+/// interactive favourite heart (browse list); `EditAction` (manage list) carries
+/// the message fired when the card is activated — the pen itself is decorative,
+/// so a click anywhere on the card (pen included) opens the edit form drawer.
 pub type CardAction(msg) {
   FavouriteAction(favourited: Bool, on_toggle: msg)
-  EditAction
+  EditAction(on_edit: msg)
 }
 
 /// Favourite toggle rendered as an outlined, icon-only round button.
@@ -444,8 +445,8 @@ pub fn heart_button(
 
 /// Edit affordance for a manage-list card, mirroring the favourite heart's
 /// chrome so the two read as one family. Purely decorative: it carries no
-/// handler, so a click bubbles to the enclosing card link (which points at the
-/// activity's edit page), matching a click anywhere else on the card.
+/// handler, so a click bubbles to the enclosing card (whose click opens the edit
+/// form drawer), matching a click anywhere else on the card.
 fn pen_button() -> Element(msg) {
   element.element(
     "scout-button",
@@ -477,7 +478,20 @@ pub fn activity_card(
       }
       heart_button(favourited, heart_locked, on_toggle, True)
     }
-    EditAction -> pen_button()
+    EditAction(_) -> pen_button()
+  }
+  // Browse cards navigate via the anchor's href; manage cards intercept the click
+  // (keyboard Enter included) to open the edit drawer instead, keeping the list —
+  // and its scroll — mounted. `stop_propagation` keeps the click from reaching
+  // modem's global anchor handler (which would otherwise SPA-navigate); the href
+  // stays a valid fallback for new-tab clicks.
+  let activate = case action {
+    FavouriteAction(..) -> []
+    EditAction(on_edit) -> [
+      event.on("click", decode.success(on_edit))
+      |> event.stop_propagation
+      |> event.prevent_default,
+    ]
   }
   let status_badge = case status {
     StatusBooked(label) -> badge(BadgeGreen, label)
@@ -494,6 +508,7 @@ pub fn activity_card(
       attribute.class(
         "block no-underline text-current transition-shadow shadow-sm hover:shadow-md active:shadow-sm rounded-[var(--spacing-6)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500",
       ),
+      ..activate
     ],
     [
       scout_card([

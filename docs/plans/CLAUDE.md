@@ -35,6 +35,7 @@ When you create, finish, or touch a plan here, keep the folder consistent:
 | 07 | [Client-side shell→iframe navigation (no reload on back)](07-shell-iframe-clientside-navigation.md) | ✅ Done 2026-07-14 (j26-app `fa57af0`, different design) |
 | 08 | [Activity tags & målgrupp (real, not mocked)](08-activity-tags-and-malgrupp.md) | ✅ Done 2026-07-10 |
 | 09 | [ETag revalidation for per-day activity lists](09-etag-revalidation-per-day-activity-lists.md) | ✅ Done 2026-07-16 |
-| 10 | [Activity add/edit form in a drawer (consistent with booking)](10-activity-form-drawer.md) | 🔲 Not started |
+| 10 | [Activity add/edit form in a drawer (consistent with booking)](10-activity-form-drawer.md) | ✅ Done 2026-07-17 |
 | 11 | [Day-windowed activity lists](11-day-windowed-activity-lists.md) | ✅ Done 2026-07-17 |
 | 12 | [Persist the day filter across navigation (issue #40)](12-day-filter-persistence.md) | ✅ Done 2026-07-17 |
+| 13 | [Persist the activity cache across app switches (instant reopen)](13-persist-activity-cache-across-app-switches.md) | 🔲 Not started |
