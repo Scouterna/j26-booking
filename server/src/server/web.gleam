@@ -313,27 +313,50 @@ pub fn require_any_role(
   }
 }
 
+/// Whether an ETagged response may be reused across authenticated callers.
+///
+///   - `SharedAcrossUsers`: the body is byte-identical for every caller (e.g.
+///     the browse activity list). No `Vary: Cookie` is set, so the browser's
+///     private HTTP cache can store one copy and revalidate it by ETag on later
+///     loads — including after the user leaves and returns to the app — turning
+///     an unchanged window into a cheap `304` instead of a full re-download.
+///   - `ScopedToUser`: the body differs by caller, whether by identity (a
+///     per-user list) or by role (a manager-only view). `Vary: Cookie` is set
+///     so the browser never serves one caller's copy to another.
+///
+/// `private` in the cache-control already keeps every variant out of shared
+/// caches; `Vary: Cookie` additionally guards the browser's own cache for the
+/// scoped variants.
+pub type CacheAudience {
+  SharedAcrossUsers
+  ScopedToUser
+}
+
 /// Serves `body` as a JSON response carrying a strong ETag derived from the
 /// body bytes, or a `304 Not Modified` when the request's `If-None-Match`
 /// already matches. Hashing the exact bytes keeps the validator correct even
-/// for responses that differ per caller. `cache_control` is set verbatim, and
-/// `Vary: Cookie` is always added because API responses are scoped to the
-/// caller's auth cookie, so no shared cache may serve one to another user.
+/// for responses that differ per caller. `cache_control` is set verbatim;
+/// `Vary: Cookie` is set only for `ScopedToUser` responses (see `CacheAudience`).
 pub fn json_response_with_etag(
   req: Request,
   body: String,
   status: Int,
   cache_control: String,
+  audience: CacheAudience,
 ) -> Response {
   let etag = strong_etag(body)
   let response = case request.get_header(req, "if-none-match") {
     Ok(client_etag) if client_etag == etag -> wisp.response(304)
     _ -> wisp.json_response(body, status)
   }
-  response
-  |> wisp.set_header("etag", etag)
-  |> wisp.set_header("cache-control", cache_control)
-  |> wisp.set_header("vary", "cookie")
+  let response =
+    response
+    |> wisp.set_header("etag", etag)
+    |> wisp.set_header("cache-control", cache_control)
+  case audience {
+    ScopedToUser -> wisp.set_header(response, "vary", "cookie")
+    SharedAcrossUsers -> response
+  }
 }
 
 /// A strong ETag: the SHA-256 of the response body, base16-encoded and quoted.

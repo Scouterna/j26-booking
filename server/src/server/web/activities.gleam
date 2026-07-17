@@ -283,6 +283,7 @@ fn response_from_db_activity_summaries(
   req: Request,
   query_result: Result(pog.Returned(a), pog.QueryError),
   to_activity: fn(a) -> model.Activity,
+  audience: web.CacheAudience,
 ) -> Response {
   case query_result {
     Error(error) -> web.query_error(error)
@@ -293,8 +294,18 @@ fn response_from_db_activity_summaries(
           #("activities", json.array(activities, activity.summary_to_json)),
         ])
         |> json.to_string
-      web.json_response_with_etag(req, body, 200, list_cache_control)
+      web.json_response_with_etag(req, body, 200, list_cache_control, audience)
     }
+  }
+}
+
+/// The cache audience of a browse list: the default response is byte-identical
+/// for everyone, but the manager-only `include_call_offs` view is role-scoped
+/// and must not be reused across callers.
+fn list_audience(include_call_offs: Bool) -> web.CacheAudience {
+  case include_call_offs {
+    True -> web.ScopedToUser
+    False -> web.SharedAcrossUsers
   }
 }
 
@@ -331,6 +342,7 @@ pub fn get_page(req: Request, ctx: web.Context) -> Response {
           day_end,
         ),
         activity.from_list_activities_by_start_time_row(_, embeds),
+        list_audience(include_call_offs),
       )
     Title ->
       response_from_db_activity_summaries(
@@ -342,6 +354,7 @@ pub fn get_page(req: Request, ctx: web.Context) -> Response {
           day_end,
         ),
         activity.from_list_activities_by_title_row(_, embeds),
+        list_audience(include_call_offs),
       )
   }
 }
@@ -363,6 +376,7 @@ pub fn get_beach_bus(req: Request, ctx: web.Context) -> Response {
       day_end,
     ),
     activity.from_list_beach_bus_activities_row(_, embeds),
+    list_audience(include_call_offs),
   )
 }
 
@@ -383,6 +397,7 @@ pub fn get_climbing_wall(req: Request, ctx: web.Context) -> Response {
       day_end,
     ),
     activity.from_list_climbing_wall_activities_row(_, embeds),
+    list_audience(include_call_offs),
   )
 }
 
@@ -398,6 +413,8 @@ pub fn get_favourited(req: Request, ctx: web.Context) -> Response {
     req,
     sql.list_favourited_activities(ctx.db_connection, user.id),
     activity.from_list_favourited_activities_row(_, embeds),
+    // Per-user list (keyed on the caller's id), so it must never be shared.
+    web.ScopedToUser,
   )
 }
 
