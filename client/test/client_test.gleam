@@ -134,7 +134,7 @@ fn filters_for(tab: client.ActivitiesFilterTab) -> client.ListFilters {
 /// window loads eagerly; every other tab/day starts absent (`NotAsked`).
 fn base_model() -> client.Model {
   client.Model(
-    page: client.ActivitiesListPage(client.default_filters(), client.BrowseList),
+    page: client.ActivitiesListPage(client.default_filters()),
     translator: client.translator_for("sv"),
     activities: dict.new(),
     windows: dict.from_list([#(activities_window(), client.Loading)]),
@@ -149,7 +149,14 @@ fn base_model() -> client.Model {
     locations: dict.new(),
     roles: [client.ManageActivities],
     edit_ui: client.default_edit_ui(),
-    activity_form: client.ActivityFormClosed,
+  )
+}
+
+/// A model on the management list with a given form overlay open (or closed).
+fn manage_model(activity_form: client.ActivityFormState) -> client.Model {
+  client.Model(
+    ..base_model(),
+    page: client.ManageActivitiesPage(client.default_filters(), activity_form),
   )
 }
 
@@ -230,19 +237,14 @@ pub fn tab_source_maps_each_tab_test() {
   assert client.tab_source(client.TabFavourites) == client.SourceFavourites
 }
 
-pub fn manage_list_omits_favourites_tab_test() {
-  let tabs = client.list_tabs_for(client.ManageList)
-  assert !list.contains(tabs, client.TabFavourites)
+pub fn both_lists_show_the_same_tabs_including_favourites_test() {
+  // Browse and manage share one tab set; the management list shows Favourites
+  // too (issue #42).
+  let tabs = client.list_tabs()
   assert list.contains(tabs, client.TabActivities)
   assert list.contains(tabs, client.TabBeachBus)
   assert list.contains(tabs, client.TabClimbingWall)
-}
-
-pub fn browse_list_includes_favourites_tab_test() {
-  assert list.contains(
-    client.list_tabs_for(client.BrowseList),
-    client.TabFavourites,
-  )
+  assert list.contains(tabs, client.TabFavourites)
 }
 
 // PURE HELPERS: status accessors -----------------------------------------------
@@ -362,7 +364,7 @@ pub fn tab_summaries_browse_maps_id_window_through_cache_test() {
   assert client.tab_summaries(
       model_,
       filters_for(client.TabActivities),
-      client.BrowseList,
+      client.ActivitiesListPage(client.default_filters()),
     )
     == client.Loaded([summary_a, summary_b])
 }
@@ -382,7 +384,7 @@ pub fn tab_summaries_browse_drops_uncached_ids_test() {
   assert client.tab_summaries(
       model_,
       filters_for(client.TabActivities),
-      client.BrowseList,
+      client.ActivitiesListPage(client.default_filters()),
     )
     == client.Loaded([summary_a])
 }
@@ -391,7 +393,7 @@ pub fn tab_summaries_browse_reflects_fetch_state_test() {
   assert client.tab_summaries(
       base_model(),
       filters_for(client.TabBeachBus),
-      client.BrowseList,
+      client.ActivitiesListPage(client.default_filters()),
     )
     == client.NotAsked
 }
@@ -420,7 +422,7 @@ pub fn tab_summaries_favourites_derived_from_statuses_test() {
     client.tab_summaries(
       model_,
       filters_for(client.TabFavourites),
-      client.BrowseList,
+      client.ActivitiesListPage(client.default_filters()),
     )
   // dict key order is unspecified, so assert membership rather than order.
   assert list.length(summaries) == 2
@@ -433,7 +435,7 @@ pub fn tab_summaries_favourites_empty_reflects_fetch_state_test() {
   assert client.tab_summaries(
       base_model(),
       filters_for(client.TabFavourites),
-      client.BrowseList,
+      client.ActivitiesListPage(client.default_filters()),
     )
     == client.NotAsked
   let loading =
@@ -445,7 +447,7 @@ pub fn tab_summaries_favourites_empty_reflects_fetch_state_test() {
   assert client.tab_summaries(
       loading,
       filters_for(client.TabFavourites),
-      client.BrowseList,
+      client.ActivitiesListPage(client.default_filters()),
     )
     == client.Loading
 }
@@ -470,14 +472,17 @@ pub fn tab_summaries_browse_hides_called_off_manage_shows_it_test() {
   assert client.tab_summaries(
       model_,
       filters_for(client.TabActivities),
-      client.BrowseList,
+      client.ActivitiesListPage(client.default_filters()),
     )
     == client.Loaded([active])
   // Manage: both are shown.
   assert client.tab_summaries(
       model_,
       filters_for(client.TabActivities),
-      client.ManageList,
+      client.ManageActivitiesPage(
+        client.default_filters(),
+        client.ActivityFormClosed,
+      ),
     )
     == client.Loaded([active, called_off])
 }
@@ -518,8 +523,7 @@ pub fn load_or_revalidate_keeps_loaded_window_while_revalidating_test() {
 pub fn uri_to_page_lists_activities_test() {
   let #(page, _) =
     client.uri_to_page(parse_uri("/_services/booking/activities"), dict.new())
-  assert page
-    == client.ActivitiesListPage(client.default_filters(), client.BrowseList)
+  assert page == client.ActivitiesListPage(client.default_filters())
 }
 
 // The create/edit form is a drawer overlay opened by a message, not a route, so
@@ -541,26 +545,30 @@ pub fn uri_to_page_edit_activity_route_removed_test() {
 }
 
 pub fn new_activity_click_opens_form_drawer_test() {
-  let #(next, _) = client.update(base_model(), client.UserClickedNewActivity)
-  let assert client.ActivityFormNew(_, submit_error, _, _) = next.activity_form
+  let #(next, _) =
+    client.update(
+      manage_model(client.ActivityFormClosed),
+      client.UserClickedNewActivity,
+    )
+  let assert client.ActivityFormNew(_, submit_error, _, _) =
+    client.activity_form_of(next)
   assert submit_error == None
 }
 
 pub fn edit_activity_click_opens_loading_drawer_test() {
   let #(next, _) =
-    client.update(base_model(), client.UserClickedEditActivity(id_a()))
-  assert next.activity_form
+    client.update(
+      manage_model(client.ActivityFormClosed),
+      client.UserClickedEditActivity(id_a()),
+    )
+  assert client.activity_form_of(next)
     == client.ActivityFormEdit(id_a(), client.EditLoading)
 }
 
 pub fn cancel_edit_closes_form_drawer_test() {
-  let model_ =
-    client.Model(
-      ..base_model(),
-      activity_form: client.ActivityFormEdit(id_a(), client.EditLoading),
-    )
+  let model_ = manage_model(client.ActivityFormEdit(id_a(), client.EditLoading))
   let #(next, _) = client.update(model_, client.UserClickedCancelEdit)
-  assert next.activity_form == client.ActivityFormClosed
+  assert client.activity_form_of(next) == client.ActivityFormClosed
 }
 
 pub fn uri_to_page_detail_for_valid_uuid_test() {
@@ -593,7 +601,10 @@ pub fn uri_to_page_manage_lists_activities_in_manage_mode_test() {
       dict.new(),
     )
   assert page
-    == client.ActivitiesListPage(client.default_filters(), client.ManageList)
+    == client.ManageActivitiesPage(
+      client.default_filters(),
+      client.ActivityFormClosed,
+    )
 }
 
 // UPDATE: favourite toggle (optimistic) ----------------------------------------
@@ -988,26 +999,18 @@ pub fn deleted_activity_purges_caches_and_all_windows_test() {
 pub fn selecting_tab_updates_filter_and_lazily_loads_source_test() {
   // index 1 == TabBeachBus, whose window starts absent in base_model.
   let #(next, _) = client.update(base_model(), client.UserSelectedTab(1))
-  let assert client.ActivitiesListPage(filters, _) = next.page
+  let assert client.ActivitiesListPage(filters) = next.page
   assert filters.tab == client.TabBeachBus
   assert client.window_remote(next, beach_bus_window()) == client.Loading
 }
 
-pub fn selecting_tab_preserves_manage_mode_test() {
+pub fn selecting_tab_stays_on_manage_page_test() {
   // The manage list reuses the whole browse view, so switching tabs must keep
-  // the page in ManageList mode (cards keep linking to the edit view).
-  let manage =
-    client.Model(
-      ..base_model(),
-      page: client.ActivitiesListPage(
-        client.default_filters(),
-        client.ManageList,
-      ),
-    )
+  // the page a `ManageActivitiesPage` (cards keep opening the edit drawer).
+  let manage = manage_model(client.ActivityFormClosed)
   let #(next, _) = client.update(manage, client.UserSelectedTab(1))
-  let assert client.ActivitiesListPage(filters, mode) = next.page
+  let assert client.ManageActivitiesPage(filters, _) = next.page
   assert filters.tab == client.TabBeachBus
-  assert mode == client.ManageList
 }
 
 pub fn retrying_load_marks_current_tab_source_loading_test() {
@@ -1043,10 +1046,7 @@ pub fn selecting_day_on_browse_sets_browse_day_and_fetches_window_test() {
 fn favourites_model() -> client.Model {
   client.Model(
     ..base_model(),
-    page: client.ActivitiesListPage(
-      filters_for(client.TabFavourites),
-      client.BrowseList,
-    ),
+    page: client.ActivitiesListPage(filters_for(client.TabFavourites)),
   )
 }
 
@@ -1111,7 +1111,7 @@ pub fn effective_day_is_independent_per_view_test() {
 pub fn searching_updates_filters_on_list_page_test() {
   let #(next, _) =
     client.update(base_model(), client.UserSearchedActivities("bad"))
-  let assert client.ActivitiesListPage(filters, _) = next.page
+  let assert client.ActivitiesListPage(filters) = next.page
   assert filters.search == "bad"
 }
 
@@ -1213,22 +1213,14 @@ pub fn edit_open_seeds_location_id_from_activity_test() {
       ..an_activity(id_a(), None),
       location: Some(a_location(id_b(), "HQ")),
     )
-  let model_ =
-    client.Model(
-      ..base_model(),
-      activity_form: client.ActivityFormEdit(id_a(), client.EditLoading),
-    )
+  let model_ = manage_model(client.ActivityFormEdit(id_a(), client.EditLoading))
   let #(next, _) =
     client.update(model_, client.ApiReturnedActivity(id_a(), Ok(activity)))
   assert next.edit_ui.location_id == Some(id_b())
 }
 
 pub fn edit_open_seeds_none_when_activity_has_no_location_test() {
-  let model_ =
-    client.Model(
-      ..base_model(),
-      activity_form: client.ActivityFormEdit(id_a(), client.EditLoading),
-    )
+  let model_ = manage_model(client.ActivityFormEdit(id_a(), client.EditLoading))
   let #(next, _) =
     client.update(
       model_,

@@ -570,19 +570,10 @@ pub fn default_filters() -> ListFilters {
   )
 }
 
-/// Tabs in display order; index is used for the segmented control.
-fn list_tabs() -> List(ActivitiesFilterTab) {
+/// Tabs in display order; index is used for the segmented control. Both the
+/// browse and manage lists show the same set (Favourites included).
+pub fn list_tabs() -> List(ActivitiesFilterTab) {
   [TabActivities, TabBeachBus, TabClimbingWall, TabFavourites]
-}
-
-/// Tabs shown for a given list mode. The management list has no per-user
-/// favourites, so it drops that tab; the kept tabs preserve the browse order
-/// (and their indices), so `tab_index`/`tab_from_index` still line up.
-pub fn list_tabs_for(mode: ListMode) -> List(ActivitiesFilterTab) {
-  case mode {
-    BrowseList -> list_tabs()
-    ManageList -> [TabActivities, TabBeachBus, TabClimbingWall]
-  }
 }
 
 pub fn tab_index(tab: ActivitiesFilterTab) -> Int {
@@ -598,16 +589,6 @@ pub fn tab_from_index(index: Int) -> ActivitiesFilterTab {
     [tab, ..] -> tab
     [] -> TabActivities
   }
-}
-
-/// Which variant of the activities list is showing. The two share the entire
-/// list view (top bar, tabs, filters, grouping, states); they differ only per
-/// card: `BrowseList` links to the detail page with a favourite heart,
-/// `ManageList` links to the edit page with an edit pen. `ManageList` is reached
-/// from the role-gated "Manage activities" item in the shell's "More" menu.
-pub type ListMode {
-  BrowseList
-  ManageList
 }
 
 /// A kind of recurring activity that gets its own booking-overview page
@@ -638,7 +619,14 @@ pub type ActivityFormState {
 }
 
 pub type Page {
-  ActivitiesListPage(filters: ListFilters, mode: ListMode)
+  /// The public browse list of activities.
+  ActivitiesListPage(filters: ListFilters)
+  /// The management list, reached from the role-gated "Manage activities" item in
+  /// the shell's "More" menu. Carries the create/edit form overlay (`scout-drawer`)
+  /// as page-scoped state, so it only exists where it's meaningful — the list stays
+  /// mounted underneath, keeping its scroll (consistent with the booking drawer on
+  /// the detail page).
+  ManageActivitiesPage(filters: ListFilters, activity_form: ActivityFormState)
   ActivityDetailPage(id: Uuid, booking: BookingFormState)
   /// The management-only view of every booking for one activity. The bookings
   /// list is per-route state; the activity header (title/time/spots) reads from
@@ -719,11 +707,58 @@ pub type Model {
     // reveal). Kept here rather than in the multi-variant `EditState` so it can
     // be updated with a plain record update; reset whenever the form opens.
     edit_ui: EditUi,
-    // The create/edit form overlay, drawn over the management list. `Closed`
-    // except while the drawer is open; opened by the list's "new"/edit actions
-    // and cleared on save/cancel or any route change.
-    activity_form: ActivityFormState,
   )
+}
+
+/// The create/edit form overlay for the current page: the `ManageActivitiesPage`'s
+/// own state, or `ActivityFormClosed` on any other page (the form only exists on
+/// the management list). Lets the form-handling update arms read one place without
+/// re-matching the page each time.
+pub fn activity_form_of(model: Model) -> ActivityFormState {
+  case model.page {
+    ManageActivitiesPage(_, activity_form) -> activity_form
+    _ -> ActivityFormClosed
+  }
+}
+
+/// Set the management list's form overlay. A no-op off the management page (the
+/// form only lives there), so form actions can't leak state onto other pages.
+fn set_activity_form(model: Model, activity_form: ActivityFormState) -> Model {
+  case model.page {
+    ManageActivitiesPage(filters, _) ->
+      Model(..model, page: ManageActivitiesPage(filters, activity_form))
+    _ -> model
+  }
+}
+
+/// The filters of whichever activities list (browse or manage) is showing.
+fn list_filters(page: Page) -> Result(ListFilters, Nil) {
+  case page {
+    ActivitiesListPage(filters) | ManageActivitiesPage(filters, _) ->
+      Ok(filters)
+    _ -> Error(Nil)
+  }
+}
+
+/// Replace the filters of the current activities list, preserving its variant
+/// (and, for the manage list, its open form overlay).
+fn set_list_filters(page: Page, filters: ListFilters) -> Page {
+  case page {
+    ActivitiesListPage(_) -> ActivitiesListPage(filters)
+    ManageActivitiesPage(_, activity_form) ->
+      ManageActivitiesPage(filters, activity_form)
+    other -> other
+  }
+}
+
+/// Revalidate the current activities list's window (browse or manage) in place;
+/// a no-op off a list page.
+fn revalidate_current_list(model: Model) -> #(Model, Effect(Msg)) {
+  case list_filters(model.page) {
+    Ok(filters) ->
+      load_or_revalidate(model, window_key_for(model, tab_source(filters.tab)))
+    Error(_) -> #(model, effect.none())
+  }
 }
 
 /// Access roles the client gates UI on, parsed from the user's Keycloak roles
@@ -851,7 +886,7 @@ pub fn load_or_revalidate(
 pub fn tab_summaries(
   model: Model,
   filters: ListFilters,
-  mode: ListMode,
+  page: Page,
 ) -> RemoteData(List(ActivitySummary)) {
   case filters.tab {
     TabFavourites -> {
@@ -888,10 +923,10 @@ pub fn tab_summaries(
           // Browse lists never render called-off activities — they surface only
           // in the management list. Booked/favourited users still reach their
           // called-off activities via the Favourites tab and the detail page.
-          let visible = case mode {
-            BrowseList ->
+          let visible = case page {
+            ManageActivitiesPage(..) -> summaries
+            _ ->
               list.filter(summaries, fn(s) { option.is_none(s.cancellation) })
-            ManageList -> summaries
           }
           Loaded(visible)
         }
@@ -1274,9 +1309,9 @@ fn localized(translator: Translator, value: model.BilingualString) -> String {
 
 fn app_bar_title(translator: Translator, page: Page) -> Option(String) {
   case page {
-    ActivitiesListPage(_, BrowseList) ->
+    ActivitiesListPage(_) ->
       Some(g18n.translate(translator, "app_bar.activities_list"))
-    ActivitiesListPage(_, ManageList) ->
+    ManageActivitiesPage(_, _) ->
       Some(g18n.translate(translator, "app_bar.manage_activities"))
     ActivityDetailPage(_, _) ->
       Some(g18n.translate(translator, "app_bar.activity_detail"))
@@ -1295,10 +1330,7 @@ fn init(_flags) -> #(Model, Effect(Msg)) {
 
   let #(page, page_effect) = case modem.initial_uri() {
     Ok(uri) -> uri_to_page(uri, dict.new())
-    Error(_) -> #(
-      ActivitiesListPage(default_filters(), BrowseList),
-      effect.none(),
-    )
+    Error(_) -> #(ActivitiesListPage(default_filters()), effect.none())
   }
 
   let today = event_dates.clamp_to_event(today())
@@ -1326,7 +1358,6 @@ fn init(_flags) -> #(Model, Effect(Msg)) {
       // Empty until /api/me returns; the role-gated UI reveals once loaded.
       roles: [],
       edit_ui: default_edit_ui(),
-      activity_form: ActivityFormClosed,
     )
 
   let title_effect = case app_bar_title(translator, page) {
@@ -1437,20 +1468,12 @@ pub fn update(model: Model, msg: Msg) -> #(Model, Effect(Msg)) {
         None -> effect.none()
       }
       let nav_effect = notify_navigation(uri)
-      // The form is a management-list overlay, not a route; any navigation
-      // dismisses it so a stale form never lingers on the next page.
-      let model =
-        Model(..model, page:, details:, activity_form: ActivityFormClosed)
+      // The form overlay is `ManageActivitiesPage` state, so a route change to any
+      // other page drops it automatically — a stale form can't linger.
+      let model = Model(..model, page:, details:)
       // Entering a list page revalidates the active tab (cheap 304 when
       // unchanged), so a returning view stays fresh without a blocking reload.
-      let #(model, list_effect) = case page {
-        ActivitiesListPage(filters, _) ->
-          load_or_revalidate(
-            model,
-            window_key_for(model, tab_source(filters.tab)),
-          )
-        _ -> #(model, effect.none())
-      }
+      let #(model, list_effect) = revalidate_current_list(model)
       #(
         model,
         effect.batch([page_effect, title_effect, nav_effect, list_effect]),
@@ -1493,7 +1516,7 @@ pub fn update(model: Model, msg: Msg) -> #(Model, Effect(Msg)) {
       // this both keeps the two caches in sync and populates the summary on
       // direct navigation to an activity we never listed. If we were waiting on
       // this fetch to open the edit form, seed the form now (with fresh UI state).
-      let #(activity_form, edit_ui) = case model.activity_form {
+      let #(activity_form, edit_ui) = case activity_form_of(model) {
         ActivityFormEdit(edit_id, EditLoading) if edit_id == id -> #(
           ActivityFormEdit(id, edit_ready_from_activity(activity)),
           // Seed the location picker from the activity; other UI state defaults.
@@ -1502,7 +1525,7 @@ pub fn update(model: Model, msg: Msg) -> #(Model, Effect(Msg)) {
             location_id: option.map(activity.location, fn(l) { l.id }),
           ),
         )
-        _ -> #(model.activity_form, model.edit_ui)
+        other -> #(other, model.edit_ui)
       }
       // The detail fetch carries the full location too; fold it into the cache
       // so the picker can name it even if the bulk /api/locations fetch failed.
@@ -1510,35 +1533,31 @@ pub fn update(model: Model, msg: Msg) -> #(Model, Effect(Msg)) {
         Some(l) -> dict.insert(model.locations, l.id, l)
         None -> model.locations
       }
-      #(
+      let model =
         Model(
           ..model,
           activities: dict.insert(model.activities, id, to_summary(activity)),
           details: dict.insert(model.details, id, Loaded(to_detail(activity))),
           locations:,
-          activity_form:,
           edit_ui:,
-        ),
-        effect.none(),
-      )
+        )
+      #(set_activity_form(model, activity_form), effect.none())
     }
 
     ApiReturnedActivity(id, Error(_)) -> {
       // A failed load while opening the edit form has nowhere to go — close the
       // drawer (back to the management list) rather than spinning forever.
-      let activity_form = case model.activity_form {
+      let activity_form = case activity_form_of(model) {
         ActivityFormEdit(edit_id, EditLoading) if edit_id == id ->
           ActivityFormClosed
-        _ -> model.activity_form
+        other -> other
       }
-      #(
+      let model =
         Model(
           ..model,
           details: dict.insert(model.details, id, Failed(LoadActivityFailed)),
-          activity_form:,
-        ),
-        effect.none(),
-      )
+        )
+      #(set_activity_form(model, activity_form), effect.none())
     }
 
     ApiReturnedMe(Ok(roles)) -> {
@@ -1546,14 +1565,7 @@ pub fn update(model: Model, msg: Msg) -> #(Model, Effect(Msg)) {
       // Roles gate `include_call_offs`, so once they load re-fetch the visible
       // list: a manager's window upgrades to the call-off superset the manage
       // view needs, and a non-manager just gets a cheap revalidation.
-      case model.page {
-        ActivitiesListPage(filters, _) ->
-          load_or_revalidate(
-            model,
-            window_key_for(model, tab_source(filters.tab)),
-          )
-        _ -> #(model, effect.none())
-      }
+      revalidate_current_list(model)
     }
 
     // 401 / network error -> no roles -> restricted view.
@@ -1635,11 +1647,11 @@ pub fn update(model: Model, msg: Msg) -> #(Model, Effect(Msg)) {
       )
 
     ApiCreatedActivity(Error(_)) ->
-      case model.activity_form {
+      case activity_form_of(model) {
         ActivityFormNew(form, _, tags, target_groups) -> #(
-          Model(
-            ..model,
-            activity_form: ActivityFormNew(
+          set_activity_form(
+            model,
+            ActivityFormNew(
               form,
               Some(CreateActivityFailed),
               tags,
@@ -1671,11 +1683,11 @@ pub fn update(model: Model, msg: Msg) -> #(Model, Effect(Msg)) {
       )
 
     ApiUpdatedActivity(Error(_)) ->
-      case model.activity_form {
+      case activity_form_of(model) {
         ActivityFormEdit(id, EditReady(..) as edit) -> #(
-          Model(
-            ..model,
-            activity_form: ActivityFormEdit(
+          set_activity_form(
+            model,
+            ActivityFormEdit(
               id,
               edit_with_error(edit, Some(UpdateActivityFailed)),
             ),
@@ -1705,11 +1717,11 @@ pub fn update(model: Model, msg: Msg) -> #(Model, Effect(Msg)) {
       )
 
     ApiCancelledActivity(Error(_)) ->
-      case model.activity_form {
+      case activity_form_of(model) {
         ActivityFormEdit(id, EditReady(..) as edit) -> #(
-          Model(
-            ..model,
-            activity_form: ActivityFormEdit(
+          set_activity_form(
+            model,
+            ActivityFormEdit(
               id,
               edit_with_error(edit, Some(CallOffActivityFailed)),
             ),
@@ -1721,27 +1733,27 @@ pub fn update(model: Model, msg: Msg) -> #(Model, Effect(Msg)) {
 
     // A successful delete drops the activity from every cache and closes the
     // drawer; the local window removal makes it vanish without a refetch.
-    ApiDeletedActivity(id, Ok(_)) -> #(
-      Model(
-        ..model,
-        activities: dict.delete(model.activities, id),
-        // Drop the id from every cached window so it vanishes everywhere at once.
-        windows: dict.map_values(model.windows, fn(_key, remote) {
-          remove_id(remote, id)
-        }),
-        details: dict.delete(model.details, id),
-        statuses: dict.delete(model.statuses, id),
-        activity_form: ActivityFormClosed,
-      ),
-      effect.none(),
-    )
+    ApiDeletedActivity(id, Ok(_)) -> {
+      let model =
+        Model(
+          ..model,
+          activities: dict.delete(model.activities, id),
+          // Drop the id from every cached window so it vanishes everywhere at once.
+          windows: dict.map_values(model.windows, fn(_key, remote) {
+            remove_id(remote, id)
+          }),
+          details: dict.delete(model.details, id),
+          statuses: dict.delete(model.statuses, id),
+        )
+      #(set_activity_form(model, ActivityFormClosed), effect.none())
+    }
 
     ApiDeletedActivity(_, Error(_)) ->
-      case model.activity_form {
+      case activity_form_of(model) {
         ActivityFormEdit(id, EditReady(..) as edit) -> #(
-          Model(
-            ..model,
-            activity_form: ActivityFormEdit(
+          set_activity_form(
+            model,
+            ActivityFormEdit(
               id,
               edit_with_error(edit, Some(DeleteActivityFailed)),
             ),
@@ -1752,7 +1764,7 @@ pub fn update(model: Model, msg: Msg) -> #(Model, Effect(Msg)) {
       }
 
     UserSubmittedCreateForm(Ok(activity_form)) ->
-      case model.activity_form {
+      case activity_form_of(model) {
         ActivityFormNew(_, _, tags, target_groups) -> #(
           model,
           create_activity(
@@ -1766,23 +1778,29 @@ pub fn update(model: Model, msg: Msg) -> #(Model, Effect(Msg)) {
       }
 
     UserSubmittedCreateForm(Error(f)) ->
-      case model.activity_form {
-        ActivityFormNew(_, submit_error, tags, target_groups) -> #(
-          Model(
-            ..model,
-            activity_form: ActivityFormNew(f, submit_error, tags, target_groups),
-            edit_ui: EditUi(
-              ..model.edit_ui,
-              language: language_needing_attention(f, model.edit_ui.language),
+      case activity_form_of(model) {
+        ActivityFormNew(_, submit_error, tags, target_groups) -> {
+          let model =
+            Model(
+              ..model,
+              edit_ui: EditUi(
+                ..model.edit_ui,
+                language: language_needing_attention(f, model.edit_ui.language),
+              ),
+            )
+          #(
+            set_activity_form(
+              model,
+              ActivityFormNew(f, submit_error, tags, target_groups),
             ),
-          ),
-          effect.none(),
-        )
+            effect.none(),
+          )
+        }
         _ -> #(model, effect.none())
       }
 
     UserSubmittedEditForm(Ok(activity_form)) ->
-      case model.activity_form {
+      case activity_form_of(model) {
         ActivityFormEdit(id, EditReady(tags:, target_groups:, ..)) -> #(
           model,
           update_activity(
@@ -1797,18 +1815,24 @@ pub fn update(model: Model, msg: Msg) -> #(Model, Effect(Msg)) {
       }
 
     UserSubmittedEditForm(Error(f)) ->
-      case model.activity_form {
-        ActivityFormEdit(id, EditReady(..) as edit) -> #(
-          Model(
-            ..model,
-            activity_form: ActivityFormEdit(id, edit_with_form(edit, f)),
-            edit_ui: EditUi(
-              ..model.edit_ui,
-              language: language_needing_attention(f, model.edit_ui.language),
+      case activity_form_of(model) {
+        ActivityFormEdit(id, EditReady(..) as edit) -> {
+          let model =
+            Model(
+              ..model,
+              edit_ui: EditUi(
+                ..model.edit_ui,
+                language: language_needing_attention(f, model.edit_ui.language),
+              ),
+            )
+          #(
+            set_activity_form(
+              model,
+              ActivityFormEdit(id, edit_with_form(edit, f)),
             ),
-          ),
-          effect.none(),
-        )
+            effect.none(),
+          )
+        }
         _ -> #(model, effect.none())
       }
 
@@ -1830,10 +1854,9 @@ pub fn update(model: Model, msg: Msg) -> #(Model, Effect(Msg)) {
     // The "New activity" button on the management list: open the create form
     // drawer over the list, with a clean form and reset UI state.
     UserClickedNewActivity -> #(
-      Model(
-        ..model,
-        activity_form: ActivityFormNew(activity_form(), None, [], []),
-        edit_ui: default_edit_ui(),
+      set_activity_form(
+        Model(..model, edit_ui: default_edit_ui()),
+        ActivityFormNew(activity_form(), None, [], []),
       ),
       effect.none(),
     )
@@ -1842,13 +1865,13 @@ pub fn update(model: Model, msg: Msg) -> #(Model, Effect(Msg)) {
     // the activity fresh; `ApiReturnedActivity` seeds the form (and UI state) on
     // reply.
     UserClickedEditActivity(id) -> #(
-      Model(..model, activity_form: ActivityFormEdit(id, EditLoading)),
+      set_activity_form(model, ActivityFormEdit(id, EditLoading)),
       fetch_activity(id),
     )
 
     // "Avbryt" — discard changes and close the drawer (both edit and create).
     UserClickedCancelEdit -> #(
-      Model(..model, activity_form: ActivityFormClosed),
+      set_activity_form(model, ActivityFormClosed),
       effect.none(),
     )
 
@@ -1879,7 +1902,7 @@ pub fn update(model: Model, msg: Msg) -> #(Model, Effect(Msg)) {
     // shown/retried if the request fails. On success `ApiCancelledActivity(Ok)`
     // refreshes the caches and closes the drawer.
     UserClickedConfirmCallOff ->
-      case model.activity_form {
+      case activity_form_of(model) {
         ActivityFormEdit(id, _) -> #(
           Model(..model, edit_ui: EditUi(..model.edit_ui, cancel_open: False)),
           cancel_activity(id, model.edit_ui.cancel_reason),
@@ -1888,7 +1911,7 @@ pub fn update(model: Model, msg: Msg) -> #(Model, Effect(Msg)) {
       }
 
     UserClickedDelete ->
-      case model.activity_form {
+      case activity_form_of(model) {
         ActivityFormEdit(id, EditReady(..)) -> #(model, delete_activity(id))
         _ -> #(model, effect.none())
       }
@@ -1897,8 +1920,8 @@ pub fn update(model: Model, msg: Msg) -> #(Model, Effect(Msg)) {
       update_filters(model, fn(f) { ListFilters(..f, search: value) })
 
     UserSelectedTab(index) ->
-      case model.page {
-        ActivitiesListPage(filters, mode) -> {
+      case list_filters(model.page) {
+        Ok(filters) -> {
           let tab = tab_from_index(index)
           // Each tab reads its own persistent day (browse tabs share
           // `browse_day_filter`, Favourites its own), so switching tabs just
@@ -1907,11 +1930,11 @@ pub fn update(model: Model, msg: Msg) -> #(Model, Effect(Msg)) {
           let #(model, fetch_effect) =
             load_or_revalidate(model, window_key_for(model, tab_source(tab)))
           #(
-            Model(..model, page: ActivitiesListPage(filters, mode)),
+            Model(..model, page: set_list_filters(model.page, filters)),
             fetch_effect,
           )
         }
-        _ -> #(model, effect.none())
+        Error(_) -> #(model, effect.none())
       }
 
     // Picking a day persists it to the current tab's own day field (so it
@@ -1920,8 +1943,8 @@ pub fn update(model: Model, msg: Msg) -> #(Model, Effect(Msg)) {
     // cache + background revalidate); on Favourites the day only narrows the
     // rendered list client-side, so this just revalidates the all-days window.
     UserSelectedDay(d) ->
-      case model.page {
-        ActivitiesListPage(filters, _) -> {
+      case list_filters(model.page) {
+        Ok(filters) -> {
           let model = case filters.tab {
             // Picking a concrete day on Favourites also moves the browse day
             // there, so switching back to a browse tab lands on the same day;
@@ -1939,7 +1962,7 @@ pub fn update(model: Model, msg: Msg) -> #(Model, Effect(Msg)) {
             window_key_for(model, tab_source(filters.tab)),
           )
         }
-        _ -> #(model, effect.none())
+        Error(_) -> #(model, effect.none())
       }
 
     UserToggledMoreFilters ->
@@ -1949,11 +1972,11 @@ pub fn update(model: Model, msg: Msg) -> #(Model, Effect(Msg)) {
     // create/edit form, so the same message toggles either the form's working
     // selection (when the form drawer is open) or the active list filters.
     UserToggledTargetGroup(target_group) ->
-      case model.activity_form {
+      case activity_form_of(model) {
         ActivityFormNew(form, submit_error, tags, target_groups) -> #(
-          Model(
-            ..model,
-            activity_form: ActivityFormNew(
+          set_activity_form(
+            model,
+            ActivityFormNew(
               form,
               submit_error,
               tags,
@@ -1963,9 +1986,9 @@ pub fn update(model: Model, msg: Msg) -> #(Model, Effect(Msg)) {
           effect.none(),
         )
         ActivityFormEdit(id, EditReady(target_groups:, ..) as edit) -> #(
-          Model(
-            ..model,
-            activity_form: ActivityFormEdit(
+          set_activity_form(
+            model,
+            ActivityFormEdit(
               id,
               edit_with_target_groups(
                 edit,
@@ -1985,11 +2008,11 @@ pub fn update(model: Model, msg: Msg) -> #(Model, Effect(Msg)) {
       }
 
     UserToggledTag(tag_id) ->
-      case model.activity_form {
+      case activity_form_of(model) {
         ActivityFormNew(form, submit_error, tags, target_groups) -> #(
-          Model(
-            ..model,
-            activity_form: ActivityFormNew(
+          set_activity_form(
+            model,
+            ActivityFormNew(
               form,
               submit_error,
               toggle_member(tags, tag_id),
@@ -1999,9 +2022,9 @@ pub fn update(model: Model, msg: Msg) -> #(Model, Effect(Msg)) {
           effect.none(),
         )
         ActivityFormEdit(id, EditReady(tags:, ..) as edit) -> #(
-          Model(
-            ..model,
-            activity_form: ActivityFormEdit(
+          set_activity_form(
+            model,
+            ActivityFormEdit(
               id,
               edit_with_tags(edit, toggle_member(tags, tag_id)),
             ),
@@ -2134,12 +2157,12 @@ pub fn update(model: Model, msg: Msg) -> #(Model, Effect(Msg)) {
       }
 
     UserClickedRetryLoad ->
-      case model.page {
-        ActivitiesListPage(filters, _) -> {
+      case list_filters(model.page) {
+        Ok(filters) -> {
           let key = window_key_for(model, tab_source(filters.tab))
           #(set_window_remote(model, key, Loading), fetch_window(model, key))
         }
-        _ -> #(model, effect.none())
+        Error(_) -> #(model, effect.none())
       }
 
     UserToggledFavourite(activity_id) ->
@@ -2455,12 +2478,12 @@ fn update_filters(
   model: Model,
   f: fn(ListFilters) -> ListFilters,
 ) -> #(Model, Effect(Msg)) {
-  case model.page {
-    ActivitiesListPage(filters, mode) -> #(
-      Model(..model, page: ActivitiesListPage(f(filters), mode)),
+  case list_filters(model.page) {
+    Ok(filters) -> #(
+      Model(..model, page: set_list_filters(model.page, f(filters))),
       effect.none(),
     )
-    _ -> #(model, effect.none())
+    Error(_) -> #(model, effect.none())
   }
 }
 
@@ -2468,12 +2491,7 @@ fn update_filters(
 /// created/edited/called-off activity shows immediately without a navigation.
 /// A no-op refresh off the list page (the drawer only opens over it).
 fn close_form_and_refresh(model: Model) -> #(Model, Effect(Msg)) {
-  let model = Model(..model, activity_form: ActivityFormClosed)
-  case model.page {
-    ActivitiesListPage(filters, _) ->
-      load_or_revalidate(model, window_key_for(model, tab_source(filters.tab)))
-    _ -> #(model, effect.none())
-  }
+  revalidate_current_list(set_activity_form(model, ActivityFormClosed))
 }
 
 pub fn toggle_member(items: List(a), name: a) -> List(a) {
@@ -3036,7 +3054,7 @@ pub fn uri_to_page(
 ) -> #(Page, Effect(Msg)) {
   case uri.path_segments(uri.path) |> list.drop(2) {
     ["activities"] | [] -> #(
-      ActivitiesListPage(default_filters(), BrowseList),
+      ActivitiesListPage(default_filters()),
       effect.none(),
     )
     // The management copy of the activities list. Cards open the edit form in a
@@ -3044,7 +3062,7 @@ pub fn uri_to_page(
     // (server-gated in app-config), and edits are enforced server-side regardless
     // of who reaches this route.
     ["activities", "manage"] -> #(
-      ActivitiesListPage(default_filters(), ManageList),
+      ManageActivitiesPage(default_filters(), ActivityFormClosed),
       effect.none(),
     )
     // The Badbuss / Klättervägg booking-overview pages. Each loads its kind's
@@ -3104,19 +3122,19 @@ pub fn uri_to_page(
 
 fn view(model: Model) -> Element(Msg) {
   case model.page {
-    ActivitiesListPage(filters, mode) ->
+    ActivitiesListPage(filters) as page
+    | ManageActivitiesPage(filters, _) as page ->
       view_activities_list(
         model.translator,
-        tab_summaries(model, filters, mode),
+        tab_summaries(model, filters, page),
         model.statuses,
         model.spots,
         filters,
         model.activity_tags,
-        mode,
+        page,
         model.today,
         model.browse_day_filter,
         model.favourites_day_filter,
-        model.activity_form,
         model.edit_ui,
         model.locations,
       )
@@ -3150,11 +3168,10 @@ fn view_activities_list(
   spots: Dict(Uuid, Int),
   filters: ListFilters,
   activity_tags: Dict(Uuid, ActivityTag),
-  mode: ListMode,
+  page: Page,
   today: calendar.Date,
   browse_day: Option(calendar.Date),
   favourites_day: Option(calendar.Date),
-  form_state: ActivityFormState,
   edit_ui: EditUi,
   locations: Dict(Uuid, Location),
 ) -> Element(Msg) {
@@ -3165,6 +3182,11 @@ fn view_activities_list(
   let client_day = case filters.tab {
     TabFavourites -> favourites_day
     _ -> None
+  }
+  // The form overlay is the manage page's own state; browse has none.
+  let form_state = case page {
+    ManageActivitiesPage(_, activity_form) -> activity_form
+    _ -> ActivityFormClosed
   }
 
   html.div([attribute.class("flex flex-col")], [
@@ -3180,7 +3202,7 @@ fn view_activities_list(
     view_list_top_bar(
       translator,
       filters,
-      mode,
+      page,
       today,
       browse_day,
       favourites_day,
@@ -3210,7 +3232,7 @@ fn view_activities_list(
             translator,
             to_card_items(items, statuses, spots),
             filters,
-            mode,
+            page,
             client_day,
           )
       },
@@ -3221,7 +3243,7 @@ fn view_activities_list(
 fn view_list_top_bar(
   translator: Translator,
   filters: ListFilters,
-  mode: ListMode,
+  page: Page,
   today: calendar.Date,
   browse_day: Option(calendar.Date),
   favourites_day: Option(calendar.Date),
@@ -3236,8 +3258,7 @@ fn view_list_top_bar(
     TabFavourites -> favourites_day
     _ -> Some(option.unwrap(browse_day, today))
   }
-  let tab_labels =
-    list.map(list_tabs_for(mode), fn(tab) { tab_label(translator, tab) })
+  let tab_labels = list.map(list_tabs(), fn(tab) { tab_label(translator, tab) })
   html.div(
     [
       attribute.class(
@@ -3247,9 +3268,9 @@ fn view_list_top_bar(
     [
       // The management list leads with a prominent create action; the browse
       // list has none.
-      case mode {
-        ManageList -> view_new_activity_button(translator)
-        BrowseList -> element.none()
+      case page {
+        ManageActivitiesPage(..) -> view_new_activity_button(translator)
+        _ -> element.none()
       },
       component.scout_segmented_control(
         tab_index(filters.tab),
@@ -3556,7 +3577,7 @@ fn view_grouped_activities(
   translator: Translator,
   items: List(CardItem),
   filters: ListFilters,
-  mode: ListMode,
+  page: Page,
   client_day: Option(calendar.Date),
 ) -> Element(Msg) {
   let t = fn(key) { g18n.translate(translator, key) }
@@ -3592,7 +3613,7 @@ fn view_grouped_activities(
         list.map(groups, fn(group) {
           let #(#(date, bucket), items) = group
           let is_current = date == today && bucket == now_bucket
-          view_section(translator, date, bucket, items, is_current, mode)
+          view_section(translator, date, bucket, items, is_current, page)
         }),
       )
     }
@@ -3639,7 +3660,7 @@ fn view_section(
   bucket: TimeBucket,
   items: List(CardItem),
   is_current: Bool,
-  mode: ListMode,
+  page: Page,
 ) -> Element(Msg) {
   let t = fn(key) { g18n.translate(translator, key) }
   let bucket_label = t(bucket_translation_key(bucket))
@@ -3673,7 +3694,7 @@ fn view_section(
     html.div(
       [attribute.class("flex flex-col gap-2")],
       list.map(items, fn(item) {
-        view_activity_card(translator, date, item, mode)
+        view_activity_card(translator, date, item, page)
       }),
     ),
   ])
@@ -3683,7 +3704,7 @@ fn view_activity_card(
   translator: Translator,
   section_date: calendar.Date,
   item: CardItem,
-  mode: ListMode,
+  page: Page,
 ) -> Element(Msg) {
   let summary = item.summary
   let id = uuid.to_string(summary.id)
@@ -3708,9 +3729,9 @@ fn view_activity_card(
         "activity.called_off",
       ))
     None ->
-      case mode {
-        BrowseList -> card_status(translator, summary, item.status)
-        ManageList -> component.StatusNone
+      case page {
+        ManageActivitiesPage(..) -> component.StatusNone
+        _ -> card_status(translator, summary, item.status)
       }
   }
   // Browse cards navigate to the detail page and carry a favourite heart; manage
@@ -3718,17 +3739,17 @@ fn view_activity_card(
   // pen. Everything else about the card is identical, so the two lists share the
   // whole view. The manage `href` is a valid fallback for new-tab clicks only —
   // an in-page click is intercepted to open the drawer.
-  let #(href, action) = case mode {
-    BrowseList -> #(
+  let #(href, action) = case page {
+    ManageActivitiesPage(..) -> #(
+      api_prefix <> "/activities/" <> id,
+      component.EditAction(UserClickedEditActivity(summary.id)),
+    )
+    _ -> #(
       api_prefix <> "/activities/" <> id,
       component.FavouriteAction(
         favourited: is_favourited(item.status),
         on_toggle: UserToggledFavourite(summary.id),
       ),
-    )
-    ManageList -> #(
-      api_prefix <> "/activities/" <> id,
-      component.EditAction(UserClickedEditActivity(summary.id)),
     )
   }
   component.activity_card(
