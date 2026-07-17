@@ -1,6 +1,12 @@
 # 10. Activity add/edit form in a drawer (consistent with booking)
 
 > **Status: 🔲 Not started** (as of 2026-07-15)
+>
+> **Nested-drawer gotcha spiked 2026-07-17** (standalone harness loading the
+> patched `scout-drawer`, driven with Playwright at 390×780). Naive nesting is
+> confirmed broken on two counts; **resolved design: swap the single drawer's
+> content for call-off — do not nest a second drawer.** See "Spike findings"
+> below.
 
 ## Context
 
@@ -114,13 +120,16 @@ precedent.
 
 ## Gotchas (the non-mechanical parts)
 
-1. **Nested drawer — the real risk.** The call-off confirmation is *already* a
-   `scout_drawer` rendered inside the edit form (`view_call_off_drawer`, `:3195`,
-   invoked at `:3078`). Wrapping the whole form in a drawer nests
-   `scout-drawer` inside `scout-drawer`. Verify `@scouterna/ui-webc` supports
-   nested drawers; if not, rework call-off — e.g. swap the drawer's contents to a
-   confirmation view, or use an inline confirmation block instead of a second
-   drawer. **Validate this before committing to the full refactor.**
+1. **Nested drawer — RESOLVED by spike (do not nest).** The call-off
+   confirmation is *already* a `scout_drawer` inside the edit form
+   (`view_call_off_drawer`, `:3195`, invoked at `:3078`). Wrapping the whole form
+   in a drawer would nest `scout-drawer` inside `scout-drawer` — and the spike
+   (below) proves that breaks. **Design decision: render call-off by swapping the
+   single activity drawer's *content* (driven by the existing
+   `edit_ui.cancel_open` flag) — no second drawer.** When `cancel_open` is true,
+   the drawer body shows the reason input + confirm/cancel instead of (or above)
+   the form fields; the drawer's own exit/backdrop still closes the whole form.
+   Delete `view_call_off_drawer`'s wrapping `scout_drawer` and inline its body.
 2. **Long form inside a drawer.** The activity form (bilingual fields + pickers +
    actions) is taller than the booking form. Confirm it scrolls cleanly inside
    `scout-drawer` on mobile widths.
@@ -129,6 +138,53 @@ precedent.
    longer a URL. This matches booking's behaviour and is the intended trade-off,
    but note it explicitly — the shell↔iframe navigation work (plan 07) assumes
    route changes mirror to the shell, and this removes two such routes.
+
+## Spike findings (2026-07-17)
+
+Method: a standalone HTML harness rendered a real `scout-drawer` (the patched
+build in `server/priv/static/ui-webc-patched/`) with a second `scout-drawer`
+nested in its slotted content — the exact shape a naive refactor would produce.
+Exit events were wired the same way `component.scout_drawer` wires them
+(`event.on("exitButtonClicked", …)` on each host). Driven with Playwright at a
+390×780 mobile viewport; geometry read from each drawer's shadow-DOM
+`.drawer--container` / `.backdrop`.
+
+The component (`collection/components/drawer/drawer.js` + `drawer.css`) does **not**
+use the top layer (`<dialog>`/`popover`). It renders `position: fixed` backdrop
+(`z-index:100`) and container (`z-index:101`) in shadow DOM, animates the
+container with `transform`, and clips it with `overflow: hidden`; focus is held
+by `dom-focus-lock`.
+
+Two confirmed failures when nesting:
+
+1. **Exit event collision (severe).** `exitButtonClicked` is
+   `bubbles:true, composed:true` (drawer.js `:301-316`). Clicking the inner
+   drawer's X (or its backdrop — same emit path) fired **both** handlers: the
+   event bubbled out of the inner host to the outer `scout-drawer` and closed it
+   too. In-app that means dismissing the call-off confirmation would close the
+   entire edit form and discard unsaved edits. Observed log:
+   `INNER exitButtonClicked → OUTER exitButtonClicked`, both `open` went false.
+2. **Containing block + clipping (visual).** The outer container's open-state
+   `transform` makes it the containing block for the inner drawer's
+   `position: fixed`. Measured: outer container `y78 h702` (correct — 90% of the
+   702… of viewport), inner container `y148 h632` and inner backdrop `y78 h702` —
+   i.e. the inner drawer sizes to **90% of the outer drawer box**, not the
+   viewport, and its backdrop dims only the outer drawer. With the outer's
+   `overflow: hidden` it's also clipped to that box. Result: a cramped
+   drawer-in-a-drawer, not a full-screen sheet.
+
+Mitigations checked:
+
+- `stopPropagation` on the inner `exitButtonClicked` **fixes failure 1** (outer
+  stayed open in the harness; Lustre can express this via the `event`
+  stop-propagation modifier). But it does **nothing** for failure 2 — the
+  geometry is still wrong. So "keep nesting + stop propagation" is rejected.
+- **Content-swap in a single drawer** sidesteps both: there is only ever one
+  drawer, which the single-drawer case already renders correctly (full-width,
+  full-viewport backdrop, focus lock intact). This is the chosen design (gotcha 1
+  above). It also removes the focus-lock stacking question entirely (with both
+  nested drawers open the harness left `activeElement` on `<body>`, i.e. the
+  nested lock did not behave — another reason not to nest).
 
 ## Files
 
