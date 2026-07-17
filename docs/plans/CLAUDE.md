@@ -37,3 +37,4 @@ When you create, finish, or touch a plan here, keep the folder consistent:
 | 09 | [ETag revalidation for per-day activity lists](09-etag-revalidation-per-day-activity-lists.md) | ✅ Done 2026-07-16 |
 | 10 | [Activity add/edit form in a drawer (consistent with booking)](10-activity-form-drawer.md) | 🔲 Not started |
 | 11 | [Day-windowed activity lists](11-day-windowed-activity-lists.md) | ✅ Done 2026-07-17 |
+| 12 | [Persist the day filter across navigation (issue #40)](12-day-filter-persistence.md) | 🔲 Not started |
