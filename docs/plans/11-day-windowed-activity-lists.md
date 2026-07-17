@@ -1,6 +1,51 @@
 # 11. Day-windowed activity lists
 
-> **Status: 🔲 Not started** (as of 2026-07-16)
+> **Status: ✅ Done 2026-07-17** (branch `feat/activity-list-etag`; see
+> "Divergences from the plan" below)
+
+## Divergences from the plan
+
+- **Shared:** added a dedicated `shared/event.gleam` (the option the plan
+  offered) rather than growing `model.gleam`. It also owns the ISO date
+  `date_to_iso`/`date_from_iso` helpers so client and server share one `?day=`
+  format.
+- **Timezone (the load-bearing risk):** confirmed `activity.start_time` stores
+  **UTC wall-clock** (the API round-trips it through unix instants; a naive
+  `2026-07-26 08:00` reads back as that instant in UTC). The whole event window
+  sits in CEST, so the server uses a **fixed +2h** Stockholm offset (no tz
+  database, no DST edge) in one `day_bounds` helper, unit-tested around 25/7
+  (`server/test/server/web/activities_test.gleam`). The client already buckets
+  and displays by the browser's local offset, which is this same offset on-site,
+  so server windows and client display agree.
+- **Server `?day=`:** a valid but out-of-range date is **clamped** into the
+  event range (the client only ever offers in-range dates); only a *malformed*
+  value is a `400`.
+- **Client window store:** `windows: Dict(WindowKey, RemoteData(List(Uuid)))` +
+  `etags: Dict(WindowKey, String)` with `WindowKey = #(source, Option(day),
+  include_call_offs)`, plus a new `Model.today` (clamped) for the browse default.
+  `default_filters().day` stays `None`; browse resolves the effective day as
+  `filters.day |> unwrap(today)` (so `today` isn't threaded into
+  `default_filters`). `today` is read once at init via the existing
+  `timestamp.system_time()` (no new FFI needed).
+- **Shared `filters.day` across tabs:** a tab switch resets the day to that
+  tab's default — Favourites → all-days (`None`), browse↔browse keeps the picked
+  day, leaving Favourites → today.
+- **`apply_filters` day branch:** kept but scoped to **Favourites only** (its
+  optional day pick filters client-side); browse tabs rely on the server window.
+- **`ApiCreatedActivity`:** drops all browse windows (can't map a new activity's
+  day/kind to one window); the dead `prepend_id` helper + its tests were removed.
+- **Seed data:** the seed activities were dated 2025-07-11…16, a year+ before
+  the event window, so browse lists were empty. Remapped them `+379 days` to
+  2026-07-25…30 (`server/priv/seeding/activities.sql`) and shifted the existing
+  dev-DB rows to match.
+
+Verified end-to-end (server curl + Playwright): static 25/7–1/8 dropdown with no
+"all days" on browse (defaults to clamped-today 25/7), per-day fetch with `304`
+on revisit, Favourites defaults to "all days" and spans days, called-off rows
+hidden by default and shown with the manager superset, Stockholm-local times and
+cross-midnight grouping intact. Tests: shared 5, server 35, client 76.
+
+## Original plan
 
 ## Context
 

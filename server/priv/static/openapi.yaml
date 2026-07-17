@@ -46,6 +46,7 @@ paths:
       parameters:
         - $ref: '#/components/parameters/SortParam'
         - $ref: '#/components/parameters/IncludeCallOffsParam'
+        - $ref: '#/components/parameters/DayParam'
         - $ref: '#/components/parameters/IfNoneMatchParam'
       responses:
         '200':
@@ -162,6 +163,7 @@ paths:
         - cookieAuth: []
       parameters:
         - $ref: '#/components/parameters/IncludeCallOffsParam'
+        - $ref: '#/components/parameters/DayParam'
         - $ref: '#/components/parameters/IfNoneMatchParam'
       responses:
         '200':
@@ -216,6 +218,7 @@ paths:
         - cookieAuth: []
       parameters:
         - $ref: '#/components/parameters/IncludeCallOffsParam'
+        - $ref: '#/components/parameters/DayParam'
         - $ref: '#/components/parameters/IfNoneMatchParam'
       responses:
         '200':
@@ -2200,6 +2203,22 @@ components:
         type: boolean
         default: false
       example: true
+
+    DayParam:
+      name: day
+      in: query
+      required: false
+      description: |
+        Restrict the list to a single event day (`YYYY-MM-DD`). Only the fixed
+        event dates `2026-07-25`–`2026-08-01` are meaningful; a valid date
+        outside that range is clamped into it. Omitted defaults to today clamped
+        into the event range. A malformed value returns `400`. The
+        favourited-activities endpoint ignores this parameter (it always spans
+        all days).
+      schema:
+        type: string
+        format: date
+      example: '2026-07-26'
 
     IfNoneMatchParam:
       name: If-None-Match

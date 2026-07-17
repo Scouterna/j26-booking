@@ -105,18 +105,41 @@ fn a_booking(id: Uuid, activity_id: Uuid) -> model.Booking {
   )
 }
 
-/// A logged-in user on the default activities list. The default tab
-/// (`activities_ids`) loads eagerly; the other sources start `NotAsked`.
+/// A fixed "today" for tests, inside the event range, so browse window keys are
+/// deterministic.
+fn test_today() -> calendar.Date {
+  calendar.Date(2026, calendar.July, 25)
+}
+
+/// The default Activities browse window key for `base_model` (a manager, so
+/// `include_call_offs` is `True`) on the default day (`test_today`).
+fn activities_window() -> client.WindowKey {
+  #(client.SourceActivities, Some(test_today()), True)
+}
+
+fn beach_bus_window() -> client.WindowKey {
+  #(client.SourceBeachBus, Some(test_today()), True)
+}
+
+fn climbing_wall_window() -> client.WindowKey {
+  #(client.SourceClimbingWall, Some(test_today()), True)
+}
+
+/// Filters on the default activities list, scoped to `tab`.
+fn filters_for(tab: client.ActivitiesFilterTab) -> client.ListFilters {
+  client.ListFilters(..client.default_filters(), tab:)
+}
+
+/// A logged-in user on the default activities list. The default Activities
+/// window loads eagerly; every other tab/day starts absent (`NotAsked`).
 fn base_model() -> client.Model {
   client.Model(
     page: client.ActivitiesListPage(client.default_filters(), client.BrowseList),
     translator: client.translator_for("sv"),
     activities: dict.new(),
-    activities_ids: client.Loading,
-    beach_bus_ids: client.NotAsked,
-    climbing_wall_ids: client.NotAsked,
-    favourited: client.NotAsked,
+    windows: dict.from_list([#(activities_window(), client.Loading)]),
     etags: dict.new(),
+    today: test_today(),
     details: dict.new(),
     statuses: dict.new(),
     spots: dict.new(),
@@ -247,21 +270,6 @@ pub fn booking_of_extracts_booking_test() {
 
 // PURE HELPERS: id-window cache (RemoteData(List(Uuid))) -----------------------
 
-pub fn prepend_id_adds_to_loaded_window_test() {
-  assert client.prepend_id(client.Loaded([id_b()]), id_a())
-    == client.Loaded([id_a(), id_b()])
-}
-
-pub fn prepend_id_dedupes_test() {
-  assert client.prepend_id(client.Loaded([id_a()]), id_a())
-    == client.Loaded([id_a()])
-}
-
-pub fn prepend_id_is_noop_unless_loaded_test() {
-  assert client.prepend_id(client.NotAsked, id_a()) == client.NotAsked
-  assert client.prepend_id(client.Loading, id_a()) == client.Loading
-}
-
 pub fn remove_id_drops_from_loaded_window_test() {
   assert client.remove_id(client.Loaded([id_a(), id_b()]), id_a())
     == client.Loaded([id_b()])
@@ -337,32 +345,49 @@ pub fn tab_summaries_browse_maps_id_window_through_cache_test() {
   let summary_a = a_summary(id_a(), "A", None)
   let summary_b = a_summary(id_b(), "B", None)
   let model_ =
-    client.Model(
-      ..base_model(),
-      activities: dict.from_list([#(id_a(), summary_a), #(id_b(), summary_b)]),
-      activities_ids: client.Loaded([id_a(), id_b()]),
+    client.set_window_remote(
+      client.Model(
+        ..base_model(),
+        activities: dict.from_list([
+          #(id_a(), summary_a),
+          #(id_b(), summary_b),
+        ]),
+      ),
+      activities_window(),
+      client.Loaded([id_a(), id_b()]),
     )
-  assert client.tab_summaries(model_, client.TabActivities, client.BrowseList)
+  assert client.tab_summaries(
+      model_,
+      filters_for(client.TabActivities),
+      client.BrowseList,
+    )
     == client.Loaded([summary_a, summary_b])
 }
 
 pub fn tab_summaries_browse_drops_uncached_ids_test() {
   let summary_a = a_summary(id_a(), "A", None)
   let model_ =
-    client.Model(
-      ..base_model(),
-      activities: dict.from_list([#(id_a(), summary_a)]),
+    client.set_window_remote(
+      client.Model(
+        ..base_model(),
+        activities: dict.from_list([#(id_a(), summary_a)]),
+      ),
       // id_b is in the window but not yet in the entity cache.
-      activities_ids: client.Loaded([id_a(), id_b()]),
+      activities_window(),
+      client.Loaded([id_a(), id_b()]),
     )
-  assert client.tab_summaries(model_, client.TabActivities, client.BrowseList)
+  assert client.tab_summaries(
+      model_,
+      filters_for(client.TabActivities),
+      client.BrowseList,
+    )
     == client.Loaded([summary_a])
 }
 
 pub fn tab_summaries_browse_reflects_fetch_state_test() {
   assert client.tab_summaries(
       base_model(),
-      client.TabBeachBus,
+      filters_for(client.TabBeachBus),
       client.BrowseList,
     )
     == client.NotAsked
@@ -373,17 +398,27 @@ pub fn tab_summaries_favourites_derived_from_statuses_test() {
   let summary_b = a_summary(id_b(), "B", None)
   let booking = a_booking(id_c(), id_b())
   let model_ =
-    client.Model(
-      ..base_model(),
-      activities: dict.from_list([#(id_a(), summary_a), #(id_b(), summary_b)]),
-      statuses: dict.from_list([
-        #(id_a(), model.Favourited),
-        #(id_b(), model.Booked(booking)),
-      ]),
-      favourited: client.Loaded([]),
+    client.set_window_remote(
+      client.Model(
+        ..base_model(),
+        activities: dict.from_list([
+          #(id_a(), summary_a),
+          #(id_b(), summary_b),
+        ]),
+        statuses: dict.from_list([
+          #(id_a(), model.Favourited),
+          #(id_b(), model.Booked(booking)),
+        ]),
+      ),
+      client.favourites_key(),
+      client.Loaded([]),
     )
   let assert client.Loaded(summaries) =
-    client.tab_summaries(model_, client.TabFavourites, client.BrowseList)
+    client.tab_summaries(
+      model_,
+      filters_for(client.TabFavourites),
+      client.BrowseList,
+    )
   // dict key order is unspecified, so assert membership rather than order.
   assert list.length(summaries) == 2
   assert list.contains(summaries, summary_a)
@@ -391,15 +426,24 @@ pub fn tab_summaries_favourites_derived_from_statuses_test() {
 }
 
 pub fn tab_summaries_favourites_empty_reflects_fetch_state_test() {
-  // Nothing favourited yet => mirror the favourited fetch state.
+  // Nothing favourited yet => mirror the favourites window fetch state.
   assert client.tab_summaries(
       base_model(),
-      client.TabFavourites,
+      filters_for(client.TabFavourites),
       client.BrowseList,
     )
     == client.NotAsked
-  let loading = client.Model(..base_model(), favourited: client.Loading)
-  assert client.tab_summaries(loading, client.TabFavourites, client.BrowseList)
+  let loading =
+    client.set_window_remote(
+      base_model(),
+      client.favourites_key(),
+      client.Loading,
+    )
+  assert client.tab_summaries(
+      loading,
+      filters_for(client.TabFavourites),
+      client.BrowseList,
+    )
     == client.Loading
 }
 
@@ -411,43 +455,59 @@ pub fn tab_summaries_browse_hides_called_off_manage_shows_it_test() {
       cancellation: Some("Inställd"),
     )
   let model_ =
-    client.Model(
-      ..base_model(),
-      activities: dict.from_list([#(id_a(), active), #(id_b(), called_off)]),
-      activities_ids: client.Loaded([id_a(), id_b()]),
+    client.set_window_remote(
+      client.Model(
+        ..base_model(),
+        activities: dict.from_list([#(id_a(), active), #(id_b(), called_off)]),
+      ),
+      activities_window(),
+      client.Loaded([id_a(), id_b()]),
     )
   // Browse: the called-off activity is filtered out.
-  assert client.tab_summaries(model_, client.TabActivities, client.BrowseList)
+  assert client.tab_summaries(
+      model_,
+      filters_for(client.TabActivities),
+      client.BrowseList,
+    )
     == client.Loaded([active])
   // Manage: both are shown.
-  assert client.tab_summaries(model_, client.TabActivities, client.ManageList)
+  assert client.tab_summaries(
+      model_,
+      filters_for(client.TabActivities),
+      client.ManageList,
+    )
     == client.Loaded([active, called_off])
 }
 
-// LIST SOURCES: source_remote / set_source_remote / ensure_source_loaded -------
+// LIST WINDOWS: window_remote / set_window_remote / load_or_revalidate ---------
 
-pub fn set_then_get_source_remote_round_trips_test() {
+pub fn set_then_get_window_remote_round_trips_test() {
   let model_ =
-    client.set_source_remote(
+    client.set_window_remote(
       base_model(),
-      client.SourceClimbingWall,
+      climbing_wall_window(),
       client.Loaded([id_a()]),
     )
-  assert client.source_remote(model_, client.SourceClimbingWall)
+  assert client.window_remote(model_, climbing_wall_window())
     == client.Loaded([id_a()])
 }
 
-pub fn ensure_source_loaded_marks_unasked_source_loading_test() {
-  let #(next, _) =
-    client.ensure_source_loaded(base_model(), client.SourceBeachBus)
-  assert client.source_remote(next, client.SourceBeachBus) == client.Loading
+pub fn load_or_revalidate_marks_unasked_window_loading_test() {
+  let #(next, _) = client.load_or_revalidate(base_model(), beach_bus_window())
+  assert client.window_remote(next, beach_bus_window()) == client.Loading
 }
 
-pub fn ensure_source_loaded_leaves_loaded_source_untouched_test() {
+pub fn load_or_revalidate_keeps_loaded_window_while_revalidating_test() {
   let model_ =
-    client.Model(..base_model(), beach_bus_ids: client.Loaded([id_a()]))
-  let #(next, _) = client.ensure_source_loaded(model_, client.SourceBeachBus)
-  assert next.beach_bus_ids == client.Loaded([id_a()])
+    client.set_window_remote(
+      base_model(),
+      beach_bus_window(),
+      client.Loaded([id_a()]),
+    )
+  let #(next, _) = client.load_or_revalidate(model_, beach_bus_window())
+  // Still shows the cached list (revalidation happens in the background).
+  assert client.window_remote(next, beach_bus_window())
+    == client.Loaded([id_a()])
 }
 
 // ROUTING: uri_to_page ---------------------------------------------------------
@@ -511,9 +571,14 @@ pub fn toggling_favourite_marks_unfavourited_as_favourited_test() {
 }
 
 pub fn toggling_favourite_invalidates_favourited_window_test() {
-  let model_ = client.Model(..base_model(), favourited: client.Loaded([]))
+  let model_ =
+    client.set_window_remote(
+      base_model(),
+      client.favourites_key(),
+      client.Loaded([]),
+    )
   let #(next, _) = client.update(model_, client.UserToggledFavourite(id_a()))
-  assert next.favourited == client.NotAsked
+  assert client.window_remote(next, client.favourites_key()) == client.NotAsked
 }
 
 pub fn toggling_favourite_removes_existing_favourite_test() {
@@ -649,11 +714,12 @@ pub fn created_booking_records_booked_status_and_invalidates_favourites_test() {
         id_a(),
         client.BookingSubmitting(client.BookingNew),
       ),
-      favourited: client.Loaded([]),
     )
+  let model_ =
+    client.set_window_remote(model_, client.favourites_key(), client.Loaded([]))
   let #(next, _) = client.update(model_, client.ApiCreatedBooking(Ok(booking)))
   assert dict.get(next.statuses, id_a()) == Ok(model.Booked(booking))
-  assert next.favourited == client.NotAsked
+  assert client.window_remote(next, client.favourites_key()) == client.NotAsked
   assert next.page == client.ActivityDetailPage(id_a(), client.BookingClosed)
 }
 
@@ -749,38 +815,40 @@ pub fn returned_activity_list_hydrates_cache_and_sets_window_test() {
     client.update(
       base_model(),
       client.ApiReturnedActivityWindow(
-        client.SourceBeachBus,
-        True,
+        beach_bus_window(),
         client.WindowLoaded([summary_a, summary_b], Some("\"etag-1\"")),
       ),
     )
-  assert next.beach_bus_ids == client.Loaded([id_a(), id_b()])
+  assert client.window_remote(next, beach_bus_window())
+    == client.Loaded([id_a(), id_b()])
   assert dict.get(next.activities, id_a()) == Ok(summary_a)
   assert dict.get(next.activities, id_b()) == Ok(summary_b)
-  // The response's ETag is stored keyed by (source, include_call_offs).
-  assert dict.get(next.etags, #(client.SourceBeachBus, True))
-    == Ok("\"etag-1\"")
+  // The response's ETag is stored keyed by the whole window key.
+  assert dict.get(next.etags, beach_bus_window()) == Ok("\"etag-1\"")
 }
 
 pub fn unchanged_activity_window_keeps_cache_untouched_test() {
   // A 304 leaves the loaded window and its cached summaries exactly as they were.
   let summary_a = a_summary(id_a(), "A", None)
   let model_ =
-    client.Model(
-      ..base_model(),
-      activities: dict.from_list([#(id_a(), summary_a)]),
-      beach_bus_ids: client.Loaded([id_a()]),
+    client.set_window_remote(
+      client.Model(
+        ..base_model(),
+        activities: dict.from_list([#(id_a(), summary_a)]),
+      ),
+      beach_bus_window(),
+      client.Loaded([id_a()]),
     )
   let #(next, _) =
     client.update(
       model_,
       client.ApiReturnedActivityWindow(
-        client.SourceBeachBus,
-        True,
+        beach_bus_window(),
         client.WindowUnchanged,
       ),
     )
-  assert next.beach_bus_ids == client.Loaded([id_a()])
+  assert client.window_remote(next, beach_bus_window())
+    == client.Loaded([id_a()])
   assert dict.get(next.activities, id_a()) == Ok(summary_a)
 }
 
@@ -799,8 +867,7 @@ pub fn list_refetch_refreshes_summary_without_touching_loaded_detail_test() {
     client.update(
       model_,
       client.ApiReturnedActivityWindow(
-        client.SourceActivities,
-        True,
+        activities_window(),
         client.WindowLoaded([refreshed], None),
       ),
     )
@@ -813,28 +880,37 @@ pub fn failed_activity_list_marks_source_failed_test() {
     client.update(
       base_model(),
       client.ApiReturnedActivityWindow(
-        client.SourceClimbingWall,
-        True,
+        climbing_wall_window(),
         client.WindowFailed,
       ),
     )
-  let assert client.Failed(_) = next.climbing_wall_ids
+  let assert client.Failed(_) =
+    client.window_remote(next, climbing_wall_window())
 }
 
-pub fn created_activity_caches_and_invalidates_special_windows_test() {
+pub fn created_activity_caches_summary_and_invalidates_browse_windows_test() {
+  // A create can't be mapped to a single day/kind window, so every browse
+  // window is dropped (refetched on next open); the summary + detail are cached.
   let model_ =
-    client.Model(
-      ..base_model(),
-      activities_ids: client.Loaded([id_b()]),
-      beach_bus_ids: client.Loaded([id_b()]),
-      climbing_wall_ids: client.Loaded([id_b()]),
+    client.set_window_remote(
+      client.set_window_remote(
+        client.set_window_remote(
+          base_model(),
+          activities_window(),
+          client.Loaded([id_b()]),
+        ),
+        beach_bus_window(),
+        client.Loaded([id_b()]),
+      ),
+      climbing_wall_window(),
+      client.Loaded([id_b()]),
     )
   let activity = an_activity(id_a(), Some(5))
   let #(next, _) =
     client.update(model_, client.ApiCreatedActivity(Ok(activity)))
-  assert next.activities_ids == client.Loaded([id_a(), id_b()])
-  assert next.beach_bus_ids == client.NotAsked
-  assert next.climbing_wall_ids == client.NotAsked
+  assert client.window_remote(next, activities_window()) == client.NotAsked
+  assert client.window_remote(next, beach_bus_window()) == client.NotAsked
+  assert client.window_remote(next, climbing_wall_window()) == client.NotAsked
   // The summary lands in `activities`; only the detail-only fields in `details`.
   assert dict.get(next.activities, id_a())
     == Ok(a_summary(id_a(), "Climb", Some(5)))
@@ -845,17 +921,28 @@ pub fn deleted_activity_purges_caches_and_all_windows_test() {
   let summary_a = a_summary(id_a(), "A", None)
   let summary_b = a_summary(id_b(), "B", None)
   let model_ =
-    client.Model(
-      ..base_model(),
-      activities: dict.from_list([#(id_a(), summary_a), #(id_b(), summary_b)]),
-      activities_ids: client.Loaded([id_a(), id_b()]),
-      beach_bus_ids: client.Loaded([id_a()]),
-      statuses: dict.from_list([#(id_a(), model.Favourited)]),
+    client.set_window_remote(
+      client.set_window_remote(
+        client.Model(
+          ..base_model(),
+          activities: dict.from_list([
+            #(id_a(), summary_a),
+            #(id_b(), summary_b),
+          ]),
+          statuses: dict.from_list([#(id_a(), model.Favourited)]),
+        ),
+        activities_window(),
+        client.Loaded([id_a(), id_b()]),
+      ),
+      beach_bus_window(),
+      client.Loaded([id_a()]),
     )
   let #(next, _) =
     client.update(model_, client.ApiDeletedActivity(id_a(), Ok(Nil)))
-  assert next.activities_ids == client.Loaded([id_b()])
-  assert next.beach_bus_ids == client.Loaded([])
+  // The id is dropped from every cached window at once.
+  assert client.window_remote(next, activities_window())
+    == client.Loaded([id_b()])
+  assert client.window_remote(next, beach_bus_window()) == client.Loaded([])
   assert dict.has_key(next.activities, id_a()) == False
   assert dict.get(next.statuses, id_a()) == Error(Nil)
 }
@@ -863,11 +950,11 @@ pub fn deleted_activity_purges_caches_and_all_windows_test() {
 // UPDATE: list filters & tabs --------------------------------------------------
 
 pub fn selecting_tab_updates_filter_and_lazily_loads_source_test() {
-  // index 1 == TabBeachBus, whose source starts NotAsked in base_model.
+  // index 1 == TabBeachBus, whose window starts absent in base_model.
   let #(next, _) = client.update(base_model(), client.UserSelectedTab(1))
   let assert client.ActivitiesListPage(filters, _) = next.page
   assert filters.tab == client.TabBeachBus
-  assert next.beach_bus_ids == client.Loading
+  assert client.window_remote(next, beach_bus_window()) == client.Loading
 }
 
 pub fn selecting_tab_preserves_manage_mode_test() {
@@ -889,12 +976,13 @@ pub fn selecting_tab_preserves_manage_mode_test() {
 
 pub fn retrying_load_marks_current_tab_source_loading_test() {
   let model_ =
-    client.Model(
-      ..base_model(),
-      activities_ids: client.Failed(client.LoadActivitiesFailed),
+    client.set_window_remote(
+      base_model(),
+      activities_window(),
+      client.Failed(client.LoadActivitiesFailed),
     )
   let #(next, _) = client.update(model_, client.UserClickedRetryLoad)
-  assert next.activities_ids == client.Loading
+  assert client.window_remote(next, activities_window()) == client.Loading
 }
 
 pub fn searching_updates_filters_on_list_page_test() {

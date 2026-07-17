@@ -1994,6 +1994,8 @@ pub type ListActivitiesByStartTimeRow {
 pub fn list_activities_by_start_time(
   db: pog.Connection,
   arg_1: Bool,
+  arg_2: Timestamp,
+  arg_3: Timestamp,
 ) -> Result(pog.Returned(ListActivitiesByStartTimeRow), pog.QueryError) {
   let decoder = {
     use id <- decode.field(0, uuid_decoder())
@@ -2032,10 +2034,14 @@ WHERE recurring_activity_kind IS NULL
             SELECT 1 FROM call_off c WHERE c.activity_id = activity.id
         )
     )
+    AND start_time >= $2
+    AND start_time < $3
 ORDER BY start_time ASC;
 "
   |> pog.query
   |> pog.parameter(pog.bool(arg_1))
+  |> pog.parameter(pog.timestamp(arg_2))
+  |> pog.parameter(pog.timestamp(arg_3))
   |> pog.returning(decoder)
   |> pog.execute(db)
 }
@@ -2070,6 +2076,8 @@ pub type ListActivitiesByTitleRow {
 pub fn list_activities_by_title(
   db: pog.Connection,
   arg_1: Bool,
+  arg_2: Timestamp,
+  arg_3: Timestamp,
 ) -> Result(pog.Returned(ListActivitiesByTitleRow), pog.QueryError) {
   let decoder = {
     use id <- decode.field(0, uuid_decoder())
@@ -2108,10 +2116,14 @@ WHERE recurring_activity_kind IS NULL
             SELECT 1 FROM call_off c WHERE c.activity_id = activity.id
         )
     )
+    AND start_time >= $2
+    AND start_time < $3
 ORDER BY title ASC;
 "
   |> pog.query
   |> pog.parameter(pog.bool(arg_1))
+  |> pog.parameter(pog.timestamp(arg_2))
+  |> pog.parameter(pog.timestamp(arg_3))
   |> pog.returning(decoder)
   |> pog.execute(db)
 }
@@ -2293,6 +2305,8 @@ pub type ListBeachBusActivitiesRow {
 pub fn list_beach_bus_activities(
   db: pog.Connection,
   arg_1: Bool,
+  arg_2: Timestamp,
+  arg_3: Timestamp,
 ) -> Result(pog.Returned(ListBeachBusActivitiesRow), pog.QueryError) {
   let decoder = {
     use id <- decode.field(0, uuid_decoder())
@@ -2331,10 +2345,14 @@ WHERE recurring_activity_kind = 'beach-bus'
             SELECT 1 FROM call_off c WHERE c.activity_id = activity.id
         )
     )
+    AND start_time >= $2
+    AND start_time < $3
 ORDER BY start_time ASC;
 "
   |> pog.query
   |> pog.parameter(pog.bool(arg_1))
+  |> pog.parameter(pog.timestamp(arg_2))
+  |> pog.parameter(pog.timestamp(arg_3))
   |> pog.returning(decoder)
   |> pog.execute(db)
 }
@@ -2412,6 +2430,8 @@ pub type ListClimbingWallActivitiesRow {
 pub fn list_climbing_wall_activities(
   db: pog.Connection,
   arg_1: Bool,
+  arg_2: Timestamp,
+  arg_3: Timestamp,
 ) -> Result(pog.Returned(ListClimbingWallActivitiesRow), pog.QueryError) {
   let decoder = {
     use id <- decode.field(0, uuid_decoder())
@@ -2450,10 +2470,14 @@ WHERE recurring_activity_kind = 'climbing-wall'
             SELECT 1 FROM call_off c WHERE c.activity_id = activity.id
         )
     )
+    AND start_time >= $2
+    AND start_time < $3
 ORDER BY start_time ASC;
 "
   |> pog.query
   |> pog.parameter(pog.bool(arg_1))
+  |> pog.parameter(pog.timestamp(arg_2))
+  |> pog.parameter(pog.timestamp(arg_3))
   |> pog.returning(decoder)
   |> pog.execute(db)
 }

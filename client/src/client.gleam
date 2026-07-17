@@ -13,6 +13,7 @@ import gleam/json
 import gleam/list
 import gleam/option.{type Option, None, Some}
 import gleam/order
+import gleam/result
 import gleam/string
 import gleam/time/calendar
 import gleam/time/duration
@@ -28,6 +29,7 @@ import lustre/element/keyed
 import lustre/event
 import modem
 import rsvp
+import shared/event as event_dates
 import shared/model.{
   type Activity, type ActivitySpots, type ActivityStatus,
   type ActivityStatusEntry, type ActivitySummary, type ActivityTag, type Booking,
@@ -392,6 +394,14 @@ pub type WindowResult {
   WindowFailed
 }
 
+/// Identity of a cached activity list: which source, which day (`Some` for the
+/// day-windowed browse tabs, `None` for the all-days Favourites view), and
+/// whether the manager call-off superset is included. Both the id window and
+/// its revalidation ETag are keyed by this, so each `(tab, day, view)` caches
+/// and revalidates independently — switching day is as cheap as switching tabs.
+pub type WindowKey =
+  #(ActivityListSource, Option(calendar.Date), Bool)
+
 pub type ActivityForm {
   ActivityForm(
     title: String,
@@ -657,18 +667,18 @@ pub type Model {
     // Entity cache: one slim summary per activity, hydrated/overwritten by
     // EVERY list response (browse pages, beach-bus, climbing-wall, favourited).
     activities: Dict(Uuid, ActivitySummary),
-    // Ordered id windows per browse tab — define each tab's membership + order.
-    activities_ids: RemoteData(List(Uuid)),
-    beach_bus_ids: RemoteData(List(Uuid)),
-    climbing_wall_ids: RemoteData(List(Uuid)),
-    // Drives the Favourites tab's /api/favourited-activities fetch state and
-    // cache hydration. Membership is DERIVED from `statuses`, not this list.
-    favourited: RemoteData(List(Uuid)),
-    // Strong ETag of the last successful list response per fetch identity
-    // (source + include_call_offs). Sent back as `If-None-Match` to revalidate;
-    // a `304` means the cached window is still current. Keyed by include-call-offs
-    // too so a manager's superset and the default view never share a validator.
-    etags: Dict(#(ActivityListSource, Bool), String),
+    // Ordered id windows keyed by fetch identity (source + day + include-call-
+    // offs). Each browse tab/day and the all-days Favourites view cache
+    // independently, so switching day shows the cached list instantly and
+    // revalidates in the background exactly like switching tabs. The Favourites
+    // window (`favourites_key`) drives that tab's fetch state + hydration;
+    // membership there is DERIVED from `statuses`, not the window ids.
+    windows: Dict(WindowKey, RemoteData(List(Uuid))),
+    // Strong ETag of the last successful response per window, sent back as
+    // `If-None-Match` to revalidate; a `304` means that window is still current.
+    etags: Dict(WindowKey, String),
+    // Today clamped into the event range — the browse tabs' default day.
+    today: calendar.Date,
     // Detail-only fields (description + full location), fetched lazily per
     // detail view. Composed with the summary from `activities` at read time.
     details: Dict(Uuid, RemoteData(ActivityDetail)),
@@ -739,63 +749,68 @@ pub fn tab_source(tab: ActivitiesFilterTab) -> ActivityListSource {
   }
 }
 
-/// The fetch-state `RemoteData` backing a source (the per-tab id window, or the
-/// favourited fetch). Used to decide lazy loading and render the tab's state.
-pub fn source_remote(
-  model: Model,
-  source: ActivityListSource,
-) -> RemoteData(List(Uuid)) {
-  case source {
-    SourceActivities -> model.activities_ids
-    SourceBeachBus -> model.beach_bus_ids
-    SourceClimbingWall -> model.climbing_wall_ids
-    SourceFavourites -> model.favourited
-  }
+/// The `RemoteData` cached for a window key (`NotAsked` if never fetched).
+pub fn window_remote(model: Model, key: WindowKey) -> RemoteData(List(Uuid)) {
+  dict.get(model.windows, key) |> result.unwrap(NotAsked)
 }
 
-pub fn set_source_remote(
+pub fn set_window_remote(
   model: Model,
-  source: ActivityListSource,
+  key: WindowKey,
   remote: RemoteData(List(Uuid)),
 ) -> Model {
-  case source {
-    SourceActivities -> Model(..model, activities_ids: remote)
-    SourceBeachBus -> Model(..model, beach_bus_ids: remote)
-    SourceClimbingWall -> Model(..model, climbing_wall_ids: remote)
-    SourceFavourites -> Model(..model, favourited: remote)
-  }
+  Model(..model, windows: dict.insert(model.windows, key, remote))
 }
 
-/// Lazily load a source: if never fetched, mark it `Loading` and fire the
-/// fetch; otherwise leave the cache untouched (instant tab switch).
-pub fn ensure_source_loaded(
+/// Drop every cached browse window (all sources/days/views except Favourites)
+/// so the next view refetches. Used after a create, whose day and special-tab
+/// kind we can't map to a single window to update in place.
+fn invalidate_browse_windows(
+  windows: Dict(WindowKey, RemoteData(List(Uuid))),
+) -> Dict(WindowKey, RemoteData(List(Uuid))) {
+  dict.filter(windows, fn(key, _) { key.0 == SourceFavourites })
+}
+
+/// The all-days Favourites window key. The favourited endpoint spans every day
+/// and always includes call-offs, so its identity carries no day and no
+/// call-off flag.
+pub fn favourites_key() -> WindowKey {
+  #(SourceFavourites, None, False)
+}
+
+/// The fetch identity for a source under the given filters: browse sources
+/// window by the effective day (the picked day, else the clamped "today");
+/// Favourites spans all days. `include_call_offs` is role-derived.
+pub fn window_key_for(
   model: Model,
   source: ActivityListSource,
-) -> #(Model, Effect(Msg)) {
-  case source_remote(model, source) {
-    NotAsked -> #(
-      set_source_remote(model, source, Loading),
-      fetch_list(model, source),
+  filters: ListFilters,
+) -> WindowKey {
+  case source {
+    SourceFavourites -> favourites_key()
+    _ -> #(
+      source,
+      Some(option.unwrap(filters.day, model.today)),
+      source_include_call_offs(model, source),
     )
-    Loading | Loaded(_) | Failed(_) -> #(model, effect.none())
   }
 }
 
-/// Show-then-revalidate a source: an unfetched source flips to `Loading` and
-/// fetches; an already-loaded source refetches conditionally in the background
-/// (a `304` keeps what's shown), so revisiting a tab/page is cheap and stays
-/// fresh without blanking to a spinner. A source mid-flight or awaiting retry is
+/// Show-then-revalidate a window: an unfetched window flips to `Loading` and
+/// fetches; an already-loaded window refetches conditionally in the background
+/// (a `304` keeps what's shown), so revisiting a tab/day/page is cheap and stays
+/// fresh without blanking to a spinner. A window mid-flight or awaiting retry is
 /// left alone.
 pub fn load_or_revalidate(
   model: Model,
-  source: ActivityListSource,
+  key: WindowKey,
 ) -> #(Model, Effect(Msg)) {
-  case source_remote(model, source) {
+  case window_remote(model, key) {
     NotAsked -> #(
-      set_source_remote(model, source, Loading),
-      fetch_list(model, source),
+      set_window_remote(model, key, Loading),
+      fetch_window(model, key),
     )
-    Loaded(_) -> #(model, fetch_list(model, source))
+    Loaded(_) -> #(model, fetch_window(model, key))
     Loading | Failed(_) -> #(model, effect.none())
   }
 }
@@ -806,20 +821,20 @@ pub fn load_or_revalidate(
 /// `favourited` fetch only supplies hydration + loading/error state.
 pub fn tab_summaries(
   model: Model,
-  tab: ActivitiesFilterTab,
+  filters: ListFilters,
   mode: ListMode,
 ) -> RemoteData(List(ActivitySummary)) {
-  case tab {
+  case filters.tab {
     TabFavourites -> {
-      // Membership is derived from the complete `statuses` map; the `favourited`
-      // fetch only supplies hydration (summaries for fav/booked items not yet in
+      // Membership is derived from the complete `statuses` map; the favourites
+      // window only supplies hydration (summaries for fav/booked items not yet in
       // the cache, e.g. beach-bus/climbing-wall slots) + the first-load state.
       let derived =
         model.statuses
         |> dict.keys
         |> list.filter(fn(id) { is_favourited(status_of(model.statuses, id)) })
         |> list.filter_map(fn(id) { dict.get(model.activities, id) })
-      case derived, model.favourited {
+      case derived, window_remote(model, favourites_key()) {
         // Nothing cached to render yet — reflect the fetch state.
         [], NotAsked -> NotAsked
         [], Loading -> Loading
@@ -832,7 +847,12 @@ pub fn tab_summaries(
       }
     }
     _ ->
-      case source_remote(model, tab_source(tab)) {
+      case
+        window_remote(
+          model,
+          window_key_for(model, tab_source(filters.tab), filters),
+        )
+      {
         NotAsked -> NotAsked
         Loading -> Loading
         Failed(err) -> Failed(err)
@@ -939,18 +959,6 @@ fn map_loaded(
   case remote {
     Loaded(items) -> Loaded(f(items))
     NotAsked | Loading | Failed(_) -> remote
-  }
-}
-
-/// Prepend an id to a loaded id window (no-op while not loaded; dedups).
-pub fn prepend_id(
-  remote: RemoteData(List(Uuid)),
-  id: Uuid,
-) -> RemoteData(List(Uuid)) {
-  use ids <- map_loaded(remote)
-  case list.contains(ids, id) {
-    True -> ids
-    False -> [id, ..ids]
   }
 }
 
@@ -1273,17 +1281,20 @@ fn init(_flags) -> #(Model, Effect(Msg)) {
     )
   }
 
+  let today = event_dates.clamp_to_event(today())
+  // The default Activities window (today, non-manager view) loads immediately;
+  // every other tab/day loads lazily on first open. Roles are empty here, so a
+  // manager's call-off superset (a distinct key) loads once /api/me returns.
+  let initial_key = #(SourceActivities, Some(today), False)
+
   let model =
     Model(
       page:,
       translator:,
       activities: dict.new(),
-      // Default tab loads immediately; other sources load lazily on first open.
-      activities_ids: Loading,
-      beach_bus_ids: NotAsked,
-      climbing_wall_ids: NotAsked,
-      favourited: NotAsked,
+      windows: dict.from_list([#(initial_key, Loading)]),
       etags: dict.new(),
+      today:,
       details: seed_detail_loading(dict.new(), page),
       statuses: dict.new(),
       spots: dict.new(),
@@ -1305,7 +1316,7 @@ fn init(_flags) -> #(Model, Effect(Msg)) {
       modem.init(OnRouteChange),
       observe_lang(),
       start_refresh_timer(),
-      fetch_list(model, SourceActivities),
+      fetch_window(model, initial_key),
       fetch_spots(),
       fetch_activity_tags(),
       fetch_locations(),
@@ -1326,10 +1337,10 @@ pub type Msg {
   OnRouteChange(Uri)
   // Locale
   LangChanged(String)
-  // API responses. `ApiReturnedActivityWindow` carries the include-call-offs the
-  // request used (to key the stored ETag) and a `WindowResult` — the raw HTTP
-  // response is interpreted in the effect handler so `update` stays pure.
-  ApiReturnedActivityWindow(ActivityListSource, Bool, WindowResult)
+  // API responses. `ApiReturnedActivityWindow` carries the `WindowKey` the
+  // request used (to store the id window + its ETag) and a `WindowResult` — the
+  // raw HTTP response is interpreted in the effect handler so `update` stays pure.
+  ApiReturnedActivityWindow(WindowKey, WindowResult)
   ApiReturnedActivity(Uuid, Result(Activity, rsvp.Error))
   ApiReturnedMe(Result(List(Role), rsvp.Error))
   ApiReturnedStatuses(Result(List(ActivityStatusEntry), rsvp.Error))
@@ -1412,7 +1423,10 @@ pub fn update(model: Model, msg: Msg) -> #(Model, Effect(Msg)) {
       // unchanged), so a returning view stays fresh without a blocking reload.
       let #(model, list_effect) = case page {
         ActivitiesListPage(filters, _) ->
-          load_or_revalidate(model, tab_source(filters.tab))
+          load_or_revalidate(
+            model,
+            window_key_for(model, tab_source(filters.tab), filters),
+          )
         _ -> #(model, effect.none())
       }
       #(
@@ -1430,32 +1444,25 @@ pub fn update(model: Model, msg: Msg) -> #(Model, Effect(Msg)) {
       #(Model(..model, translator:), title_effect)
     }
 
-    ApiReturnedActivityWindow(source, inc, WindowLoaded(items, etag)) -> {
+    ApiReturnedActivityWindow(key, WindowLoaded(items, etag)) -> {
       let activities = hydrate(model.activities, items)
       let ids = list.map(items, fn(s) { s.id })
       let etags = case etag {
-        Some(tag) -> dict.insert(model.etags, #(source, inc), tag)
+        Some(tag) -> dict.insert(model.etags, key, tag)
         None -> model.etags
       }
       #(
-        set_source_remote(
-          Model(..model, activities:, etags:),
-          source,
-          Loaded(ids),
-        ),
+        set_window_remote(Model(..model, activities:, etags:), key, Loaded(ids)),
         effect.none(),
       )
     }
 
     // A 304: the cached window is still current, so leave it (and its ETag)
     // untouched.
-    ApiReturnedActivityWindow(_source, _inc, WindowUnchanged) -> #(
-      model,
-      effect.none(),
-    )
+    ApiReturnedActivityWindow(_key, WindowUnchanged) -> #(model, effect.none())
 
-    ApiReturnedActivityWindow(source, _inc, WindowFailed) -> #(
-      set_source_remote(model, source, Failed(LoadActivitiesFailed)),
+    ApiReturnedActivityWindow(key, WindowFailed) -> #(
+      set_window_remote(model, key, Failed(LoadActivitiesFailed)),
       effect.none(),
     )
 
@@ -1517,10 +1524,11 @@ pub fn update(model: Model, msg: Msg) -> #(Model, Effect(Msg)) {
       // list: a manager's window upgrades to the call-off superset the manage
       // view needs, and a non-manager just gets a cheap revalidation.
       case model.page {
-        ActivitiesListPage(filters, _) -> #(
-          model,
-          fetch_list(model, tab_source(filters.tab)),
-        )
+        ActivitiesListPage(filters, _) ->
+          load_or_revalidate(
+            model,
+            window_key_for(model, tab_source(filters.tab), filters),
+          )
         _ -> #(model, effect.none())
       }
     }
@@ -1588,12 +1596,10 @@ pub fn update(model: Model, msg: Msg) -> #(Model, Effect(Msg)) {
           activity.id,
           to_summary(activity),
         ),
-        // Show it immediately in the all-activities window. The kind is
-        // server-internal, so we can't tell if it belongs to a special tab —
-        // invalidate those windows so they refetch on next open.
-        activities_ids: prepend_id(model.activities_ids, activity.id),
-        beach_bus_ids: NotAsked,
-        climbing_wall_ids: NotAsked,
+        // The new activity's day and special-tab kind can't be mapped to a
+        // single window, so drop the browse windows; the manage list we return
+        // to refetches the relevant day.
+        windows: invalidate_browse_windows(model.windows),
         details: dict.insert(
           model.details,
           activity.id,
@@ -1694,10 +1700,10 @@ pub fn update(model: Model, msg: Msg) -> #(Model, Effect(Msg)) {
       Model(
         ..model,
         activities: dict.delete(model.activities, id),
-        activities_ids: remove_id(model.activities_ids, id),
-        beach_bus_ids: remove_id(model.beach_bus_ids, id),
-        climbing_wall_ids: remove_id(model.climbing_wall_ids, id),
-        favourited: remove_id(model.favourited, id),
+        // Drop the id from every cached window so it vanishes everywhere at once.
+        windows: dict.map_values(model.windows, fn(_key, remote) {
+          remove_id(remote, id)
+        }),
         details: dict.delete(model.details, id),
         statuses: dict.delete(model.statuses, id),
       ),
@@ -1861,21 +1867,47 @@ pub fn update(model: Model, msg: Msg) -> #(Model, Effect(Msg)) {
       case model.page {
         ActivitiesListPage(filters, mode) -> {
           let tab = tab_from_index(index)
+          // Each tab resolves the day to its own default: Favourites shows all
+          // days, the browse tabs a single day. Switching between browse tabs
+          // keeps the chosen day; crossing the Favourites boundary resets it.
+          let day = case tab, filters.tab {
+            TabFavourites, _ -> None
+            _, TabFavourites -> Some(model.today)
+            _, _ -> filters.day
+          }
+          let filters = ListFilters(..filters, tab:, day:)
           let #(model, fetch_effect) =
-            load_or_revalidate(model, tab_source(tab))
+            load_or_revalidate(
+              model,
+              window_key_for(model, tab_source(tab), filters),
+            )
           #(
-            Model(
-              ..model,
-              page: ActivitiesListPage(ListFilters(..filters, tab:), mode),
-            ),
+            Model(..model, page: ActivitiesListPage(filters, mode)),
             fetch_effect,
           )
         }
         _ -> #(model, effect.none())
       }
 
+    // Picking a day on a browse tab fetches that day's window (instant from cache
+    // + background revalidate); on Favourites the day only narrows the rendered
+    // list client-side, so this just revalidates the all-days window.
     UserSelectedDay(d) ->
-      update_filters(model, fn(f) { ListFilters(..f, day: d) })
+      case model.page {
+        ActivitiesListPage(filters, mode) -> {
+          let filters = ListFilters(..filters, day: d)
+          let #(model, fetch_effect) =
+            load_or_revalidate(
+              model,
+              window_key_for(model, tab_source(filters.tab), filters),
+            )
+          #(
+            Model(..model, page: ActivitiesListPage(filters, mode)),
+            fetch_effect,
+          )
+        }
+        _ -> #(model, effect.none())
+      }
 
     UserToggledMoreFilters ->
       update_filters(model, fn(f) { ListFilters(..f, more_open: !f.more_open) })
@@ -2068,14 +2100,14 @@ pub fn update(model: Model, msg: Msg) -> #(Model, Effect(Msg)) {
         _ -> #(model, effect.none())
       }
 
-    UserClickedRetryLoad -> {
-      let tab = case model.page {
-        ActivitiesListPage(filters, _) -> filters.tab
-        _ -> TabActivities
+    UserClickedRetryLoad ->
+      case model.page {
+        ActivitiesListPage(filters, _) -> {
+          let key = window_key_for(model, tab_source(filters.tab), filters)
+          #(set_window_remote(model, key, Loading), fetch_window(model, key))
+        }
+        _ -> #(model, effect.none())
       }
-      let source = tab_source(tab)
-      #(set_source_remote(model, source, Loading), fetch_list(model, source))
-    }
 
     UserToggledFavourite(activity_id) ->
       case status_of(model.statuses, activity_id) {
@@ -2092,7 +2124,7 @@ pub fn update(model: Model, msg: Msg) -> #(Model, Effect(Msg)) {
           Model(
             ..model,
             statuses: dict.insert(model.statuses, activity_id, Favourited),
-            favourited: NotAsked,
+            windows: dict.delete(model.windows, favourites_key()),
           ),
           add_favourite(activity_id),
         )
@@ -2266,7 +2298,12 @@ pub fn update(model: Model, msg: Msg) -> #(Model, Effect(Msg)) {
       // Booking auto-favourites server-side, so invalidate the favourited
       // window to pick up this newly-relevant summary on next Favourites open.
       #(
-        Model(..model, statuses:, page:, favourited: NotAsked),
+        Model(
+          ..model,
+          statuses:,
+          page:,
+          windows: dict.delete(model.windows, favourites_key()),
+        ),
         fetch_activity_spots(booking.activity_id),
       )
     }
@@ -2458,11 +2495,37 @@ fn source_include_call_offs(model: Model, source: ActivityListSource) -> Bool {
   }
 }
 
-fn source_url(source: ActivityListSource, include_call_offs: Bool) -> String {
+/// The request URL for a window: the source path plus the `?include_call_offs=`
+/// and `?day=` params that make up its fetch identity. Favourites carries
+/// neither (day is `None`, call-offs always included server-side).
+fn window_url(key: WindowKey) -> String {
+  let #(source, day, include_call_offs) = key
   let path = api_prefix <> list_source_path(source)
-  case include_call_offs {
-    True -> path <> "?include_call_offs=true"
-    False -> path
+  let params =
+    []
+    |> prepend_if(include_call_offs, "include_call_offs=true")
+    |> prepend_if_some(day, fn(d) { "day=" <> date_to_iso(d) })
+  case params {
+    [] -> path
+    _ -> path <> "?" <> string.join(params, "&")
+  }
+}
+
+fn prepend_if(list: List(a), condition: Bool, value: a) -> List(a) {
+  case condition {
+    True -> [value, ..list]
+    False -> list
+  }
+}
+
+fn prepend_if_some(
+  list: List(a),
+  maybe: Option(b),
+  to_value: fn(b) -> a,
+) -> List(a) {
+  case maybe {
+    Some(value) -> [to_value(value), ..list]
+    None -> list
   }
 }
 
@@ -2476,22 +2539,18 @@ fn set_if_none_match(
   }
 }
 
-/// Conditionally fetch a list source. Sends `If-None-Match` only when we already
-/// have a loaded window for this exact `(source, include_call_offs)` — so a
-/// `304` can only ever tell us to keep data we're already showing, and a
-/// first/failed load always fetches unconditionally. `rsvp.send` (needed to set
-/// the header) loses the convenience helpers' relative-URL resolution, so we
-/// resolve against the iframe base ourselves; that only works in the browser,
-/// which is the only place fetches run.
-fn fetch_list(model: Model, source: ActivityListSource) -> Effect(Msg) {
-  let include_call_offs = source_include_call_offs(model, source)
-  let etag = case source_remote(model, source) {
-    Loaded(_) ->
-      dict.get(model.etags, #(source, include_call_offs))
-      |> option.from_result
+/// Conditionally fetch a window. Sends `If-None-Match` only when we already have
+/// a loaded window for this exact key — so a `304` can only ever tell us to keep
+/// data we're already showing, and a first/failed load always fetches
+/// unconditionally. `rsvp.send` (needed to set the header) loses the convenience
+/// helpers' relative-URL resolution, so we resolve against the iframe base
+/// ourselves; that only works in the browser, which is the only place fetches run.
+fn fetch_window(model: Model, key: WindowKey) -> Effect(Msg) {
+  let etag = case window_remote(model, key) {
+    Loaded(_) -> dict.get(model.etags, key) |> option.from_result
     NotAsked | Loading | Failed(_) -> None
   }
-  case rsvp.parse_relative_uri(source_url(source, include_call_offs)) {
+  case rsvp.parse_relative_uri(window_url(key)) {
     Error(_) -> effect.none()
     Ok(uri) ->
       case request.from_uri(uri) {
@@ -2500,7 +2559,7 @@ fn fetch_list(model: Model, source: ActivityListSource) -> Effect(Msg) {
           req
           |> request.set_method(http.Get)
           |> set_if_none_match(etag)
-          |> rsvp.send(activity_window_handler(source, include_call_offs))
+          |> rsvp.send(activity_window_handler(key))
       }
   }
 }
@@ -2508,10 +2567,7 @@ fn fetch_list(model: Model, source: ActivityListSource) -> Effect(Msg) {
 /// Interprets the raw HTTP response into a `WindowResult` (see its docs): `304`
 /// → unchanged, `2xx` + decodable body → loaded with the new ETag, anything
 /// else → failed.
-fn activity_window_handler(
-  source: ActivityListSource,
-  include_call_offs: Bool,
-) -> rsvp.Handler(Msg) {
+fn activity_window_handler(key: WindowKey) -> rsvp.Handler(Msg) {
   rsvp.expect_any_response(fn(result) {
     let outcome = case result {
       Ok(resp) ->
@@ -2530,7 +2586,7 @@ fn activity_window_handler(
         }
       Error(_) -> WindowFailed
     }
-    ApiReturnedActivityWindow(source, include_call_offs, outcome)
+    ApiReturnedActivityWindow(key, outcome)
   })
 }
 
@@ -3016,12 +3072,13 @@ fn view(model: Model) -> Element(Msg) {
     ActivitiesListPage(filters, mode) ->
       view_activities_list(
         model.translator,
-        tab_summaries(model, filters.tab, mode),
+        tab_summaries(model, filters, mode),
         model.statuses,
         model.spots,
         filters,
         model.activity_tags,
         mode,
+        model.today,
       )
     ActivityNewPage(form, submit_error, tags, target_groups) ->
       view_activity_form(
@@ -3088,11 +3145,12 @@ fn view_activities_list(
   filters: ListFilters,
   activity_tags: Dict(Uuid, ActivityTag),
   mode: ListMode,
+  today: calendar.Date,
 ) -> Element(Msg) {
   let t = fn(key) { g18n.translate(translator, key) }
 
   html.div([attribute.class("flex flex-col")], [
-    view_list_top_bar(translator, filters, summaries, mode),
+    view_list_top_bar(translator, filters, mode, today),
     case filters.more_open {
       True -> view_more_filters_panel(translator, filters, activity_tags)
       False -> element.none()
@@ -3128,13 +3186,17 @@ fn view_activities_list(
 fn view_list_top_bar(
   translator: Translator,
   filters: ListFilters,
-  summaries: RemoteData(List(ActivitySummary)),
   mode: ListMode,
+  today: calendar.Date,
 ) -> Element(Msg) {
   let t = fn(key) { g18n.translate(translator, key) }
-  let dates = case summaries {
-    Loaded(items) -> camp_dates(items)
-    _ -> []
+  // The day dropdown is a static list of the event dates. Favourites offers an
+  // "all days" option and defaults to it; the browse tabs offer only single
+  // days and default to today (clamped into the event range).
+  let show_any = filters.tab == TabFavourites
+  let selected_day = case filters.tab {
+    TabFavourites -> filters.day
+    _ -> Some(option.unwrap(filters.day, today))
   }
   let tab_labels =
     list.map(list_tabs_for(mode), fn(tab) { tab_label(translator, tab) })
@@ -3162,14 +3224,19 @@ fn view_list_top_bar(
         t("list.search_placeholder"),
         UserSearchedActivities,
       ),
-      // Key the day select by its date set: `scout-select` consumes its own
+      // Key the day select by its option set: `scout-select` consumes its own
       // `<option>` children, so reconciling them in place desyncs Lustre's DOM
-      // when the list changes (e.g. switching tabs). A content-derived key makes
-      // Lustre replace the whole element instead.
+      // when the set changes (the "all days" option appears/disappears crossing
+      // the Favourites boundary). A key that flips with `show_any` makes Lustre
+      // replace the whole element instead.
       keyed.div([attribute.class("flex items-center gap-2")], [
         #(
-          "day-select-" <> string.join(list.map(dates, date_to_iso), ","),
-          view_day_select(translator, filters.day, dates),
+          "day-select-"
+            <> case show_any {
+            True -> "any"
+            False -> "days"
+          },
+          view_day_select(translator, selected_day, show_any),
         ),
         #(
           "more-filters",
@@ -3211,26 +3278,33 @@ fn tab_label(translator: Translator, tab: ActivitiesFilterTab) -> String {
   }
 }
 
+/// The day dropdown. Options are the static event dates; `show_any` adds the
+/// leading "all days" option (Favourites only). `selected` drives which option
+/// is marked selected.
 fn view_day_select(
   translator: Translator,
   selected: Option(calendar.Date),
-  dates: List(calendar.Date),
+  show_any: Bool,
 ) -> Element(Msg) {
   let any_value = "__any__"
   let selected_value = case selected {
     None -> any_value
     Some(date) -> date_to_iso(date)
   }
-  let any_option =
-    html.option(
-      [
-        attribute.value(any_value),
-        attribute.selected(selected_value == any_value),
-      ],
-      g18n.translate(translator, "list.day.any"),
-    )
+  let any_option = case show_any {
+    True -> [
+      html.option(
+        [
+          attribute.value(any_value),
+          attribute.selected(selected_value == any_value),
+        ],
+        g18n.translate(translator, "list.day.any"),
+      ),
+    ]
+    False -> []
+  }
   let date_options =
-    list.map(dates, fn(date) {
+    list.map(event_dates.event_days(), fn(date) {
       let value = date_to_iso(date)
       let label = g18n.format_date(translator, date, g18n.Custom("EEEE d/M"))
       html.option(
@@ -3253,7 +3327,7 @@ fn view_day_select(
         decode.success(UserSelectedDay(new_day))
       }),
     ],
-    [any_option, ..date_options],
+    list.append(any_option, date_options),
   )
 }
 
@@ -4987,9 +5061,12 @@ pub fn apply_filters(items: List(CardItem), f: ListFilters) -> List(CardItem) {
       string.contains(string.lowercase(summary.title.sv), needle)
       || string.contains(string.lowercase(summary.title.en), needle)
   }
-  let day_match = case f.day {
-    None -> True
-    Some(date) -> date_of(summary.start_time) == date
+  // Browse tabs are day-windowed server-side, so the response already contains
+  // only the selected day — no client-side day filter needed. Favourites spans
+  // all days, so its optional day pick narrows the list here.
+  let day_match = case f.tab, f.day {
+    TabFavourites, Some(date) -> date_of(summary.start_time) == date
+    _, _ -> True
   }
   // Membership (tab/favourites) is resolved upstream via the source id windows
   // and the statuses-derived favourites set, so every tab is pass-through on
@@ -5003,13 +5080,6 @@ pub fn apply_filters(items: List(CardItem), f: ListFilters) -> List(CardItem) {
     selected -> lists_intersect(summary.tags, selected)
   }
   title_match && day_match && target_group_match && tag_match
-}
-
-fn camp_dates(summaries: List(ActivitySummary)) -> List(calendar.Date) {
-  summaries
-  |> list.map(fn(summary) { date_of(summary.start_time) })
-  |> list.unique
-  |> list.sort(calendar.naive_date_compare)
 }
 
 fn date_to_iso(date: calendar.Date) -> String {
