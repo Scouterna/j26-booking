@@ -3866,7 +3866,26 @@ fn view_activity_form_drawer(
       ),
     ]
   }
-  component.scout_drawer(open, heading, UserClickedCancelEdit, content)
+  // scout-drawer's container is a fixed-height box with `overflow: hidden` and
+  // gives slotted content no scroll of its own, so a tall form is otherwise
+  // clipped. Fill the region below the header (its exact `--spacing-20` height)
+  // and scroll there — this is positioned against the drawer container, so it
+  // works for both the mobile (90%) and desktop (100%) drawer heights without a
+  // breakpoint.
+  let body = case open {
+    False -> []
+    True -> [
+      html.div(
+        [
+          attribute.class(
+            "absolute inset-x-0 bottom-0 top-[var(--spacing-20)] overflow-y-auto",
+          ),
+        ],
+        content,
+      ),
+    ]
+  }
+  component.scout_drawer(open, heading, UserClickedCancelEdit, body)
 }
 
 /// Shared create/edit form, rendered inside `view_activity_form_drawer`. Create
