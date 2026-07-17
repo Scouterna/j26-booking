@@ -1,6 +1,10 @@
 # 12. Persist the day filter across navigation + independent Favourites day
 
-> **Status: 🔲 Not started** (as of 2026-07-17)
+> **Status: ✅ Done 2026-07-17** (branch `feat/day-windowed-activity-lists`;
+> implemented as designed — the day is lifted onto `Model` as
+> `browse_day_filter` / `favourites_day_filter`, `window_key_for` drops its
+> `filters` param, and `apply_filters` takes an explicit client-side day. Both
+> Playwright repros pass; client 80 / shared 5 / server 35 tests green.)
 
 ## Context
 

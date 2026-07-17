@@ -554,7 +554,6 @@ pub type ListFilters {
   ListFilters(
     search: String,
     tab: ActivitiesFilterTab,
-    day: Option(calendar.Date),
     more_open: Bool,
     target_groups: List(TargetGroup),
     tags: List(Uuid),
@@ -565,7 +564,6 @@ pub fn default_filters() -> ListFilters {
   ListFilters(
     search: "",
     tab: TabActivities,
-    day: None,
     more_open: False,
     target_groups: [],
     tags: [],
@@ -679,6 +677,13 @@ pub type Model {
     etags: Dict(WindowKey, String),
     // Today clamped into the event range — the browse tabs' default day.
     today: calendar.Date,
+    // The day shared by the browse tabs (Aktiviteter / Badbuss / Klättervägg),
+    // lifted out of the page so it survives navigation. `None` resolves to
+    // `today` (browse has no "all days" option).
+    browse_day_filter: Option(calendar.Date),
+    // Favourites' own day, independent of the browse tabs. `None` = "all days"
+    // (its default); a pick narrows the all-days list client-side.
+    favourites_day_filter: Option(calendar.Date),
     // Detail-only fields (description + full location), fetched lazily per
     // detail view. Composed with the summary from `activities` at read time.
     details: Dict(Uuid, RemoteData(ActivityDetail)),
@@ -778,21 +783,32 @@ pub fn favourites_key() -> WindowKey {
   #(SourceFavourites, None, False)
 }
 
-/// The fetch identity for a source under the given filters: browse sources
-/// window by the effective day (the picked day, else the clamped "today");
-/// Favourites spans all days. `include_call_offs` is role-derived.
-pub fn window_key_for(
-  model: Model,
-  source: ActivityListSource,
-  filters: ListFilters,
-) -> WindowKey {
+/// The fetch identity for a source: browse sources window by the shared browse
+/// day (`browse_day_filter`, else the clamped "today"); Favourites spans all
+/// days regardless of its own day pick (which narrows client-side only).
+/// `include_call_offs` is role-derived.
+pub fn window_key_for(model: Model, source: ActivityListSource) -> WindowKey {
   case source {
     SourceFavourites -> favourites_key()
     _ -> #(
       source,
-      Some(option.unwrap(filters.day, model.today)),
+      Some(option.unwrap(model.browse_day_filter, model.today)),
       source_include_call_offs(model, source),
     )
+  }
+}
+
+/// The day a tab currently resolves to, read from the Model's per-view day
+/// fields (so it survives page rebuilds): Favourites uses its own day (`None` =
+/// all days, its default); the browse tabs share `browse_day_filter`, defaulting
+/// to the clamped `today` (browse has no "all days").
+pub fn effective_day(
+  model: Model,
+  tab: ActivitiesFilterTab,
+) -> Option(calendar.Date) {
+  case tab {
+    TabFavourites -> model.favourites_day_filter
+    _ -> Some(option.unwrap(model.browse_day_filter, model.today))
   }
 }
 
@@ -848,10 +864,7 @@ pub fn tab_summaries(
     }
     _ ->
       case
-        window_remote(
-          model,
-          window_key_for(model, tab_source(filters.tab), filters),
-        )
+        window_remote(model, window_key_for(model, tab_source(filters.tab)))
       {
         NotAsked -> NotAsked
         Loading -> Loading
@@ -1295,6 +1308,9 @@ fn init(_flags) -> #(Model, Effect(Msg)) {
       windows: dict.from_list([#(initial_key, Loading)]),
       etags: dict.new(),
       today:,
+      // Browse defaults to today (via `None`); Favourites to all days (`None`).
+      browse_day_filter: None,
+      favourites_day_filter: None,
       details: seed_detail_loading(dict.new(), page),
       statuses: dict.new(),
       spots: dict.new(),
@@ -1425,7 +1441,7 @@ pub fn update(model: Model, msg: Msg) -> #(Model, Effect(Msg)) {
         ActivitiesListPage(filters, _) ->
           load_or_revalidate(
             model,
-            window_key_for(model, tab_source(filters.tab), filters),
+            window_key_for(model, tab_source(filters.tab)),
           )
         _ -> #(model, effect.none())
       }
@@ -1527,7 +1543,7 @@ pub fn update(model: Model, msg: Msg) -> #(Model, Effect(Msg)) {
         ActivitiesListPage(filters, _) ->
           load_or_revalidate(
             model,
-            window_key_for(model, tab_source(filters.tab), filters),
+            window_key_for(model, tab_source(filters.tab)),
           )
         _ -> #(model, effect.none())
       }
@@ -1867,20 +1883,12 @@ pub fn update(model: Model, msg: Msg) -> #(Model, Effect(Msg)) {
       case model.page {
         ActivitiesListPage(filters, mode) -> {
           let tab = tab_from_index(index)
-          // Each tab resolves the day to its own default: Favourites shows all
-          // days, the browse tabs a single day. Switching between browse tabs
-          // keeps the chosen day; crossing the Favourites boundary resets it.
-          let day = case tab, filters.tab {
-            TabFavourites, _ -> None
-            _, TabFavourites -> Some(model.today)
-            _, _ -> filters.day
-          }
-          let filters = ListFilters(..filters, tab:, day:)
+          // Each tab reads its own persistent day (browse tabs share
+          // `browse_day_filter`, Favourites its own), so switching tabs just
+          // changes the tab and revalidates that tab's resolved window.
+          let filters = ListFilters(..filters, tab:)
           let #(model, fetch_effect) =
-            load_or_revalidate(
-              model,
-              window_key_for(model, tab_source(tab), filters),
-            )
+            load_or_revalidate(model, window_key_for(model, tab_source(tab)))
           #(
             Model(..model, page: ActivitiesListPage(filters, mode)),
             fetch_effect,
@@ -1889,21 +1897,21 @@ pub fn update(model: Model, msg: Msg) -> #(Model, Effect(Msg)) {
         _ -> #(model, effect.none())
       }
 
-    // Picking a day on a browse tab fetches that day's window (instant from cache
-    // + background revalidate); on Favourites the day only narrows the rendered
-    // list client-side, so this just revalidates the all-days window.
+    // Picking a day persists it to the current tab's own day field (so it
+    // survives navigation and stays independent per view), then revalidates.
+    // On a browse tab that fetches the newly-selected day's window (instant from
+    // cache + background revalidate); on Favourites the day only narrows the
+    // rendered list client-side, so this just revalidates the all-days window.
     UserSelectedDay(d) ->
       case model.page {
-        ActivitiesListPage(filters, mode) -> {
-          let filters = ListFilters(..filters, day: d)
-          let #(model, fetch_effect) =
-            load_or_revalidate(
-              model,
-              window_key_for(model, tab_source(filters.tab), filters),
-            )
-          #(
-            Model(..model, page: ActivitiesListPage(filters, mode)),
-            fetch_effect,
+        ActivitiesListPage(filters, _) -> {
+          let model = case filters.tab {
+            TabFavourites -> Model(..model, favourites_day_filter: d)
+            _ -> Model(..model, browse_day_filter: d)
+          }
+          load_or_revalidate(
+            model,
+            window_key_for(model, tab_source(filters.tab)),
           )
         }
         _ -> #(model, effect.none())
@@ -2103,7 +2111,7 @@ pub fn update(model: Model, msg: Msg) -> #(Model, Effect(Msg)) {
     UserClickedRetryLoad ->
       case model.page {
         ActivitiesListPage(filters, _) -> {
-          let key = window_key_for(model, tab_source(filters.tab), filters)
+          let key = window_key_for(model, tab_source(filters.tab))
           #(set_window_remote(model, key, Loading), fetch_window(model, key))
         }
         _ -> #(model, effect.none())
@@ -3079,6 +3087,8 @@ fn view(model: Model) -> Element(Msg) {
         model.activity_tags,
         mode,
         model.today,
+        model.browse_day_filter,
+        model.favourites_day_filter,
       )
     ActivityNewPage(form, submit_error, tags, target_groups) ->
       view_activity_form(
@@ -3146,11 +3156,27 @@ fn view_activities_list(
   activity_tags: Dict(Uuid, ActivityTag),
   mode: ListMode,
   today: calendar.Date,
+  browse_day: Option(calendar.Date),
+  favourites_day: Option(calendar.Date),
 ) -> Element(Msg) {
   let t = fn(key) { g18n.translate(translator, key) }
+  // Favourites spans all days server-side; its optional day pick narrows the
+  // list client-side. Browse tabs are day-windowed server-side, so no
+  // client-side day filter applies to them.
+  let client_day = case filters.tab {
+    TabFavourites -> favourites_day
+    _ -> None
+  }
 
   html.div([attribute.class("flex flex-col")], [
-    view_list_top_bar(translator, filters, mode, today),
+    view_list_top_bar(
+      translator,
+      filters,
+      mode,
+      today,
+      browse_day,
+      favourites_day,
+    ),
     case filters.more_open {
       True -> view_more_filters_panel(translator, filters, activity_tags)
       False -> element.none()
@@ -3177,6 +3203,7 @@ fn view_activities_list(
             to_card_items(items, statuses, spots),
             filters,
             mode,
+            client_day,
           )
       },
     ]),
@@ -3188,15 +3215,18 @@ fn view_list_top_bar(
   filters: ListFilters,
   mode: ListMode,
   today: calendar.Date,
+  browse_day: Option(calendar.Date),
+  favourites_day: Option(calendar.Date),
 ) -> Element(Msg) {
   let t = fn(key) { g18n.translate(translator, key) }
   // The day dropdown is a static list of the event dates. Favourites offers an
   // "all days" option and defaults to it; the browse tabs offer only single
-  // days and default to today (clamped into the event range).
+  // days and default to today (clamped into the event range). The selection is
+  // read from the Model's per-view day fields so it survives navigation.
   let show_any = filters.tab == TabFavourites
   let selected_day = case filters.tab {
-    TabFavourites -> filters.day
-    _ -> Some(option.unwrap(filters.day, today))
+    TabFavourites -> favourites_day
+    _ -> Some(option.unwrap(browse_day, today))
   }
   let tab_labels =
     list.map(list_tabs_for(mode), fn(tab) { tab_label(translator, tab) })
@@ -3519,10 +3549,11 @@ fn view_grouped_activities(
   items: List(CardItem),
   filters: ListFilters,
   mode: ListMode,
+  client_day: Option(calendar.Date),
 ) -> Element(Msg) {
   let t = fn(key) { g18n.translate(translator, key) }
   let filtered =
-    apply_filters(items, filters)
+    apply_filters(items, filters, client_day)
     |> list.sort(fn(a, b) {
       timestamp.compare(a.summary.start_time, b.summary.start_time)
     })
@@ -5051,7 +5082,11 @@ fn lists_intersect(a: List(a), b: List(a)) -> Bool {
   list.any(a, fn(x) { list.contains(b, x) })
 }
 
-pub fn apply_filters(items: List(CardItem), f: ListFilters) -> List(CardItem) {
+pub fn apply_filters(
+  items: List(CardItem),
+  f: ListFilters,
+  client_day: Option(calendar.Date),
+) -> List(CardItem) {
   let needle = string.lowercase(string.trim(f.search))
   use item <- list.filter(items)
   let summary = item.summary
@@ -5062,11 +5097,11 @@ pub fn apply_filters(items: List(CardItem), f: ListFilters) -> List(CardItem) {
       || string.contains(string.lowercase(summary.title.en), needle)
   }
   // Browse tabs are day-windowed server-side, so the response already contains
-  // only the selected day — no client-side day filter needed. Favourites spans
-  // all days, so its optional day pick narrows the list here.
-  let day_match = case f.tab, f.day {
-    TabFavourites, Some(date) -> date_of(summary.start_time) == date
-    _, _ -> True
+  // only the selected day and the caller passes `None`. Favourites spans all
+  // days, so its optional day pick is passed in and narrows the list here.
+  let day_match = case client_day {
+    Some(date) -> date_of(summary.start_time) == date
+    None -> True
   }
   // Membership (tab/favourites) is resolved upstream via the source id windows
   // and the statuses-derived favourites set, so every tab is pass-through on

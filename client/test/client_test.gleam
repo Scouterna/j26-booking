@@ -140,6 +140,8 @@ fn base_model() -> client.Model {
     windows: dict.from_list([#(activities_window(), client.Loading)]),
     etags: dict.new(),
     today: test_today(),
+    browse_day_filter: None,
+    favourites_day_filter: None,
     details: dict.new(),
     statuses: dict.new(),
     spots: dict.new(),
@@ -319,7 +321,7 @@ pub fn apply_filters_default_keeps_everything_test() {
     client.CardItem(a_summary(id_a(), "A", None), model.NotInterested, None)
   let b =
     client.CardItem(a_summary(id_b(), "B", None), model.NotInterested, None)
-  assert client.apply_filters([a, b], client.default_filters()) == [a, b]
+  assert client.apply_filters([a, b], client.default_filters(), None) == [a, b]
 }
 
 pub fn apply_filters_matches_title_case_insensitively_test() {
@@ -336,7 +338,7 @@ pub fn apply_filters_matches_title_case_insensitively_test() {
       None,
     )
   let filters = client.ListFilters(..client.default_filters(), search: "KLÄTT")
-  assert client.apply_filters([climb, swim], filters) == [climb]
+  assert client.apply_filters([climb, swim], filters, None) == [climb]
 }
 
 // LIST DERIVATION: tab_summaries -----------------------------------------------
@@ -983,6 +985,82 @@ pub fn retrying_load_marks_current_tab_source_loading_test() {
     )
   let #(next, _) = client.update(model_, client.UserClickedRetryLoad)
   assert client.window_remote(next, activities_window()) == client.Loading
+}
+
+// UPDATE: day filter persistence (issue #40) -----------------------------------
+
+/// A second in-range event day, distinct from `test_today`, for exercising the
+/// per-view day fields.
+fn other_day() -> calendar.Date {
+  calendar.Date(2026, calendar.July, 27)
+}
+
+pub fn selecting_day_on_browse_sets_browse_day_and_fetches_window_test() {
+  // On a browse tab, picking a day persists it to `browse_day_filter` (leaving
+  // Favourites' own day untouched) and fetches that day's window.
+  let #(next, _) =
+    client.update(base_model(), client.UserSelectedDay(Some(other_day())))
+  assert next.browse_day_filter == Some(other_day())
+  assert next.favourites_day_filter == None
+  let day_window = #(client.SourceActivities, Some(other_day()), True)
+  assert client.window_remote(next, day_window) == client.Loading
+}
+
+pub fn selecting_day_on_favourites_sets_favourites_day_only_test() {
+  // On Favourites, picking a day persists it to `favourites_day_filter` only;
+  // the browse day stays at its default (`None`, i.e. today).
+  let model_ =
+    client.Model(
+      ..base_model(),
+      page: client.ActivitiesListPage(
+        filters_for(client.TabFavourites),
+        client.BrowseList,
+      ),
+    )
+  let #(next, _) =
+    client.update(model_, client.UserSelectedDay(Some(other_day())))
+  assert next.favourites_day_filter == Some(other_day())
+  assert next.browse_day_filter == None
+}
+
+pub fn browse_day_survives_page_rebuild_via_route_change_test() {
+  // The core of issue #40: after picking a day, navigating away and back must
+  // keep it. The day now lives on the Model, not the (rebuilt) page filters, so
+  // the window key resolved after the round-trip still targets the chosen day.
+  let #(picked, _) =
+    client.update(base_model(), client.UserSelectedDay(Some(other_day())))
+  let #(detail, _) =
+    client.update(
+      picked,
+      client.OnRouteChange(parse_uri(
+        "/_services/booking/activities/" <> uuid.to_string(id_a()),
+      )),
+    )
+  let #(back, _) =
+    client.update(
+      detail,
+      client.OnRouteChange(parse_uri("/_services/booking/activities")),
+    )
+  assert back.browse_day_filter == Some(other_day())
+  let day_window = #(client.SourceActivities, Some(other_day()), True)
+  assert client.window_remote(back, day_window) == client.Loading
+}
+
+pub fn effective_day_is_independent_per_view_test() {
+  // Browse and Favourites resolve their day from separate Model fields, so one
+  // can sit on a picked day while the other stays on its default.
+  let model_ =
+    client.Model(
+      ..base_model(),
+      browse_day_filter: Some(other_day()),
+      favourites_day_filter: None,
+    )
+  assert client.effective_day(model_, client.TabActivities) == Some(other_day())
+  // Favourites' default is all days (`None`), independent of the browse pick.
+  assert client.effective_day(model_, client.TabFavourites) == None
+  // A browse tab with no pick falls back to today.
+  assert client.effective_day(base_model(), client.TabActivities)
+    == Some(test_today())
 }
 
 pub fn searching_updates_filters_on_list_page_test() {
