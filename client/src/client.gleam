@@ -3823,10 +3823,16 @@ fn view_activity_form_drawer(
     ActivityFormClosed -> False
     _ -> True
   }
+  // While the call-off confirmation is showing, the drawer's own heading names it
+  // ("Ställ in aktivitet") — so the confirmation view carries no heading of its own.
   let heading = case form_state {
     ActivityFormClosed -> ""
     ActivityFormNew(..) -> t("app_bar.activity_new")
-    ActivityFormEdit(..) -> t("app_bar.activity_edit")
+    ActivityFormEdit(..) ->
+      case edit_ui.cancel_open {
+        True -> t("edit.call_off_title")
+        False -> t("app_bar.activity_edit")
+      }
   }
   let content = case form_state {
     ActivityFormClosed -> []
@@ -4013,9 +4019,10 @@ fn view_activity_form(
   }
 }
 
-/// The form's action row. Edit shows call off (ställ in) + cancel (avbryt) +
-/// save (spara); create drops call-off (nothing to call off yet). Only "save"
-/// submits the form (`type=submit`); the others are `type=button`.
+/// The form's action row. Edit shows call off (ställ in) + save (spara); create
+/// drops call-off (nothing to call off yet). Discarding is the drawer's own
+/// top-right exit (X), so there's no separate cancel button. Only "save" submits
+/// the form (`type=submit`); call-off is `type=button`.
 fn view_form_actions(
   translator: Translator,
   mode: ActivityFormMode,
@@ -4043,15 +4050,6 @@ fn view_form_actions(
         element.element(
           "scout-button",
           [
-            attribute.attribute("variant", "outlined"),
-            attribute.attribute("type", "button"),
-            event.on("scoutClick", decode.success(UserClickedCancelEdit)),
-          ],
-          [element.text(t("edit.cancel"))],
-        ),
-        element.element(
-          "scout-button",
-          [
             attribute.attribute("variant", "primary"),
             attribute.attribute("type", "submit"),
           ],
@@ -4073,9 +4071,6 @@ fn view_call_off_confirm(
 ) -> Element(Msg) {
   let t = fn(key) { g18n.translate(translator, key) }
   html.div([attribute.class("flex flex-col gap-4 p-3")], [
-    html.h2([attribute.class("text-heading-xs")], [
-      element.text(t("edit.call_off_title")),
-    ]),
     component.scout_field(
       t("edit.reason"),
       element.element(
