@@ -39,3 +39,4 @@ When you create, finish, or touch a plan here, keep the folder consistent:
 | 11 | [Day-windowed activity lists](11-day-windowed-activity-lists.md) | ✅ Done 2026-07-17 |
 | 12 | [Persist the day filter across navigation (issue #40)](12-day-filter-persistence.md) | ✅ Done 2026-07-17 |
 | 13 | [Persist the activity cache across app switches (instant reopen)](13-persist-activity-cache-across-app-switches.md) | 🔲 Not started |
+| 14 | [Show group free-text on recurring-booking slot cards](14-recurring-slot-card-group-free-text.md) | 🔲 Not started |
