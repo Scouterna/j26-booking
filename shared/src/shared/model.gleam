@@ -529,6 +529,46 @@ pub fn booking_slots_decoder() -> decode.Decoder(List(BookingSlot)) {
   decode.success(slots)
 }
 
+/// Encode a `GroupCount` to the shape `group_count_decoder` expects.
+pub fn group_count_to_json(group: GroupCount) -> Json {
+  let GroupCount(group_id:, group_name:, count:) = group
+  json.object([
+    #("group_id", json.nullable(group_id, json.int)),
+    #("group_name", json.nullable(group_name, json.string)),
+    #("count", json.int(count)),
+  ])
+}
+
+/// Encode a `BookingSlot` to the shape `booking_slot_decoder` expects.
+/// Timestamps are unix seconds, matching the activity summary encoding.
+pub fn booking_slot_to_json(slot: BookingSlot) -> Json {
+  let BookingSlot(
+    activity_id:,
+    start_time:,
+    end_time:,
+    max_attendees:,
+    total_booked:,
+    groups:,
+  ) = slot
+  json.object([
+    #("activity_id", activity_id |> uuid.to_string |> json.string),
+    #(
+      "start_time",
+      json.int(timestamp.to_unix_seconds(start_time) |> float.round),
+    ),
+    #("end_time", json.int(timestamp.to_unix_seconds(end_time) |> float.round)),
+    #("max_attendees", json.nullable(max_attendees, json.int)),
+    #("total_booked", json.int(total_booked)),
+    #("groups", json.array(groups, group_count_to_json)),
+  ])
+}
+
+/// Encode the overview response `{"slots": [...]}` (inverse of
+/// `booking_slots_decoder`).
+pub fn booking_slots_to_json(slots: List(BookingSlot)) -> Json {
+  json.object([#("slots", json.array(slots, booking_slot_to_json))])
+}
+
 pub type Favourite {
   Favourite(id: Uuid, user_id: Uuid, activity_id: Uuid)
 }

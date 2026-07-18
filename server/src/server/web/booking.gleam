@@ -294,6 +294,39 @@ pub fn get_by_activity(
   }
 }
 
+/// Badbuss overview: every beach-bus slot with its per-kår booking breakdown.
+pub fn get_beach_bus_overview(req: Request, ctx: web.Context) -> Response {
+  recurring_overview(req, ctx, "beach-bus")
+}
+
+/// Klättervägg overview: every climbing-wall slot with its per-kår breakdown.
+pub fn get_climbing_wall_overview(req: Request, ctx: web.Context) -> Response {
+  recurring_overview(req, ctx, "climbing-wall")
+}
+
+/// Shared handler for the recurring-activity booking overviews. Returns
+/// `{"slots": [...]}` covering every slot of `kind` (all days; the client
+/// filters by day) with each slot's participant total and per-kår breakdown.
+fn recurring_overview(
+  req: Request,
+  ctx: web.Context,
+  kind: String,
+) -> Response {
+  use <- wisp.require_method(req, Get)
+  use user <- web.with_authenticated_user(ctx)
+  use <- web.require_any_role(user, [web.BookingsRead, web.ActivitiesManage])
+  case sql.list_recurring_bookings_overview(ctx.db_connection, kind) {
+    Error(error) -> web.query_error(error)
+    Ok(pog.Returned(_, rows)) -> {
+      let slots = booking.from_recurring_overview_rows(rows)
+      wisp.json_response(
+        model.booking_slots_to_json(slots) |> json.to_string,
+        200,
+      )
+    }
+  }
+}
+
 pub fn update(req: Request, id: String, ctx: web.Context) -> Response {
   use <- wisp.require_method(req, Put)
   // TODO(booking-ownership): only authentication is required for now — the

@@ -254,6 +254,63 @@ paths:
         '500':
           $ref: '#/components/responses/ServerError'
 
+  /beach-bus-bookings:
+    get:
+      tags:
+        - Bookings
+      summary: Beach bus booking overview
+      description: |
+        Aggregate booking overview for every beach bus (badbuss) slot: each
+        slot's schedule, capacity, total booked participants, and the per-kår
+        breakdown. Covers all days (the client filters by day). Called-off slots
+        are excluded. Requires the `bookings.read` or `activities.manage` role.
+      operationId: getBeachBusBookingOverview
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+      responses:
+        '200':
+          description: Successfully retrieved the beach bus booking overview
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BookingOverview'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '500':
+          $ref: '#/components/responses/ServerError'
+
+  /climbing-wall-bookings:
+    get:
+      tags:
+        - Bookings
+      summary: Climbing wall booking overview
+      description: |
+        Aggregate booking overview for every climbing wall (klättervägg) slot:
+        each slot's schedule, capacity, total booked participants, and the
+        per-kår breakdown. Covers all days (the client filters by day).
+        Called-off slots are excluded. Requires the `bookings.read` or
+        `activities.manage` role.
+      operationId: getClimbingWallBookingOverview
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+      responses:
+        '200':
+          description: Successfully retrieved the climbing wall booking overview
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BookingOverview'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '500':
+          $ref: '#/components/responses/ServerError'
+
   /favourited-activities:
     get:
       tags:
@@ -1748,6 +1805,94 @@ components:
           type: integer
           description: Number of participants
           example: 12
+
+    GroupCount:
+      type: object
+      description: >-
+        One scout corps' (kår) participant tally within a booking overview slot.
+        `group_id`/`group_name` come from the booker's token; both are null for
+        bookings made without a kår, which are bucketed under a single entry.
+      required:
+        - count
+      properties:
+        group_id:
+          type: integer
+          nullable: true
+          description: Kår ID (Scoutnet). Null for bookings made without a kår.
+          example: 101
+        group_name:
+          type: string
+          nullable: true
+          description: Kår name. Null for bookings made without a kår.
+          example: "Sjöscoutkåren Dansen"
+        count:
+          type: integer
+          description: Total participants booked by this group in the slot
+          example: 8
+
+    BookingSlot:
+      type: object
+      description: >-
+        One recurring-activity slot in a booking overview: its schedule and
+        capacity, total booked participants, and per-kår breakdown.
+      required:
+        - activity_id
+        - start_time
+        - end_time
+        - total_booked
+        - groups
+      properties:
+        activity_id:
+          type: string
+          format: uuid
+          description: ID of the activity (slot); links to its full bookings view
+          example: "6f5e1d46-5f58-4e23-9a9d-8c2bfc2d22a0"
+        start_time:
+          type: integer
+          description: Slot start time as a Unix timestamp (seconds)
+          example: 1752390000
+        end_time:
+          type: integer
+          description: Slot end time as a Unix timestamp (seconds)
+          example: 1752391200
+        max_attendees:
+          type: integer
+          nullable: true
+          description: Capacity of the slot; null when uncapped
+          example: 45
+        total_booked:
+          type: integer
+          description: Sum of participants booked across all groups
+          example: 43
+        groups:
+          type: array
+          description: Per-kår participant breakdown (empty when nobody has booked)
+          items:
+            $ref: '#/components/schemas/GroupCount'
+
+    BookingOverview:
+      type: object
+      description: Booking overview response — every slot of a recurring kind
+      required:
+        - slots
+      properties:
+        slots:
+          type: array
+          items:
+            $ref: '#/components/schemas/BookingSlot'
+          example:
+            - activity_id: "6f5e1d46-5f58-4e23-9a9d-8c2bfc2d22a0"
+              start_time: 1752390000
+              end_time: 1752391200
+              max_attendees: 45
+              total_booked: 43
+              groups:
+                - group_id: 1
+                  group_name: "Abbekås"
+                  count: 3
+                - group_id: 3
+                  group_name: "Ölagets Scoutkår"
+                  count: 40
 
     Favourite:
       type: object

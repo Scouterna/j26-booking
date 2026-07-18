@@ -2721,6 +2721,93 @@ ORDER BY name ASC;
   |> pog.execute(db)
 }
 
+/// A row you get from running the `list_recurring_bookings_overview` query
+/// defined in `./src/server/sql/list_recurring_bookings_overview.sql`.
+///
+/// > 🐿️ This type definition was generated automatically using v4.7.0 of the
+/// > [squirrel package](https://github.com/giacomocavalieri/squirrel).
+///
+pub type ListRecurringBookingsOverviewRow {
+  ListRecurringBookingsOverviewRow(
+    activity_id: Uuid,
+    start_time: Timestamp,
+    end_time: Timestamp,
+    max_attendees: Option(Int),
+    booker_group_id: Option(Int),
+    booker_group_name: Option(String),
+    group_count: Int,
+    booking_count: Int,
+  )
+}
+
+/// Per-slot booking aggregate for a recurring activity kind ('beach-bus' /
+/// 'climbing-wall'), powering the Badbuss / Klättervägg overview. Returns one
+/// row per (activity, booker group): `group_count` is that group's participant
+/// total and `booking_count` how many bookings it aggregates. An activity with
+/// no bookings still yields a single row (LEFT JOIN) with NULL group columns and
+/// a zero `booking_count`, so every bookable slot appears. Called-off slots are
+/// excluded. Ordered so a slot's rows are contiguous and groups sort by name.
+///
+/// > 🐿️ This function was generated automatically using v4.7.0 of
+/// > the [squirrel package](https://github.com/giacomocavalieri/squirrel).
+///
+pub fn list_recurring_bookings_overview(
+  db: pog.Connection,
+  a_recurring_activity_kind: String,
+) -> Result(pog.Returned(ListRecurringBookingsOverviewRow), pog.QueryError) {
+  let decoder = {
+    use activity_id <- decode.field(0, uuid_decoder())
+    use start_time <- decode.field(1, pog.timestamp_decoder())
+    use end_time <- decode.field(2, pog.timestamp_decoder())
+    use max_attendees <- decode.field(3, decode.optional(decode.int))
+    use booker_group_id <- decode.field(4, decode.optional(decode.int))
+    use booker_group_name <- decode.field(5, decode.optional(decode.string))
+    use group_count <- decode.field(6, decode.int)
+    use booking_count <- decode.field(7, decode.int)
+    decode.success(ListRecurringBookingsOverviewRow(
+      activity_id:,
+      start_time:,
+      end_time:,
+      max_attendees:,
+      booker_group_id:,
+      booker_group_name:,
+      group_count:,
+      booking_count:,
+    ))
+  }
+
+  "-- Per-slot booking aggregate for a recurring activity kind ('beach-bus' /
+-- 'climbing-wall'), powering the Badbuss / Klättervägg overview. Returns one
+-- row per (activity, booker group): `group_count` is that group's participant
+-- total and `booking_count` how many bookings it aggregates. An activity with
+-- no bookings still yields a single row (LEFT JOIN) with NULL group columns and
+-- a zero `booking_count`, so every bookable slot appears. Called-off slots are
+-- excluded. Ordered so a slot's rows are contiguous and groups sort by name.
+SELECT
+    a.id AS activity_id,
+    a.start_time,
+    a.end_time,
+    a.max_attendees,
+    b.booker_group_id,
+    b.booker_group_name,
+    COALESCE(SUM(b.participant_count), 0)::int AS group_count,
+    COUNT(b.id) AS booking_count
+FROM activity a
+LEFT JOIN booking b ON b.activity_id = a.id
+WHERE a.recurring_activity_kind = $1
+    AND NOT EXISTS (
+        SELECT 1 FROM call_off c WHERE c.activity_id = a.id
+    )
+GROUP BY a.id, a.start_time, a.end_time, a.max_attendees,
+    b.booker_group_id, b.booker_group_name
+ORDER BY a.start_time ASC, a.id, b.booker_group_name ASC;
+"
+  |> pog.query
+  |> pog.parameter(pog.text(a_recurring_activity_kind))
+  |> pog.returning(decoder)
+  |> pog.execute(db)
+}
+
 /// A row you get from running the `lock_activity_max_attendees` query
 /// defined in `./src/server/sql/lock_activity_max_attendees.sql`.
 ///

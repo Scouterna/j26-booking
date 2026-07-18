@@ -1,7 +1,10 @@
 import gleam/json.{type Json}
+import gleam/list
 import gleam/option.{None}
 import server/sql
-import shared/model.{type Booking, Booking}
+import shared/model.{
+  type Booking, type BookingSlot, Booking, BookingSlot, GroupCount,
+}
 import youid/uuid
 
 pub fn from_create_booking_with_group_row(
@@ -97,6 +100,45 @@ pub fn from_update_booking_row(row: sql.UpdateBookingRow) -> Booking {
     responsible_name: row.responsible_name,
     phone_number: row.phone_number,
     participant_count: row.participant_count,
+  )
+}
+
+/// Group the flat overview rows (one per activity × booker group, ordered so a
+/// slot's rows are contiguous) into one `BookingSlot` per activity. Rows with
+/// `booking_count == 0` are the LEFT JOIN placeholders for slots that have no
+/// bookings — they contribute the slot itself but no group entry.
+pub fn from_recurring_overview_rows(
+  rows: List(sql.ListRecurringBookingsOverviewRow),
+) -> List(BookingSlot) {
+  rows
+  |> list.chunk(by: fn(row) { row.activity_id })
+  |> list.map(overview_chunk_to_slot)
+}
+
+fn overview_chunk_to_slot(
+  rows: List(sql.ListRecurringBookingsOverviewRow),
+) -> BookingSlot {
+  // `list.chunk` never yields an empty chunk, so the head is always present and
+  // carries this slot's activity fields (shared across its rows).
+  let assert [first, ..] = rows
+  let groups =
+    rows
+    |> list.filter(fn(row) { row.booking_count > 0 })
+    |> list.map(fn(row) {
+      GroupCount(
+        group_id: row.booker_group_id,
+        group_name: row.booker_group_name,
+        count: row.group_count,
+      )
+    })
+  let total_booked = list.fold(groups, 0, fn(sum, group) { sum + group.count })
+  BookingSlot(
+    activity_id: first.activity_id,
+    start_time: first.start_time,
+    end_time: first.end_time,
+    max_attendees: first.max_attendees,
+    total_booked:,
+    groups:,
   )
 }
 

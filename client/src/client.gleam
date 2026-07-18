@@ -16,7 +16,6 @@ import gleam/order
 import gleam/result
 import gleam/string
 import gleam/time/calendar
-import gleam/time/duration
 import gleam/time/timestamp.{type Timestamp}
 import gleam/uri.{type Uri}
 import icons
@@ -2828,9 +2827,8 @@ fn fetch_bookings(activity_id: Uuid) -> Effect(Msg) {
   )
 }
 
-/// The booking-overview endpoint path for a recurring kind. Not yet wired (see
-/// `fetch_recurring_bookings`, which serves mock data) — kept here as the
-/// single place the real URLs live for when the backend endpoint exists.
+/// The booking-overview endpoint path for a recurring kind — the single place
+/// these URLs live (used by `fetch_recurring_bookings`).
 fn recurring_bookings_path(kind: RecurringKind) -> String {
   case kind {
     BeachBus -> "/api/beach-bus-bookings"
@@ -2838,128 +2836,20 @@ fn recurring_bookings_path(kind: RecurringKind) -> String {
   }
 }
 
-// MOCK: the booking-overview aggregate endpoints don't exist server-side yet,
-// so this returns hardcoded slots dated *today* to make the UI demoable. Swap
-// the body for the real request once the backend ships the endpoint:
-//
-//   fn fetch_recurring_bookings(kind: RecurringKind) -> Effect(Msg) {
-//     rsvp.get(
-//       api_prefix <> recurring_bookings_path(kind),
-//       rsvp.expect_json(model.booking_slots_decoder(), fn(result) {
-//         ApiReturnedRecurringBookings(kind, result)
-//       }),
-//     )
-//   }
+/// Fetch the booking overview for a recurring kind: every slot with its
+/// per-kår breakdown, across all days (the view filters by the selected day).
 fn fetch_recurring_bookings(kind: RecurringKind) -> Effect(Msg) {
-  let _ = recurring_bookings_path
-  effect.from(fn(dispatch) {
-    dispatch(ApiReturnedRecurringBookings(kind, Ok(mock_slots(kind))))
-  })
+  rsvp.get(
+    api_prefix <> recurring_bookings_path(kind),
+    rsvp.expect_json(model.booking_slots_decoder(), fn(result) {
+      ApiReturnedRecurringBookings(kind, result)
+    }),
+  )
 }
 
 /// Today's date in the local time zone — the overview's default selected day.
 fn today() -> calendar.Date {
   date_of(timestamp.system_time())
-}
-
-/// A local-time timestamp at `date` and the given clock time. Used to build the
-/// mock slots; harmless helper otherwise.
-fn at(date: calendar.Date, hours: Int, minutes: Int) -> Timestamp {
-  timestamp.from_calendar(
-    date,
-    calendar.TimeOfDay(hours, minutes, 0, 0),
-    calendar.local_offset(),
-  )
-}
-
-/// MOCK slot data mirroring the design: a few slots today (one full, one busy,
-/// one quiet) plus one tomorrow so the day dropdown has more than one option.
-/// Climbing-wall slots use a smaller cap so the two pages look distinct.
-fn mock_slots(kind: RecurringKind) -> List(BookingSlot) {
-  let d = today()
-  let tomorrow =
-    date_of(timestamp.add(timestamp.system_time(), duration.hours(24)))
-  let group = fn(id, name, count) {
-    model.GroupCount(group_id: Some(id), group_name: Some(name), count:)
-  }
-  case kind {
-    BeachBus -> [
-      model.BookingSlot(
-        uid("0198a000-0000-7000-8000-000000000001"),
-        at(d, 10, 20),
-        at(d, 10, 40),
-        Some(45),
-        43,
-        [
-          group(1, "Abbekås", 3),
-          group(2, "Blentarps Scoutkår", 8),
-          group(3, "Ölagets Scoutkår", 32),
-        ],
-      ),
-      model.BookingSlot(
-        uid("0198a000-0000-7000-8000-000000000002"),
-        at(d, 10, 40),
-        at(d, 11, 0),
-        Some(45),
-        45,
-        [
-          group(1, "Abbekås", 3),
-          group(2, "Blentarps Scoutkår", 10),
-          group(3, "Ölagets Scoutkår", 32),
-        ],
-      ),
-      model.BookingSlot(
-        uid("0198a000-0000-7000-8000-000000000003"),
-        at(d, 11, 0),
-        at(d, 11, 20),
-        Some(45),
-        12,
-        [group(4, "Gärds Härads Scoutkår", 12)],
-      ),
-      model.BookingSlot(
-        uid("0198a000-0000-7000-8000-000000000004"),
-        at(tomorrow, 10, 20),
-        at(tomorrow, 10, 40),
-        Some(45),
-        5,
-        [group(1, "Abbekås", 5)],
-      ),
-    ]
-    ClimbingWall -> [
-      model.BookingSlot(
-        uid("0198b000-0000-7000-8000-000000000001"),
-        at(d, 9, 0),
-        at(d, 9, 30),
-        Some(12),
-        12,
-        [group(2, "Blentarps Scoutkår", 4), group(3, "Ölagets Scoutkår", 8)],
-      ),
-      model.BookingSlot(
-        uid("0198b000-0000-7000-8000-000000000002"),
-        at(d, 9, 30),
-        at(d, 10, 0),
-        Some(12),
-        6,
-        [group(1, "Abbekås", 2), group(4, "Gärds Härads Scoutkår", 4)],
-      ),
-      model.BookingSlot(
-        uid("0198b000-0000-7000-8000-000000000003"),
-        at(tomorrow, 9, 0),
-        at(tomorrow, 9, 30),
-        Some(12),
-        3,
-        [group(3, "Ölagets Scoutkår", 3)],
-      ),
-    ]
-  }
-}
-
-/// Parse a hardcoded UUID literal (the mock slot ids). Asserts on a malformed
-/// literal — these are compile-time constants, so a bad one is a programming
-/// error, mirroring the locale asserts in `translator_for`.
-fn uid(s: String) -> Uuid {
-  let assert Ok(id) = uuid.from_string(s)
-  id
 }
 
 @external(javascript, "./client_ffi.mjs", "set_interval")
