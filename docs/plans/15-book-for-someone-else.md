@@ -16,7 +16,8 @@
   tracks at most one booking per user per activity, and "Boka" is a no-op once
   booked — so info-tent staff can't book the *same* slot for a second kår from
   the UI without unbooking first. The API supports it (no unique constraint);
-  lifting the client limitation is follow-up work.
+  lifting the client limitation is follow-up work — see plan 16
+  (`16-multiple-bookings-and-manage-bookings-page.md`).
 
 ## Context
 

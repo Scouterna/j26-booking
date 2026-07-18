@@ -79,6 +79,50 @@ VALUES (
         20
     );
 
+-- On-behalf bookings (booked_for_other): made by info-tent staff for another
+-- kår. Owned by a different user than the dev fallback user, so the
+-- team-managed edit rule (any bookings:others:create holder may manage them)
+-- can be exercised against "someone else's" rows locally.
+INSERT INTO booking (
+        id,
+        user_id,
+        activity_id,
+        booker_name,
+        booker_group_id,
+        booker_group_name,
+        group_free_text,
+        responsible_name,
+        phone_number,
+        participant_count,
+        booked_for_other
+    )
+VALUES (
+        'dd000006-0000-4000-8000-000000000006',
+        'b2c3d4e5-f6a7-4b01-bcde-f12345678901',
+        '6f5e1d46-5f58-4e23-9a9d-8c2bfc2d22a0',
+        'Erik Johansson',
+        1102,
+        'Adolf Fredriks Scoutkår',
+        'Patrull Ugglan',
+        'Karin Berg',
+        '+46705556677',
+        6,
+        TRUE
+    ),
+    (
+        'dd000007-0000-4000-8000-000000000007',
+        'b2c3d4e5-f6a7-4b01-bcde-f12345678901',
+        'b4219a53-4746-4a09-8b4e-3e2ac0c3df11',
+        'Erik Johansson',
+        1124,
+        'Scoutkåren Vikingarna',
+        'Patrull Björnen',
+        'Lars Ek',
+        '+46704445566',
+        4,
+        TRUE
+    );
+
 -- Seed activity_user (organizer assignments)
 INSERT INTO activity_user (activity_id, user_id)
 VALUES ('6f5e1d46-5f58-4e23-9a9d-8c2bfc2d22a0', 'c3d4e5f6-a7b8-4c12-8def-123456789012'),

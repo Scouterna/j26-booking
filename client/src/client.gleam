@@ -2,6 +2,7 @@ import component
 import formal/form.{type Form}
 import g18n.{type Translator}
 import g18n/locale
+import gleam/bool
 import gleam/dict.{type Dict}
 import gleam/dynamic/decode
 import gleam/float
@@ -122,6 +123,7 @@ fn english_translations() -> g18n.Translations {
     "The booking is registered for the selected corps; your name is saved as the booker.",
   )
   |> g18n.add_translation("booking.groups_loading", "Loading corps list...")
+  |> g18n.add_translation("booking.booked_by_label", "Booked by")
   |> g18n.add_translation("booking.responsible_name", "Responsible adult")
   |> g18n.add_translation("booking.phone_number", "Phone number")
   |> g18n.add_translation("booking.group_free_text", "Group / patrol")
@@ -138,6 +140,11 @@ fn english_translations() -> g18n.Translations {
   |> g18n.add_translation("bookings.loading", "Loading bookings...")
   |> g18n.add_translation("bookings.empty", "No bookings yet.")
   |> g18n.add_translation("bookings.unknown_group", "Unknown group")
+  |> g18n.add_translation(
+    "bookings.for_other_badge",
+    "Booked for another corps",
+  )
+  |> g18n.add_translation("bookings.booked_by", "Booked by {name}")
   |> g18n.add_translation(
     "bookings.spots_filled",
     "{booked} / {max} spots filled",
@@ -272,6 +279,7 @@ fn swedish_translations() -> g18n.Translations {
     "Bokningen registreras för den valda kåren; ditt namn sparas som bokare.",
   )
   |> g18n.add_translation("booking.groups_loading", "Laddar kårlistan...")
+  |> g18n.add_translation("booking.booked_by_label", "Bokad av")
   |> g18n.add_translation("booking.responsible_name", "Ansvarig ledare")
   |> g18n.add_translation("booking.phone_number", "Telefonnummer")
   |> g18n.add_translation("booking.group_free_text", "Grupp / patrull")
@@ -288,6 +296,8 @@ fn swedish_translations() -> g18n.Translations {
   |> g18n.add_translation("bookings.loading", "Laddar bokningar...")
   |> g18n.add_translation("bookings.empty", "Inga bokningar än.")
   |> g18n.add_translation("bookings.unknown_group", "Okänd grupp")
+  |> g18n.add_translation("bookings.for_other_badge", "Bokad åt annan kår")
+  |> g18n.add_translation("bookings.booked_by", "Bokad av {name}")
   |> g18n.add_translation(
     "bookings.spots_filled",
     "{booked} / {max} platser fyllda",
@@ -420,10 +430,72 @@ pub fn is_booked(status: ActivityStatus) -> Bool {
   }
 }
 
-pub fn booking_of(status: ActivityStatus) -> Option(Booking) {
+/// Every booking the user holds on the activity ([] when not booked).
+pub fn bookings_of(status: ActivityStatus) -> List(Booking) {
   case status {
-    Booked(booking) -> Some(booking)
-    Favourited | NotInterested -> None
+    Booked(bookings) -> bookings
+    Favourited | NotInterested -> []
+  }
+}
+
+/// The user's self-booking (booked for their own group), if any. This is the
+/// booking the detail page's "Ändra bokning"/"Avboka" act on; on-behalf
+/// bookings are managed from the bookings page instead. At most one exists —
+/// the client never offers a second self-booking.
+pub fn self_booking_of(status: ActivityStatus) -> Option(Booking) {
+  bookings_of(status)
+  |> list.find(fn(booking) { !booking.booked_for_other })
+  |> option.from_result
+}
+
+/// Swap a booking (matched by id) inside my `Booked` list for an activity.
+/// Untouched when I don't hold the booking — an edit made from the bookings
+/// page may target another user's on-behalf booking.
+fn replace_status_booking(
+  statuses: Dict(Uuid, ActivityStatus),
+  booking: Booking,
+) -> Dict(Uuid, ActivityStatus) {
+  case dict.get(statuses, booking.activity_id) {
+    Ok(Booked(bookings)) ->
+      case list.any(bookings, fn(b) { b.id == booking.id }) {
+        True ->
+          dict.insert(
+            statuses,
+            booking.activity_id,
+            Booked(
+              list.map(bookings, fn(b) {
+                case b.id == booking.id {
+                  True -> booking
+                  False -> b
+                }
+              }),
+            ),
+          )
+        False -> statuses
+      }
+    _ -> statuses
+  }
+}
+
+/// Drop a booking (by id) from my `Booked` list for an activity. My last one
+/// going downgrades to `Favourited` (the auto-favourite survives unbooking);
+/// a booking I don't hold leaves the statuses untouched.
+fn remove_status_booking(
+  statuses: Dict(Uuid, ActivityStatus),
+  activity_id: Uuid,
+  booking_id: Uuid,
+) -> Dict(Uuid, ActivityStatus) {
+  case dict.get(statuses, activity_id) {
+    Ok(Booked(bookings)) ->
+      case list.any(bookings, fn(b) { b.id == booking_id }) {
+        True ->
+          case list.filter(bookings, fn(b) { b.id != booking_id }) {
+            [] -> dict.insert(statuses, activity_id, Favourited)
+            remaining -> dict.insert(statuses, activity_id, Booked(remaining))
+          }
+        False -> statuses
+      }
+    _ -> statuses
   }
 }
 
@@ -533,6 +605,16 @@ pub fn default_booking_ui() -> BookingUi {
     group_query: "",
     group_open: False,
   )
+}
+
+/// The booking form's starting book-for-other state when it opens: locked to
+/// "åt någon annan" when a self-booking already exists (the client never
+/// offers a second one), else the for-self default.
+pub fn initial_booking_ui(has_self_booking: Bool) -> BookingUi {
+  case has_self_booking {
+    True -> BookingUi(..default_booking_ui(), target: BookingForOther)
+    False -> default_booking_ui()
+  }
 }
 
 /// The kår a new booking should be created for: `Ok(None)` books for the
@@ -764,7 +846,14 @@ pub type Page {
   /// The management-only view of every booking for one activity. The bookings
   /// list is per-route state; the activity header (title/time/spots) reads from
   /// the shared `details` + `spots` caches, so it can't drift from the summary.
-  ActivityBookingsPage(id: Uuid, bookings: RemoteData(List(Booking)))
+  /// `booking_form` is the page's own booking drawer (edit) / unbook-confirm
+  /// state, so `bookings:others:create` holders can manage on-behalf bookings
+  /// from the list without navigating away.
+  ActivityBookingsPage(
+    id: Uuid,
+    bookings: RemoteData(List(Booking)),
+    booking_form: BookingFormState,
+  )
   /// Booking overview for a recurring activity kind (Badbuss / Klättervägg): the
   /// slots for `selected_day` (default today), grouped by kår. The slots + ETag
   /// live in `Model.recurring_windows`/`recurring_etags` keyed by
@@ -880,6 +969,33 @@ fn set_activity_form(model: Model, activity_form: ActivityFormState) -> Model {
   }
 }
 
+/// The booking drawer state carried by the current page, with its activity id.
+/// Both the detail page and the bookings page host the drawer; the shared
+/// booking-form update arms read one place instead of re-matching each page.
+fn page_booking_form(page: Page) -> Result(#(Uuid, BookingFormState), Nil) {
+  case page {
+    ActivityDetailPage(id, booking_form) -> Ok(#(id, booking_form))
+    ActivityBookingsPage(id, _, booking_form) -> Ok(#(id, booking_form))
+    _ -> Error(Nil)
+  }
+}
+
+/// Replace the booking drawer state on the current page, preserving the rest
+/// of the page. A no-op on pages without the drawer (mirrors
+/// `set_activity_form`), so booking actions can't leak state elsewhere.
+fn set_page_booking_form(
+  model: Model,
+  booking_form: BookingFormState,
+) -> Model {
+  case model.page {
+    ActivityDetailPage(id, _) ->
+      Model(..model, page: ActivityDetailPage(id, booking_form))
+    ActivityBookingsPage(id, bookings, _) ->
+      Model(..model, page: ActivityBookingsPage(id, bookings, booking_form))
+    _ -> model
+  }
+}
+
 /// The filters of whichever activities list (browse or manage) is showing.
 fn list_filters(page: Page) -> Result(ListFilters, Nil) {
   case page {
@@ -968,7 +1084,9 @@ pub type Me {
 /// action. Mirrors the server's `bookings:read` guard; `activities:manage` and
 /// `Admin` also qualify.
 fn can_view_bookings(model: Model) -> Bool {
-  has_role(model, BookingsRead) || has_role(model, ManageActivities)
+  has_role(model, BookingsRead)
+  || has_role(model, ManageActivities)
+  || has_role(model, BookingsOthersCreate)
 }
 
 /// Whether the user may book on behalf of another kår, gating the booking
@@ -1189,7 +1307,7 @@ fn seed_detail_loading(
   page: Page,
 ) -> Dict(Uuid, RemoteData(ActivityDetail)) {
   case page {
-    ActivityDetailPage(id, _) | ActivityBookingsPage(id, _) ->
+    ActivityDetailPage(id, _) | ActivityBookingsPage(id, _, _) ->
       case dict.get(details, id) {
         Ok(Loaded(_)) -> details
         _ -> dict.insert(details, id, Loading)
@@ -1366,24 +1484,31 @@ fn booking_cap_for(model: Model, id: Uuid, mode: BookingMode) -> Option(Int) {
     _ -> None
   }
   let spots_booked = dict.get(model.spots, id) |> option.from_result
-  cap_for_mode(max_attendees, spots_booked, status_of(model.statuses, id), mode)
+  cap_for_mode(
+    max_attendees,
+    spots_booked,
+    bookings_of(status_of(model.statuses, id)),
+    mode,
+  )
 }
 
 /// The participant cap for a given booking mode. On an edit the booking's own
 /// participants are added back, since they're already in the activity's booked
-/// count.
+/// count. The edited booking is looked up in `bookings_in_scope`: the user's
+/// own bookings on the detail page, the full fetched list on the bookings
+/// page (where the edited booking may be another user's).
 fn cap_for_mode(
   max_attendees: Option(Int),
   spots_booked: Option(Int),
-  status: ActivityStatus,
+  bookings_in_scope: List(Booking),
   mode: BookingMode,
 ) -> Option(Int) {
   let base = booking_cap(max_attendees, spots_booked)
   case mode, base {
     BookingEdit(booking_id), Some(remaining) ->
-      case booking_of(status) {
-        Some(b) if b.id == booking_id -> Some(remaining + b.participant_count)
-        _ -> base
+      case list.find(bookings_in_scope, fn(b) { b.id == booking_id }) {
+        Ok(b) -> Some(remaining + b.participant_count)
+        Error(_) -> base
       }
     _, _ -> base
   }
@@ -1537,7 +1662,7 @@ fn app_bar_title(translator: Translator, page: Page) -> Option(String) {
       Some(g18n.translate(translator, "app_bar.manage_activities"))
     ActivityDetailPage(_, _) ->
       Some(g18n.translate(translator, "app_bar.activity_detail"))
-    ActivityBookingsPage(_, _) ->
+    ActivityBookingsPage(_, _, _) ->
       Some(g18n.translate(translator, "app_bar.activity_bookings"))
     RecurringBookingsPage(BeachBus, _) ->
       Some(g18n.translate(translator, "app_bar.beach_bus_bookings"))
@@ -1689,6 +1814,9 @@ pub type Msg {
   UserSearchedBookingGroup(String)
   UserOpenedBookingGroupDropdown
   UserClosedBookingGroupDropdown
+  // Bookings page: manage an on-behalf booking straight from its card
+  UserClickedEditBookingCard(Booking)
+  UserClickedUnbookCard(Uuid)
   // Recurring-activity booking overview (Badbuss / Klättervägg)
   ApiReturnedRecurringBookings(RecurringKey, RecurringResult)
   UserSelectedOverviewDay(Option(calendar.Date))
@@ -2454,6 +2582,49 @@ pub fn update(model: Model, msg: Msg) -> #(Model, Effect(Msg)) {
       effect.none(),
     )
 
+    // Bookings page: open the drawer to edit an on-behalf booking straight
+    // from its card. The cap's add-back comes from the card's own booking —
+    // it may be another user's, so my statuses can't supply it.
+    UserClickedEditBookingCard(booking) ->
+      case model.page {
+        ActivityBookingsPage(id, _, _) -> {
+          let max_attendees = case detail_of(model, id) {
+            Loaded(activity) -> activity.max_attendees
+            _ -> None
+          }
+          let spots_booked = dict.get(model.spots, id) |> option.from_result
+          let cap =
+            cap_for_mode(
+              max_attendees,
+              spots_booked,
+              [booking],
+              BookingEdit(booking.id),
+            )
+          #(
+            set_page_booking_form(
+              model,
+              BookingOpen(
+                booking_form_from(booking, model.translator, cap),
+                None,
+                BookingEdit(booking.id),
+              ),
+            ),
+            effect.none(),
+          )
+        }
+        _ -> #(model, effect.none())
+      }
+
+    // Bookings page: ask for confirmation before unbooking a card's booking.
+    UserClickedUnbookCard(booking_id) ->
+      case model.page {
+        ActivityBookingsPage(_, _, _) -> #(
+          set_page_booking_form(model, UnbookConfirming(booking_id)),
+          effect.none(),
+        )
+        _ -> #(model, effect.none())
+      }
+
     // Overview data arrived. Stored by key in the cache (like activity windows)
     // regardless of the open page, so a response for a day the user has since
     // left still populates its cache. `RecurringUnchanged` (a 304) keeps what's
@@ -2573,9 +2744,15 @@ pub fn update(model: Model, msg: Msg) -> #(Model, Effect(Msg)) {
       case model.page {
         ActivityDetailPage(id, BookingClosed) ->
           case detail_of(model, id) {
-            Loaded(activity) ->
+            Loaded(activity) -> {
+              // A self-booking ends the flow for regular users, but a
+              // bookings:others:create holder can keep stacking on-behalf
+              // bookings — the form stays reachable, locked to "åt någon
+              // annan" so no second self-booking can be created.
+              let has_self_booking =
+                self_booking_of(status_of(model.statuses, id)) != None
               case
-                is_booked(status_of(model.statuses, id)),
+                has_self_booking && !can_book_others(model),
                 activity.max_attendees
               {
                 True, _ -> #(model, effect.none())
@@ -2587,7 +2764,7 @@ pub fn update(model: Model, msg: Msg) -> #(Model, Effect(Msg)) {
                       Model(
                         ..model,
                         // Fresh book-for-other state each time the form opens.
-                        booking_ui: default_booking_ui(),
+                        booking_ui: initial_booking_ui(has_self_booking),
                         page: ActivityDetailPage(
                           id,
                           BookingOpen(
@@ -2608,7 +2785,7 @@ pub fn update(model: Model, msg: Msg) -> #(Model, Effect(Msg)) {
                     True -> #(
                       Model(
                         ..model,
-                        booking_ui: default_booking_ui(),
+                        booking_ui: initial_booking_ui(has_self_booking),
                         page: ActivityDetailPage(
                           id,
                           BookingOpen(
@@ -2632,6 +2809,7 @@ pub fn update(model: Model, msg: Msg) -> #(Model, Effect(Msg)) {
                     )
                   }
               }
+            }
             _ -> #(model, effect.none())
           }
         _ -> #(model, effect.none())
@@ -2640,7 +2818,9 @@ pub fn update(model: Model, msg: Msg) -> #(Model, Effect(Msg)) {
     UserClickedChangeBooking ->
       case model.page {
         ActivityDetailPage(id, _) ->
-          case booking_of(status_of(model.statuses, id)) {
+          // Acts on the self-booking; on-behalf bookings are managed from the
+          // bookings page.
+          case self_booking_of(status_of(model.statuses, id)) {
             Some(booking) -> #(
               Model(
                 ..model,
@@ -2667,7 +2847,8 @@ pub fn update(model: Model, msg: Msg) -> #(Model, Effect(Msg)) {
     UserClickedUnbook ->
       case model.page {
         ActivityDetailPage(id, _) ->
-          case booking_of(status_of(model.statuses, id)) {
+          // Acts on the self-booking (see UserClickedChangeBooking).
+          case self_booking_of(status_of(model.statuses, id)) {
             Some(booking) -> #(
               Model(
                 ..model,
@@ -2680,65 +2861,45 @@ pub fn update(model: Model, msg: Msg) -> #(Model, Effect(Msg)) {
         _ -> #(model, effect.none())
       }
 
-    UserClickedCancelUnbook ->
-      case model.page {
-        ActivityDetailPage(id, _) -> #(
-          Model(..model, page: ActivityDetailPage(id, BookingClosed)),
-          effect.none(),
-        )
-        _ -> #(model, effect.none())
-      }
+    UserClickedCancelUnbook -> #(
+      set_page_booking_form(model, BookingClosed),
+      effect.none(),
+    )
 
     UserClickedConfirmUnbook ->
-      case model.page {
-        ActivityDetailPage(id, UnbookConfirming(booking_id)) -> #(
-          Model(
-            ..model,
-            page: ActivityDetailPage(id, UnbookSubmitting(booking_id)),
-          ),
+      case page_booking_form(model.page) {
+        Ok(#(id, UnbookConfirming(booking_id))) -> #(
+          set_page_booking_form(model, UnbookSubmitting(booking_id)),
           delete_booking(id, booking_id),
         )
         _ -> #(model, effect.none())
       }
 
-    UserClickedCancelBooking ->
-      case model.page {
-        ActivityDetailPage(id, _) -> #(
-          Model(..model, page: ActivityDetailPage(id, BookingClosed)),
-          effect.none(),
-        )
-        _ -> #(model, effect.none())
-      }
+    UserClickedCancelBooking -> #(
+      set_page_booking_form(model, BookingClosed),
+      effect.none(),
+    )
 
     UserSubmittedBookingForm(Ok(fields)) ->
-      case model.page {
-        ActivityDetailPage(id, BookingOpen(form, _, mode)) ->
+      case page_booking_form(model.page) {
+        Ok(#(id, BookingOpen(form, _, mode))) ->
           case mode, booking_target_group(model.booking_ui) {
             // Book-for-other with no kår picked: the one thing the formal form
             // can't validate (the picker lives outside it). Keep the form open
             // and surface the error instead of submitting.
             BookingNew, Error(Nil) -> #(
-              Model(
-                ..model,
-                page: ActivityDetailPage(
-                  id,
-                  BookingOpen(form, Some(BookingGroupRequired), mode),
-                ),
+              set_page_booking_form(
+                model,
+                BookingOpen(form, Some(BookingGroupRequired), mode),
               ),
               effect.none(),
             )
             BookingNew, Ok(booker_group_id) -> #(
-              Model(
-                ..model,
-                page: ActivityDetailPage(id, BookingSubmitting(mode)),
-              ),
+              set_page_booking_form(model, BookingSubmitting(mode)),
               create_booking(id, fields, booker_group_id),
             )
             BookingEdit(booking_id), _ -> #(
-              Model(
-                ..model,
-                page: ActivityDetailPage(id, BookingSubmitting(mode)),
-              ),
+              set_page_booking_form(model, BookingSubmitting(mode)),
               update_booking(booking_id, fields),
             )
           }
@@ -2746,12 +2907,9 @@ pub fn update(model: Model, msg: Msg) -> #(Model, Effect(Msg)) {
       }
 
     UserSubmittedBookingForm(Error(f)) ->
-      case model.page {
-        ActivityDetailPage(id, BookingOpen(_, _, mode)) -> #(
-          Model(
-            ..model,
-            page: ActivityDetailPage(id, BookingOpen(f, None, mode)),
-          ),
+      case page_booking_form(model.page) {
+        Ok(#(_, BookingOpen(_, _, mode))) -> #(
+          set_page_booking_form(model, BookingOpen(f, None, mode)),
           effect.none(),
         )
         _ -> #(model, effect.none())
@@ -2759,20 +2917,22 @@ pub fn update(model: Model, msg: Msg) -> #(Model, Effect(Msg)) {
 
     ApiCreatedBooking(Ok(booking)) -> {
       // Server auto-favourites on booking, so a single Booked entry captures
-      // both the booking and the favourite.
+      // both the booking and the favourite. Append to any bookings already
+      // held — a bookings:others:create holder can stack several.
       let statuses =
-        dict.insert(model.statuses, booking.activity_id, Booked(booking))
-      let page = case model.page {
-        ActivityDetailPage(id, _) -> ActivityDetailPage(id, BookingClosed)
-        other -> other
-      }
+        dict.upsert(model.statuses, booking.activity_id, fn(existing) {
+          case existing {
+            Some(Booked(bookings)) -> Booked(list.append(bookings, [booking]))
+            _ -> Booked([booking])
+          }
+        })
+      let model = set_page_booking_form(model, BookingClosed)
       // Booking auto-favourites server-side, so invalidate the favourited
       // window to pick up this newly-relevant summary on next Favourites open.
       #(
         Model(
           ..model,
           statuses:,
-          page:,
           windows: dict.delete(model.windows, favourites_key()),
         ),
         fetch_activity_spots(booking.activity_id),
@@ -2809,78 +2969,86 @@ pub fn update(model: Model, msg: Msg) -> #(Model, Effect(Msg)) {
       }
 
     ApiUpdatedBooking(Ok(booking)) -> {
-      let statuses =
-        dict.insert(model.statuses, booking.activity_id, Booked(booking))
-      let page = case model.page {
-        ActivityDetailPage(id, _) -> ActivityDetailPage(id, BookingClosed)
-        other -> other
+      // Swap the booking in my statuses where present. An edit made from the
+      // bookings page may target another user's on-behalf booking, which
+      // isn't in my statuses at all — leave them untouched then.
+      let statuses = replace_status_booking(model.statuses, booking)
+      let model = set_page_booking_form(model, BookingClosed)
+      // The bookings page shows the live list, so refetch it after an edit.
+      let refetch = case model.page {
+        ActivityBookingsPage(id, _, _) -> fetch_bookings(id)
+        _ -> effect.none()
       }
       #(
-        Model(..model, statuses:, page:),
-        fetch_activity_spots(booking.activity_id),
+        Model(..model, statuses:),
+        effect.batch([fetch_activity_spots(booking.activity_id), refetch]),
       )
     }
 
     ApiUpdatedBooking(Error(err)) ->
-      case model.page {
-        ActivityDetailPage(id, BookingSubmitting(mode)) -> {
+      case page_booking_form(model.page) {
+        Ok(#(id, BookingSubmitting(mode))) -> {
           let app_error = booking_error(err, UpdateBookingFailed)
           #(
-            Model(
-              ..model,
-              page: ActivityDetailPage(
-                id,
-                BookingOpen(
-                  new_booking_form(
-                    model.translator,
-                    booking_cap_for(model, id, mode),
-                  ),
-                  Some(app_error),
-                  mode,
+            set_page_booking_form(
+              model,
+              BookingOpen(
+                new_booking_form(
+                  model.translator,
+                  booking_cap_for(model, id, mode),
                 ),
+                Some(app_error),
+                mode,
               ),
             ),
             capacity_refresh(app_error, id),
           )
         }
-        ActivityDetailPage(id, _) -> #(
-          Model(..model, page: ActivityDetailPage(id, BookingClosed)),
+        Ok(#(_, _)) -> #(
+          set_page_booking_form(model, BookingClosed),
           effect.none(),
         )
-        _ -> #(model, effect.none())
+        Error(_) -> #(model, effect.none())
       }
 
-    ApiDeletedBooking(activity_id, _booking_id, Ok(_)) -> {
-      // Unbooking keeps the favourite server-side, so downgrade to Favourited
-      // rather than removing the status entirely.
-      let statuses = dict.insert(model.statuses, activity_id, Favourited)
-      let page = case model.page {
-        ActivityDetailPage(id, _) -> ActivityDetailPage(id, BookingClosed)
-        other -> other
+    ApiDeletedBooking(activity_id, booking_id, Ok(_)) -> {
+      // Drop the booking from my statuses if I hold it; my last one going
+      // downgrades to Favourited (unbooking keeps the favourite server-side).
+      // Deleting another user's on-behalf booking from the bookings page
+      // leaves my statuses untouched.
+      let statuses =
+        remove_status_booking(model.statuses, activity_id, booking_id)
+      let model = set_page_booking_form(model, BookingClosed)
+      let refetch = case model.page {
+        ActivityBookingsPage(id, _, _) if id == activity_id ->
+          fetch_bookings(id)
+        _ -> effect.none()
       }
-      #(Model(..model, statuses:, page:), fetch_activity_spots(activity_id))
+      #(
+        Model(..model, statuses:),
+        effect.batch([fetch_activity_spots(activity_id), refetch]),
+      )
     }
 
-    ApiDeletedBooking(_, _, Error(_)) ->
-      case model.page {
-        ActivityDetailPage(id, _) -> #(
-          Model(..model, page: ActivityDetailPage(id, BookingClosed)),
-          effect.none(),
-        )
-        _ -> #(model, effect.none())
-      }
+    ApiDeletedBooking(_, _, Error(_)) -> #(
+      set_page_booking_form(model, BookingClosed),
+      effect.none(),
+    )
 
     // Land the fetched bookings only if their activity is still the open
     // bookings page — a response for a page we've navigated away from is stale.
     ApiReturnedBookings(id, result) ->
       case model.page {
-        ActivityBookingsPage(page_id, _) if page_id == id -> {
+        ActivityBookingsPage(page_id, _, booking_form) if page_id == id -> {
           let bookings = case result {
             Ok(bookings) -> Loaded(bookings)
             Error(_) -> Failed(LoadBookingsFailed)
           }
           #(
-            Model(..model, page: ActivityBookingsPage(id, bookings)),
+            Model(
+              ..model,
+              page: ActivityBookingsPage(id, bookings, booking_form),
+            ),
             effect.none(),
           )
         }
@@ -3475,7 +3643,7 @@ pub fn uri_to_page(
             _ -> fetch_activity(id)
           }
           #(
-            ActivityBookingsPage(id, Loading),
+            ActivityBookingsPage(id, Loading, BookingClosed),
             effect.batch([
               activity_effect,
               fetch_activity_spots(id),
@@ -3540,12 +3708,17 @@ fn view(model: Model) -> Element(Msg) {
         model.booking_ui,
         model.scout_groups,
       )
-    ActivityBookingsPage(id, bookings) ->
+    ActivityBookingsPage(id, bookings, booking_form) ->
       view_activity_bookings(
         model.translator,
         detail_of(model, id),
         dict.get(model.spots, id) |> option.from_result,
         bookings,
+        booking_form,
+        can_book_others(model),
+        model.booker,
+        model.booking_ui,
+        model.scout_groups,
       )
     RecurringBookingsPage(kind, selected_day) ->
       view_recurring_bookings(
@@ -4633,7 +4806,8 @@ fn view_activity_detail_loaded(
           booking,
           activity.max_attendees,
           spots_booked,
-          status,
+          bookings_of(status),
+          self_booking_of(status) != None,
           booker,
           can_book_others,
           booking_ui,
@@ -4704,9 +4878,10 @@ fn view_activity_detail_loaded(
                 view_detail_actions(
                   translator,
                   activity,
-                  is_booked(status),
+                  self_booking_of(status) != None,
                   booking,
                   spots_booked,
+                  can_book_others,
                 )
               [
                 primary,
@@ -4841,11 +5016,12 @@ fn booking_drawer_heading(
 fn view_detail_actions(
   translator: Translator,
   activity: Activity,
-  booked: Bool,
+  self_booked: Bool,
   booking: BookingFormState,
   spots_booked: Option(Int),
+  can_book_others: Bool,
 ) -> #(Element(Msg), Element(Msg)) {
-  case booked, booking {
+  case self_booked, booking {
     // Booked activity: ask the user to confirm before deleting their booking.
     True, UnbookConfirming(_) -> #(
       component.scout_button_action(
@@ -4865,20 +5041,27 @@ fn view_detail_actions(
       element.none(),
     )
 
-    // Booked: offer "Ändra bokning" + "Avboka" — kept visible even while the
-    // booking drawer is open/submitting, since the drawer no longer hides
+    // Self-booked: offer "Ändra bokning" + "Avboka" — kept visible even while
+    // the booking drawer is open/submitting, since the drawer no longer hides
     // the row behind it. A called-off activity drops "Ändra bokning" (no
     // changes to a cancelled activity) but keeps "Avboka" so booked users can
-    // still remove themselves.
+    // still remove themselves. A bookings:others:create holder additionally
+    // keeps "Boka", so on-behalf bookings can be stacked on top.
     True, _ -> #(
       case activity.cancellation {
         Some(_) -> element.none()
         None ->
-          component.scout_button_action(
-            g18n.translate(translator, "booking.change"),
-            "primary",
-            UserClickedChangeBooking,
-          )
+          element.fragment([
+            case can_book_others {
+              True -> book_action(translator, activity, spots_booked)
+              False -> element.none()
+            },
+            component.scout_button_action(
+              g18n.translate(translator, "booking.change"),
+              "primary",
+              UserClickedChangeBooking,
+            ),
+          ])
       },
       component.scout_button_action(
         g18n.translate(translator, "booking.unbook"),
@@ -4887,35 +5070,43 @@ fn view_detail_actions(
       ),
     )
 
-    // Not booked: the "Boka" button if the activity has capacity, shown as a
-    // disabled "Full" button when no spots remain (known count only). A
-    // called-off activity offers no booking action at all.
+    // Not booked (no self-booking): the "Boka" action. A called-off activity
+    // offers no booking action at all.
     False, _ ->
       case activity.cancellation {
         Some(_) -> #(element.none(), element.none())
-        None ->
-          case activity.max_attendees {
-            Some(_) ->
-              case model.spots_remaining(activity.max_attendees, spots_booked) {
-                model.Remaining(0) -> #(
-                  component.scout_button_disabled(
-                    g18n.translate(translator, "activity.full"),
-                    "primary",
-                  ),
-                  element.none(),
-                )
-                _ -> #(
-                  component.scout_button_action(
-                    g18n.translate(translator, "activity.book"),
-                    "primary",
-                    UserClickedBook,
-                  ),
-                  element.none(),
-                )
-              }
-            None -> #(element.none(), element.none())
-          }
+        None -> #(
+          book_action(translator, activity, spots_booked),
+          element.none(),
+        )
       }
+  }
+}
+
+/// The "Boka" action for an activity: the button while spots remain, a
+/// disabled "Full" one when none do (known count only), and nothing for
+/// uncapped activities (they are not booked via the UI).
+fn book_action(
+  translator: Translator,
+  activity: Activity,
+  spots_booked: Option(Int),
+) -> Element(Msg) {
+  case activity.max_attendees {
+    Some(_) ->
+      case model.spots_remaining(activity.max_attendees, spots_booked) {
+        model.Remaining(0) ->
+          component.scout_button_disabled(
+            g18n.translate(translator, "activity.full"),
+            "primary",
+          )
+        _ ->
+          component.scout_button_action(
+            g18n.translate(translator, "activity.book"),
+            "primary",
+            UserClickedBook,
+          )
+      }
+    None -> element.none()
   }
 }
 
@@ -4971,7 +5162,12 @@ fn view_booking_form_section(
   booking: BookingFormState,
   max_attendees: Option(Int),
   spots_booked: Option(Int),
-  status: ActivityStatus,
+  // The bookings an edit's cap add-back is looked up in: the user's own
+  // bookings on the detail page, the fetched list on the bookings page.
+  bookings_in_scope: List(Booking),
+  // Locks a new booking to "åt någon annan": a second self-booking is never
+  // offered. Only meaningful with `can_book_others`.
+  has_self_booking: Bool,
   booker: BookerIdentity,
   can_book_others: Bool,
   booking_ui: BookingUi,
@@ -4987,37 +5183,66 @@ fn view_booking_form_section(
       ])
     BookingOpen(form, submit_error, mode) -> {
       let max_participants =
-        cap_for_mode(max_attendees, spots_booked, status, mode)
+        cap_for_mode(max_attendees, spots_booked, bookings_in_scope, mode)
       let submitted = fn(values) {
         form
         |> form.add_values(values)
         |> form.run
         |> UserSubmittedBookingForm
       }
+      // When editing an on-behalf booking, the identity block shows the kår
+      // it was booked for and who made it (read-only) — showing the editor's
+      // own Scoutnet identity there would wrongly suggest it gets stored.
+      let edited_for_other = case mode {
+        BookingEdit(booking_id) ->
+          case list.find(bookings_in_scope, fn(b) { b.id == booking_id }) {
+            Ok(b) if b.booked_for_other -> Some(b)
+            _ -> None
+          }
+        BookingNew -> None
+      }
       // Who the booking is for. Only a *new* booking by a user who may book
       // for others gets the "åt dig själv / åt någon annan" toggle (issue
       // #27) — an edit keeps its kår, everyone else books for themselves.
       let identity_section = case mode, can_book_others {
-        BookingNew, True -> [
-          component.scout_segmented_control(
-            case booking_ui.target {
-              BookingForSelf -> 0
-              BookingForOther -> 1
-            },
-            [
-              g18n.translate(translator, "booking.for_self"),
-              g18n.translate(translator, "booking.for_other"),
-            ],
-            UserSelectedBookingTarget,
-            [],
-          ),
-          case booking_ui.target {
-            BookingForSelf -> view_booker_identity(translator, booker)
-            BookingForOther ->
-              view_book_for_other(translator, booker, booking_ui, scout_groups)
-          },
-        ]
-        _, _ -> [view_booker_identity(translator, booker)]
+        BookingNew, True ->
+          case has_self_booking {
+            // Already self-booked: only an on-behalf booking can be added, so
+            // the toggle is dropped and the form is locked to for-other (the
+            // open handler preset `booking_ui.target` to match).
+            True -> [
+              view_book_for_other(translator, booker, booking_ui, scout_groups),
+            ]
+            False -> [
+              component.scout_segmented_control(
+                case booking_ui.target {
+                  BookingForSelf -> 0
+                  BookingForOther -> 1
+                },
+                [
+                  g18n.translate(translator, "booking.for_self"),
+                  g18n.translate(translator, "booking.for_other"),
+                ],
+                UserSelectedBookingTarget,
+                [],
+              ),
+              case booking_ui.target {
+                BookingForSelf -> view_booker_identity(translator, booker)
+                BookingForOther ->
+                  view_book_for_other(
+                    translator,
+                    booker,
+                    booking_ui,
+                    scout_groups,
+                  )
+              },
+            ]
+          }
+        _, _ ->
+          case edited_for_other {
+            Some(edited) -> [view_edited_for_other_identity(translator, edited)]
+            None -> [view_booker_identity(translator, booker)]
+          }
       }
       html.form([event.on_submit(submitted)], [
         html.div(
@@ -5112,6 +5337,24 @@ fn view_book_for_other(
         ]),
       ],
       [element.text(g18n.translate(translator, "booking.for_other_note"))],
+    ),
+  ])
+}
+
+/// The identity block when editing an on-behalf booking: the kår it was
+/// booked for and who made it, read-only — the edit can change neither.
+fn view_edited_for_other_identity(
+  translator: Translator,
+  booking: Booking,
+) -> Element(Msg) {
+  html.div([attribute.class("flex flex-col gap-2")], [
+    component.scout_readonly_field(
+      g18n.translate(translator, "booking.group_label"),
+      option.unwrap(booking.booker_group_name, ""),
+    ),
+    component.scout_readonly_field(
+      g18n.translate(translator, "booking.booked_by_label"),
+      booking.booker_name,
     ),
   ])
 }
@@ -5344,9 +5587,47 @@ fn view_activity_bookings(
   activity_state: RemoteData(Activity),
   spots_booked: Option(Int),
   bookings: RemoteData(List(Booking)),
+  booking_form: BookingFormState,
+  can_manage_for_other: Bool,
+  booker: BookerIdentity,
+  booking_ui: BookingUi,
+  scout_groups: RemoteData(List(ScoutGroup)),
 ) -> Element(Msg) {
   let t = fn(key) { g18n.translate(translator, key) }
+  let max_attendees = case activity_state {
+    Loaded(activity) -> activity.max_attendees
+    _ -> None
+  }
+  let loaded_bookings = case bookings {
+    Loaded(items) -> items
+    _ -> []
+  }
   html.div([attribute.class("flex flex-col p-3 gap-4")], [
+    // The same booking drawer as the detail page, hosting the edit form for
+    // on-behalf bookings managed straight from their cards. Only ever opens
+    // in edit mode here, so the for-other toggle never shows.
+    component.scout_drawer(
+      case booking_form {
+        BookingOpen(_, _, _) | BookingSubmitting(_) -> True
+        BookingClosed | UnbookConfirming(_) | UnbookSubmitting(_) -> False
+      },
+      booking_drawer_heading(translator, booking_form),
+      UserClickedCancelBooking,
+      [
+        view_booking_form_section(
+          translator,
+          booking_form,
+          max_attendees,
+          spots_booked,
+          loaded_bookings,
+          False,
+          booker,
+          False,
+          booking_ui,
+          scout_groups,
+        ),
+      ],
+    ),
     view_bookings_header(translator, activity_state, spots_booked),
     html.div([attribute.class("flex flex-col gap-3")], [
       html.h2([attribute.class("text-body-l font-semibold")], [
@@ -5369,7 +5650,15 @@ fn view_activity_bookings(
             list.map(items, fn(booking) {
               #(
                 uuid.to_string(booking.id),
-                view_booking_card(translator, booking),
+                view_booking_card(
+                  translator,
+                  booking,
+                  // On-behalf bookings are team-managed: any
+                  // bookings:others:create holder may edit them, matching the
+                  // server's manage rule. Self-bookings stay view-only here.
+                  can_manage_for_other && booking.booked_for_other,
+                  booking_form,
+                ),
               )
             }),
           )
@@ -5652,7 +5941,12 @@ fn view_bookings_header(
 /// One booking rendered as a card: the booker group in bold, then the
 /// free-text group (when a scout group name is also present), participant
 /// count, responsible leader, and a tappable phone link.
-fn view_booking_card(translator: Translator, booking: Booking) -> Element(Msg) {
+fn view_booking_card(
+  translator: Translator,
+  booking: Booking,
+  manageable: Bool,
+  booking_form: BookingFormState,
+) -> Element(Msg) {
   // Prefer the scout group name from the booker's token; fall back to the
   // free-text group, then to a placeholder when neither is present (the
   // free-text field is optional, so both can be empty).
@@ -5706,10 +6000,76 @@ fn view_booking_card(translator: Translator, booking: Booking) -> Element(Msg) {
             ],
             [element.text(booking.phone_number)],
           ),
+          // On-behalf bookings carry who actually made them — the group
+          // fields name the kår booked for, not the booker.
+          case booking.booked_for_other {
+            True ->
+              html.p([attribute.class("text-body-sm text-gray-500 italic")], [
+                element.text(
+                  g18n.translate(translator, "bookings.for_other_badge")
+                  <> " · "
+                  <> g18n.translate_with_params(
+                    translator,
+                    "bookings.booked_by",
+                    g18n.new_format_params()
+                      |> g18n.add_param("name", booking.booker_name),
+                  ),
+                ),
+              ])
+            False -> element.none()
+          },
+          view_booking_card_actions(
+            translator,
+            booking,
+            manageable,
+            booking_form,
+          ),
         ]),
       ]),
     ],
   )
+}
+
+/// The manage row on a bookings-page card: edit + unbook for on-behalf
+/// bookings, swapping to an in-place confirm (and then a loader) while this
+/// card's unbook is pending. Nothing for view-only cards.
+fn view_booking_card_actions(
+  translator: Translator,
+  booking: Booking,
+  manageable: Bool,
+  booking_form: BookingFormState,
+) -> Element(Msg) {
+  use <- bool.guard(when: !manageable, return: element.none())
+  let t = fn(key) { g18n.translate(translator, key) }
+  html.div([attribute.class("flex gap-2 justify-end pt-2")], case booking_form {
+    UnbookConfirming(id) if id == booking.id -> [
+      component.scout_button_action(
+        t("booking.cancel"),
+        "outlined",
+        UserClickedCancelUnbook,
+      ),
+      component.scout_button_action(
+        t("booking.confirm_unbook"),
+        "danger",
+        UserClickedConfirmUnbook,
+      ),
+    ]
+    UnbookSubmitting(id) if id == booking.id -> [
+      component.scout_loader(t("booking.submitting")),
+    ]
+    _ -> [
+      component.scout_button_action(
+        t("booking.unbook"),
+        "danger",
+        UserClickedUnbookCard(booking.id),
+      ),
+      component.scout_button_action(
+        t("booking.change"),
+        "primary",
+        UserClickedEditBookingCard(booking),
+      ),
+    ]
+  })
 }
 
 /// The "X / Y platser fyllda" caption for the bookings header. `None` for an

@@ -572,8 +572,8 @@ paths:
       summary: List bookings for activity
       description: >-
         Retrieve a paginated list of bookings for a specific activity, ordered
-        by responsible name. Requires the `bookings:read` or `activities:manage`
-        role.
+        by responsible name. Requires the `bookings:read`, `activities:manage`
+        or `bookings:others:create` role.
       operationId: listBookingsByActivity
       security:
         - bearerAuth: []
@@ -696,8 +696,8 @@ paths:
         - Bookings
       summary: Get booking
       description: >-
-        Retrieve a single booking by its ID. Requires the `bookings:read` or
-        `activities:manage` role.
+        Retrieve a single booking by its ID. Requires the `bookings:read`,
+        `activities:manage` or `bookings:others:create` role.
       operationId: getBooking
       security:
         - bearerAuth: []
@@ -738,7 +738,14 @@ paths:
       tags:
         - Bookings
       summary: Update booking
-      description: Update an existing booking. Only mutable fields (group_free_text, responsible_name, phone_number, participant_count) can be changed.
+      description: |
+        Update an existing booking. Only mutable fields (group_free_text,
+        responsible_name, phone_number, participant_count) can be changed.
+
+        Authorization follows the booking's `booked_for_other` flag: an
+        on-behalf booking is team-managed and editable by any
+        `bookings:others:create` holder; a self-booking only by its owner.
+        `admin` overrides both. Otherwise the request is rejected with 403.
       operationId: updateBooking
       security:
         - bearerAuth: []
@@ -791,7 +798,11 @@ paths:
       tags:
         - Bookings
       summary: Delete booking
-      description: Delete a booking by its ID.
+      description: |
+        Delete a booking by its ID. Authorization matches update: an on-behalf
+        booking (`booked_for_other`) may be deleted by any
+        `bookings:others:create` holder, a self-booking only by its owner, and
+        `admin` overrides both — 403 otherwise.
       operationId: deleteBooking
       security:
         - bearerAuth: []
@@ -807,6 +818,8 @@ paths:
           $ref: '#/components/responses/NotFound'
         '401':
           $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
         '500':
           $ref: '#/components/responses/ServerError'
 
@@ -1045,8 +1058,10 @@ paths:
         Retrieve the authenticated user's bookings and favourites merged into a
         single sparse list. Only activities the user has booked or favourited
         are returned; `booked` dominates `favourited`, so an activity that is
-        both appears once with status `booked`. Activities absent from the list
-        have no status for the user.
+        both appears once with status `booked`. Each `booked` entry carries
+        every booking the user holds on that activity (a
+        `bookings:others:create` holder can stack several on-behalf bookings).
+        Activities absent from the list have no status for the user.
       operationId: listMyStatuses
       security:
         - bearerAuth: []
@@ -1068,18 +1083,18 @@ paths:
                     example:
                       - activity_id: "6f5e1d46-5f58-4e23-9a9d-8c2bfc2d22a0"
                         status: "booked"
-                        booking:
-                          id: "aa000001-0000-4000-8000-000000000001"
-                          user_id: "a1b2c3d4-e5f6-4a90-abcd-ef1234567890"
-                          activity_id: "6f5e1d46-5f58-4e23-9a9d-8c2bfc2d22a0"
-                          booker_name: "Anna Svensson"
-                          booker_group_id: 0
-                          booker_group_name: "Patrull Räven"
-                          group_free_text: "Vi är glada!"
-                          responsible_name: "Anna Svensson"
-                          phone_number: "+46701234567"
-                          participant_count: 5
-                          booked_for_other: false
+                        bookings:
+                          - id: "aa000001-0000-4000-8000-000000000001"
+                            user_id: "a1b2c3d4-e5f6-4a90-abcd-ef1234567890"
+                            activity_id: "6f5e1d46-5f58-4e23-9a9d-8c2bfc2d22a0"
+                            booker_name: "Anna Svensson"
+                            booker_group_id: 0
+                            booker_group_name: "Patrull Räven"
+                            group_free_text: "Vi är glada!"
+                            responsible_name: "Anna Svensson"
+                            phone_number: "+46701234567"
+                            participant_count: 5
+                            booked_for_other: false
                       - activity_id: "b4219a53-4746-4a09-8b4e-3e2ac0c3df11"
                         status: "favourited"
         '401':
@@ -1799,7 +1814,7 @@ components:
       type: object
       description: |
         The authenticated user's status for one activity. `status` is either
-        `booked` (with the embedded `booking`) or `favourited`.
+        `booked` (with the embedded non-empty `bookings` list) or `favourited`.
       required:
         - activity_id
         - status
@@ -1816,10 +1831,15 @@ components:
             - favourited
           description: The user's relationship to the activity
           example: "booked"
-        booking:
-          allOf:
-            - $ref: '#/components/schemas/Booking'
-          description: The user's booking. Present only when status is `booked`.
+        bookings:
+          type: array
+          items:
+            $ref: '#/components/schemas/Booking'
+          description: >-
+            Every booking the user holds on the activity: at most one
+            self-booking plus any on-behalf bookings a `bookings:others:create`
+            holder has stacked. Present (non-empty) only when status is
+            `booked`.
 
     Booking:
       type: object

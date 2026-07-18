@@ -60,8 +60,36 @@ type BookingError {
   ActivityNotFound
   ActivityCalledOff
   BookingNotFound
+  /// The caller may not edit/delete this booking (see `may_manage`).
+  NotBookingManager
   CapacityExceeded(max: Int, spots_booked: Int)
   BookingQueryFailed(pog.QueryError)
+}
+
+/// Whether `user` may edit or delete `booking`. On-behalf bookings
+/// (`booked_for_other`) are team-managed: any holder of
+/// `bookings:others:create` may manage them, regardless of who created them.
+/// A self-booking may only be managed by its owner. `Admin` implies the role
+/// (via `has_role`) and additionally overrides the self-booking owner check.
+/// Public so tests can exercise the rule directly; production code only
+/// reaches it through the update/delete handlers.
+pub fn may_manage(user: web.User, booking: Booking) -> Bool {
+  case booking.booked_for_other {
+    True -> web.has_role(user, web.BookingsOthersCreate)
+    False -> booking.user_id == user.id || web.has_role(user, web.Admin)
+  }
+}
+
+/// `may_manage` as a transaction step: rolls back with `NotBookingManager`
+/// (mapped to a 403) when the caller may not manage the booking.
+fn ensure_may_manage(
+  user: web.User,
+  booking: Booking,
+) -> Result(Nil, BookingError) {
+  case may_manage(user, booking) {
+    True -> Ok(Nil)
+    False -> Error(NotBookingManager)
+  }
 }
 
 pub fn create(
@@ -258,7 +286,13 @@ fn insert_booking(
 pub fn get_one(req: Request, id: String, ctx: web.Context) -> Response {
   use <- wisp.require_method(req, Get)
   use user <- web.with_authenticated_user(ctx)
-  use <- web.require_any_role(user, [web.BookingsRead, web.ActivitiesManage])
+  // bookings:others:create holders read bookings too: the manage variant of
+  // the per-activity bookings page needs the full list.
+  use <- web.require_any_role(user, [
+    web.BookingsRead,
+    web.ActivitiesManage,
+    web.BookingsOthersCreate,
+  ])
   use booking_id <- given.ok(uuid.from_string(id), fn(_) {
     wisp.bad_request("Invalid booking ID format")
   })
@@ -283,7 +317,12 @@ pub fn get_by_activity(
 ) -> Response {
   use <- wisp.require_method(req, Get)
   use user <- web.with_authenticated_user(ctx)
-  use <- web.require_any_role(user, [web.BookingsRead, web.ActivitiesManage])
+  // Same read access as `get_one` (see the note there).
+  use <- web.require_any_role(user, [
+    web.BookingsRead,
+    web.ActivitiesManage,
+    web.BookingsOthersCreate,
+  ])
   use activity_id <- given.ok(uuid.from_string(activity_id_str), fn(_) {
     wisp.bad_request("Invalid activity ID format")
   })
@@ -368,9 +407,7 @@ fn recurring_overview(
 
 pub fn update(req: Request, id: String, ctx: web.Context) -> Response {
   use <- wisp.require_method(req, Put)
-  // TODO(booking-ownership): only authentication is required for now — the
-  // own-booking vs others-booking role semantics are not decided yet.
-  use _user <- web.with_authenticated_user(ctx)
+  use user <- web.with_authenticated_user(ctx)
   use booking_id <- given.ok(uuid.from_string(id), fn(_) {
     wisp.bad_request("Invalid booking ID format")
   })
@@ -388,6 +425,7 @@ pub fn update(req: Request, id: String, ctx: web.Context) -> Response {
   let transaction_result =
     pog.transaction(ctx.db_connection, fn(conn) {
       use existing <- result.try(load_booking(conn, booking_id))
+      use _ <- result.try(ensure_may_manage(user, existing))
       use max_attendees <- result.try(lock_activity(conn, existing.activity_id))
       use spots_booked <- result.try(booked_spots(conn, existing.activity_id))
       let already_booked = spots_booked - existing.participant_count
@@ -409,6 +447,7 @@ pub fn update(req: Request, id: String, ctx: web.Context) -> Response {
       wisp.json_response(updated |> booking.to_json |> json.to_string, 200)
     Error(pog.TransactionRolledBack(BookingNotFound)) -> wisp.not_found()
     Error(pog.TransactionRolledBack(ActivityNotFound)) -> wisp.not_found()
+    Error(pog.TransactionRolledBack(NotBookingManager)) -> wisp.response(403)
     Error(pog.TransactionRolledBack(CapacityExceeded(max, spots_booked))) ->
       web.capacity_exceeded(max, spots_booked)
     Error(pog.TransactionRolledBack(BookingQueryFailed(error))) ->
@@ -458,16 +497,26 @@ fn update_booking(
 pub fn delete(req: Request, id: String, ctx: web.Context) -> Response {
   use <- wisp.require_method(req, Delete)
   web.discard_body(req)
-  // TODO(booking-ownership): only authentication is required for now — the
-  // own-booking vs others-booking role semantics are not decided yet.
-  use _user <- web.with_authenticated_user(ctx)
+  use user <- web.with_authenticated_user(ctx)
   use booking_id <- given.ok(uuid.from_string(id), fn(_) {
     wisp.bad_request("Invalid booking ID format")
   })
 
-  case sql.delete_booking(ctx.db_connection, booking_id) {
+  // Load first so a booking the caller may not manage answers 403 (they can
+  // read it) rather than a misleading 404.
+  case sql.get_booking(ctx.db_connection, booking_id) {
     Error(error) -> web.query_error(error)
     Ok(pog.Returned(_, [])) -> wisp.not_found()
-    Ok(pog.Returned(_, [_, ..])) -> wisp.no_content()
+    Ok(pog.Returned(_, [row, ..])) -> {
+      let existing = booking.from_get_booking_row(row)
+      use <- given.that(may_manage(user, existing), else_return: fn() {
+        wisp.response(403)
+      })
+      case sql.delete_booking(ctx.db_connection, booking_id) {
+        Error(error) -> web.query_error(error)
+        Ok(pog.Returned(_, [])) -> wisp.not_found()
+        Ok(pog.Returned(_, [_, ..])) -> wisp.no_content()
+      }
+    }
   }
 }

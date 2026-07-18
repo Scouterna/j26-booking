@@ -261,22 +261,31 @@ pub fn status_of_defaults_to_not_interested_test() {
 
 pub fn is_favourited_covers_booked_and_favourited_test() {
   let b = a_booking(id_a(), id_b())
-  assert client.is_favourited(model.Booked(b)) == True
+  assert client.is_favourited(model.Booked([b])) == True
   assert client.is_favourited(model.Favourited) == True
   assert client.is_favourited(model.NotInterested) == False
 }
 
 pub fn is_booked_only_true_for_booked_test() {
   let b = a_booking(id_a(), id_b())
-  assert client.is_booked(model.Booked(b)) == True
+  assert client.is_booked(model.Booked([b])) == True
   assert client.is_booked(model.Favourited) == False
   assert client.is_booked(model.NotInterested) == False
 }
 
-pub fn booking_of_extracts_booking_test() {
+pub fn bookings_of_extracts_bookings_test() {
   let b = a_booking(id_a(), id_b())
-  assert client.booking_of(model.Booked(b)) == Some(b)
-  assert client.booking_of(model.Favourited) == None
+  assert client.bookings_of(model.Booked([b])) == [b]
+  assert client.bookings_of(model.Favourited) == []
+}
+
+pub fn self_booking_of_skips_for_other_bookings_test() {
+  let self = a_booking(id_a(), id_b())
+  let for_other =
+    model.Booking(..a_booking(id_c(), id_b()), booked_for_other: True)
+  assert client.self_booking_of(model.Booked([for_other, self])) == Some(self)
+  assert client.self_booking_of(model.Booked([for_other])) == None
+  assert client.self_booking_of(model.Favourited) == None
 }
 
 // PURE HELPERS: id-window cache (RemoteData(List(Uuid))) -----------------------
@@ -418,7 +427,7 @@ pub fn tab_summaries_favourites_derived_from_statuses_test() {
         ]),
         statuses: dict.from_list([
           #(id_a(), model.Favourited),
-          #(id_b(), model.Booked(booking)),
+          #(id_b(), model.Booked([booking])),
         ]),
       ),
       client.favourites_key(),
@@ -597,7 +606,8 @@ pub fn uri_to_page_bookings_for_valid_uuid_test() {
   let path =
     "/_services/booking/activities/" <> uuid.to_string(id_a()) <> "/bookings"
   let #(page, _) = client.uri_to_page(parse_uri(path), dict.new())
-  assert page == client.ActivityBookingsPage(id_a(), client.Loading)
+  assert page
+    == client.ActivityBookingsPage(id_a(), client.Loading, client.BookingClosed)
 }
 
 pub fn uri_to_page_manage_lists_activities_in_manage_mode_test() {
@@ -644,7 +654,7 @@ pub fn toggling_favourite_removes_existing_favourite_test() {
 
 pub fn toggling_favourite_is_locked_while_booked_test() {
   let statuses =
-    dict.from_list([#(id_a(), model.Booked(a_booking(id_b(), id_a())))])
+    dict.from_list([#(id_a(), model.Booked([a_booking(id_b(), id_a())]))])
   let model_ = client.Model(..base_model(), statuses:)
   let #(next, _) = client.update(model_, client.UserToggledFavourite(id_a()))
   assert next.statuses == statuses
@@ -804,7 +814,7 @@ pub fn clicking_change_booking_opens_edit_form_test() {
     client.Model(
       ..base_model(),
       page: client.ActivityDetailPage(id_a(), client.BookingClosed),
-      statuses: dict.from_list([#(id_a(), model.Booked(booking))]),
+      statuses: dict.from_list([#(id_a(), model.Booked([booking]))]),
     )
   let #(next, _) = client.update(model_, client.UserClickedChangeBooking)
   let assert client.ActivityDetailPage(_, client.BookingOpen(_, _, mode)) =
@@ -818,7 +828,7 @@ pub fn clicking_unbook_asks_for_confirmation_test() {
     client.Model(
       ..base_model(),
       page: client.ActivityDetailPage(id_a(), client.BookingClosed),
-      statuses: dict.from_list([#(id_a(), model.Booked(booking))]),
+      statuses: dict.from_list([#(id_a(), model.Booked([booking]))]),
     )
   let #(next, _) = client.update(model_, client.UserClickedUnbook)
   assert next.page
@@ -861,7 +871,7 @@ pub fn created_booking_records_booked_status_and_invalidates_favourites_test() {
   let model_ =
     client.set_window_remote(model_, client.favourites_key(), client.Loaded([]))
   let #(next, _) = client.update(model_, client.ApiCreatedBooking(Ok(booking)))
-  assert dict.get(next.statuses, id_a()) == Ok(model.Booked(booking))
+  assert dict.get(next.statuses, id_a()) == Ok(model.Booked([booking]))
   assert client.window_remote(next, client.favourites_key()) == client.NotAsked
   assert next.page == client.ActivityDetailPage(id_a(), client.BookingClosed)
 }
@@ -872,12 +882,192 @@ pub fn deleted_booking_downgrades_to_favourited_test() {
     client.Model(
       ..base_model(),
       page: client.ActivityDetailPage(id_a(), client.UnbookSubmitting(id_b())),
-      statuses: dict.from_list([#(id_a(), model.Booked(booking))]),
+      statuses: dict.from_list([#(id_a(), model.Booked([booking]))]),
     )
   let #(next, _) =
     client.update(model_, client.ApiDeletedBooking(id_a(), id_b(), Ok(Nil)))
   assert dict.get(next.statuses, id_a()) == Ok(model.Favourited)
   assert next.page == client.ActivityDetailPage(id_a(), client.BookingClosed)
+}
+
+// UPDATE: multiple bookings per person (plan 16) --------------------------------
+
+/// A self-booked bookings:others:create holder can still open the form — it
+/// starts locked to "åt någon annan" so no second self-booking is offered.
+pub fn clicking_book_when_self_booked_opens_locked_for_other_form_test() {
+  let booking = a_booking(id_b(), id_a())
+  let model_ =
+    client.Model(
+      ..base_model(),
+      roles: [client.BookingsOthersCreate],
+      page: client.ActivityDetailPage(id_a(), client.BookingClosed),
+      activities: dict.from_list([#(id_a(), a_summary(id_a(), "A", Some(10)))]),
+      details: dict.from_list([#(id_a(), client.Loaded(a_detail()))]),
+      statuses: dict.from_list([#(id_a(), model.Booked([booking]))]),
+    )
+  let #(next, _) = client.update(model_, client.UserClickedBook)
+  let assert client.ActivityDetailPage(_, client.BookingOpen(_, _, mode)) =
+    next.page
+  assert mode == client.BookingNew
+  assert next.booking_ui.target == client.BookingForOther
+}
+
+/// Without the role, a self-booking still ends the flow (unchanged UX).
+pub fn clicking_book_when_self_booked_without_role_is_ignored_test() {
+  let booking = a_booking(id_b(), id_a())
+  let model_ =
+    client.Model(
+      ..base_model(),
+      page: client.ActivityDetailPage(id_a(), client.BookingClosed),
+      activities: dict.from_list([#(id_a(), a_summary(id_a(), "A", Some(10)))]),
+      details: dict.from_list([#(id_a(), client.Loaded(a_detail()))]),
+      statuses: dict.from_list([#(id_a(), model.Booked([booking]))]),
+    )
+  let #(next, _) = client.update(model_, client.UserClickedBook)
+  assert next.page == model_.page
+}
+
+pub fn created_booking_appends_to_existing_status_test() {
+  let first = a_booking(id_b(), id_a())
+  let second =
+    model.Booking(..a_booking(id_c(), id_a()), booked_for_other: True)
+  let model_ =
+    client.Model(
+      ..base_model(),
+      page: client.ActivityDetailPage(
+        id_a(),
+        client.BookingSubmitting(client.BookingNew),
+      ),
+      statuses: dict.from_list([#(id_a(), model.Booked([first]))]),
+    )
+  let #(next, _) = client.update(model_, client.ApiCreatedBooking(Ok(second)))
+  assert dict.get(next.statuses, id_a()) == Ok(model.Booked([first, second]))
+}
+
+/// Deleting one of two held bookings keeps the activity Booked with the rest.
+pub fn deleting_one_of_two_bookings_keeps_booked_test() {
+  let first = a_booking(id_b(), id_a())
+  let second =
+    model.Booking(..a_booking(id_c(), id_a()), booked_for_other: True)
+  let model_ =
+    client.Model(
+      ..base_model(),
+      page: client.ActivityDetailPage(id_a(), client.UnbookSubmitting(id_c())),
+      statuses: dict.from_list([#(id_a(), model.Booked([first, second]))]),
+    )
+  let #(next, _) =
+    client.update(model_, client.ApiDeletedBooking(id_a(), id_c(), Ok(Nil)))
+  assert dict.get(next.statuses, id_a()) == Ok(model.Booked([first]))
+}
+
+/// Deleting another user's booking (not in my statuses) leaves them untouched.
+pub fn deleting_unheld_booking_leaves_statuses_test() {
+  let mine = a_booking(id_b(), id_a())
+  let model_ =
+    client.Model(
+      ..base_model(),
+      page: client.ActivityBookingsPage(
+        id_a(),
+        client.Loaded([mine]),
+        client.UnbookSubmitting(id_c()),
+      ),
+      statuses: dict.from_list([#(id_a(), model.Booked([mine]))]),
+    )
+  let #(next, _) =
+    client.update(model_, client.ApiDeletedBooking(id_a(), id_c(), Ok(Nil)))
+  assert dict.get(next.statuses, id_a()) == Ok(model.Booked([mine]))
+}
+
+/// Editing another user's booking (not in my statuses) leaves them untouched.
+pub fn updating_unheld_booking_leaves_statuses_test() {
+  let mine = a_booking(id_b(), id_a())
+  let foreign =
+    model.Booking(..a_booking(id_c(), id_a()), booked_for_other: True)
+  let model_ =
+    client.Model(
+      ..base_model(),
+      page: client.ActivityBookingsPage(
+        id_a(),
+        client.Loaded([mine, foreign]),
+        client.BookingSubmitting(client.BookingEdit(id_c())),
+      ),
+      statuses: dict.from_list([#(id_a(), model.Booked([mine]))]),
+    )
+  let #(next, _) = client.update(model_, client.ApiUpdatedBooking(Ok(foreign)))
+  assert dict.get(next.statuses, id_a()) == Ok(model.Booked([mine]))
+  // The drawer closes and the page survives.
+  let assert client.ActivityBookingsPage(_, _, client.BookingClosed) = next.page
+}
+
+// UPDATE: bookings-page manage flows (plan 16) ----------------------------------
+
+pub fn edit_booking_card_opens_drawer_on_bookings_page_test() {
+  let booking =
+    model.Booking(..a_booking(id_b(), id_a()), booked_for_other: True)
+  let model_ =
+    client.Model(
+      ..base_model(),
+      page: client.ActivityBookingsPage(
+        id_a(),
+        client.Loaded([booking]),
+        client.BookingClosed,
+      ),
+    )
+  let #(next, _) =
+    client.update(model_, client.UserClickedEditBookingCard(booking))
+  let assert client.ActivityBookingsPage(_, _, client.BookingOpen(_, _, mode)) =
+    next.page
+  assert mode == client.BookingEdit(id_b())
+}
+
+pub fn submitting_edit_on_bookings_page_submits_test() {
+  let booking =
+    model.Booking(..a_booking(id_b(), id_a()), booked_for_other: True)
+  let model_ =
+    client.Model(
+      ..base_model(),
+      page: client.ActivityBookingsPage(
+        id_a(),
+        client.Loaded([booking]),
+        client.BookingClosed,
+      ),
+    )
+  let #(opened, _) =
+    client.update(model_, client.UserClickedEditBookingCard(booking))
+  let fields =
+    client.BookingFormFields(
+      group_free_text: "",
+      responsible_name: "Ada",
+      phone_number: "0700000000",
+      participant_count: 3,
+    )
+  let #(next, _) =
+    client.update(opened, client.UserSubmittedBookingForm(Ok(fields)))
+  let assert client.ActivityBookingsPage(_, _, client.BookingSubmitting(mode)) =
+    next.page
+  assert mode == client.BookingEdit(id_b())
+}
+
+pub fn unbook_card_confirms_then_submits_test() {
+  let booking =
+    model.Booking(..a_booking(id_b(), id_a()), booked_for_other: True)
+  let model_ =
+    client.Model(
+      ..base_model(),
+      page: client.ActivityBookingsPage(
+        id_a(),
+        client.Loaded([booking]),
+        client.BookingClosed,
+      ),
+    )
+  let #(confirming, _) =
+    client.update(model_, client.UserClickedUnbookCard(id_b()))
+  let assert client.ActivityBookingsPage(_, _, client.UnbookConfirming(id)) =
+    confirming.page
+  assert id == id_b()
+  let #(next, _) = client.update(confirming, client.UserClickedConfirmUnbook)
+  let assert client.ActivityBookingsPage(_, _, client.UnbookSubmitting(_)) =
+    next.page
 }
 
 // UPDATE: bookings list fetch --------------------------------------------------
@@ -887,12 +1077,20 @@ pub fn returned_bookings_land_on_matching_page_test() {
   let model_ =
     client.Model(
       ..base_model(),
-      page: client.ActivityBookingsPage(id_a(), client.Loading),
+      page: client.ActivityBookingsPage(
+        id_a(),
+        client.Loading,
+        client.BookingClosed,
+      ),
     )
   let #(next, _) =
     client.update(model_, client.ApiReturnedBookings(id_a(), Ok([booking])))
   assert next.page
-    == client.ActivityBookingsPage(id_a(), client.Loaded([booking]))
+    == client.ActivityBookingsPage(
+      id_a(),
+      client.Loaded([booking]),
+      client.BookingClosed,
+    )
 }
 
 pub fn returned_bookings_dropped_for_other_activity_test() {
@@ -902,18 +1100,27 @@ pub fn returned_bookings_dropped_for_other_activity_test() {
   let model_ =
     client.Model(
       ..base_model(),
-      page: client.ActivityBookingsPage(id_a(), client.Loading),
+      page: client.ActivityBookingsPage(
+        id_a(),
+        client.Loading,
+        client.BookingClosed,
+      ),
     )
   let #(next, _) =
     client.update(model_, client.ApiReturnedBookings(id_b(), Ok([booking])))
-  assert next.page == client.ActivityBookingsPage(id_a(), client.Loading)
+  assert next.page
+    == client.ActivityBookingsPage(id_a(), client.Loading, client.BookingClosed)
 }
 
 pub fn failed_bookings_fetch_marks_failed_test() {
   let model_ =
     client.Model(
       ..base_model(),
-      page: client.ActivityBookingsPage(id_a(), client.Loading),
+      page: client.ActivityBookingsPage(
+        id_a(),
+        client.Loading,
+        client.BookingClosed,
+      ),
     )
   let #(next, _) =
     client.update(
@@ -924,6 +1131,7 @@ pub fn failed_bookings_fetch_marks_failed_test() {
     == client.ActivityBookingsPage(
       id_a(),
       client.Failed(client.LoadBookingsFailed),
+      client.BookingClosed,
     )
 }
 
@@ -933,12 +1141,12 @@ pub fn returned_statuses_are_folded_into_dict_test() {
   let booking = a_booking(id_c(), id_b())
   let entries = [
     model.ActivityStatusEntry(id_a(), model.Favourited),
-    model.ActivityStatusEntry(id_b(), model.Booked(booking)),
+    model.ActivityStatusEntry(id_b(), model.Booked([booking])),
   ]
   let #(next, _) =
     client.update(base_model(), client.ApiReturnedStatuses(Ok(entries)))
   assert dict.get(next.statuses, id_a()) == Ok(model.Favourited)
-  assert dict.get(next.statuses, id_b()) == Ok(model.Booked(booking))
+  assert dict.get(next.statuses, id_b()) == Ok(model.Booked([booking]))
 }
 
 pub fn failed_statuses_fetch_keeps_prior_dict_test() {

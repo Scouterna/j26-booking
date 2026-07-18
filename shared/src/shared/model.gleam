@@ -650,8 +650,13 @@ pub fn favourites_decoder() -> decode.Decoder(List(Favourite)) {
 /// endpoint only ever reports the present states (`Booked`/`Favourited`);
 /// `NotInterested` is the neutral fallback used client-side when an activity
 /// is absent from the status set. `Booked` dominates `Favourited`.
+///
+/// `Booked` carries every booking the user holds on the activity (non-empty
+/// by construction): at most one self-booking plus any number of on-behalf
+/// bookings a `bookings:others:create` holder has stacked (issue #27
+/// follow-up).
 pub type ActivityStatus {
-  Booked(booking: Booking)
+  Booked(bookings: List(Booking))
   Favourited
   NotInterested
 }
@@ -662,25 +667,25 @@ pub type ActivityStatusEntry {
   ActivityStatusEntry(activity_id: Uuid, status: ActivityStatus)
 }
 
-/// Decode a single status entry. `status` is `"booked"` (with an embedded
-/// `booking`) or `"favourited"`.
+/// Decode a single status entry. `status` is `"booked"` (with a non-empty
+/// embedded `bookings` list) or `"favourited"`.
 pub fn activity_status_entry_decoder() -> decode.Decoder(ActivityStatusEntry) {
   use activity_id_str <- decode.field("activity_id", decode.string)
   use kind <- decode.field("status", decode.string)
-  use booking <- decode.optional_field(
-    "booking",
-    None,
-    decode.optional(booking_decoder()),
+  use bookings <- decode.optional_field(
+    "bookings",
+    [],
+    decode.list(booking_decoder()),
   )
-  case uuid.from_string(activity_id_str), kind, booking {
-    Ok(activity_id), "booked", option.Some(b) ->
-      decode.success(ActivityStatusEntry(activity_id, Booked(b)))
+  case uuid.from_string(activity_id_str), kind, bookings {
+    Ok(activity_id), "booked", [_, ..] ->
+      decode.success(ActivityStatusEntry(activity_id, Booked(bookings)))
     Ok(activity_id), "favourited", _ ->
       decode.success(ActivityStatusEntry(activity_id, Favourited))
     _, _, _ ->
       decode.failure(
         ActivityStatusEntry(uuid.v7(), Favourited),
-        "valid status entry with status 'booked' (+ booking) or 'favourited'",
+        "valid status entry with status 'booked' (+ non-empty bookings) or 'favourited'",
       )
   }
 }
