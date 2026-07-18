@@ -3025,14 +3025,23 @@ pub fn uri_to_page(
       effect.none(),
     )
     // The Badbuss / Klättervägg booking-overview pages. Each loads its kind's
-    // slots and defaults the day filter to today; the timer + manual refresh
+    // slots and defaults the day filter to today, clamped into the event range
+    // so it matches one of the static day options; the timer + manual refresh
     // refetch from here on.
     ["beach-bus"] -> #(
-      RecurringBookingsPage(BeachBus, today(), Loading),
+      RecurringBookingsPage(
+        BeachBus,
+        event_dates.clamp_to_event(today()),
+        Loading,
+      ),
       fetch_recurring_bookings(BeachBus),
     )
     ["climbing-wall"] -> #(
-      RecurringBookingsPage(ClimbingWall, today(), Loading),
+      RecurringBookingsPage(
+        ClimbingWall,
+        event_dates.clamp_to_event(today()),
+        Loading,
+      ),
       fetch_recurring_bookings(ClimbingWall),
     )
     ["activities", id_str, "bookings"] ->
@@ -4786,103 +4795,95 @@ fn view_recurring_bookings(
   overview: RemoteData(List(BookingSlot)),
 ) -> Element(Msg) {
   let t = fn(key) { g18n.translate(translator, key) }
-  html.div([attribute.class("flex flex-col p-3 gap-4")], [
-    html.div([attribute.class("flex items-center justify-between gap-2")], [
-      html.h1([attribute.class("text-heading-xs")], [
-        element.text(recurring_title(translator, kind)),
-      ]),
-      html.button(
-        [
-          attribute.class(
-            "shrink-0 cursor-pointer text-gray-600 hover:text-gray-900",
+  html.div([attribute.class("flex flex-col")], [
+    // White filter bar — same recipe as the activity list's top bar. Holds the
+    // heading plus a row with the static day selector and the refresh button.
+    html.div(
+      [
+        attribute.class(
+          "flex flex-col gap-2 bg-white border-b border-gray-200 p-3",
+        ),
+      ],
+      [
+        html.h1([attribute.class("text-heading-xs")], [
+          element.text(recurring_title(translator, kind)),
+        ]),
+        html.div([attribute.class("flex items-center gap-2")], [
+          view_overview_day_select(translator, selected_day),
+          component.filter_pill_icon(
+            t("overview.refresh"),
+            icons.refresh,
+            False,
+            UserClickedRefreshOverview,
           ),
-          attribute.attribute("type", "button"),
-          attribute.attribute("aria-label", t("overview.refresh")),
-          event.on_click(UserClickedRefreshOverview),
-        ],
-        [component.icon(icons.refresh, "size-6")],
-      ),
-    ]),
-    // The day dropdown appears as soon as data is loaded, so the user can switch
-    // days even when the current one has no slots.
-    case overview {
-      Loaded(slots) -> view_overview_day_select(translator, selected_day, slots)
-      NotAsked | Loading | Failed(_) -> element.none()
-    },
-    case overview {
-      NotAsked | Loading ->
-        html.div([attribute.class("flex justify-center py-6")], [
-          component.scout_loader(t("bookings.loading")),
-        ])
-      Failed(err) ->
-        component.error_banner(t("error.heading"), t(app_error_key(err)))
-      Loaded(slots) -> {
-        let day_slots =
-          slots
-          |> list.filter(fn(s) { date_of(s.start_time) == selected_day })
-          |> list.sort(fn(a, b) {
-            timestamp.compare(a.start_time, b.start_time)
-          })
-        case day_slots {
-          [] ->
-            html.p([attribute.class("py-6 text-center text-gray-500")], [
-              element.text(t("overview.empty")),
-            ])
-          _ ->
-            keyed.div(
-              [attribute.class("flex flex-col gap-4")],
-              list.map(day_slots, fn(slot) {
-                #(
-                  uuid.to_string(slot.activity_id),
-                  view_slot_card(translator, slot),
-                )
-              }),
-            )
+        ]),
+      ],
+    ),
+    html.div([attribute.class("flex flex-col p-3 gap-4")], [
+      case overview {
+        NotAsked | Loading ->
+          html.div([attribute.class("flex justify-center py-6")], [
+            component.scout_loader(t("bookings.loading")),
+          ])
+        Failed(err) ->
+          component.error_banner(t("error.heading"), t(app_error_key(err)))
+        Loaded(slots) -> {
+          let day_slots =
+            slots
+            |> list.filter(fn(s) { date_of(s.start_time) == selected_day })
+            |> list.sort(fn(a, b) {
+              timestamp.compare(a.start_time, b.start_time)
+            })
+          case day_slots {
+            [] ->
+              html.p([attribute.class("py-6 text-center text-gray-500")], [
+                element.text(t("overview.empty")),
+              ])
+            _ ->
+              keyed.div(
+                [attribute.class("flex flex-col gap-4")],
+                list.map(day_slots, fn(slot) {
+                  #(
+                    uuid.to_string(slot.activity_id),
+                    view_slot_card(translator, slot),
+                  )
+                }),
+              )
+          }
         }
-      }
-    },
+      },
+    ]),
   ])
 }
 
-/// The day dropdown for the overview. Options are every day that has slots, plus
-/// the selected day (so today still appears when it has none). Keyed by its date
-/// set because `scout-select` owns its `<option>` children (see `view_day_select`).
+/// The day dropdown for the overview. Options are the fixed set of event days
+/// (like `view_day_select`); switching a day just re-filters the loaded slots.
 fn view_overview_day_select(
   translator: Translator,
   selected: calendar.Date,
-  slots: List(BookingSlot),
 ) -> Element(Msg) {
   let selected_value = date_to_iso(selected)
-  let dates =
-    [selected, ..list.map(slots, fn(s) { date_of(s.start_time) })]
-    |> list.unique
-    |> list.sort(calendar.naive_date_compare)
   let options =
-    list.map(dates, fn(date) {
+    list.map(event_dates.event_days(), fn(date) {
       let value = date_to_iso(date)
       html.option(
         [attribute.value(value), attribute.selected(value == selected_value)],
         g18n.format_date(translator, date, g18n.Custom("EEEE d/M")),
       )
     })
-  keyed.div([attribute.class("flex")], [
-    #(
-      "overview-day-" <> string.join(list.map(dates, date_to_iso), ","),
-      element.element(
-        "scout-select",
-        [
-          attribute.class("min-w-0"),
-          attribute.attribute("name", "day"),
-          attribute.attribute("value", selected_value),
-          event.on("scoutInputChange", {
-            use value <- decode.subfield(["detail", "value"], decode.string)
-            decode.success(UserSelectedOverviewDay(parse_date_iso(value)))
-          }),
-        ],
-        options,
-      ),
-    ),
-  ])
+  element.element(
+    "scout-select",
+    [
+      attribute.class("flex-1 min-w-0"),
+      attribute.attribute("name", "day"),
+      attribute.attribute("value", selected_value),
+      event.on("scoutInputChange", {
+        use value <- decode.subfield(["detail", "value"], decode.string)
+        decode.success(UserSelectedOverviewDay(parse_date_iso(value)))
+      }),
+    ],
+    options,
+  )
 }
 
 /// One slot rendered as a tappable card: a time + "X / Y" (or red "Fullbokat!")
