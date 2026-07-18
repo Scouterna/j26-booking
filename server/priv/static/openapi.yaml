@@ -260,21 +260,32 @@ paths:
         - Bookings
       summary: Beach bus booking overview
       description: |
-        Aggregate booking overview for every beach bus (badbuss) slot: each
-        slot's schedule, capacity, total booked participants, and the per-kår
-        breakdown. Covers all days (the client filters by day). Called-off slots
-        are excluded. Requires the `bookings.read` or `activities.manage` role.
+        Aggregate booking overview for the beach bus (badbuss) slots of a single
+        event day: each slot's schedule, capacity, total booked participants, and
+        the per-kår breakdown. Restricted to one day via `day` (defaults to
+        today, clamped into the event range). Called-off slots are excluded.
+        Requires the `bookings.read` or `activities.manage` role. Responses carry
+        a strong `ETag`; send it as `If-None-Match` to get a `304` when nothing
+        changed.
       operationId: getBeachBusBookingOverview
       security:
         - bearerAuth: []
         - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/DayParam'
+        - $ref: '#/components/parameters/IfNoneMatchParam'
       responses:
         '200':
           description: Successfully retrieved the beach bus booking overview
+          headers:
+            ETag:
+              $ref: '#/components/headers/ETag'
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/BookingOverview'
+        '304':
+          $ref: '#/components/responses/NotModified'
         '401':
           $ref: '#/components/responses/Unauthorized'
         '403':
@@ -288,22 +299,32 @@ paths:
         - Bookings
       summary: Climbing wall booking overview
       description: |
-        Aggregate booking overview for every climbing wall (klättervägg) slot:
-        each slot's schedule, capacity, total booked participants, and the
-        per-kår breakdown. Covers all days (the client filters by day).
-        Called-off slots are excluded. Requires the `bookings.read` or
-        `activities.manage` role.
+        Aggregate booking overview for the climbing wall (klättervägg) slots of a
+        single event day: each slot's schedule, capacity, total booked
+        participants, and the per-kår breakdown. Restricted to one day via `day`
+        (defaults to today, clamped into the event range). Called-off slots are
+        excluded. Requires the `bookings.read` or `activities.manage` role.
+        Responses carry a strong `ETag`; send it as `If-None-Match` to get a
+        `304` when nothing changed.
       operationId: getClimbingWallBookingOverview
       security:
         - bearerAuth: []
         - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/DayParam'
+        - $ref: '#/components/parameters/IfNoneMatchParam'
       responses:
         '200':
           description: Successfully retrieved the climbing wall booking overview
+          headers:
+            ETag:
+              $ref: '#/components/headers/ETag'
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/BookingOverview'
+        '304':
+          $ref: '#/components/responses/NotModified'
         '401':
           $ref: '#/components/responses/Unauthorized'
         '403':

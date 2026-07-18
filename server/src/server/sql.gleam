@@ -2746,7 +2746,9 @@ pub type ListRecurringBookingsOverviewRow {
 /// total and `booking_count` how many bookings it aggregates. An activity with
 /// no bookings still yields a single row (LEFT JOIN) with NULL group columns and
 /// a zero `booking_count`, so every bookable slot appears. Called-off slots are
-/// excluded. Ordered so a slot's rows are contiguous and groups sort by name.
+/// excluded. Restricted to a single day window: `$2` (inclusive) .. `$3`
+/// (exclusive), matching the activity list queries. Ordered so a slot's rows are
+/// contiguous and groups sort by name.
 ///
 /// > 🐿️ This function was generated automatically using v4.7.0 of
 /// > the [squirrel package](https://github.com/giacomocavalieri/squirrel).
@@ -2754,6 +2756,8 @@ pub type ListRecurringBookingsOverviewRow {
 pub fn list_recurring_bookings_overview(
   db: pog.Connection,
   a_recurring_activity_kind: String,
+  arg_2: Timestamp,
+  arg_3: Timestamp,
 ) -> Result(pog.Returned(ListRecurringBookingsOverviewRow), pog.QueryError) {
   let decoder = {
     use activity_id <- decode.field(0, uuid_decoder())
@@ -2782,7 +2786,9 @@ pub fn list_recurring_bookings_overview(
 -- total and `booking_count` how many bookings it aggregates. An activity with
 -- no bookings still yields a single row (LEFT JOIN) with NULL group columns and
 -- a zero `booking_count`, so every bookable slot appears. Called-off slots are
--- excluded. Ordered so a slot's rows are contiguous and groups sort by name.
+-- excluded. Restricted to a single day window: `$2` (inclusive) .. `$3`
+-- (exclusive), matching the activity list queries. Ordered so a slot's rows are
+-- contiguous and groups sort by name.
 SELECT
     a.id AS activity_id,
     a.start_time,
@@ -2798,12 +2804,16 @@ WHERE a.recurring_activity_kind = $1
     AND NOT EXISTS (
         SELECT 1 FROM call_off c WHERE c.activity_id = a.id
     )
+    AND a.start_time >= $2
+    AND a.start_time < $3
 GROUP BY a.id, a.start_time, a.end_time, a.max_attendees,
     b.booker_group_id, b.booker_group_name
 ORDER BY a.start_time ASC, a.id, b.booker_group_name ASC;
 "
   |> pog.query
   |> pog.parameter(pog.text(a_recurring_activity_kind))
+  |> pog.parameter(pog.timestamp(arg_2))
+  |> pog.parameter(pog.timestamp(arg_3))
   |> pog.returning(decoder)
   |> pog.execute(db)
 }

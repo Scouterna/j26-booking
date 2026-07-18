@@ -139,6 +139,8 @@ fn base_model() -> client.Model {
     activities: dict.new(),
     windows: dict.from_list([#(activities_window(), client.Loading)]),
     etags: dict.new(),
+    recurring_windows: dict.new(),
+    recurring_etags: dict.new(),
     today: test_today(),
     browse_day_filter: None,
     favourites_day_filter: None,

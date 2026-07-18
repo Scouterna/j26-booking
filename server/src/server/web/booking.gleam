@@ -305,8 +305,10 @@ pub fn get_climbing_wall_overview(req: Request, ctx: web.Context) -> Response {
 }
 
 /// Shared handler for the recurring-activity booking overviews. Returns
-/// `{"slots": [...]}` covering every slot of `kind` (all days; the client
-/// filters by day) with each slot's participant total and per-kår breakdown.
+/// `{"slots": [...]}` for a single event day (`?day=`, defaulting to today) with
+/// each slot's participant total and per-kår breakdown. Called-off slots are
+/// excluded, so the response is identical for every authorized user
+/// (`SharedAcrossUsers`) and revalidates via ETag like the activity lists.
 fn recurring_overview(
   req: Request,
   ctx: web.Context,
@@ -315,13 +317,28 @@ fn recurring_overview(
   use <- wisp.require_method(req, Get)
   use user <- web.with_authenticated_user(ctx)
   use <- web.require_any_role(user, [web.BookingsRead, web.ActivitiesManage])
-  case sql.list_recurring_bookings_overview(ctx.db_connection, kind) {
+  use day <- web.with_day(req)
+  let #(day_start, day_end) = web.day_bounds(day)
+  case
+    sql.list_recurring_bookings_overview(
+      ctx.db_connection,
+      kind,
+      day_start,
+      day_end,
+    )
+  {
     Error(error) -> web.query_error(error)
     Ok(pog.Returned(_, rows)) -> {
-      let slots = booking.from_recurring_overview_rows(rows)
-      wisp.json_response(
-        model.booking_slots_to_json(slots) |> json.to_string,
+      let body =
+        booking.from_recurring_overview_rows(rows)
+        |> model.booking_slots_to_json
+        |> json.to_string
+      web.json_response_with_etag(
+        req,
+        body,
         200,
+        "private, no-cache",
+        web.SharedAcrossUsers,
       )
     }
   }

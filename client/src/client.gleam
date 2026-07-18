@@ -629,6 +629,26 @@ pub type RecurringKind {
   ClimbingWall
 }
 
+/// Identity of a cached overview: which recurring kind and which event day. Both
+/// the slot window and its revalidation ETag are keyed by this, so each
+/// `(kind, day)` caches and revalidates independently — switching day shows the
+/// cached slots instantly and revalidates in the background (mirrors the browse
+/// list's `WindowKey`).
+pub type RecurringKey =
+  #(RecurringKind, calendar.Date)
+
+/// The outcome of a (conditional) overview fetch, derived from the HTTP response
+/// in the effect handler so `update` never touches raw responses (parallels
+/// `WindowResult`).
+///  - `RecurringLoaded`: a `200` with decoded slots and the new `ETag` (if sent).
+///  - `RecurringUnchanged`: a `304` — the cached day is still current.
+///  - `RecurringFailed`: a network error, non-success status, or decode failure.
+pub type RecurringResult {
+  RecurringLoaded(slots: List(BookingSlot), etag: Option(String))
+  RecurringUnchanged
+  RecurringFailed
+}
+
 /// The activity create/edit form, modelled as an overlay on the management list
 /// (rendered in a `scout-drawer`) rather than its own route — so opening it keeps
 /// the list mounted and its scroll intact, consistent with the booking drawer.
@@ -661,16 +681,14 @@ pub type Page {
   /// list is per-route state; the activity header (title/time/spots) reads from
   /// the shared `details` + `spots` caches, so it can't drift from the summary.
   ActivityBookingsPage(id: Uuid, bookings: RemoteData(List(Booking)))
-  /// Today's-bookings overview for a recurring activity kind (Badbuss /
-  /// Klättervägg): every live slot for `kind`, grouped by kår, filtered to
-  /// `selected_day` at view time (default today). Auto-refreshes on a timer.
-  /// Reached from the role-gated menu items in the shell's "More" menu; each
-  /// card drills into that slot's full `ActivityBookingsPage`.
-  RecurringBookingsPage(
-    kind: RecurringKind,
-    selected_day: calendar.Date,
-    overview: RemoteData(List(BookingSlot)),
-  )
+  /// Booking overview for a recurring activity kind (Badbuss / Klättervägg): the
+  /// slots for `selected_day` (default today), grouped by kår. The slots + ETag
+  /// live in `Model.recurring_windows`/`recurring_etags` keyed by
+  /// `#(kind, selected_day)` (so switching day is cheap and revalidates); the
+  /// page holds only which kind/day is open. Auto-refreshes on a timer. Reached
+  /// from the role-gated menu items in the shell's "More" menu; each card drills
+  /// into that slot's full `ActivityBookingsPage`.
+  RecurringBookingsPage(kind: RecurringKind, selected_day: calendar.Date)
   NotFoundPage
 }
 
@@ -701,6 +719,11 @@ pub type Model {
     // Strong ETag of the last successful response per window, sent back as
     // `If-None-Match` to revalidate; a `304` means that window is still current.
     etags: Dict(WindowKey, String),
+    // The recurring-overview equivalent of `windows`/`etags`: per `(kind, day)`
+    // slot lists and their ETags, so each overview day caches independently and
+    // revalidates on reopen/timer/refresh (a `304` keeps what's shown).
+    recurring_windows: Dict(RecurringKey, RemoteData(List(BookingSlot))),
+    recurring_etags: Dict(RecurringKey, String),
     // Today clamped into the event range — the browse tabs' default day.
     today: calendar.Date,
     // The day shared by the browse tabs (Aktiviteter / Badbuss / Klättervägg),
@@ -792,6 +815,17 @@ fn revalidate_current_list(model: Model) -> #(Model, Effect(Msg)) {
     Ok(filters) ->
       load_or_revalidate(model, window_key_for(model, tab_source(filters.tab)))
     Error(_) -> #(model, effect.none())
+  }
+}
+
+/// Show-then-revalidate the open overview day's slots in place; a no-op off an
+/// overview page. Runs on route change (the overview equivalent of
+/// `revalidate_current_list`).
+fn revalidate_current_overview(model: Model) -> #(Model, Effect(Msg)) {
+  case model.page {
+    RecurringBookingsPage(kind, day) ->
+      load_or_revalidate_recurring(model, #(kind, day))
+    _ -> #(model, effect.none())
   }
 }
 
@@ -925,6 +959,43 @@ pub fn load_or_revalidate(
       fetch_window(model, key),
     )
     Loaded(_) -> #(model, fetch_window(model, key))
+    Loading | Failed(_) -> #(model, effect.none())
+  }
+}
+
+/// The `RemoteData` cached for an overview key (`NotAsked` if never fetched).
+fn recurring_remote(
+  model: Model,
+  key: RecurringKey,
+) -> RemoteData(List(BookingSlot)) {
+  dict.get(model.recurring_windows, key) |> result.unwrap(NotAsked)
+}
+
+fn set_recurring_remote(
+  model: Model,
+  key: RecurringKey,
+  remote: RemoteData(List(BookingSlot)),
+) -> Model {
+  Model(
+    ..model,
+    recurring_windows: dict.insert(model.recurring_windows, key, remote),
+  )
+}
+
+/// Show-then-revalidate an overview day, mirroring `load_or_revalidate`: an
+/// unfetched day flips to `Loading` and fetches; an already-loaded day refetches
+/// conditionally in the background (a `304` keeps what's shown); a day mid-flight
+/// or awaiting retry is left alone.
+fn load_or_revalidate_recurring(
+  model: Model,
+  key: RecurringKey,
+) -> #(Model, Effect(Msg)) {
+  case recurring_remote(model, key) {
+    NotAsked -> #(
+      set_recurring_remote(model, key, Loading),
+      fetch_recurring(model, key),
+    )
+    Loaded(_) -> #(model, fetch_recurring(model, key))
     Loading | Failed(_) -> #(model, effect.none())
   }
 }
@@ -1367,9 +1438,9 @@ fn app_bar_title(translator: Translator, page: Page) -> Option(String) {
       Some(g18n.translate(translator, "app_bar.activity_detail"))
     ActivityBookingsPage(_, _) ->
       Some(g18n.translate(translator, "app_bar.activity_bookings"))
-    RecurringBookingsPage(BeachBus, _, _) ->
+    RecurringBookingsPage(BeachBus, _) ->
       Some(g18n.translate(translator, "app_bar.beach_bus_bookings"))
-    RecurringBookingsPage(ClimbingWall, _, _) ->
+    RecurringBookingsPage(ClimbingWall, _) ->
       Some(g18n.translate(translator, "app_bar.climbing_wall_bookings"))
     NotFoundPage -> None
   }
@@ -1396,6 +1467,8 @@ fn init(_flags) -> #(Model, Effect(Msg)) {
       activities: dict.new(),
       windows: dict.from_list([#(initial_key, Loading)]),
       etags: dict.new(),
+      recurring_windows: dict.new(),
+      recurring_etags: dict.new(),
       today:,
       // Browse defaults to today (via `None`); Favourites to all days (`None`).
       browse_day_filter: None,
@@ -1418,6 +1491,11 @@ fn init(_flags) -> #(Model, Effect(Msg)) {
     None -> effect.none()
   }
 
+  // Booting straight onto an overview route: `modem.init` doesn't fire for the
+  // initial URI (the default Activities window is fetched explicitly below), so
+  // load the open overview day here too. A no-op on any other initial page.
+  let #(model, overview_effect) = revalidate_current_overview(model)
+
   #(
     model,
     effect.batch([
@@ -1429,6 +1507,7 @@ fn init(_flags) -> #(Model, Effect(Msg)) {
       fetch_activity_tags(),
       fetch_locations(),
       page_effect,
+      overview_effect,
       // Always attempt; a 401 (anonymous user) leaves the status dict empty.
       fetch_statuses(),
       // Load the user's roles; a 401 leaves roles empty (restricted view).
@@ -1500,10 +1579,7 @@ pub type Msg {
   UserOpenedLocationDropdown
   UserClosedLocationDropdown
   // Recurring-activity booking overview (Badbuss / Klättervägg)
-  ApiReturnedRecurringBookings(
-    RecurringKind,
-    Result(List(BookingSlot), rsvp.Error),
-  )
+  ApiReturnedRecurringBookings(RecurringKey, RecurringResult)
   UserSelectedOverviewDay(Option(calendar.Date))
   UserClickedRefreshOverview
   UserClickedSlot(Uuid)
@@ -1525,11 +1601,19 @@ pub fn update(model: Model, msg: Msg) -> #(Model, Effect(Msg)) {
       // other page drops it automatically — a stale form can't linger.
       let model = Model(..model, page:, details:)
       // Entering a list page revalidates the active tab (cheap 304 when
-      // unchanged), so a returning view stays fresh without a blocking reload.
+      // unchanged), so a returning view stays fresh without a blocking reload;
+      // entering an overview page does the same for its day.
       let #(model, list_effect) = revalidate_current_list(model)
+      let #(model, overview_effect) = revalidate_current_overview(model)
       #(
         model,
-        effect.batch([page_effect, title_effect, nav_effect, list_effect]),
+        effect.batch([
+          page_effect,
+          title_effect,
+          nav_effect,
+          list_effect,
+          overview_effect,
+        ]),
       )
     }
 
@@ -2153,42 +2237,52 @@ pub fn update(model: Model, msg: Msg) -> #(Model, Effect(Msg)) {
       effect.none(),
     )
 
-    // Overview data arrived. Only apply it if we're still on the matching
-    // overview page (the user may have navigated away, or switched kind, since
-    // the fetch fired). The selected day is preserved.
-    ApiReturnedRecurringBookings(kind, result) ->
-      case model.page {
-        RecurringBookingsPage(page_kind, day, _) if page_kind == kind -> {
-          let overview = case result {
-            Ok(slots) -> Loaded(slots)
-            Error(_) -> Failed(LoadBookingsFailed)
+    // Overview data arrived. Stored by key in the cache (like activity windows)
+    // regardless of the open page, so a response for a day the user has since
+    // left still populates its cache. `RecurringUnchanged` (a 304) keeps what's
+    // cached.
+    ApiReturnedRecurringBookings(key, outcome) ->
+      case outcome {
+        RecurringLoaded(slots, etag) -> {
+          let etags = case etag {
+            Some(tag) -> dict.insert(model.recurring_etags, key, tag)
+            None -> model.recurring_etags
           }
           #(
-            Model(..model, page: RecurringBookingsPage(kind, day, overview)),
+            set_recurring_remote(
+              Model(..model, recurring_etags: etags),
+              key,
+              Loaded(slots),
+            ),
             effect.none(),
           )
         }
-        _ -> #(model, effect.none())
+        RecurringUnchanged -> #(model, effect.none())
+        RecurringFailed -> #(
+          set_recurring_remote(model, key, Failed(LoadBookingsFailed)),
+          effect.none(),
+        )
       }
 
     // Change the selected day. `None` (an unparseable option) is ignored so the
-    // current day sticks.
+    // current day sticks. A concrete day shows-then-revalidates its cached slots.
     UserSelectedOverviewDay(maybe_day) ->
       case model.page, maybe_day {
-        RecurringBookingsPage(kind, _, overview), Some(day) -> #(
-          Model(..model, page: RecurringBookingsPage(kind, day, overview)),
-          effect.none(),
-        )
+        RecurringBookingsPage(kind, _), Some(day) -> {
+          let #(model, effect) =
+            load_or_revalidate_recurring(model, #(kind, day))
+          #(Model(..model, page: RecurringBookingsPage(kind, day)), effect)
+        }
         _, _ -> #(model, effect.none())
       }
 
-    // Manual refresh. Keep the current data on screen while the refetch runs so
-    // the list doesn't blank out (matches the silent once-a-minute refresh).
+    // Manual refresh. Conditionally revalidates the open day (a 304 keeps the
+    // cached slots on screen, matching the silent once-a-minute refresh).
     UserClickedRefreshOverview ->
       case model.page {
-        RecurringBookingsPage(kind, _, _) -> #(
+        RecurringBookingsPage(kind, day) -> #(
           model,
-          fetch_recurring_bookings(kind),
+          fetch_recurring(model, #(kind, day)),
         )
         _ -> #(model, effect.none())
       }
@@ -2206,13 +2300,13 @@ pub fn update(model: Model, msg: Msg) -> #(Model, Effect(Msg)) {
       ),
     )
 
-    // Once-a-minute tick: silently refetch the open overview; a no-op on every
-    // other page.
+    // Once-a-minute tick: silently revalidate the open overview day; a no-op on
+    // every other page.
     TimerTicked ->
       case model.page {
-        RecurringBookingsPage(kind, _, _) -> #(
+        RecurringBookingsPage(kind, day) -> #(
           model,
-          fetch_recurring_bookings(kind),
+          fetch_recurring(model, #(kind, day)),
         )
         _ -> #(model, effect.none())
       }
@@ -2838,7 +2932,7 @@ fn fetch_bookings(activity_id: Uuid) -> Effect(Msg) {
 }
 
 /// The booking-overview endpoint path for a recurring kind — the single place
-/// these URLs live (used by `fetch_recurring_bookings`).
+/// these URLs live (used by `recurring_url`).
 fn recurring_bookings_path(kind: RecurringKind) -> String {
   case kind {
     BeachBus -> "/api/beach-bus-bookings"
@@ -2846,15 +2940,61 @@ fn recurring_bookings_path(kind: RecurringKind) -> String {
   }
 }
 
-/// Fetch the booking overview for a recurring kind: every slot with its
-/// per-kår breakdown, across all days (the view filters by the selected day).
-fn fetch_recurring_bookings(kind: RecurringKind) -> Effect(Msg) {
-  rsvp.get(
-    api_prefix <> recurring_bookings_path(kind),
-    rsvp.expect_json(model.booking_slots_decoder(), fn(result) {
-      ApiReturnedRecurringBookings(kind, result)
-    }),
-  )
+/// The overview URL for a `(kind, day)` key: the kind's endpoint windowed to the
+/// day via `?day=` (same ISO format the browse windows use).
+fn recurring_url(key: RecurringKey) -> String {
+  let #(kind, day) = key
+  api_prefix <> recurring_bookings_path(kind) <> "?day=" <> date_to_iso(day)
+}
+
+/// Conditionally fetch one overview day, mirroring `fetch_window`: sends
+/// `If-None-Match` only when we already have a loaded window for this exact key,
+/// so a `304` can only tell us to keep data we're already showing. `rsvp.send`
+/// (needed to set the header) loses relative-URL resolution, so we resolve
+/// against the iframe base ourselves.
+fn fetch_recurring(model: Model, key: RecurringKey) -> Effect(Msg) {
+  let etag = case recurring_remote(model, key) {
+    Loaded(_) -> dict.get(model.recurring_etags, key) |> option.from_result
+    NotAsked | Loading | Failed(_) -> None
+  }
+  case rsvp.parse_relative_uri(recurring_url(key)) {
+    Error(_) -> effect.none()
+    Ok(uri) ->
+      case request.from_uri(uri) {
+        Error(_) -> effect.none()
+        Ok(req) ->
+          req
+          |> request.set_method(http.Get)
+          |> set_if_none_match(etag)
+          |> rsvp.send(recurring_handler(key))
+      }
+  }
+}
+
+/// Interprets the raw overview response into a `RecurringResult` (parallels
+/// `activity_window_handler`): `304` → unchanged, `2xx` + decodable body →
+/// loaded with the new ETag, anything else → failed.
+fn recurring_handler(key: RecurringKey) -> rsvp.Handler(Msg) {
+  rsvp.expect_any_response(fn(result) {
+    let outcome = case result {
+      Ok(resp) ->
+        case resp.status {
+          304 -> RecurringUnchanged
+          status if status >= 200 && status < 300 ->
+            case json.parse(resp.body, model.booking_slots_decoder()) {
+              Ok(slots) ->
+                RecurringLoaded(
+                  slots,
+                  response.get_header(resp, "etag") |> option.from_result,
+                )
+              Error(_) -> RecurringFailed
+            }
+          _ -> RecurringFailed
+        }
+      Error(_) -> RecurringFailed
+    }
+    ApiReturnedRecurringBookings(key, outcome)
+  })
 }
 
 /// Today's date in the local time zone — the overview's default selected day.
@@ -3024,25 +3164,17 @@ pub fn uri_to_page(
       ManageActivitiesPage(default_filters(), ActivityFormClosed),
       effect.none(),
     )
-    // The Badbuss / Klättervägg booking-overview pages. Each loads its kind's
-    // slots and defaults the day filter to today, clamped into the event range
-    // so it matches one of the static day options; the timer + manual refresh
-    // refetch from here on.
+    // The Badbuss / Klättervägg booking-overview pages, defaulting to today
+    // clamped into the event range so it matches one of the static day options.
+    // Loading the day's slots is driven by `revalidate_current_overview` on the
+    // route change (it needs the model cache), like the browse list windows.
     ["beach-bus"] -> #(
-      RecurringBookingsPage(
-        BeachBus,
-        event_dates.clamp_to_event(today()),
-        Loading,
-      ),
-      fetch_recurring_bookings(BeachBus),
+      RecurringBookingsPage(BeachBus, event_dates.clamp_to_event(today())),
+      effect.none(),
     )
     ["climbing-wall"] -> #(
-      RecurringBookingsPage(
-        ClimbingWall,
-        event_dates.clamp_to_event(today()),
-        Loading,
-      ),
-      fetch_recurring_bookings(ClimbingWall),
+      RecurringBookingsPage(ClimbingWall, event_dates.clamp_to_event(today())),
+      effect.none(),
     )
     ["activities", id_str, "bookings"] ->
       case uuid.from_string(id_str) {
@@ -3124,8 +3256,13 @@ fn view(model: Model) -> Element(Msg) {
         dict.get(model.spots, id) |> option.from_result,
         bookings,
       )
-    RecurringBookingsPage(kind, selected_day, overview) ->
-      view_recurring_bookings(model.translator, kind, selected_day, overview)
+    RecurringBookingsPage(kind, selected_day) ->
+      view_recurring_bookings(
+        model.translator,
+        kind,
+        selected_day,
+        recurring_remote(model, #(kind, selected_day)),
+      )
     NotFoundPage -> view_not_found(model.translator)
   }
 }
@@ -4828,9 +4965,9 @@ fn view_recurring_bookings(
         Failed(err) ->
           component.error_banner(t("error.heading"), t(app_error_key(err)))
         Loaded(slots) -> {
+          // The server already windowed to `selected_day`; just order by time.
           let day_slots =
             slots
-            |> list.filter(fn(s) { date_of(s.start_time) == selected_day })
             |> list.sort(fn(a, b) {
               timestamp.compare(a.start_time, b.start_time)
             })

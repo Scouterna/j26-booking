@@ -9,12 +9,15 @@ import gleam/list
 import gleam/option.{type Option}
 import gleam/result
 import gleam/string
+import gleam/time/calendar
 import gleam/time/duration
+import gleam/time/timestamp.{type Timestamp}
 import lustre/attribute
 import lustre/element.{type Element}
 import lustre/element/html
 import pog
 import server/sql
+import shared/event
 import shared/utils as shared_utils
 import wisp.{type Request, type Response}
 import youid/uuid.{type Uuid}
@@ -424,6 +427,56 @@ pub fn ensure_valid_query_param(
     else_return: fn(_) { wisp.bad_request(error_detail) },
   )
   next(value)
+}
+
+/// Fixed Stockholm summer (CEST) offset in hours. The whole event window
+/// (25/7–1/8 2026) sits inside CEST — DST does not shift until late October —
+/// so a constant +2h is exact for every event day and no day boundary ever
+/// straddles a DST transition. `activity.start_time` is stored as UTC
+/// wall-clock (the API round-trips it through unix instants), and the client
+/// buckets/displays days at its own local offset, which for on-site attendees
+/// is this same Stockholm offset.
+const stockholm_summer_offset_hours = 2
+
+/// The `[day_start, day_end)` instants bounding one calendar date in Stockholm
+/// local time — `day_start` is that date's local midnight, `day_end` the next
+/// date's. Passed as the `start_time` window to the day-windowed list queries so
+/// an activity at 23:30 local lands on the right day. Exposed for unit testing
+/// the boundary math (the load-bearing timezone conversion).
+pub fn day_bounds(date: calendar.Date) -> #(Timestamp, Timestamp) {
+  let offset = duration.hours(stockholm_summer_offset_hours)
+  let day_start =
+    timestamp.from_calendar(date, calendar.TimeOfDay(0, 0, 0, 0), offset)
+  let day_end = timestamp.add(day_start, duration.hours(24))
+  #(day_start, day_end)
+}
+
+/// Today's date in Stockholm local time — the day-windowed default day before
+/// clamping into the event range.
+fn today_in_stockholm() -> calendar.Date {
+  let #(date, _) =
+    timestamp.to_calendar(
+      timestamp.system_time(),
+      duration.hours(stockholm_summer_offset_hours),
+    )
+  date
+}
+
+/// Resolves the `?day=YYYY-MM-DD` query param for the day-windowed endpoints.
+/// Absent → today clamped into the event range. A valid date is clamped into
+/// `[event_first_day, event_last_day]` (the client only ever offers in-range
+/// dates). A malformed value is a 400.
+pub fn with_day(req: Request, next: fn(calendar.Date) -> Response) -> Response {
+  use date <- ensure_valid_query_param(
+    in: wisp.get_query(req),
+    with_name: "day",
+    if_missing_return: event.clamp_to_event(today_in_stockholm()),
+    using: fn(raw) {
+      event.date_from_iso(raw) |> result.map(event.clamp_to_event)
+    },
+    else_respond_with: "Invalid day parameter. Expected format: YYYY-MM-DD",
+  )
+  next(date)
 }
 
 pub fn spa_shell_page() -> Element(a) {
