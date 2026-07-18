@@ -855,25 +855,43 @@ paths:
     get:
       tags:
         - Configuration
-      summary: Get my access roles
+      summary: Get my identity and access roles
       description: |
-        Retrieve the authenticated user's access roles, as the Keycloak role
-        strings the client parses (from `resource_access.j26-booking.roles`).
-        Unknown roles the client does not model are ignored by the client.
+        Retrieve the authenticated user's booker identity and access roles.
+        `name` and `group_name` come from the token and are stored on any
+        booking the user makes; the client shows them read-only in the booking
+        form. `group_name` is `null` when the token carries no scout group.
+        `roles` are the Keycloak role strings the client parses (from
+        `resource_access.j26-booking.roles`); unknown roles the client does not
+        model are ignored by the client.
       operationId: getMe
       security:
         - bearerAuth: []
         - cookieAuth: []
       responses:
         '200':
-          description: Successfully retrieved the current user's roles
+          description: Successfully retrieved the current user's identity and roles
           content:
             application/json:
               schema:
                 type: object
                 required:
+                  - name
+                  - group_name
                   - roles
                 properties:
+                  name:
+                    type: string
+                    description: The booker's name, from the token.
+                    example: "Anna Andersson"
+                  group_name:
+                    type: string
+                    nullable: true
+                    description: >-
+                      The booker's scout group (kår) display name, resolved from
+                      the token's group id. `null` when the token carries no
+                      scout group.
+                    example: "Adolf Fredriks Scoutkår"
                   roles:
                     type: array
                     items:

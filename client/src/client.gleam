@@ -103,6 +103,16 @@ fn english_translations() -> g18n.Translations {
   |> g18n.add_translation("edit.reason", "Reason")
   |> g18n.add_translation("edit.call_off_title", "Call off activity")
   |> g18n.add_translation("edit.confirm_call_off", "Yes, call off")
+  |> g18n.add_translation("booking.scoutnet_name", "Name (Scoutnet)")
+  |> g18n.add_translation("booking.scoutnet_group", "Corps (Scoutnet)")
+  |> g18n.add_translation(
+    "booking.scoutnet_note",
+    "Your name and scout corps come from your login and are saved with this booking.",
+  )
+  |> g18n.add_translation(
+    "booking.scoutnet_note_name_only",
+    "Your name comes from your login and is saved with this booking.",
+  )
   |> g18n.add_translation("booking.responsible_name", "Responsible adult")
   |> g18n.add_translation("booking.phone_number", "Phone number")
   |> g18n.add_translation("booking.group_free_text", "Group / patrol")
@@ -225,6 +235,16 @@ fn swedish_translations() -> g18n.Translations {
   |> g18n.add_translation("edit.reason", "Anledning")
   |> g18n.add_translation("edit.call_off_title", "Ställ in aktivitet")
   |> g18n.add_translation("edit.confirm_call_off", "Ja, ställ in")
+  |> g18n.add_translation("booking.scoutnet_name", "Namn Scoutnet")
+  |> g18n.add_translation("booking.scoutnet_group", "Kår Scoutnet")
+  |> g18n.add_translation(
+    "booking.scoutnet_note",
+    "Ditt namn och din kår hämtas från Scoutnet och sparas med bokningen.",
+  )
+  |> g18n.add_translation(
+    "booking.scoutnet_note_name_only",
+    "Ditt namn hämtas från Scoutnet och sparas med bokningen.",
+  )
   |> g18n.add_translation("booking.responsible_name", "Ansvarig ledare")
   |> g18n.add_translation("booking.phone_number", "Telefonnummer")
   |> g18n.add_translation("booking.group_free_text", "Grupp / patrull")
@@ -703,6 +723,11 @@ pub type Model {
     locations: Dict(Uuid, Location),
     // The current user's roles, gating manage-only UI (edit, view bookings).
     roles: List(Role),
+    // The booker identity (name + scout group) from the login token, fetched
+    // with the roles from `/api/me`. Shown read-only in the booking form so the
+    // user sees what gets stored on their booking. `IdentityUnknown` until it
+    // loads.
+    booker: BookerIdentity,
     // Transient view state for the edit form (active language, call-off reason
     // reveal). Kept here rather than in the multi-variant `EditState` so it can
     // be updated with a plain record update; reset whenever the form opens.
@@ -784,6 +809,22 @@ fn role_from_string(raw: String) -> Result(Role, Nil) {
 /// server's `web.require_role`.
 fn has_role(model: Model, role: Role) -> Bool {
   list.contains(model.roles, role) || list.contains(model.roles, Admin)
+}
+
+/// The booker identity taken from the access token, which the server stores on
+/// every booking the user makes. Shown read-only in the booking form so it is
+/// clear these values are recorded (issue #33). `IdentityUnknown` until
+/// `/api/me` returns — or when it fails / the user is unauthenticated;
+/// `Identity` once known, its `group_name` `None` when the token carries no
+/// scout group.
+pub type BookerIdentity {
+  IdentityUnknown
+  Identity(name: String, group_name: Option(String))
+}
+
+/// The decoded `/api/me` payload: the booker identity plus the access roles.
+pub type Me {
+  Me(name: String, group_name: Option(String), roles: List(Role))
 }
 
 /// Whether the user may view an activity's bookings, gating the "Show bookings"
@@ -1357,6 +1398,9 @@ fn init(_flags) -> #(Model, Effect(Msg)) {
       locations: dict.new(),
       // Empty until /api/me returns; the role-gated UI reveals once loaded.
       roles: [],
+      // Unknown until /api/me returns; the booking form's read-only identity
+      // fields fill in then.
+      booker: IdentityUnknown,
       edit_ui: default_edit_ui(),
     )
 
@@ -1397,7 +1441,7 @@ pub type Msg {
   // raw HTTP response is interpreted in the effect handler so `update` stays pure.
   ApiReturnedActivityWindow(WindowKey, WindowResult)
   ApiReturnedActivity(Uuid, Result(Activity, rsvp.Error))
-  ApiReturnedMe(Result(List(Role), rsvp.Error))
+  ApiReturnedMe(Result(Me, rsvp.Error))
   ApiReturnedStatuses(Result(List(ActivityStatusEntry), rsvp.Error))
   ApiReturnedActivitySpots(Result(List(ActivitySpots), rsvp.Error))
   ApiReturnedActivitySpotsOne(Uuid, Result(Int, rsvp.Error))
@@ -1560,16 +1604,24 @@ pub fn update(model: Model, msg: Msg) -> #(Model, Effect(Msg)) {
       #(set_activity_form(model, activity_form), effect.none())
     }
 
-    ApiReturnedMe(Ok(roles)) -> {
-      let model = Model(..model, roles:)
+    ApiReturnedMe(Ok(me)) -> {
+      let model =
+        Model(
+          ..model,
+          roles: me.roles,
+          booker: Identity(name: me.name, group_name: me.group_name),
+        )
       // Roles gate `include_call_offs`, so once they load re-fetch the visible
       // list: a manager's window upgrades to the call-off superset the manage
       // view needs, and a non-manager just gets a cheap revalidation.
       revalidate_current_list(model)
     }
 
-    // 401 / network error -> no roles -> restricted view.
-    ApiReturnedMe(Error(_)) -> #(Model(..model, roles: []), effect.none())
+    // 401 / network error -> no roles, no identity -> restricted view.
+    ApiReturnedMe(Error(_)) -> #(
+      Model(..model, roles: [], booker: IdentityUnknown),
+      effect.none(),
+    )
 
     ApiReturnedStatuses(Ok(entries)) -> {
       let statuses =
@@ -2669,10 +2721,17 @@ fn fetch_statuses() -> Effect(Msg) {
   )
 }
 
-/// Decode `{ "roles": [...] }`, keeping only roles the client models.
-fn me_decoder() -> decode.Decoder(List(Role)) {
+/// Decode `{ "name": ..., "group_name": ...|null, "roles": [...] }`, keeping
+/// only roles the client models.
+fn me_decoder() -> decode.Decoder(Me) {
+  use name <- decode.field("name", decode.string)
+  use group_name <- decode.field("group_name", decode.optional(decode.string))
   use raw <- decode.field("roles", decode.list(decode.string))
-  decode.success(list.filter_map(raw, role_from_string))
+  decode.success(Me(
+    name:,
+    group_name:,
+    roles: list.filter_map(raw, role_from_string),
+  ))
 }
 
 fn fetch_me() -> Effect(Msg) {
@@ -3147,6 +3206,7 @@ fn view(model: Model) -> Element(Msg) {
         booking,
         model.activity_tags,
         can_view_bookings(model),
+        model.booker,
       )
     ActivityBookingsPage(id, bookings) ->
       view_activity_bookings(
@@ -4131,6 +4191,7 @@ fn view_activity_detail(
   booking: BookingFormState,
   activity_tags: Dict(Uuid, ActivityTag),
   can_view_bookings: Bool,
+  booker: BookerIdentity,
 ) -> Element(Msg) {
   case state {
     NotAsked | Loading ->
@@ -4175,6 +4236,7 @@ fn view_activity_detail(
         booking,
         activity_tags,
         can_view_bookings,
+        booker,
       )
   }
 }
@@ -4202,6 +4264,7 @@ fn view_activity_detail_loaded(
   booking: BookingFormState,
   activity_tags: Dict(Uuid, ActivityTag),
   can_view_bookings: Bool,
+  booker: BookerIdentity,
 ) -> Element(Msg) {
   let heart_btn =
     component.heart_button(
@@ -4225,6 +4288,7 @@ fn view_activity_detail_loaded(
           activity.max_attendees,
           spots_booked,
           status,
+          booker,
         ),
       ],
     ),
@@ -4506,12 +4570,60 @@ fn view_detail_actions(
   }
 }
 
+/// The booker identity block at the top of the booking form: the name and
+/// scout group (kår) taken from the login token, rendered read-only so it is
+/// clear these values are recorded on the booking (issue #33). The kår line is
+/// omitted when the token carries no group (nothing to store). Nothing renders
+/// until the identity has loaded from `/api/me`.
+fn view_booker_identity(
+  translator: Translator,
+  booker: BookerIdentity,
+) -> Element(Msg) {
+  case booker {
+    IdentityUnknown -> element.none()
+    Identity(name:, group_name:) ->
+      html.div([attribute.class("flex flex-col gap-2")], [
+        component.scout_readonly_field(
+          g18n.translate(translator, "booking.scoutnet_name"),
+          name,
+        ),
+        case group_name {
+          Some(group) ->
+            component.scout_readonly_field(
+              g18n.translate(translator, "booking.scoutnet_group"),
+              group,
+            )
+          None -> element.none()
+        },
+        html.small(
+          [
+            attribute.styles([
+              #("color", "var(--color-text-base)"),
+              #("opacity", "0.7"),
+            ]),
+          ],
+          [
+            // The note names both fields; drop the kår clause when the token
+            // carries no group, so it matches what is actually shown/stored.
+            element.text(
+              g18n.translate(translator, case group_name {
+                Some(_) -> "booking.scoutnet_note"
+                None -> "booking.scoutnet_note_name_only"
+              }),
+            ),
+          ],
+        ),
+      ])
+  }
+}
+
 fn view_booking_form_section(
   translator: Translator,
   booking: BookingFormState,
   max_attendees: Option(Int),
   spots_booked: Option(Int),
   status: ActivityStatus,
+  booker: BookerIdentity,
 ) -> Element(Msg) {
   case booking {
     BookingClosed -> element.none()
@@ -4540,6 +4652,7 @@ fn view_booking_form_section(
               )
             None -> element.none()
           },
+          view_booker_identity(translator, booker),
           component.scout_form_field(
             form,
             g18n.translate(translator, "booking.responsible_name"),

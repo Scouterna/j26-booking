@@ -69,13 +69,6 @@ pub type User {
   )
 }
 
-/// TODO(group-name): Resolving a ScoutID group id to its display name is not
-/// solved yet — there is no group-directory integration. Replace this
-/// placeholder with a real lookup when one exists.
-pub fn group_id_to_name(group_id: Int) -> String {
-  "Grupp " <> int.to_string(group_id)
-}
-
 pub type AuthenticationResult {
   /// The request carried no access token.
   NotAuthenticated

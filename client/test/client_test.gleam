@@ -148,6 +148,7 @@ fn base_model() -> client.Model {
     activity_tags: dict.new(),
     locations: dict.new(),
     roles: [client.ManageActivities],
+    booker: client.IdentityUnknown,
     edit_ui: client.default_edit_ui(),
   )
 }

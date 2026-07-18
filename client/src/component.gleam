@@ -19,6 +19,24 @@ pub fn scout_field(label: String, child: Element(msg)) -> Element(msg) {
   element.element("scout-field", [attribute.attribute("label", label)], [child])
 }
 
+/// A labelled, non-editable `scout-input` showing a fixed value. Used for
+/// values that are displayed for context but cannot be changed by the user
+/// (e.g. the booker identity taken from the login token). Rendered `disabled`
+/// so it reads as read-only and never submits with the form.
+pub fn scout_readonly_field(label: String, value: String) -> Element(msg) {
+  scout_field(
+    label,
+    element.element(
+      "scout-input",
+      [
+        attribute.attribute("value", value),
+        attribute.attribute("disabled", ""),
+      ],
+      [],
+    ),
+  )
+}
+
 pub fn scout_form_field(
   f: Form(a),
   label: String,
