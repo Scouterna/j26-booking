@@ -1,7 +1,7 @@
 # 15. Create a booking for someone else (issue #27)
 
-> **Status: 🚧 In progress** (as of 2026-07-18; implemented & verified
-> end-to-end, awaiting commit)
+> **Status: ✅ Done 2026-07-19** (commit `81ba2b4`; shipped as planned — see
+> the implementation notes below for the two divergences)
 
 ## Implementation notes (divergences from the plan)
 

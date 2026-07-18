@@ -1,7 +1,7 @@
 # 16. Multiple bookings per person + manage-bookings interface (follow-up to #27)
 
-> **Status: 🚧 In progress** (as of 2026-07-18; implemented & verified
-> end-to-end, awaiting commit)
+> **Status: ✅ Done 2026-07-19** (commit `13834ee`; shipped as planned — see
+> the implementation notes below for the divergences)
 
 ## Implementation notes (divergences from the plan)
 
