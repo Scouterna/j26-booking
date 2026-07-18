@@ -163,7 +163,6 @@ erDiagram
 
 user {
   uuid id PK
-  enum role "_organizer_, _booker_, _admin_"
 }
 
 activity {
@@ -183,9 +182,10 @@ booking {
   uuid id PK
   uuid user_id FK "_booker_"
   uuid activity_id FK
-  int booker_group_id "Bokarens kår id
+  text booker_name "Bokarens namn"
+  int[null] booker_group_id "Bokarens kår id
   _Kopierat från Scoutnet_"
-  text booker_group_name "Bokarens kårnamn
+  text[null] booker_group_name "Bokarens kårnamn
   _Kopierat från Scoutnet_"
   text group_free_text "Kår, Patrull"
   text responsible_name "Ansvarig vuxen"
@@ -209,7 +209,7 @@ location {
   text color
   float8 latitude
   float8 longitude
-  jsonb opening_hours "{ \"YYYY-MM-DD\": [{ from, to }] }"
+  jsonb opening_hours "{ 'YYYY-MM-DD': [{ from, to }] }"
 }
 
 location_tag_location {
