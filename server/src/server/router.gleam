@@ -71,6 +71,8 @@ fn handle_api_request(
     _, ["activities", _] -> wisp.method_not_allowed([Get, Put, Delete])
     Get, ["me"] -> account.get_me(req, ctx)
     _, ["me"] -> wisp.method_not_allowed([Get])
+    Get, ["scout-groups"] -> account.get_scout_groups(req, ctx)
+    _, ["scout-groups"] -> wisp.method_not_allowed([Get])
     Get, ["statuses", "me"] -> status.get_mine(req, ctx)
     _, ["statuses", "me"] -> wisp.method_not_allowed([Get])
     Get, ["bookings", id] -> booking.get_one(req, id, ctx)

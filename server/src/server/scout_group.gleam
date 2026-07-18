@@ -1,5 +1,7 @@
-//// Maps a Scoutnet kårnummer (the numeric ScoutID group id carried in the
-//// access token's `groups` claim) to the kår's display name.
+//// The registered kårer: maps a Scoutnet kårnummer (the numeric ScoutID group
+//// id carried in the access token's `groups` claim) to the kår's display name,
+//// and exposes the full list for the book-for-other kår picker
+//// (`/api/scout-groups`).
 ////
 //// Generated from the J26 "Anmälda kårer" registration export
 //// (Distrikt;Samverkansorganisation;Kårnummer;Kårnamn). It is a point-in-time
@@ -14,633 +16,642 @@
 //// duplicate; 16007 is mapped to "Jämshögs scoutkår" here.
 
 import gleam/int
+import gleam/list
+import shared/model.{type ScoutGroup, ScoutGroup}
+
+/// Every registered kår from the export, in export order.
+pub const groups: List(ScoutGroup) = [
+  ScoutGroup(1102, "Adolf Fredriks Scoutkår"),
+  ScoutGroup(1113, "Hedvig Eleonora Scoutkår"),
+  ScoutGroup(1124, "Scoutkåren Vikingarna"),
+  ScoutGroup(1137, "S:ta Maria Scoutkår"),
+  ScoutGroup(1146, "Södermalms Scoutkår"),
+  ScoutGroup(1163, "Brobergska Scoutkåren"),
+  ScoutGroup(1203, "Bagarmossens Scoutkår"),
+  ScoutGroup(1209, "Enskede Scoutkår"),
+  ScoutGroup(1223, "Kärrtorps Scoutkår"),
+  ScoutGroup(1239, "Sköndals Land- och Sjöscoutkår"),
+  ScoutGroup(1256, "Årsta Scoutkår"),
+  ScoutGroup(1259, "Bandhagens Scoutkår"),
+  ScoutGroup(1279, "Hammarby Sjöscoutkår"),
+  ScoutGroup(1326, "Mälarhöjdens Scoutkår"),
+  ScoutGroup(1355, "Västertorps Scoutkår"),
+  ScoutGroup(1357, "Älvsjö Scoutkår"),
+  ScoutGroup(1405, "Blackebergs sjöscoutkår"),
+  ScoutGroup(1408, "Sjöscoutkåren Drakarna"),
+  ScoutGroup(1415, "Hässelby Strands Sjöscoutkår"),
+  ScoutGroup(1416, "Hässelby Scoutkår"),
+  ScoutGroup(1427, "Scoutkåren Mälarscouterna"),
+  ScoutGroup(1428, "Scoutkåren Mäster Olof-Råcksta"),
+  ScoutGroup(1429, "Nockeby Scoutkår"),
+  ScoutGroup(1441, "Spånga Scoutkår"),
+  ScoutGroup(1451, "Vällingby Scoutkår"),
+  ScoutGroup(1481, "Norra Järva Scoutkår"),
+  ScoutGroup(1483, "Ingarö Sjöscoutkår"),
+  ScoutGroup(2006, "Handens Scoutkår"),
+  ScoutGroup(2007, "Huddinge Scoutkår"),
+  ScoutGroup(2010, "Nynäshamns Scoutkår"),
+  ScoutGroup(2011, "Scoutkåren Peter Momma"),
+  ScoutGroup(2014, "S:t Botvids Scoutkår"),
+  ScoutGroup(2015, "Segeltorps Scoutkår"),
+  ScoutGroup(2016, "Nacka Sjöscoutkår"),
+  ScoutGroup(2019, "Trollbäckens Scoutkår"),
+  ScoutGroup(2023, "Vendelsö Scoutkår"),
+  ScoutGroup(2025, "Älta Scoutkår"),
+  ScoutGroup(2026, "Ösmo Scoutkår"),
+  ScoutGroup(2034, "Mariekäll Scoutkår"),
+  ScoutGroup(2038, "Turinge Scoutkår"),
+  ScoutGroup(2040, "Hölö Scoutkår"),
+  ScoutGroup(2042, "Vårby Gårds Scoutkår"),
+  ScoutGroup(2043, "Visby Scoutkår"),
+  ScoutGroup(2049, "Krusboda Scoutkår"),
+  ScoutGroup(2051, "Dalarö Sjöscoutkår"),
+  ScoutGroup(2052, "Värmdö Sjöscoutkår"),
+  ScoutGroup(3002, "Barkarby-Skälby Scoutkår"),
+  ScoutGroup(3003, "Bergshamra Scoutkår"),
+  ScoutGroup(3006, "Färingsö Sjöscoutkår"),
+  ScoutGroup(3009, "Jakobsbergs Scoutkår"),
+  ScoutGroup(3010, "Kallhälls Scoutkår"),
+  ScoutGroup(3011, "Märsta Scoutkår"),
+  ScoutGroup(3015, "Sollentuna Norra Scoutkår"),
+  ScoutGroup(3016, "Sollentuna Södra Scoutkår"),
+  ScoutGroup(3020, "Sundbybergs Scoutkår"),
+  ScoutGroup(3024, "Upplands Väsby Scoutkår"),
+  ScoutGroup(3026, "Träkvista Sjöscoutkår"),
+  ScoutGroup(3027, "Viksjö Scoutkår"),
+  ScoutGroup(3028, "Tibble Sjöscoutkår"),
+  ScoutGroup(3029, "Bollstanäs Scoutkår"),
+  ScoutGroup(4002, "Danderyds Sjöscoutkår"),
+  ScoutGroup(4003, "Djursholms Scoutkår"),
+  ScoutGroup(4006, "Lidingö-Bodals Sjöscoutkår"),
+  ScoutGroup(4007, "Lidingö-Breviks Sjöscoutkår"),
+  ScoutGroup(4010, "Norra Lidingö Sjöscoutkår"),
+  ScoutGroup(4014, "Roslags Näsby Scoutkår"),
+  ScoutGroup(4015, "Stocksunds Scoutkår"),
+  ScoutGroup(4016, "Vallentuna Scoutkår"),
+  ScoutGroup(4018, "Viggbyholms Sjöscoutkår"),
+  ScoutGroup(4021, "Österåkers Scoutkår"),
+  ScoutGroup(4022, "Östhammars Sjöscoutkår"),
+  ScoutGroup(5002, "Almtuna Scoutkår"),
+  ScoutGroup(5003, "Enköpings Scoutkår"),
+  ScoutGroup(5005, "Karlsro Scoutkår"),
+  ScoutGroup(5006, "Knivsta Scoutkår"),
+  ScoutGroup(5011, "Wasakåren"),
+  ScoutGroup(5012, "Ärentuna Scoutkår"),
+  ScoutGroup(5017, "Håbo Scoutkår"),
+  ScoutGroup(5025, "Svartbäcken Scoutkår"),
+  ScoutGroup(6226, "Trosa Scoutkår"),
+  ScoutGroup(6315, "Nyköpings Scoutkår"),
+  ScoutGroup(6413, "Katrineholms Scoutkår"),
+  ScoutGroup(11_002, "Berga Scoutkår"),
+  ScoutGroup(11_006, "Ekens Scoutkår"),
+  ScoutGroup(11_008, "Johannelunds Scoutkår"),
+  ScoutGroup(11_010, "Kisa Scoutkår"),
+  ScoutGroup(11_011, "Kärna Scoutkår Linköping"),
+  ScoutGroup(11_012, "Landeryd Scoutkår"),
+  ScoutGroup(11_014, "Vreta Kloster Scoutkår"),
+  ScoutGroup(11_015, "Mjölby Scoutkår"),
+  ScoutGroup(11_022, "S:t Lars Scoutkår"),
+  ScoutGroup(11_027, "Valla Scoutkår"),
+  ScoutGroup(11_029, "Vifolka Scoutkår"),
+  ScoutGroup(11_036, "Linghems Scoutkår"),
+  ScoutGroup(11_039, "Vist scoutkår"),
+  ScoutGroup(11_041, "Björsäters Scoutkår"),
+  ScoutGroup(11_046, "Hanekinds scoutkår"),
+  ScoutGroup(11_051, "Hultsfreds Scoutkår"),
+  ScoutGroup(12_017, "Kuddby Scoutkår"),
+  ScoutGroup(12_019, "Kvillinge scoutkår"),
+  ScoutGroup(12_025, "Skärblacka Scoutkår"),
+  ScoutGroup(12_029, "Svärtinge Scoutkår"),
+  ScoutGroup(12_036, "Östra Eneby-Haga Scoutkår"),
+  ScoutGroup(13_104, "Bankeryds Scoutkår"),
+  ScoutGroup(13_106, "Barnarps scoutkår"),
+  ScoutGroup(13_111, "Gränna Scoutkår"),
+  ScoutGroup(13_119, "Kristina Scoutkår"),
+  ScoutGroup(13_121, "Sofia Scoutkår"),
+  ScoutGroup(13_124, "Månsarps Scoutkår"),
+  ScoutGroup(13_143, "Habo Scoutkår"),
+  ScoutGroup(13_236, "Värnamo Scoutkår"),
+  ScoutGroup(13_305, "Barkeryds Scoutkår"),
+  ScoutGroup(13_307, "Eksjö Scoutkår"),
+  ScoutGroup(13_334, "Vetlanda Scoutkår"),
+  ScoutGroup(13_337, "Korsberga scoutkår"),
+  ScoutGroup(14_213, "Rottne Scoutkår"),
+  ScoutGroup(14_318, "Urshults Scoutkår"),
+  ScoutGroup(14_405, "Grimslövs Scoutkår"),
+  ScoutGroup(14_519, "Växjö Scoutkår"),
+  ScoutGroup(15_002, "Bergkvara Scoutkår"),
+  ScoutGroup(15_003, "Borgholms Scoutkår"),
+  ScoutGroup(15_004, "Emmaboda Scoutkår"),
+  ScoutGroup(15_007, "Falkens Scoutkår"),
+  ScoutGroup(15_008, "Tallhagens Scoutkår"),
+  ScoutGroup(15_010, "Nybro scoutkår"),
+  ScoutGroup(15_014, "Rinkabyholms Scoutkår"),
+  ScoutGroup(15_015, "Södermöre Scoutkår"),
+  ScoutGroup(15_017, "Trekantens Scoutkår"),
+  ScoutGroup(15_018, "Ålem Scoutkår"),
+  ScoutGroup(15_029, "Lindsdals Scoutkår"),
+  ScoutGroup(15_031, "Smedby Scoutkår Kalmar"),
+  ScoutGroup(15_032, "Rockneby Scoutkår"),
+  ScoutGroup(15_808, "Larvik KFUK/KFUM speidere"),
+  ScoutGroup(15_858, "Lancashire Scouts"),
+  ScoutGroup(15_859, "Seldwyla"),
+  ScoutGroup(15_861, "Girlguiding Scrabo, Northern Ireland"),
+  ScoutGroup(15_863, "Jeløyspeiderne"),
+  ScoutGroup(15_864, "Oxfordshire County Girlguides"),
+  ScoutGroup(15_866, "DAR ES SALAAM JOINT OPEN SCOUT GROUP"),
+  ScoutGroup(15_868, "Tottenham ESU"),
+  ScoutGroup(15_870, "Rea Valley District Explorers"),
+  ScoutGroup(15_871, "30th Reigate Explorer Scout Group"),
+  ScoutGroup(15_873, "Girlguiding Norfolk"),
+  ScoutGroup(15_874, "17th Purley Scout Group"),
+  ScoutGroup(15_876, "Girlguiding Bristol and South Gloucestershire"),
+  ScoutGroup(15_877, "West Yorkshire South County Girlguiding UK"),
+  ScoutGroup(15_878, "Endon Scout Group"),
+  ScoutGroup(15_879, "Voyager ESU"),
+  ScoutGroup(15_880, "Pfadfindergruppe “Edelweißhorst” Oberndorf"),
+  ScoutGroup(15_881, "19 Fairfield Scout Group"),
+  ScoutGroup(15_882, "9th Colchester Scout Group"),
+  ScoutGroup(15_883, "Rebika"),
+  ScoutGroup(15_884, "Girlguiding North West England"),
+  ScoutGroup(15_887, "Guiding Glaciers"),
+  ScoutGroup(15_888, "Girlguiding Norfolk"),
+  ScoutGroup(15_889, "Super Troupers LaSER 2026"),
+  ScoutGroup(15_890, "sierra leone scouts association westrn rural"),
+  ScoutGroup(15_891, "Pfadfindergruppe Horn"),
+  ScoutGroup(15_892, "Prometheus Explorer Scout Unit"),
+  ScoutGroup(15_893, "1.Tyristrand speidergruppe"),
+  ScoutGroup(15_894, "4th Castle Bromwich Guides"),
+  ScoutGroup(15_897, "Concorde ESU"),
+  ScoutGroup(15_899, "Pfadfindergruppe Linz 6"),
+  ScoutGroup(15_900, "Girlguiding South West England"),
+  ScoutGroup(15_901, "Flitwick Scout Group"),
+  ScoutGroup(15_902, "Steama Explorer Scout Unit"),
+  ScoutGroup(15_903, "Dublett 16th Purley (7th All Saints Sanderstead)"),
+  ScoutGroup(15_905, "Argiope"),
+  ScoutGroup(15_906, "Girlguiding Scrabo"),
+  ScoutGroup(15_907, "Dublett 16th Purley (7th All Saints Sanderstead)"),
+  ScoutGroup(15_908, "Croham Valley Explorer Scout Unit"),
+  ScoutGroup(15_909, "Würmtalfalken"),
+  ScoutGroup(15_911, "16th Purley (7th All Saints Sanderstead)"),
+  ScoutGroup(15_913, "6th Kilkenny Kells"),
+  ScoutGroup(15_915, "4th Tolworth"),
+  ScoutGroup(15_916, "Groupe Scout Veveyse"),
+  ScoutGroup(15_917, "Red barons Explorer scout unit"),
+  ScoutGroup(15_918, "Southgate District Explorer Scouts"),
+  ScoutGroup(15_919, "Alisa Hadžihusejnovi?"),
+  ScoutGroup(15_920, "Igiraneza"),
+  ScoutGroup(15_921, "Surrey Scouts"),
+  ScoutGroup(15_922, "Groupe St Bernard Meyzieu"),
+  ScoutGroup(15_923, "Harbourough District Explorers"),
+  ScoutGroup(15_927, "Khattala  group"),
+  ScoutGroup(15_928, "DPSG Heilig Kreuz Ahl/Salmünster"),
+  ScoutGroup(15_929, "Spinnaker Explorer Sea Scout Unit"),
+  ScoutGroup(15_932, "Luis Morote Pereyra"),
+  ScoutGroup(15_934, "Pfadi H20"),
+  ScoutGroup(15_936, "Longship group 41 Oslo Ullevål"),
+  ScoutGroup(15_937, "Battasendas Viamala"),
+  ScoutGroup(15_938, "Wye Knots Explorer Scouts"),
+  ScoutGroup(15_939, "Tom RESSIGUIER"),
+  ScoutGroup(15_941, "Broadmayne Scout Group"),
+  ScoutGroup(15_945, "Liberia Contingent"),
+  ScoutGroup(15_948, "Ressiguier"),
+  ScoutGroup(15_949, "10th Welland"),
+  ScoutGroup(15_952, "Atlas ESU"),
+  ScoutGroup(15_955, "Arrow District Baldur"),
+  ScoutGroup(15_956, "Arrow Scouts - Tyr"),
+  ScoutGroup(15_957, "Arrow Scouts - Njord"),
+  ScoutGroup(15_958, "Arrow Scouts - Heimdall"),
+  ScoutGroup(15_959, "Arrow Scouts - Nerthus"),
+  ScoutGroup(15_960, "Arrow Scouts - Support"),
+  ScoutGroup(15_962, "9th Caufield Murrumbeena"),
+  ScoutGroup(15_964, "EEUDF Val-de-Bièvre BA 2009"),
+  ScoutGroup(15_965, "KyivGuides"),
+  ScoutGroup(15_969, "1st Histon Scouts"),
+  ScoutGroup(15_970, "1st Carryduff Explorer Scout Unit (Northern Ireland)"),
+  ScoutGroup(15_971, "Erik Armstrong Explorer Unit"),
+  ScoutGroup(15_974, "Hillsborough Explorer Unit"),
+  ScoutGroup(15_976, "29th Galway Ireland"),
+  ScoutGroup(15_980, "Hauketo Prinsdal Speidergruppe"),
+  ScoutGroup(15_984, "UkrGuides235"),
+  ScoutGroup(15_990, "7th/12th Croydon"),
+  ScoutGroup(15_992, "Trucs 2 Olesa"),
+  ScoutGroup(15_993, "36th Hong Kong Group"),
+  ScoutGroup(15_996, "Hard St Georg"),
+  ScoutGroup(16_004, "Sjöscoutkåren af Chapman"),
+  ScoutGroup(16_007, "Jämshögs scoutkår"),
+  ScoutGroup(16_008, "Karlshamns Sjöscoutkår"),
+  ScoutGroup(16_011, "Lyckeby Scoutkår"),
+  ScoutGroup(16_012, "Mörrums Scoutkår"),
+  ScoutGroup(16_019, "PiHos de Grandmetz"),
+  ScoutGroup(16_024, "Gloggnitz-Neunkirchen"),
+  ScoutGroup(16_025, "St Patricks Scout Group"),
+  ScoutGroup(16_026, "Árbúar"),
+  ScoutGroup(16_027, "26th Galway Scout Group"),
+  ScoutGroup(16_030, "Canada Patrol 1"),
+  ScoutGroup(16_033, "Anrey"),
+  ScoutGroup(16_037, "SJ26 Canada Patrol 2"),
+  ScoutGroup(16_042, "Kaarinan Korpiklaani"),
+  ScoutGroup(16_043, "1st Coulsdon Scout Group"),
+  ScoutGroup(16_045, "SJ26 Canada Patrol 5"),
+  ScoutGroup(16_046, "SJ26 Canada Patrol 3"),
+  ScoutGroup(16_047, "SJ26 Canada Patrol 4"),
+  ScoutGroup(16_048, "SJ26 Canada Patrol 6"),
+  ScoutGroup(16_049, "SJ26 Canada Patrol 7"),
+  ScoutGroup(16_050, "SJ26 Canada Patrol 8"),
+  ScoutGroup(16_051, "SJ26 Canada Patrol 1"),
+  ScoutGroup(16_052, "Latvian scouts and guides"),
+  ScoutGroup(16_056, "1st.Tolworth (St.Matthew's)"),
+  ScoutGroup(16_065, "1. Eiksmarka Speidergruppe"),
+  ScoutGroup(16_066, "Girl Scouts of Osaka 20"),
+  ScoutGroup(16_068, "Fagerstrand speidergruppe"),
+  ScoutGroup(16_069, "Odred izvi?a?a \"Pofali?i - Novo Sarajevo\""),
+  ScoutGroup(16_070, "Junák - ?eský skaut, st?edisko Kamenice, z. s."),
+  ScoutGroup(16_074, "Pödblåtki"),
+  ScoutGroup(16_081, "GACK Ventures GALWAY IRELAND"),
+  ScoutGroup(16_085, "1.Jevnaker spedergruppe"),
+  ScoutGroup(16_086, "Gruppe Baden"),
+  ScoutGroup(16_087, "Thomas RODE KRISTENSEN"),
+  ScoutGroup(16_088, "Hauketo Prinsdal Speidergruppe"),
+  ScoutGroup(16_090, "Lynn Maeva Chakai"),
+  ScoutGroup(16_092, "1. Nadderud"),
+  ScoutGroup(16_094, "Scouts & Guides Wadi El Nil"),
+  ScoutGroup(16_096, "Taiwan scout"),
+  ScoutGroup(16_098, "Hungarian Contingent"),
+  ScoutGroup(16_102, "1st Djursholm Scout Group"),
+  ScoutGroup(16_104, "Vetelin koskenkävijät"),
+  ScoutGroup(16_106, "Hønefoss Speidergruppe"),
+  ScoutGroup(16_107, "Scout organization of Serbia"),
+  ScoutGroup(16_114, "NOSU"),
+  ScoutGroup(16_119, "Delta J26"),
+  ScoutGroup(21_001, "Snapphane Distriktskår"),
+  ScoutGroup(21_003, "Bromölla Scoutkår"),
+  ScoutGroup(21_005, "Fjälkinge Scoutkår"),
+  ScoutGroup(21_006, "Färlövs Scoutkår"),
+  ScoutGroup(21_007, "Glimåkra Scoutkår"),
+  ScoutGroup(21_009, "Scouterna Hässleholm"),
+  ScoutGroup(21_010, "Hörby Scoutkår"),
+  ScoutGroup(21_011, "Höörs scoutkår"),
+  ScoutGroup(21_014, "Kristianstad Scoutkår"),
+  ScoutGroup(21_015, "Näsby-Österslövs scoutkår"),
+  ScoutGroup(21_018, "Tollarps Scoutkår"),
+  ScoutGroup(21_020, "Tyringe Scoutkår"),
+  ScoutGroup(21_021, "Vinslövs Scoutkår"),
+  ScoutGroup(21_023, "Åhus Scoutkår"),
+  ScoutGroup(21_025, "Nosaby scoutkår"),
+  ScoutGroup(22_103, "Djupadals Scoutkår"),
+  ScoutGroup(22_105, "Husie-Hohögs Scoutkår"),
+  ScoutGroup(22_107, "Kirsebergs Scoutkår"),
+  ScoutGroup(22_109, "Limhamns Sjöscoutkår"),
+  ScoutGroup(22_113, "Tornfalkens Scoutkår"),
+  ScoutGroup(22_114, "Oxie Scoutkår"),
+  ScoutGroup(22_116, "Scoutkåren Gripen"),
+  ScoutGroup(22_119, "Slottsstadens Scoutkår"),
+  ScoutGroup(22_172, "Klagshamns Scoutkår"),
+  ScoutGroup(22_174, "Södra Skånes HUB-Scoutkår"),
+  ScoutGroup(22_224, "Bjärred scoutkår"),
+  ScoutGroup(22_225, "Eslövs Scoutkår"),
+  ScoutGroup(22_226, "Furulunds Scoutkår"),
+  ScoutGroup(22_227, "Harlösa Scoutkår"),
+  ScoutGroup(22_228, "Lomma scoutkår"),
+  ScoutGroup(22_229, "Drottningstaden Scoutkår"),
+  ScoutGroup(22_230, "Scoutkåren Finn"),
+  ScoutGroup(22_235, "Södra Sandby Scoutkår"),
+  ScoutGroup(22_238, "Staffanstorps Scoutkår i Djurslöv"),
+  ScoutGroup(22_340, "Anderslövs scoutkår"),
+  ScoutGroup(22_341, "Ljungens Sjöscoutkår"),
+  ScoutGroup(22_342, "Månstorps scoutkår"),
+  ScoutGroup(22_344, "Svedala Scoutkår"),
+  ScoutGroup(22_345, "Trelleborgs Scoutkår"),
+  ScoutGroup(22_346, "Trelleborgs Sjöscoutkår"),
+  ScoutGroup(22_347, "Vellinge Scoutkår"),
+  ScoutGroup(22_348, "Östra Torps Scoutkår"),
+  ScoutGroup(22_367, "Hyby Scoutkår"),
+  ScoutGroup(22_451, "Köpingebro Scoutkår"),
+  ScoutGroup(22_453, "Löderups scoutkår"),
+  ScoutGroup(22_454, "Rydsgårds Scoutkår"),
+  ScoutGroup(22_455, "Sankt Olofs scoutkår"),
+  ScoutGroup(22_456, "Simrishamns Scoutkår"),
+  ScoutGroup(22_459, "Tomelilla Scoutkår"),
+  ScoutGroup(22_460, "Vollsjö Scoutkår"),
+  ScoutGroup(22_461, "Ystads Scoutkår"),
+  ScoutGroup(22_466, "Brösarps Scoutkår"),
+  ScoutGroup(23_114, "Helsingborgs Spanarkår"),
+  ScoutGroup(23_118, "Helsingborgs Scoutkår"),
+  ScoutGroup(23_121, "Råå sjöscoutkår"),
+  ScoutGroup(23_205, "Billeberga Scoutkår"),
+  ScoutGroup(23_208, "Dösjebro Scoutkår"),
+  ScoutGroup(23_230, "Kvistofta Scoutkår"),
+  ScoutGroup(23_231, "Landskrona Scoutkår"),
+  ScoutGroup(23_237, "Ottarps Scoutkår"),
+  ScoutGroup(23_240, "Rydebäcks Scoutkår"),
+  ScoutGroup(23_303, "Ausås Scoutkår"),
+  ScoutGroup(23_304, "Barkåkra Scoutkår"),
+  ScoutGroup(23_309, "Bjäre Scoutkår"),
+  ScoutGroup(23_311, "Hjärnarps Scoutkår"),
+  ScoutGroup(23_326, "Höganäs Scoutkår"),
+  ScoutGroup(23_345, "Jonstorps Kustscoutkår"),
+  ScoutGroup(23_348, "Ängelholms Scoutkår"),
+  ScoutGroup(23_434, "Ljungbyheds Scoutkår"),
+  ScoutGroup(23_436, "Mörarps Scoutkår"),
+  ScoutGroup(23_439, "Påarps Scoutkår"),
+  ScoutGroup(23_446, "Åstorps Scoutkår"),
+  ScoutGroup(31_002, "Falkenbergs Scoutkår"),
+  ScoutGroup(31_005, "Halmstads Östra Scoutkår"),
+  ScoutGroup(31_008, "Söndrums Scoutkår"),
+  ScoutGroup(31_011, "Varbergs Scoutkår"),
+  ScoutGroup(31_020, "Gullbrandstorps Scoutkår"),
+  ScoutGroup(31_022, "Fyrkvarnens Scoutkår"),
+  ScoutGroup(32_002, "Askims Sjöscoutkår"),
+  ScoutGroup(32_003, "Backa Scoutkår"),
+  ScoutGroup(32_005, "Björkekärrs Scoutkår"),
+  ScoutGroup(32_010, "Göta Scoutkår"),
+  ScoutGroup(32_012, "Göteborgs Sjöscoutkår"),
+  ScoutGroup(32_013, "Högsbotorps Scoutkår"),
+  ScoutGroup(32_014, "Hjälteby Sjöscoutkår"),
+  ScoutGroup(32_015, "Johannebergs Scoutkår"),
+  ScoutGroup(32_018, "Kortedala Scoutkår"),
+  ScoutGroup(32_025, "Långedrags Sjöscoutkår"),
+  ScoutGroup(32_026, "Långängens Scoutkår"),
+  ScoutGroup(32_028, "Masthugget Majornas Scoutkår"),
+  ScoutGroup(32_030, "Mölndals Scoutkår"),
+  ScoutGroup(32_032, "Porthälla Scoutkår"),
+  ScoutGroup(32_038, "Scoutkåren Engelbrekt"),
+  ScoutGroup(32_039, "Scoutkåren Göta Lejon"),
+  ScoutGroup(32_043, "Stenungsunds Scoutkår"),
+  ScoutGroup(32_046, "Torslanda Sjöscoutkår"),
+  ScoutGroup(32_048, "Tynnereds Scoutkår"),
+  ScoutGroup(32_054, "Kärna Scoutkår"),
+  ScoutGroup(32_057, "Scoutkåren Tor"),
+  ScoutGroup(32_060, "Landvetter Scoutkår"),
+  ScoutGroup(32_061, "Härryda Scoutkår"),
+  ScoutGroup(32_063, "Kode Scoutkår"),
+  ScoutGroup(32_064, "Vättle Scoutkår"),
+  ScoutGroup(32_066, "Bohus Scoutkår"),
+  ScoutGroup(33_102, "Alingsås Scoutkår"),
+  ScoutGroup(33_105, "Bjärke Scoutkår"),
+  ScoutGroup(33_124, "Stora Lundby Scoutkår"),
+  ScoutGroup(33_129, "Tollereds Scoutkår"),
+  ScoutGroup(33_132, "Vårgårda Scoutkår"),
+  ScoutGroup(33_136, "Herrljunga Scoutkår"),
+  ScoutGroup(33_207, "Bollebygds Scoutkår"),
+  ScoutGroup(33_210, "Dalsjöfors Scoutkår"),
+  ScoutGroup(33_221, "Sandareds Scoutkår"),
+  ScoutGroup(33_409, "Brämhults Scoutkår"),
+  ScoutGroup(33_434, "S:t Örjans Scoutkår Borås"),
+  ScoutGroup(33_439, "Viskafors Scoutkår"),
+  ScoutGroup(33_440, "Västgöta Södra Hub-Kår"),
+  ScoutGroup(33_525, "Svenljunga Scoutkår"),
+  ScoutGroup(34_007, "Lilla Edets Scoutkår"),
+  ScoutGroup(34_014, "Uddevalla Scoutkår"),
+  ScoutGroup(34_017, "Vänersborgs Scoutkår"),
+  ScoutGroup(34_033, "Trollhättans Scoutkår"),
+  ScoutGroup(34_040, "Åbyfjordens Scoutkår"),
+  ScoutGroup(35_111, "Karlsborgs Scoutkår"),
+  ScoutGroup(35_125, "Tidaholm Scoutkår"),
+  ScoutGroup(35_213, "Essunga Scoutkår"),
+  ScoutGroup(35_214, "Lidköping Scoutkår"),
+  ScoutGroup(35_219, "Nossebro Scoutkår"),
+  ScoutGroup(35_222, "Skara Scoutkår"),
+  ScoutGroup(35_230, "Vedum scoutkår"),
+  ScoutGroup(35_306, "Forshems Scoutkår"),
+  ScoutGroup(35_324, "Ryds Scoutkår"),
+  ScoutGroup(35_328, "Töreboda Scoutkår"),
+  ScoutGroup(35_331, "Värings Scoutkår"),
+  ScoutGroup(43_002, "Arboga Scoutkår"),
+  ScoutGroup(43_003, "Fagersta Scoutkår"),
+  ScoutGroup(43_015, "Hamre Scoutkår"),
+  ScoutGroup(43_021, "S:t Olofs Scoutkår Västerås"),
+  ScoutGroup(43_022, "S:t Örjan Scoutkår"),
+  ScoutGroup(43_038, "Västerås Stifts Scoutkår Västmanland"),
+  ScoutGroup(44_114, "Hedemora Scoutkår"),
+  ScoutGroup(44_205, "Borlänge Scoutkår"),
+  ScoutGroup(44_217, "Järlinden Scoutkår"),
+  ScoutGroup(44_247, "Vika Scoutkår"),
+  ScoutGroup(44_323, "Malung-Sälens Scoutkår"),
+  ScoutGroup(44_325, "Mora Scoutkår"),
+  ScoutGroup(51_013, "Rudsjö scoutkår"),
+  ScoutGroup(51_014, "Sandviken Scoutkår"),
+  ScoutGroup(51_018, "Testebo Scoutkår"),
+  ScoutGroup(51_029, "Gävle Södra Scoutkår"),
+  ScoutGroup(52_214, "Iggesund Scoutkår"),
+  ScoutGroup(53_002, "Alnö Scoutkår"),
+  ScoutGroup(53_010, "Njurunda Scoutkår"),
+  ScoutGroup(53_013, "Stöde Scoutkår"),
+  ScoutGroup(55_012, "Åre Duved Scoutkår"),
+  ScoutGroup(55_033, "Östersund Frösö Scoutkår"),
+  ScoutGroup(55_036, "Sättna Scoutkår"),
+  ScoutGroup(62_006, "Skellefteå Scoutkår"),
+  ScoutGroup(62_007, "Tegs Scoutkår"),
+  ScoutGroup(62_008, "Umeå Scoutkår"),
+  ScoutGroup(62_018, "VÅ Scouthub"),
+  ScoutGroup(63_005, "Bodens Scoutkår"),
+  ScoutGroup(63_010, "Hortlax Scoutkår"),
+  ScoutGroup(63_025, "Luleå-Hertsön Scoutkår"),
+  ScoutGroup(63_037, "Sunderbyns Scoutkår"),
+  ScoutGroup(70_221, "Södertälje Scoutkår FA"),
+  ScoutGroup(71_303, "Eksjö FA Scoutkår"),
+  ScoutGroup(71_304, "Forserum Scoutkår FA"),
+  ScoutGroup(71_316, "Nässjö Scoutkår FA"),
+  ScoutGroup(74_109, "Kristinehamn Scoutkår FA"),
+  ScoutGroup(74_228, "Örebro Scoutkår FA"),
+  ScoutGroup(76_004, "110 Gda?ska Dru?yna W?drownicza \"Pora na prygod?\""),
+  ScoutGroup(99_999, "Testkår"),
+  ScoutGroup(6_105_723, "Gripenbergs mfs"),
+  ScoutGroup(9_915_002, "SOSF på Jamboree26"),
+  ScoutGroup(50_000_003, "Berg Scoutkår"),
+  ScoutGroup(50_000_006, "Dals-Ed Scoutkår"),
+  ScoutGroup(50_000_008, "Eneryda Scoutkår"),
+  ScoutGroup(50_000_009, "Eskilstuna Scoutkår"),
+  ScoutGroup(50_000_014, "Fleninge-Ödåkra Scoutkår"),
+  ScoutGroup(50_000_016, "Färjestadens NSF-Scoutkår"),
+  ScoutGroup(50_000_021, "Karlstad NSF Scoutkår"),
+  ScoutGroup(50_000_024, "Horn NSF-Scoutkår"),
+  ScoutGroup(50_000_026, "Hummelstad Scoutkår"),
+  ScoutGroup(50_000_027, "Hällans Scoutkår"),
+  ScoutGroup(50_000_028, "Jonsered Scoutkår"),
+  ScoutGroup(50_000_035, "Landskrona NSF Scoutkår"),
+  ScoutGroup(50_000_037, "Lund Scoutkår"),
+  ScoutGroup(50_000_040, "Moheda Scoutkår"),
+  ScoutGroup(50_000_042, "Mölnlycke Scoutkår"),
+  ScoutGroup(50_000_043, "Mönsterås Scoutkår"),
+  ScoutGroup(50_000_048, "NSF Forshaga"),
+  ScoutGroup(50_000_052, "Scoutkåren Vikingen-Ekeby"),
+  ScoutGroup(50_000_059, "Scoutkåren Spejaren - Klippan"),
+  ScoutGroup(50_000_061, "Stora Levene Scoutkår"),
+  ScoutGroup(50_000_062, "Stålringen Scoutkår"),
+  ScoutGroup(50_000_066, "Trollhättan Skogshöjdens Scoutkår av NSF"),
+  ScoutGroup(50_000_067, "Utby Scoutkår"),
+  ScoutGroup(50_000_069, "Vallentuna Scoutkår av NSF"),
+  ScoutGroup(50_000_070, "Varbergs NSF-Scoutkår"),
+  ScoutGroup(50_000_072, "Värends Scoutkår"),
+  ScoutGroup(50_000_074, "Åby NSF Scoutkår"),
+  ScoutGroup(50_000_077, "Örebro NSF-Scoutkår"),
+  ScoutGroup(50_000_078, "Östersund Scoutkår"),
+  ScoutGroup(60_032_711, "Equmenia Storvreta"),
+  ScoutGroup(61_031_108, "SMU i Gällivare - Malmberget"),
+  ScoutGroup(61_031_217, "Malå Equmenia"),
+  ScoutGroup(61_031_936, "Högbergskyrkans unga eller Triangelkåren"),
+  ScoutGroup(61_032_055, "Kanalkyrkans Unga - Equmenia i Sandviken"),
+  ScoutGroup(61_032_208, "Equmenia Örbyhus"),
+  ScoutGroup(61_032_209, "Borgenkyrkan ung - en del av Equmenia"),
+  ScoutGroup(61_032_502, "Abrahamsbergskyrkans Ungdom"),
+  ScoutGroup(61_032_504, "Equmenia Hässelby"),
+  ScoutGroup(61_032_601, "Nacka Equmenia"),
+  ScoutGroup(61_032_604, "Equmenia Danderyd-Täby"),
+  ScoutGroup(61_032_644, "Equmenia Stuvsta"),
+  ScoutGroup(61_032_703, "Equmenia Gamla Uppsala"),
+  ScoutGroup(61_032_715, "Valsätrakyrkans Scoutkår"),
+  ScoutGroup(61_032_808, "Equmenia Missionskyrkan Hemse"),
+  ScoutGroup(61_033_215, "Equmenia Frövi"),
+  ScoutGroup(61_033_257, "Equmenia Vintrosa Tomta"),
+  ScoutGroup(61_033_310, "Equmenia Himmeta"),
+  ScoutGroup(61_033_324, "Equmenia Sala"),
+  ScoutGroup(61_033_334, "Equmenia Ansgarskyrkan Västerås"),
+  ScoutGroup(61_033_701, "Equmenia Arvika"),
+  ScoutGroup(61_033_722, "Equmenia Fagerås"),
+  ScoutGroup(61_033_723, "Equmenia Torsby"),
+  ScoutGroup(61_033_725, "Equmenia Skårekyrkan"),
+  ScoutGroup(61_033_728, "Equmenia Gunnarskog"),
+  ScoutGroup(61_033_740, "Redbergskyrkans unga - en del av Equmenia"),
+  ScoutGroup(61_033_741, "Equmenia Karlstad"),
+  ScoutGroup(61_033_766, "Equmenia Kil"),
+  ScoutGroup(61_033_788, "Equmenia Västra Ämtervik"),
+  ScoutGroup(61_033_792, "Equmenia Ölme"),
+  ScoutGroup(61_033_903, "Equmenia Bäckefors"),
+  ScoutGroup(61_033_918, "Equmenia Mellerud"),
+  ScoutGroup(61_034_208, "Equmenia Immanuelskyrkan Jönköping"),
+  ScoutGroup(61_034_211, "Equmenia Brämhult"),
+  ScoutGroup(61_034_221, "Equmenia Fristad"),
+  ScoutGroup(61_034_229, "Equmenia Betlehemskyrkan"),
+  ScoutGroup(61_034_230, "Equmenia i Fiskebäck & Önnered"),
+  ScoutGroup(61_034_237, "Equmenia Mariakyrkan och Rosa huset"),
+  ScoutGroup(61_034_249, "Equmenia Jonsered"),
+  ScoutGroup(61_034_252, "SMU i Kinna"),
+  ScoutGroup(61_034_263, "Equmenia Lerum"),
+  ScoutGroup(61_034_268, "Johanneskyrkans ungdom"),
+  ScoutGroup(61_034_278, "Equmenia Mölnlycke"),
+  ScoutGroup(61_034_293, "Equmenia Floda"),
+  ScoutGroup(61_034_313, "Equmenia Vänersborg"),
+  ScoutGroup(61_034_407, "Equmenia Kungälv"),
+  ScoutGroup(61_034_418, "Equmenia i Ucklum"),
+  ScoutGroup(61_034_422, "SMU i Älvsåker"),
+  ScoutGroup(61_034_730, "Equmenia Habo"),
+  ScoutGroup(61_034_760, "Equmenia Mariestad"),
+  ScoutGroup(61_034_765, "Equmenia Mullsjö"),
+  ScoutGroup(61_034_787, "Equmenia Sventorp"),
+  ScoutGroup(61_034_795, "Equmenia Timmele"),
+  ScoutGroup(61_034_803, "Equmenia Ulricehamn"),
+  ScoutGroup(61_034_811, "Värsås SMU"),
+  ScoutGroup(61_034_818, "Tvärreds Equmenia"),
+  ScoutGroup(61_035_311, "Equmenia Ung i Finspång"),
+  ScoutGroup(61_035_335, "Equmenia Linköping"),
+  ScoutGroup(61_035_342, "Equmenia Vidablick"),
+  ScoutGroup(61_035_348, "Equmenia Rimforsa"),
+  ScoutGroup(61_035_357, "Equmenia i Skärblacka"),
+  ScoutGroup(61_035_358, "Equmenia Skärkind"),
+  ScoutGroup(61_035_365, "Torpa Equmenia"),
+  ScoutGroup(61_035_383, "Equmenia Åtvidaberg"),
+  ScoutGroup(61_035_399, "Ung Treklang Scout"),
+  ScoutGroup(61_035_447, "Equmenia Svalliden"),
+  ScoutGroup(61_035_700, "Equmenia Anderstorp"),
+  ScoutGroup(61_035_706, "Equmenia i Borbygden"),
+  ScoutGroup(61_035_716, "Equmeniakyrkan Eksjö"),
+  ScoutGroup(61_035_722, "Equmenia - Gislaved Frikyrkoförsamlings Ungdom"),
+  ScoutGroup(61_035_731, "Equmenia Hestra/Grimsås"),
+  ScoutGroup(61_035_734, "Equmenia Hovslätt"),
+  ScoutGroup(61_035_736, "Equmenia Huskvarna"),
+  ScoutGroup(61_035_766, "Equmenia Nässjö"),
+  ScoutGroup(61_035_772, "Equmenia Kaxholmen"),
+  ScoutGroup(61_035_790, "Equmenia Vetlanda"),
+  ScoutGroup(61_035_794, "Equmenia - Värnamo Missionskyrka"),
+  ScoutGroup(61_035_902, "Equmenia Södra Nissadalen"),
+  ScoutGroup(61_036_201, "Equmenia Alstermo"),
+  ScoutGroup(61_036_202, "Equmenia Alvesta"),
+  ScoutGroup(61_036_222, "Equmenia Ljungby"),
+  ScoutGroup(61_036_301, "CKU i Bjuv -  en del av Equmenia"),
+  ScoutGroup(61_036_309, "Equmenia Hässleholm"),
+  ScoutGroup(61_036_315, "Equmenia - Knislinge SMU"),
+  ScoutGroup(61_036_316, "Equmenia Kristianstad"),
+  ScoutGroup(61_036_318, "SMU Kävlinge-Furulund - en del av Equmenia"),
+  ScoutGroup(61_036_321, "Equmenia Lund Västerkyrkans unga"),
+  ScoutGroup(61_036_400, "SMU i Höllviken - en del av Equmenia"),
+  ScoutGroup(61_036_421, "Equmenia/SMU Trelleborg"),
+  ScoutGroup(61_037_313, "Equmenia Rogsta"),
+  ScoutGroup(61_037_412, "Centrumkyrkans Ungdom-en del av Equmenia"),
+  ScoutGroup(61_037_414, "Scoutkåren Gripen - Grödinge"),
+  ScoutGroup(62_032_604, "Equmenia Danderyd-Täby"),
+  ScoutGroup(62_032_635, "Equmenia Rönninge"),
+  ScoutGroup(62_033_257, "Equmenia Vintrosa Tomta"),
+  ScoutGroup(62_034_233, "Equmenia Rambergskyrkan"),
+  ScoutGroup(62_034_276, "Equmenia Toarp"),
+  ScoutGroup(62_034_277, "Equmenia Bifrostkyrkan"),
+  ScoutGroup(62_034_409, "Equmenia i Lysekil"),
+  ScoutGroup(62_034_422, "SMU i Älvsåker"),
+  ScoutGroup(62_035_335, "Equmenia Linköping"),
+  ScoutGroup(62_035_357, "Equmenia i Skärblacka"),
+  ScoutGroup(62_035_367, "Equmenia Linghemskyrkan"),
+  ScoutGroup(62_035_772, "Equmenia Kaxholmen"),
+  ScoutGroup(62_035_773, "Equmenia Smålandsstenar"),
+  ScoutGroup(62_036_318, "SMU Kävlinge-Furulund - en del av Equmenia"),
+  ScoutGroup(62_038_503, "Equmenia Rotebro"),
+  ScoutGroup(63_034_278, "Equmenia Mölnlycke"),
+  ScoutGroup(63_035_772, "Equmenia Kaxholmen"),
+  ScoutGroup(64_036_301, "CKU i Bjuv - en del av Equmenia"),
+  ScoutGroup(69_900_012, "Equmenia Gotland"),
+  ScoutGroup(80_560_052, "Bölans Scoutkår"),
+  ScoutGroup(80_660_066, "Hunneberg KFUM Scoutkår"),
+  ScoutGroup(80_660_072, "Ärrsjöblomman Scoutkår"),
+  ScoutGroup(80_661_067, "KFUM Scout Ljungskile"),
+  ScoutGroup(80_760_080, "Frodekåren"),
+  ScoutGroup(80_760_082, "Hvitfeldts Scoutkår"),
+  ScoutGroup(80_760_088, "Annestorpsdalens Scoutkår"),
+  ScoutGroup(80_760_091, "Mölndal Scoutkår KFUM"),
+  ScoutGroup(80_760_093, "Åsa Scoutkår"),
+  ScoutGroup(80_760_103, "Tölö Scoutkår"),
+  ScoutGroup(80_761_084, "Scoutkåren Jägarna"),
+  ScoutGroup(80_761_087, "Trekungakåren"),
+  ScoutGroup(80_860_110, "Dalby Scoutkår"),
+  ScoutGroup(80_860_114, "Genarps Scoutkår"),
+  ScoutGroup(80_860_118, "Örtofta Scoutkår"),
+  ScoutGroup(80_860_119, "Staffanstorps Scoutkår Torparna"),
+  ScoutGroup(80_860_122, "Uppåkra Scoutkår"),
+  ScoutGroup(80_860_123, "Veberöd Scoutkår"),
+  ScoutGroup(80_860_381, "Scouterna Lödde"),
+  ScoutGroup(80_863_058, "Tornugglan Scoutkår"),
+  ScoutGroup(80_963_131, "Bunkeflo Scoutkår"),
+  ScoutGroup(81_160_179, "Tenhults Scoutkår"),
+  ScoutGroup(81_161_173, "Huskvarna Scoutkår"),
+  ScoutGroup(81_360_198, "Osby Scoutkår"),
+  ScoutGroup(81_360_199, "Wä Scoutkår"),
+  ScoutGroup(81_360_204, "Arkelstorp KM"),
+  ScoutGroup(81_360_461, "Trolle Ljungby Scoutkår"),
+  ScoutGroup(81_460_225, "Täby Kyrkby Scoutkår"),
+  ScoutGroup(81_461_236, "Södra KM Scoutkår"),
+  ScoutGroup(81_465_244, "Örby Scoutkår"),
+  ScoutGroup(81_560_270, "Tommarp"),
+  ScoutGroup(81_560_272, "Sjöbo KM Scoutkår"),
+  ScoutGroup(81_560_273, "Skivarp Scoutkår"),
+  ScoutGroup(81_761_298, "Västerås KM"),
+  ScoutGroup(82_160_243, "Åsundens Scoutkår"),
+  ScoutGroup(82_160_349, "Fristad KM"),
+  ScoutGroup(82_360_372, "KFUMs Scoutkår i Härnösand"),
+  ScoutGroup(82_460_385, "Klippans Scoutkår"),
+  ScoutGroup(82_460_390, "Östra Ljungby"),
+  ScoutGroup(82_461_388, "Landskrona KM"),
+  ScoutGroup(
+    90_050_401,
+    "Lutherska Missionskyrkans EFS Scout (Salt) Toleredskyrkans Scoutkår",
+  ),
+  ScoutGroup(90_050_702, "Eldsberga-Tönnersjö Scoutkår"),
+  ScoutGroup(90_070_011, "Saltföreningen Hörviks scouter"),
+]
 
 /// The kår display name for a Scoutnet kårnummer, or `"Kår <id>"` when the
 /// id is not among the registered kårer.
 pub fn group_id_to_name(group_id: Int) -> String {
-  case group_id {
-    1102 -> "Adolf Fredriks Scoutkår"
-    1113 -> "Hedvig Eleonora Scoutkår"
-    1124 -> "Scoutkåren Vikingarna"
-    1137 -> "S:ta Maria Scoutkår"
-    1146 -> "Södermalms Scoutkår"
-    1163 -> "Brobergska Scoutkåren"
-    1203 -> "Bagarmossens Scoutkår"
-    1209 -> "Enskede Scoutkår"
-    1223 -> "Kärrtorps Scoutkår"
-    1239 -> "Sköndals Land- och Sjöscoutkår"
-    1256 -> "Årsta Scoutkår"
-    1259 -> "Bandhagens Scoutkår"
-    1279 -> "Hammarby Sjöscoutkår"
-    1326 -> "Mälarhöjdens Scoutkår"
-    1355 -> "Västertorps Scoutkår"
-    1357 -> "Älvsjö Scoutkår"
-    1405 -> "Blackebergs sjöscoutkår"
-    1408 -> "Sjöscoutkåren Drakarna"
-    1415 -> "Hässelby Strands Sjöscoutkår"
-    1416 -> "Hässelby Scoutkår"
-    1427 -> "Scoutkåren Mälarscouterna"
-    1428 -> "Scoutkåren Mäster Olof-Råcksta"
-    1429 -> "Nockeby Scoutkår"
-    1441 -> "Spånga Scoutkår"
-    1451 -> "Vällingby Scoutkår"
-    1481 -> "Norra Järva Scoutkår"
-    1483 -> "Ingarö Sjöscoutkår"
-    2006 -> "Handens Scoutkår"
-    2007 -> "Huddinge Scoutkår"
-    2010 -> "Nynäshamns Scoutkår"
-    2011 -> "Scoutkåren Peter Momma"
-    2014 -> "S:t Botvids Scoutkår"
-    2015 -> "Segeltorps Scoutkår"
-    2016 -> "Nacka Sjöscoutkår"
-    2019 -> "Trollbäckens Scoutkår"
-    2023 -> "Vendelsö Scoutkår"
-    2025 -> "Älta Scoutkår"
-    2026 -> "Ösmo Scoutkår"
-    2034 -> "Mariekäll Scoutkår"
-    2038 -> "Turinge Scoutkår"
-    2040 -> "Hölö Scoutkår"
-    2042 -> "Vårby Gårds Scoutkår"
-    2043 -> "Visby Scoutkår"
-    2049 -> "Krusboda Scoutkår"
-    2051 -> "Dalarö Sjöscoutkår"
-    2052 -> "Värmdö Sjöscoutkår"
-    3002 -> "Barkarby-Skälby Scoutkår"
-    3003 -> "Bergshamra Scoutkår"
-    3006 -> "Färingsö Sjöscoutkår"
-    3009 -> "Jakobsbergs Scoutkår"
-    3010 -> "Kallhälls Scoutkår"
-    3011 -> "Märsta Scoutkår"
-    3015 -> "Sollentuna Norra Scoutkår"
-    3016 -> "Sollentuna Södra Scoutkår"
-    3020 -> "Sundbybergs Scoutkår"
-    3024 -> "Upplands Väsby Scoutkår"
-    3026 -> "Träkvista Sjöscoutkår"
-    3027 -> "Viksjö Scoutkår"
-    3028 -> "Tibble Sjöscoutkår"
-    3029 -> "Bollstanäs Scoutkår"
-    4002 -> "Danderyds Sjöscoutkår"
-    4003 -> "Djursholms Scoutkår"
-    4006 -> "Lidingö-Bodals Sjöscoutkår"
-    4007 -> "Lidingö-Breviks Sjöscoutkår"
-    4010 -> "Norra Lidingö Sjöscoutkår"
-    4014 -> "Roslags Näsby Scoutkår"
-    4015 -> "Stocksunds Scoutkår"
-    4016 -> "Vallentuna Scoutkår"
-    4018 -> "Viggbyholms Sjöscoutkår"
-    4021 -> "Österåkers Scoutkår"
-    4022 -> "Östhammars Sjöscoutkår"
-    5002 -> "Almtuna Scoutkår"
-    5003 -> "Enköpings Scoutkår"
-    5005 -> "Karlsro Scoutkår"
-    5006 -> "Knivsta Scoutkår"
-    5011 -> "Wasakåren"
-    5012 -> "Ärentuna Scoutkår"
-    5017 -> "Håbo Scoutkår"
-    5025 -> "Svartbäcken Scoutkår"
-    6226 -> "Trosa Scoutkår"
-    6315 -> "Nyköpings Scoutkår"
-    6413 -> "Katrineholms Scoutkår"
-    11_002 -> "Berga Scoutkår"
-    11_006 -> "Ekens Scoutkår"
-    11_008 -> "Johannelunds Scoutkår"
-    11_010 -> "Kisa Scoutkår"
-    11_011 -> "Kärna Scoutkår Linköping"
-    11_012 -> "Landeryd Scoutkår"
-    11_014 -> "Vreta Kloster Scoutkår"
-    11_015 -> "Mjölby Scoutkår"
-    11_022 -> "S:t Lars Scoutkår"
-    11_027 -> "Valla Scoutkår"
-    11_029 -> "Vifolka Scoutkår"
-    11_036 -> "Linghems Scoutkår"
-    11_039 -> "Vist scoutkår"
-    11_041 -> "Björsäters Scoutkår"
-    11_046 -> "Hanekinds scoutkår"
-    11_051 -> "Hultsfreds Scoutkår"
-    12_017 -> "Kuddby Scoutkår"
-    12_019 -> "Kvillinge scoutkår"
-    12_025 -> "Skärblacka Scoutkår"
-    12_029 -> "Svärtinge Scoutkår"
-    12_036 -> "Östra Eneby-Haga Scoutkår"
-    13_104 -> "Bankeryds Scoutkår"
-    13_106 -> "Barnarps scoutkår"
-    13_111 -> "Gränna Scoutkår"
-    13_119 -> "Kristina Scoutkår"
-    13_121 -> "Sofia Scoutkår"
-    13_124 -> "Månsarps Scoutkår"
-    13_143 -> "Habo Scoutkår"
-    13_236 -> "Värnamo Scoutkår"
-    13_305 -> "Barkeryds Scoutkår"
-    13_307 -> "Eksjö Scoutkår"
-    13_334 -> "Vetlanda Scoutkår"
-    13_337 -> "Korsberga scoutkår"
-    14_213 -> "Rottne Scoutkår"
-    14_318 -> "Urshults Scoutkår"
-    14_405 -> "Grimslövs Scoutkår"
-    14_519 -> "Växjö Scoutkår"
-    15_002 -> "Bergkvara Scoutkår"
-    15_003 -> "Borgholms Scoutkår"
-    15_004 -> "Emmaboda Scoutkår"
-    15_007 -> "Falkens Scoutkår"
-    15_008 -> "Tallhagens Scoutkår"
-    15_010 -> "Nybro scoutkår"
-    15_014 -> "Rinkabyholms Scoutkår"
-    15_015 -> "Södermöre Scoutkår"
-    15_017 -> "Trekantens Scoutkår"
-    15_018 -> "Ålem Scoutkår"
-    15_029 -> "Lindsdals Scoutkår"
-    15_031 -> "Smedby Scoutkår Kalmar"
-    15_032 -> "Rockneby Scoutkår"
-    15_808 -> "Larvik KFUK/KFUM speidere"
-    15_858 -> "Lancashire Scouts"
-    15_859 -> "Seldwyla"
-    15_861 -> "Girlguiding Scrabo, Northern Ireland"
-    15_863 -> "Jeløyspeiderne"
-    15_864 -> "Oxfordshire County Girlguides"
-    15_866 -> "DAR ES SALAAM JOINT OPEN SCOUT GROUP"
-    15_868 -> "Tottenham ESU"
-    15_870 -> "Rea Valley District Explorers"
-    15_871 -> "30th Reigate Explorer Scout Group"
-    15_873 -> "Girlguiding Norfolk"
-    15_874 -> "17th Purley Scout Group"
-    15_876 -> "Girlguiding Bristol and South Gloucestershire"
-    15_877 -> "West Yorkshire South County Girlguiding UK"
-    15_878 -> "Endon Scout Group"
-    15_879 -> "Voyager ESU"
-    15_880 -> "Pfadfindergruppe “Edelweißhorst” Oberndorf"
-    15_881 -> "19 Fairfield Scout Group"
-    15_882 -> "9th Colchester Scout Group"
-    15_883 -> "Rebika"
-    15_884 -> "Girlguiding North West England"
-    15_887 -> "Guiding Glaciers"
-    15_888 -> "Girlguiding Norfolk"
-    15_889 -> "Super Troupers LaSER 2026"
-    15_890 -> "sierra leone scouts association westrn rural"
-    15_891 -> "Pfadfindergruppe Horn"
-    15_892 -> "Prometheus Explorer Scout Unit"
-    15_893 -> "1.Tyristrand speidergruppe"
-    15_894 -> "4th Castle Bromwich Guides"
-    15_897 -> "Concorde ESU"
-    15_899 -> "Pfadfindergruppe Linz 6"
-    15_900 -> "Girlguiding South West England"
-    15_901 -> "Flitwick Scout Group"
-    15_902 -> "Steama Explorer Scout Unit"
-    15_903 -> "Dublett 16th Purley (7th All Saints Sanderstead)"
-    15_905 -> "Argiope"
-    15_906 -> "Girlguiding Scrabo"
-    15_907 -> "Dublett 16th Purley (7th All Saints Sanderstead)"
-    15_908 -> "Croham Valley Explorer Scout Unit"
-    15_909 -> "Würmtalfalken"
-    15_911 -> "16th Purley (7th All Saints Sanderstead)"
-    15_913 -> "6th Kilkenny Kells"
-    15_915 -> "4th Tolworth"
-    15_916 -> "Groupe Scout Veveyse"
-    15_917 -> "Red barons Explorer scout unit"
-    15_918 -> "Southgate District Explorer Scouts"
-    15_919 -> "Alisa Hadžihusejnovi?"
-    15_920 -> "Igiraneza"
-    15_921 -> "Surrey Scouts"
-    15_922 -> "Groupe St Bernard Meyzieu"
-    15_923 -> "Harbourough District Explorers"
-    15_927 -> "Khattala  group"
-    15_928 -> "DPSG Heilig Kreuz Ahl/Salmünster"
-    15_929 -> "Spinnaker Explorer Sea Scout Unit"
-    15_932 -> "Luis Morote Pereyra"
-    15_934 -> "Pfadi H20"
-    15_936 -> "Longship group 41 Oslo Ullevål"
-    15_937 -> "Battasendas Viamala"
-    15_938 -> "Wye Knots Explorer Scouts"
-    15_939 -> "Tom RESSIGUIER"
-    15_941 -> "Broadmayne Scout Group"
-    15_945 -> "Liberia Contingent"
-    15_948 -> "Ressiguier"
-    15_949 -> "10th Welland"
-    15_952 -> "Atlas ESU"
-    15_955 -> "Arrow District Baldur"
-    15_956 -> "Arrow Scouts - Tyr"
-    15_957 -> "Arrow Scouts - Njord"
-    15_958 -> "Arrow Scouts - Heimdall"
-    15_959 -> "Arrow Scouts - Nerthus"
-    15_960 -> "Arrow Scouts - Support"
-    15_962 -> "9th Caufield Murrumbeena"
-    15_964 -> "EEUDF Val-de-Bièvre BA 2009"
-    15_965 -> "KyivGuides"
-    15_969 -> "1st Histon Scouts"
-    15_970 -> "1st Carryduff Explorer Scout Unit (Northern Ireland)"
-    15_971 -> "Erik Armstrong Explorer Unit"
-    15_974 -> "Hillsborough Explorer Unit"
-    15_976 -> "29th Galway Ireland"
-    15_980 -> "Hauketo Prinsdal Speidergruppe"
-    15_984 -> "UkrGuides235"
-    15_990 -> "7th/12th Croydon"
-    15_992 -> "Trucs 2 Olesa"
-    15_993 -> "36th Hong Kong Group"
-    15_996 -> "Hard St Georg"
-    16_004 -> "Sjöscoutkåren af Chapman"
-    16_007 -> "Jämshögs scoutkår"
-    16_008 -> "Karlshamns Sjöscoutkår"
-    16_011 -> "Lyckeby Scoutkår"
-    16_012 -> "Mörrums Scoutkår"
-    16_019 -> "PiHos de Grandmetz"
-    16_024 -> "Gloggnitz-Neunkirchen"
-    16_025 -> "St Patricks Scout Group"
-    16_026 -> "Árbúar"
-    16_027 -> "26th Galway Scout Group"
-    16_030 -> "Canada Patrol 1"
-    16_033 -> "Anrey"
-    16_037 -> "SJ26 Canada Patrol 2"
-    16_042 -> "Kaarinan Korpiklaani"
-    16_043 -> "1st Coulsdon Scout Group"
-    16_045 -> "SJ26 Canada Patrol 5"
-    16_046 -> "SJ26 Canada Patrol 3"
-    16_047 -> "SJ26 Canada Patrol 4"
-    16_048 -> "SJ26 Canada Patrol 6"
-    16_049 -> "SJ26 Canada Patrol 7"
-    16_050 -> "SJ26 Canada Patrol 8"
-    16_051 -> "SJ26 Canada Patrol 1"
-    16_052 -> "Latvian scouts and guides"
-    16_056 -> "1st.Tolworth (St.Matthew's)"
-    16_065 -> "1. Eiksmarka Speidergruppe"
-    16_066 -> "Girl Scouts of Osaka 20"
-    16_068 -> "Fagerstrand speidergruppe"
-    16_069 -> "Odred izvi?a?a \"Pofali?i - Novo Sarajevo\""
-    16_070 -> "Junák - ?eský skaut, st?edisko Kamenice, z. s."
-    16_074 -> "Pödblåtki"
-    16_081 -> "GACK Ventures GALWAY IRELAND"
-    16_085 -> "1.Jevnaker spedergruppe"
-    16_086 -> "Gruppe Baden"
-    16_087 -> "Thomas RODE KRISTENSEN"
-    16_088 -> "Hauketo Prinsdal Speidergruppe"
-    16_090 -> "Lynn Maeva Chakai"
-    16_092 -> "1. Nadderud"
-    16_094 -> "Scouts & Guides Wadi El Nil"
-    16_096 -> "Taiwan scout"
-    16_098 -> "Hungarian Contingent"
-    16_102 -> "1st Djursholm Scout Group"
-    16_104 -> "Vetelin koskenkävijät"
-    16_106 -> "Hønefoss Speidergruppe"
-    16_107 -> "Scout organization of Serbia"
-    16_114 -> "NOSU"
-    16_119 -> "Delta J26"
-    21_001 -> "Snapphane Distriktskår"
-    21_003 -> "Bromölla Scoutkår"
-    21_005 -> "Fjälkinge Scoutkår"
-    21_006 -> "Färlövs Scoutkår"
-    21_007 -> "Glimåkra Scoutkår"
-    21_009 -> "Scouterna Hässleholm"
-    21_010 -> "Hörby Scoutkår"
-    21_011 -> "Höörs scoutkår"
-    21_014 -> "Kristianstad Scoutkår"
-    21_015 -> "Näsby-Österslövs scoutkår"
-    21_018 -> "Tollarps Scoutkår"
-    21_020 -> "Tyringe Scoutkår"
-    21_021 -> "Vinslövs Scoutkår"
-    21_023 -> "Åhus Scoutkår"
-    21_025 -> "Nosaby scoutkår"
-    22_103 -> "Djupadals Scoutkår"
-    22_105 -> "Husie-Hohögs Scoutkår"
-    22_107 -> "Kirsebergs Scoutkår"
-    22_109 -> "Limhamns Sjöscoutkår"
-    22_113 -> "Tornfalkens Scoutkår"
-    22_114 -> "Oxie Scoutkår"
-    22_116 -> "Scoutkåren Gripen"
-    22_119 -> "Slottsstadens Scoutkår"
-    22_172 -> "Klagshamns Scoutkår"
-    22_174 -> "Södra Skånes HUB-Scoutkår"
-    22_224 -> "Bjärred scoutkår"
-    22_225 -> "Eslövs Scoutkår"
-    22_226 -> "Furulunds Scoutkår"
-    22_227 -> "Harlösa Scoutkår"
-    22_228 -> "Lomma scoutkår"
-    22_229 -> "Drottningstaden Scoutkår"
-    22_230 -> "Scoutkåren Finn"
-    22_235 -> "Södra Sandby Scoutkår"
-    22_238 -> "Staffanstorps Scoutkår i Djurslöv"
-    22_340 -> "Anderslövs scoutkår"
-    22_341 -> "Ljungens Sjöscoutkår"
-    22_342 -> "Månstorps scoutkår"
-    22_344 -> "Svedala Scoutkår"
-    22_345 -> "Trelleborgs Scoutkår"
-    22_346 -> "Trelleborgs Sjöscoutkår"
-    22_347 -> "Vellinge Scoutkår"
-    22_348 -> "Östra Torps Scoutkår"
-    22_367 -> "Hyby Scoutkår"
-    22_451 -> "Köpingebro Scoutkår"
-    22_453 -> "Löderups scoutkår"
-    22_454 -> "Rydsgårds Scoutkår"
-    22_455 -> "Sankt Olofs scoutkår"
-    22_456 -> "Simrishamns Scoutkår"
-    22_459 -> "Tomelilla Scoutkår"
-    22_460 -> "Vollsjö Scoutkår"
-    22_461 -> "Ystads Scoutkår"
-    22_466 -> "Brösarps Scoutkår"
-    23_114 -> "Helsingborgs Spanarkår"
-    23_118 -> "Helsingborgs Scoutkår"
-    23_121 -> "Råå sjöscoutkår"
-    23_205 -> "Billeberga Scoutkår"
-    23_208 -> "Dösjebro Scoutkår"
-    23_230 -> "Kvistofta Scoutkår"
-    23_231 -> "Landskrona Scoutkår"
-    23_237 -> "Ottarps Scoutkår"
-    23_240 -> "Rydebäcks Scoutkår"
-    23_303 -> "Ausås Scoutkår"
-    23_304 -> "Barkåkra Scoutkår"
-    23_309 -> "Bjäre Scoutkår"
-    23_311 -> "Hjärnarps Scoutkår"
-    23_326 -> "Höganäs Scoutkår"
-    23_345 -> "Jonstorps Kustscoutkår"
-    23_348 -> "Ängelholms Scoutkår"
-    23_434 -> "Ljungbyheds Scoutkår"
-    23_436 -> "Mörarps Scoutkår"
-    23_439 -> "Påarps Scoutkår"
-    23_446 -> "Åstorps Scoutkår"
-    31_002 -> "Falkenbergs Scoutkår"
-    31_005 -> "Halmstads Östra Scoutkår"
-    31_008 -> "Söndrums Scoutkår"
-    31_011 -> "Varbergs Scoutkår"
-    31_020 -> "Gullbrandstorps Scoutkår"
-    31_022 -> "Fyrkvarnens Scoutkår"
-    32_002 -> "Askims Sjöscoutkår"
-    32_003 -> "Backa Scoutkår"
-    32_005 -> "Björkekärrs Scoutkår"
-    32_010 -> "Göta Scoutkår"
-    32_012 -> "Göteborgs Sjöscoutkår"
-    32_013 -> "Högsbotorps Scoutkår"
-    32_014 -> "Hjälteby Sjöscoutkår"
-    32_015 -> "Johannebergs Scoutkår"
-    32_018 -> "Kortedala Scoutkår"
-    32_025 -> "Långedrags Sjöscoutkår"
-    32_026 -> "Långängens Scoutkår"
-    32_028 -> "Masthugget Majornas Scoutkår"
-    32_030 -> "Mölndals Scoutkår"
-    32_032 -> "Porthälla Scoutkår"
-    32_038 -> "Scoutkåren Engelbrekt"
-    32_039 -> "Scoutkåren Göta Lejon"
-    32_043 -> "Stenungsunds Scoutkår"
-    32_046 -> "Torslanda Sjöscoutkår"
-    32_048 -> "Tynnereds Scoutkår"
-    32_054 -> "Kärna Scoutkår"
-    32_057 -> "Scoutkåren Tor"
-    32_060 -> "Landvetter Scoutkår"
-    32_061 -> "Härryda Scoutkår"
-    32_063 -> "Kode Scoutkår"
-    32_064 -> "Vättle Scoutkår"
-    32_066 -> "Bohus Scoutkår"
-    33_102 -> "Alingsås Scoutkår"
-    33_105 -> "Bjärke Scoutkår"
-    33_124 -> "Stora Lundby Scoutkår"
-    33_129 -> "Tollereds Scoutkår"
-    33_132 -> "Vårgårda Scoutkår"
-    33_136 -> "Herrljunga Scoutkår"
-    33_207 -> "Bollebygds Scoutkår"
-    33_210 -> "Dalsjöfors Scoutkår"
-    33_221 -> "Sandareds Scoutkår"
-    33_409 -> "Brämhults Scoutkår"
-    33_434 -> "S:t Örjans Scoutkår Borås"
-    33_439 -> "Viskafors Scoutkår"
-    33_440 -> "Västgöta Södra Hub-Kår"
-    33_525 -> "Svenljunga Scoutkår"
-    34_007 -> "Lilla Edets Scoutkår"
-    34_014 -> "Uddevalla Scoutkår"
-    34_017 -> "Vänersborgs Scoutkår"
-    34_033 -> "Trollhättans Scoutkår"
-    34_040 -> "Åbyfjordens Scoutkår"
-    35_111 -> "Karlsborgs Scoutkår"
-    35_125 -> "Tidaholm Scoutkår"
-    35_213 -> "Essunga Scoutkår"
-    35_214 -> "Lidköping Scoutkår"
-    35_219 -> "Nossebro Scoutkår"
-    35_222 -> "Skara Scoutkår"
-    35_230 -> "Vedum scoutkår"
-    35_306 -> "Forshems Scoutkår"
-    35_324 -> "Ryds Scoutkår"
-    35_328 -> "Töreboda Scoutkår"
-    35_331 -> "Värings Scoutkår"
-    43_002 -> "Arboga Scoutkår"
-    43_003 -> "Fagersta Scoutkår"
-    43_015 -> "Hamre Scoutkår"
-    43_021 -> "S:t Olofs Scoutkår Västerås"
-    43_022 -> "S:t Örjan Scoutkår"
-    43_038 -> "Västerås Stifts Scoutkår Västmanland"
-    44_114 -> "Hedemora Scoutkår"
-    44_205 -> "Borlänge Scoutkår"
-    44_217 -> "Järlinden Scoutkår"
-    44_247 -> "Vika Scoutkår"
-    44_323 -> "Malung-Sälens Scoutkår"
-    44_325 -> "Mora Scoutkår"
-    51_013 -> "Rudsjö scoutkår"
-    51_014 -> "Sandviken Scoutkår"
-    51_018 -> "Testebo Scoutkår"
-    51_029 -> "Gävle Södra Scoutkår"
-    52_214 -> "Iggesund Scoutkår"
-    53_002 -> "Alnö Scoutkår"
-    53_010 -> "Njurunda Scoutkår"
-    53_013 -> "Stöde Scoutkår"
-    55_012 -> "Åre Duved Scoutkår"
-    55_033 -> "Östersund Frösö Scoutkår"
-    55_036 -> "Sättna Scoutkår"
-    62_006 -> "Skellefteå Scoutkår"
-    62_007 -> "Tegs Scoutkår"
-    62_008 -> "Umeå Scoutkår"
-    62_018 -> "VÅ Scouthub"
-    63_005 -> "Bodens Scoutkår"
-    63_010 -> "Hortlax Scoutkår"
-    63_025 -> "Luleå-Hertsön Scoutkår"
-    63_037 -> "Sunderbyns Scoutkår"
-    70_221 -> "Södertälje Scoutkår FA"
-    71_303 -> "Eksjö FA Scoutkår"
-    71_304 -> "Forserum Scoutkår FA"
-    71_316 -> "Nässjö Scoutkår FA"
-    74_109 -> "Kristinehamn Scoutkår FA"
-    74_228 -> "Örebro Scoutkår FA"
-    76_004 -> "110 Gda?ska Dru?yna W?drownicza \"Pora na prygod?\""
-    99_999 -> "Testkår"
-    6_105_723 -> "Gripenbergs mfs"
-    9_915_002 -> "SOSF på Jamboree26"
-    50_000_003 -> "Berg Scoutkår"
-    50_000_006 -> "Dals-Ed Scoutkår"
-    50_000_008 -> "Eneryda Scoutkår"
-    50_000_009 -> "Eskilstuna Scoutkår"
-    50_000_014 -> "Fleninge-Ödåkra Scoutkår"
-    50_000_016 -> "Färjestadens NSF-Scoutkår"
-    50_000_021 -> "Karlstad NSF Scoutkår"
-    50_000_024 -> "Horn NSF-Scoutkår"
-    50_000_026 -> "Hummelstad Scoutkår"
-    50_000_027 -> "Hällans Scoutkår"
-    50_000_028 -> "Jonsered Scoutkår"
-    50_000_035 -> "Landskrona NSF Scoutkår"
-    50_000_037 -> "Lund Scoutkår"
-    50_000_040 -> "Moheda Scoutkår"
-    50_000_042 -> "Mölnlycke Scoutkår"
-    50_000_043 -> "Mönsterås Scoutkår"
-    50_000_048 -> "NSF Forshaga"
-    50_000_052 -> "Scoutkåren Vikingen-Ekeby"
-    50_000_059 -> "Scoutkåren Spejaren - Klippan"
-    50_000_061 -> "Stora Levene Scoutkår"
-    50_000_062 -> "Stålringen Scoutkår"
-    50_000_066 -> "Trollhättan Skogshöjdens Scoutkår av NSF"
-    50_000_067 -> "Utby Scoutkår"
-    50_000_069 -> "Vallentuna Scoutkår av NSF"
-    50_000_070 -> "Varbergs NSF-Scoutkår"
-    50_000_072 -> "Värends Scoutkår"
-    50_000_074 -> "Åby NSF Scoutkår"
-    50_000_077 -> "Örebro NSF-Scoutkår"
-    50_000_078 -> "Östersund Scoutkår"
-    60_032_711 -> "Equmenia Storvreta"
-    61_031_108 -> "SMU i Gällivare - Malmberget"
-    61_031_217 -> "Malå Equmenia"
-    61_031_936 -> "Högbergskyrkans unga eller Triangelkåren"
-    61_032_055 -> "Kanalkyrkans Unga - Equmenia i Sandviken"
-    61_032_208 -> "Equmenia Örbyhus"
-    61_032_209 -> "Borgenkyrkan ung - en del av Equmenia"
-    61_032_502 -> "Abrahamsbergskyrkans Ungdom"
-    61_032_504 -> "Equmenia Hässelby"
-    61_032_601 -> "Nacka Equmenia"
-    61_032_604 -> "Equmenia Danderyd-Täby"
-    61_032_644 -> "Equmenia Stuvsta"
-    61_032_703 -> "Equmenia Gamla Uppsala"
-    61_032_715 -> "Valsätrakyrkans Scoutkår"
-    61_032_808 -> "Equmenia Missionskyrkan Hemse"
-    61_033_215 -> "Equmenia Frövi"
-    61_033_257 -> "Equmenia Vintrosa Tomta"
-    61_033_310 -> "Equmenia Himmeta"
-    61_033_324 -> "Equmenia Sala"
-    61_033_334 -> "Equmenia Ansgarskyrkan Västerås"
-    61_033_701 -> "Equmenia Arvika"
-    61_033_722 -> "Equmenia Fagerås"
-    61_033_723 -> "Equmenia Torsby"
-    61_033_725 -> "Equmenia Skårekyrkan"
-    61_033_728 -> "Equmenia Gunnarskog"
-    61_033_740 -> "Redbergskyrkans unga - en del av Equmenia"
-    61_033_741 -> "Equmenia Karlstad"
-    61_033_766 -> "Equmenia Kil"
-    61_033_788 -> "Equmenia Västra Ämtervik"
-    61_033_792 -> "Equmenia Ölme"
-    61_033_903 -> "Equmenia Bäckefors"
-    61_033_918 -> "Equmenia Mellerud"
-    61_034_208 -> "Equmenia Immanuelskyrkan Jönköping"
-    61_034_211 -> "Equmenia Brämhult"
-    61_034_221 -> "Equmenia Fristad"
-    61_034_229 -> "Equmenia Betlehemskyrkan"
-    61_034_230 -> "Equmenia i Fiskebäck & Önnered"
-    61_034_237 -> "Equmenia Mariakyrkan och Rosa huset"
-    61_034_249 -> "Equmenia Jonsered"
-    61_034_252 -> "SMU i Kinna"
-    61_034_263 -> "Equmenia Lerum"
-    61_034_268 -> "Johanneskyrkans ungdom"
-    61_034_278 -> "Equmenia Mölnlycke"
-    61_034_293 -> "Equmenia Floda"
-    61_034_313 -> "Equmenia Vänersborg"
-    61_034_407 -> "Equmenia Kungälv"
-    61_034_418 -> "Equmenia i Ucklum"
-    61_034_422 -> "SMU i Älvsåker"
-    61_034_730 -> "Equmenia Habo"
-    61_034_760 -> "Equmenia Mariestad"
-    61_034_765 -> "Equmenia Mullsjö"
-    61_034_787 -> "Equmenia Sventorp"
-    61_034_795 -> "Equmenia Timmele"
-    61_034_803 -> "Equmenia Ulricehamn"
-    61_034_811 -> "Värsås SMU"
-    61_034_818 -> "Tvärreds Equmenia"
-    61_035_311 -> "Equmenia Ung i Finspång"
-    61_035_335 -> "Equmenia Linköping"
-    61_035_342 -> "Equmenia Vidablick"
-    61_035_348 -> "Equmenia Rimforsa"
-    61_035_357 -> "Equmenia i Skärblacka"
-    61_035_358 -> "Equmenia Skärkind"
-    61_035_365 -> "Torpa Equmenia"
-    61_035_383 -> "Equmenia Åtvidaberg"
-    61_035_399 -> "Ung Treklang Scout"
-    61_035_447 -> "Equmenia Svalliden"
-    61_035_700 -> "Equmenia Anderstorp"
-    61_035_706 -> "Equmenia i Borbygden"
-    61_035_716 -> "Equmeniakyrkan Eksjö"
-    61_035_722 -> "Equmenia - Gislaved Frikyrkoförsamlings Ungdom"
-    61_035_731 -> "Equmenia Hestra/Grimsås"
-    61_035_734 -> "Equmenia Hovslätt"
-    61_035_736 -> "Equmenia Huskvarna"
-    61_035_766 -> "Equmenia Nässjö"
-    61_035_772 -> "Equmenia Kaxholmen"
-    61_035_790 -> "Equmenia Vetlanda"
-    61_035_794 -> "Equmenia - Värnamo Missionskyrka"
-    61_035_902 -> "Equmenia Södra Nissadalen"
-    61_036_201 -> "Equmenia Alstermo"
-    61_036_202 -> "Equmenia Alvesta"
-    61_036_222 -> "Equmenia Ljungby"
-    61_036_301 -> "CKU i Bjuv -  en del av Equmenia"
-    61_036_309 -> "Equmenia Hässleholm"
-    61_036_315 -> "Equmenia - Knislinge SMU"
-    61_036_316 -> "Equmenia Kristianstad"
-    61_036_318 -> "SMU Kävlinge-Furulund - en del av Equmenia"
-    61_036_321 -> "Equmenia Lund Västerkyrkans unga"
-    61_036_400 -> "SMU i Höllviken - en del av Equmenia"
-    61_036_421 -> "Equmenia/SMU Trelleborg"
-    61_037_313 -> "Equmenia Rogsta"
-    61_037_412 -> "Centrumkyrkans Ungdom-en del av Equmenia"
-    61_037_414 -> "Scoutkåren Gripen - Grödinge"
-    62_032_604 -> "Equmenia Danderyd-Täby"
-    62_032_635 -> "Equmenia Rönninge"
-    62_033_257 -> "Equmenia Vintrosa Tomta"
-    62_034_233 -> "Equmenia Rambergskyrkan"
-    62_034_276 -> "Equmenia Toarp"
-    62_034_277 -> "Equmenia Bifrostkyrkan"
-    62_034_409 -> "Equmenia i Lysekil"
-    62_034_422 -> "SMU i Älvsåker"
-    62_035_335 -> "Equmenia Linköping"
-    62_035_357 -> "Equmenia i Skärblacka"
-    62_035_367 -> "Equmenia Linghemskyrkan"
-    62_035_772 -> "Equmenia Kaxholmen"
-    62_035_773 -> "Equmenia Smålandsstenar"
-    62_036_318 -> "SMU Kävlinge-Furulund - en del av Equmenia"
-    62_038_503 -> "Equmenia Rotebro"
-    63_034_278 -> "Equmenia Mölnlycke"
-    63_035_772 -> "Equmenia Kaxholmen"
-    64_036_301 -> "CKU i Bjuv - en del av Equmenia"
-    69_900_012 -> "Equmenia Gotland"
-    80_560_052 -> "Bölans Scoutkår"
-    80_660_066 -> "Hunneberg KFUM Scoutkår"
-    80_660_072 -> "Ärrsjöblomman Scoutkår"
-    80_661_067 -> "KFUM Scout Ljungskile"
-    80_760_080 -> "Frodekåren"
-    80_760_082 -> "Hvitfeldts Scoutkår"
-    80_760_088 -> "Annestorpsdalens Scoutkår"
-    80_760_091 -> "Mölndal Scoutkår KFUM"
-    80_760_093 -> "Åsa Scoutkår"
-    80_760_103 -> "Tölö Scoutkår"
-    80_761_084 -> "Scoutkåren Jägarna"
-    80_761_087 -> "Trekungakåren"
-    80_860_110 -> "Dalby Scoutkår"
-    80_860_114 -> "Genarps Scoutkår"
-    80_860_118 -> "Örtofta Scoutkår"
-    80_860_119 -> "Staffanstorps Scoutkår Torparna"
-    80_860_122 -> "Uppåkra Scoutkår"
-    80_860_123 -> "Veberöd Scoutkår"
-    80_860_381 -> "Scouterna Lödde"
-    80_863_058 -> "Tornugglan Scoutkår"
-    80_963_131 -> "Bunkeflo Scoutkår"
-    81_160_179 -> "Tenhults Scoutkår"
-    81_161_173 -> "Huskvarna Scoutkår"
-    81_360_198 -> "Osby Scoutkår"
-    81_360_199 -> "Wä Scoutkår"
-    81_360_204 -> "Arkelstorp KM"
-    81_360_461 -> "Trolle Ljungby Scoutkår"
-    81_460_225 -> "Täby Kyrkby Scoutkår"
-    81_461_236 -> "Södra KM Scoutkår"
-    81_465_244 -> "Örby Scoutkår"
-    81_560_270 -> "Tommarp"
-    81_560_272 -> "Sjöbo KM Scoutkår"
-    81_560_273 -> "Skivarp Scoutkår"
-    81_761_298 -> "Västerås KM"
-    82_160_243 -> "Åsundens Scoutkår"
-    82_160_349 -> "Fristad KM"
-    82_360_372 -> "KFUMs Scoutkår i Härnösand"
-    82_460_385 -> "Klippans Scoutkår"
-    82_460_390 -> "Östra Ljungby"
-    82_461_388 -> "Landskrona KM"
-    90_050_401 ->
-      "Lutherska Missionskyrkans EFS Scout (Salt) Toleredskyrkans Scoutkår"
-    90_050_702 -> "Eldsberga-Tönnersjö Scoutkår"
-    90_070_011 -> "Saltföreningen Hörviks scouter"
-    _ -> "Kår " <> int.to_string(group_id)
+  case list.find(groups, fn(group) { group.id == group_id }) {
+    Ok(group) -> group.name
+    Error(Nil) -> "Kår " <> int.to_string(group_id)
   }
 }

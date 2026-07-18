@@ -1,4 +1,11 @@
+import gleam/list
 import server/scout_group
+
+/// The registered-kår list serves `/api/scout-groups`; guard against the
+/// export snapshot being truncated by a regeneration.
+pub fn groups_carries_the_full_export_test() {
+  assert list.length(scout_group.groups) == 621
+}
 
 /// A representative registered kår resolves to its name.
 pub fn known_group_id_resolves_test() {

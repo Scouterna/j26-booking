@@ -8,9 +8,10 @@ INSERT INTO booking (
         group_free_text,
         responsible_name,
         phone_number,
-        participant_count
+        participant_count,
+        booked_for_other
     )
-VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
 RETURNING id,
     user_id,
     activity_id,
@@ -20,4 +21,5 @@ RETURNING id,
     group_free_text,
     responsible_name,
     phone_number,
-    participant_count
+    participant_count,
+    booked_for_other

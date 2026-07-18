@@ -32,8 +32,8 @@ import shared/event as event_dates
 import shared/model.{
   type Activity, type ActivitySpots, type ActivityStatus,
   type ActivityStatusEntry, type ActivitySummary, type ActivityTag, type Booking,
-  type BookingSlot, type GroupCount, type Location, type TargetGroup, Booked,
-  Favourited, NotInterested,
+  type BookingSlot, type GroupCount, type Location, type ScoutGroup,
+  type TargetGroup, Booked, Favourited, NotInterested,
 }
 import youid/uuid.{type Uuid}
 
@@ -113,6 +113,15 @@ fn english_translations() -> g18n.Translations {
     "booking.scoutnet_note_name_only",
     "Your name comes from your login and is saved with this booking.",
   )
+  |> g18n.add_translation("booking.for_self", "For yourself")
+  |> g18n.add_translation("booking.for_other", "For someone else")
+  |> g18n.add_translation("booking.group_label", "Corps (kår)")
+  |> g18n.add_translation("booking.group_search", "Search corps...")
+  |> g18n.add_translation(
+    "booking.for_other_note",
+    "The booking is registered for the selected corps; your name is saved as the booker.",
+  )
+  |> g18n.add_translation("booking.groups_loading", "Loading corps list...")
   |> g18n.add_translation("booking.responsible_name", "Responsible adult")
   |> g18n.add_translation("booking.phone_number", "Phone number")
   |> g18n.add_translation("booking.group_free_text", "Group / patrol")
@@ -172,6 +181,10 @@ fn english_translations() -> g18n.Translations {
   |> g18n.add_translation("error.create_booking", "Failed to create booking")
   |> g18n.add_translation("error.update_booking", "Failed to update booking")
   |> g18n.add_translation("error.load_bookings", "Failed to load bookings")
+  |> g18n.add_translation(
+    "error.booking_group_required",
+    "Choose a corps to book for",
+  )
   |> g18n.add_translation(
     "error.booking_full",
     "This activity is full — not enough spots left",
@@ -250,6 +263,15 @@ fn swedish_translations() -> g18n.Translations {
     "booking.scoutnet_note_name_only",
     "Ditt namn hämtas från Scoutnet och sparas med bokningen.",
   )
+  |> g18n.add_translation("booking.for_self", "Åt dig själv")
+  |> g18n.add_translation("booking.for_other", "Åt någon annan")
+  |> g18n.add_translation("booking.group_label", "Kår")
+  |> g18n.add_translation("booking.group_search", "Sök kår...")
+  |> g18n.add_translation(
+    "booking.for_other_note",
+    "Bokningen registreras för den valda kåren; ditt namn sparas som bokare.",
+  )
+  |> g18n.add_translation("booking.groups_loading", "Laddar kårlistan...")
   |> g18n.add_translation("booking.responsible_name", "Ansvarig ledare")
   |> g18n.add_translation("booking.phone_number", "Telefonnummer")
   |> g18n.add_translation("booking.group_free_text", "Grupp / patrull")
@@ -324,6 +346,10 @@ fn swedish_translations() -> g18n.Translations {
     "Kunde inte uppdatera bokningen",
   )
   |> g18n.add_translation("error.load_bookings", "Kunde inte ladda bokningarna")
+  |> g18n.add_translation(
+    "error.booking_group_required",
+    "Välj en kår att boka åt",
+  )
   |> g18n.add_translation(
     "error.booking_full",
     "Aktiviteten är fullbokad — inte tillräckligt med platser kvar",
@@ -469,6 +495,58 @@ pub type BookingFormState {
   UnbookSubmitting(booking_id: Uuid)
 }
 
+/// Who a new booking is for, chosen with the segmented control at the top of
+/// the booking form (only shown to holders of `bookings:others:create`).
+/// `BookingForOther` books on behalf of a kår picked from the registered-kår
+/// list instead of the user's own token group (issue #27).
+pub type BookingTarget {
+  BookingForSelf
+  BookingForOther
+}
+
+/// Transient, booking-form-scoped view state for the book-for-other section:
+/// the chosen target and the kår combobox's selection/filter. Kept on the
+/// `Model` (not inside the multi-variant `BookingFormState`, mirroring
+/// `EditUi` vs `EditState`) so it can be updated with a plain record update;
+/// reset each time the booking form opens.
+pub type BookingUi {
+  BookingUi(
+    target: BookingTarget,
+    /// The kår picked in the combobox; `None` until one is chosen. Only sent
+    /// when `target` is `BookingForOther`.
+    group_id: Option(Int),
+    /// Free-text filter typed into the kår combobox (case-insensitive match on
+    /// the kår name). Shown in the field while the dropdown is open; reset
+    /// when a kår is chosen.
+    group_query: String,
+    /// Whether the kår combobox's dropdown list is open.
+    group_open: Bool,
+  )
+}
+
+/// The booking form's default book-for-other state: booking for yourself, no
+/// kår chosen, empty filter, dropdown closed.
+pub fn default_booking_ui() -> BookingUi {
+  BookingUi(
+    target: BookingForSelf,
+    group_id: None,
+    group_query: "",
+    group_open: False,
+  )
+}
+
+/// The kår a new booking should be created for: `Ok(None)` books for the
+/// user's own token group, `Ok(Some(id))` on behalf of the picked kår, and
+/// `Error(Nil)` means "for someone else" is chosen but no kår is picked yet
+/// (submitting is a validation error).
+pub fn booking_target_group(booking_ui: BookingUi) -> Result(Option(Int), Nil) {
+  case booking_ui.target, booking_ui.group_id {
+    BookingForSelf, _ -> Ok(None)
+    BookingForOther, Some(id) -> Ok(Some(id))
+    BookingForOther, None -> Error(Nil)
+  }
+}
+
 pub type RemoteData(a) {
   NotAsked
   Loading
@@ -489,7 +567,10 @@ pub type AppError {
   CreateBookingFailed
   UpdateBookingFailed
   BookingCapacityExceeded
+  /// Submitted a book-for-other booking without picking a kår.
+  BookingGroupRequired
   LoadBookingsFailed
+  LoadScoutGroupsFailed
 }
 
 fn app_error_key(error: AppError) -> String {
@@ -503,7 +584,10 @@ fn app_error_key(error: AppError) -> String {
     CreateBookingFailed -> "error.create_booking"
     UpdateBookingFailed -> "error.update_booking"
     BookingCapacityExceeded -> "error.booking_full"
+    BookingGroupRequired -> "error.booking_group_required"
     LoadBookingsFailed -> "error.load_bookings"
+    // Surfaced inside the kår picker; reuses the bookings-load message.
+    LoadScoutGroupsFailed -> "error.load_bookings"
   }
 }
 
@@ -764,6 +848,14 @@ pub type Model {
     // reveal). Kept here rather than in the multi-variant `EditState` so it can
     // be updated with a plain record update; reset whenever the form opens.
     edit_ui: EditUi,
+    // Transient view state for the booking form's book-for-other section
+    // (target + kår combobox), the `edit_ui` of the booking drawer. Reset
+    // whenever the booking form opens.
+    booking_ui: BookingUi,
+    // The registered-kår list driving the book-for-other picker. `NotAsked`
+    // until /api/me shows the user holds `bookings:others:create`, then
+    // fetched once from /api/scout-groups.
+    scout_groups: RemoteData(List(ScoutGroup)),
   )
 }
 
@@ -836,6 +928,7 @@ fn revalidate_current_overview(model: Model) -> #(Model, Effect(Msg)) {
 pub type Role {
   ManageActivities
   BookingsRead
+  BookingsOthersCreate
   Admin
 }
 
@@ -843,6 +936,7 @@ fn role_from_string(raw: String) -> Result(Role, Nil) {
   case raw {
     "activities:manage" -> Ok(ManageActivities)
     "bookings:read" -> Ok(BookingsRead)
+    "bookings:others:create" -> Ok(BookingsOthersCreate)
     "admin" -> Ok(Admin)
     _ -> Error(Nil)
   }
@@ -875,6 +969,13 @@ pub type Me {
 /// `Admin` also qualify.
 fn can_view_bookings(model: Model) -> Bool {
   has_role(model, BookingsRead) || has_role(model, ManageActivities)
+}
+
+/// Whether the user may book on behalf of another kår, gating the booking
+/// form's "Åt dig själv / Åt någon annan" segmented control. Mirrors the
+/// server's `bookings:others:create` guard on create.
+fn can_book_others(model: Model) -> Bool {
+  has_role(model, BookingsOthersCreate)
 }
 
 pub fn tab_source(tab: ActivitiesFilterTab) -> ActivityListSource {
@@ -1484,6 +1585,9 @@ fn init(_flags) -> #(Model, Effect(Msg)) {
       // fields fill in then.
       booker: IdentityUnknown,
       edit_ui: default_edit_ui(),
+      booking_ui: default_booking_ui(),
+      // Fetched once /api/me shows the user may book for others.
+      scout_groups: NotAsked,
     )
 
   let title_effect = case app_bar_title(translator, page) {
@@ -1535,6 +1639,7 @@ pub type Msg {
   ApiReturnedActivitySpotsOne(Uuid, Result(Int, rsvp.Error))
   ApiReturnedActivityTags(Result(List(ActivityTag), rsvp.Error))
   ApiReturnedLocations(Result(List(Location), rsvp.Error))
+  ApiReturnedScoutGroups(Result(List(ScoutGroup), rsvp.Error))
   ApiCreatedActivity(Result(Activity, rsvp.Error))
   ApiUpdatedActivity(Result(Activity, rsvp.Error))
   ApiCancelledActivity(Result(Activity, rsvp.Error))
@@ -1578,6 +1683,12 @@ pub type Msg {
   UserSearchedLocation(String)
   UserOpenedLocationDropdown
   UserClosedLocationDropdown
+  // Book-for-other (booking form): target toggle + kår combobox
+  UserSelectedBookingTarget(Int)
+  UserSelectedBookingGroup(Int)
+  UserSearchedBookingGroup(String)
+  UserOpenedBookingGroupDropdown
+  UserClosedBookingGroupDropdown
   // Recurring-activity booking overview (Badbuss / Klättervägg)
   ApiReturnedRecurringBookings(RecurringKey, RecurringResult)
   UserSelectedOverviewDay(Option(calendar.Date))
@@ -1704,10 +1815,23 @@ pub fn update(model: Model, msg: Msg) -> #(Model, Effect(Msg)) {
           roles: me.roles,
           booker: Identity(name: me.name, group_name: me.group_name),
         )
+      // Prefetch the kår list the book-for-other picker needs, once, iff the
+      // roles allow booking for others.
+      let #(model, scout_groups_effect) = case
+        can_book_others(model),
+        model.scout_groups
+      {
+        True, NotAsked -> #(
+          Model(..model, scout_groups: Loading),
+          fetch_scout_groups(),
+        )
+        _, _ -> #(model, effect.none())
+      }
       // Roles gate `include_call_offs`, so once they load re-fetch the visible
       // list: a manager's window upgrades to the call-off superset the manage
       // view needs, and a non-manager just gets a cheap revalidation.
-      revalidate_current_list(model)
+      let #(model, revalidate_effect) = revalidate_current_list(model)
+      #(model, effect.batch([revalidate_effect, scout_groups_effect]))
     }
 
     // 401 / network error -> no roles, no identity -> restricted view.
@@ -1767,6 +1891,18 @@ pub fn update(model: Model, msg: Msg) -> #(Model, Effect(Msg)) {
     // Keep the prior vocabulary (empty) on failure; the picker just shows the
     // "no location" option only.
     ApiReturnedLocations(Error(_)) -> #(model, effect.none())
+
+    ApiReturnedScoutGroups(Ok(scout_groups)) -> #(
+      Model(..model, scout_groups: Loaded(scout_groups)),
+      effect.none(),
+    )
+
+    // The kår picker shows the failure and the user can retry by reopening the
+    // app; a book-for-self flow is unaffected.
+    ApiReturnedScoutGroups(Error(_)) -> #(
+      Model(..model, scout_groups: Failed(LoadScoutGroupsFailed)),
+      effect.none(),
+    )
 
     // A successful create closes the form drawer and refreshes the management
     // list underneath, so the new activity appears without a navigation.
@@ -2237,6 +2373,87 @@ pub fn update(model: Model, msg: Msg) -> #(Model, Effect(Msg)) {
       effect.none(),
     )
 
+    // Booking-target toggle: index 1 is "åt någon annan". Switching keeps any
+    // picked kår (toggling back and forth must not lose it) but closes the
+    // dropdown and clears the filter.
+    UserSelectedBookingTarget(index) -> {
+      let target = case index {
+        1 -> BookingForOther
+        _ -> BookingForSelf
+      }
+      #(
+        Model(
+          ..model,
+          booking_ui: BookingUi(
+            ..model.booking_ui,
+            target:,
+            group_query: "",
+            group_open: False,
+          ),
+        ),
+        effect.none(),
+      )
+    }
+
+    // Kår combobox: single-select like the location picker. Choosing clears
+    // the filter and closes the list.
+    UserSelectedBookingGroup(group_id) -> #(
+      Model(
+        ..model,
+        booking_ui: BookingUi(
+          ..model.booking_ui,
+          group_id: Some(group_id),
+          group_query: "",
+          group_open: False,
+        ),
+      ),
+      effect.none(),
+    )
+
+    // Typing filters the list and keeps it open.
+    UserSearchedBookingGroup(query) -> #(
+      Model(
+        ..model,
+        booking_ui: BookingUi(
+          ..model.booking_ui,
+          group_query: query,
+          group_open: True,
+        ),
+      ),
+      effect.none(),
+    )
+
+    UserOpenedBookingGroupDropdown -> {
+      // Opening from closed starts on a clean filter so the full list shows; a
+      // click while already open (e.g. to move the cursor mid-search) must not
+      // wipe what the user has typed.
+      let group_query = case model.booking_ui.group_open {
+        True -> model.booking_ui.group_query
+        False -> ""
+      }
+      #(
+        Model(
+          ..model,
+          booking_ui: BookingUi(
+            ..model.booking_ui,
+            group_query:,
+            group_open: True,
+          ),
+        ),
+        effect.none(),
+      )
+    }
+
+    // Blurring the field closes the list. Option clicks fire on `mousedown`,
+    // before this blur, so a selection is never lost to the close.
+    UserClosedBookingGroupDropdown -> #(
+      Model(
+        ..model,
+        booking_ui: BookingUi(..model.booking_ui, group_open: False),
+      ),
+      effect.none(),
+    )
+
     // Overview data arrived. Stored by key in the cache (like activity windows)
     // regardless of the open page, so a response for a day the user has since
     // left still populates its cache. `RecurringUnchanged` (a 304) keeps what's
@@ -2369,6 +2586,8 @@ pub fn update(model: Model, msg: Msg) -> #(Model, Effect(Msg)) {
                     cap -> #(
                       Model(
                         ..model,
+                        // Fresh book-for-other state each time the form opens.
+                        booking_ui: default_booking_ui(),
                         page: ActivityDetailPage(
                           id,
                           BookingOpen(
@@ -2381,13 +2600,37 @@ pub fn update(model: Model, msg: Msg) -> #(Model, Effect(Msg)) {
                       effect.none(),
                     )
                   }
-                False, None -> #(
-                  Model(
-                    ..model,
-                    page: ActivityDetailPage(id, BookingSubmitting(BookingNew)),
-                  ),
-                  create_booking(id, empty_booking_fields()),
-                )
+                False, None ->
+                  // Uncapped activities normally book instantly with empty
+                  // fields — no form. A user who may book for others still
+                  // gets the form, so they can pick the target kår.
+                  case can_book_others(model) {
+                    True -> #(
+                      Model(
+                        ..model,
+                        booking_ui: default_booking_ui(),
+                        page: ActivityDetailPage(
+                          id,
+                          BookingOpen(
+                            new_booking_form(model.translator, None),
+                            None,
+                            BookingNew,
+                          ),
+                        ),
+                      ),
+                      effect.none(),
+                    )
+                    False -> #(
+                      Model(
+                        ..model,
+                        page: ActivityDetailPage(
+                          id,
+                          BookingSubmitting(BookingNew),
+                        ),
+                      ),
+                      create_booking(id, empty_booking_fields(), None),
+                    )
+                  }
               }
             _ -> #(model, effect.none())
           }
@@ -2469,19 +2712,36 @@ pub fn update(model: Model, msg: Msg) -> #(Model, Effect(Msg)) {
 
     UserSubmittedBookingForm(Ok(fields)) ->
       case model.page {
-        ActivityDetailPage(id, BookingOpen(_, _, mode)) -> {
-          let effect_ = case mode {
-            BookingNew -> create_booking(id, fields)
-            BookingEdit(booking_id) -> update_booking(booking_id, fields)
+        ActivityDetailPage(id, BookingOpen(form, _, mode)) ->
+          case mode, booking_target_group(model.booking_ui) {
+            // Book-for-other with no kår picked: the one thing the formal form
+            // can't validate (the picker lives outside it). Keep the form open
+            // and surface the error instead of submitting.
+            BookingNew, Error(Nil) -> #(
+              Model(
+                ..model,
+                page: ActivityDetailPage(
+                  id,
+                  BookingOpen(form, Some(BookingGroupRequired), mode),
+                ),
+              ),
+              effect.none(),
+            )
+            BookingNew, Ok(booker_group_id) -> #(
+              Model(
+                ..model,
+                page: ActivityDetailPage(id, BookingSubmitting(mode)),
+              ),
+              create_booking(id, fields, booker_group_id),
+            )
+            BookingEdit(booking_id), _ -> #(
+              Model(
+                ..model,
+                page: ActivityDetailPage(id, BookingSubmitting(mode)),
+              ),
+              update_booking(booking_id, fields),
+            )
           }
-          #(
-            Model(
-              ..model,
-              page: ActivityDetailPage(id, BookingSubmitting(mode)),
-            ),
-            effect_,
-          )
-        }
         _ -> #(model, effect.none())
       }
 
@@ -2844,6 +3104,15 @@ fn fetch_me() -> Effect(Msg) {
   )
 }
 
+/// Fetch the registered-kår list for the book-for-other picker. Only fired for
+/// users whose roles allow it (the endpoint 403s everyone else).
+fn fetch_scout_groups() -> Effect(Msg) {
+  rsvp.get(
+    api_prefix <> "/api/scout-groups",
+    rsvp.expect_json(model.scout_groups_decoder(), ApiReturnedScoutGroups),
+  )
+}
+
 /// Fetch booked-spot counts for every activity (replaces the whole `spots`
 /// cache). Idempotent — safe to re-fire on an interval if polling is added.
 fn fetch_spots() -> Effect(Msg) {
@@ -2900,13 +3169,19 @@ fn remove_favourite(activity_id: Uuid) -> Effect(Msg) {
   )
 }
 
-fn create_booking(activity_id: Uuid, fields: BookingFormFields) -> Effect(Msg) {
+/// POST the new booking. `booker_group_id` is `Some` only for a book-for-other
+/// request (requires `bookings:others:create` server-side).
+fn create_booking(
+  activity_id: Uuid,
+  fields: BookingFormFields,
+  booker_group_id: Option(Int),
+) -> Effect(Msg) {
   rsvp.post(
     api_prefix
       <> "/api/activities/"
       <> uuid.to_string(activity_id)
       <> "/bookings",
-    booking_form_to_json(fields),
+    booking_form_to_json(fields, booker_group_id),
     rsvp.expect_json(model.booking_decoder(), ApiCreatedBooking),
   )
 }
@@ -2914,7 +3189,8 @@ fn create_booking(activity_id: Uuid, fields: BookingFormFields) -> Effect(Msg) {
 fn update_booking(booking_id: Uuid, fields: BookingFormFields) -> Effect(Msg) {
   rsvp.put(
     api_prefix <> "/api/bookings/" <> uuid.to_string(booking_id),
-    booking_form_to_json(fields),
+    // The booked-for kår is immutable on edit, so no booker_group_id.
+    booking_form_to_json(fields, None),
     rsvp.expect_json(model.booking_decoder(), ApiUpdatedBooking),
   )
 }
@@ -3026,13 +3302,25 @@ fn delete_booking(activity_id: Uuid, booking_id: Uuid) -> Effect(Msg) {
   )
 }
 
-fn booking_form_to_json(fields: BookingFormFields) -> json.Json {
-  json.object([
-    #("group_free_text", json.string(fields.group_free_text)),
-    #("responsible_name", json.string(fields.responsible_name)),
-    #("phone_number", json.string(fields.phone_number)),
-    #("participant_count", json.int(fields.participant_count)),
-  ])
+/// The booking request body. `booker_group_id` is included only when `Some`:
+/// its presence is what makes the server treat the request as book-for-other.
+fn booking_form_to_json(
+  fields: BookingFormFields,
+  booker_group_id: Option(Int),
+) -> json.Json {
+  let group_field = case booker_group_id {
+    Some(id) -> [#("booker_group_id", json.int(id))]
+    None -> []
+  }
+  json.object(list.append(
+    [
+      #("group_free_text", json.string(fields.group_free_text)),
+      #("responsible_name", json.string(fields.responsible_name)),
+      #("phone_number", json.string(fields.phone_number)),
+      #("participant_count", json.int(fields.participant_count)),
+    ],
+    group_field,
+  ))
 }
 
 fn create_activity(
@@ -3248,6 +3536,9 @@ fn view(model: Model) -> Element(Msg) {
         model.activity_tags,
         can_view_bookings(model),
         model.booker,
+        can_book_others(model),
+        model.booking_ui,
+        model.scout_groups,
       )
     ActivityBookingsPage(id, bookings) ->
       view_activity_bookings(
@@ -4238,6 +4529,9 @@ fn view_activity_detail(
   activity_tags: Dict(Uuid, ActivityTag),
   can_view_bookings: Bool,
   booker: BookerIdentity,
+  can_book_others: Bool,
+  booking_ui: BookingUi,
+  scout_groups: RemoteData(List(ScoutGroup)),
 ) -> Element(Msg) {
   case state {
     NotAsked | Loading ->
@@ -4283,6 +4577,9 @@ fn view_activity_detail(
         activity_tags,
         can_view_bookings,
         booker,
+        can_book_others,
+        booking_ui,
+        scout_groups,
       )
   }
 }
@@ -4311,6 +4608,9 @@ fn view_activity_detail_loaded(
   activity_tags: Dict(Uuid, ActivityTag),
   can_view_bookings: Bool,
   booker: BookerIdentity,
+  can_book_others: Bool,
+  booking_ui: BookingUi,
+  scout_groups: RemoteData(List(ScoutGroup)),
 ) -> Element(Msg) {
   let heart_btn =
     component.heart_button(
@@ -4335,6 +4635,9 @@ fn view_activity_detail_loaded(
           spots_booked,
           status,
           booker,
+          can_book_others,
+          booking_ui,
+          scout_groups,
         ),
       ],
     ),
@@ -4670,6 +4973,9 @@ fn view_booking_form_section(
   spots_booked: Option(Int),
   status: ActivityStatus,
   booker: BookerIdentity,
+  can_book_others: Bool,
+  booking_ui: BookingUi,
+  scout_groups: RemoteData(List(ScoutGroup)),
 ) -> Element(Msg) {
   case booking {
     BookingClosed -> element.none()
@@ -4688,59 +4994,222 @@ fn view_booking_form_section(
         |> form.run
         |> UserSubmittedBookingForm
       }
-      html.form([event.on_submit(submitted)], [
-        html.div([attribute.class("flex flex-col gap-2")], [
-          case submit_error {
-            Some(err) ->
-              component.error_banner(
-                g18n.translate(translator, "error.heading"),
-                g18n.translate(translator, app_error_key(err)),
-              )
-            None -> element.none()
+      // Who the booking is for. Only a *new* booking by a user who may book
+      // for others gets the "åt dig själv / åt någon annan" toggle (issue
+      // #27) — an edit keeps its kår, everyone else books for themselves.
+      let identity_section = case mode, can_book_others {
+        BookingNew, True -> [
+          component.scout_segmented_control(
+            case booking_ui.target {
+              BookingForSelf -> 0
+              BookingForOther -> 1
+            },
+            [
+              g18n.translate(translator, "booking.for_self"),
+              g18n.translate(translator, "booking.for_other"),
+            ],
+            UserSelectedBookingTarget,
+            [],
+          ),
+          case booking_ui.target {
+            BookingForSelf -> view_booker_identity(translator, booker)
+            BookingForOther ->
+              view_book_for_other(translator, booker, booking_ui, scout_groups)
           },
-          view_booker_identity(translator, booker),
-          component.scout_form_field(
-            form,
-            g18n.translate(translator, "booking.responsible_name"),
-            "text",
-            "responsible_name",
-          ),
-          component.scout_form_field(
-            form,
-            g18n.translate(translator, "booking.phone_number"),
-            "tel",
-            "phone_number",
-          ),
-          component.scout_form_field(
-            form,
-            g18n.translate(translator, "booking.group_free_text"),
-            "text",
-            "group_free_text",
-          ),
-          component.scout_form_number_field(
-            form,
-            g18n.translate(translator, "booking.participant_count"),
-            "participant_count",
-            1,
-            max_participants,
-          ),
-          html.div([attribute.class("flex gap-2 justify-end")], [
-            component.scout_button_action(
-              g18n.translate(translator, "booking.cancel"),
-              "outlined",
-              UserClickedCancelBooking,
-            ),
-            element.element(
-              "scout-button",
-              [
-                attribute.attribute("variant", "primary"),
-                attribute.attribute("type", "submit"),
-              ],
-              [
-                element.text(g18n.translate(translator, "booking.submit")),
-              ],
-            ),
+        ]
+        _, _ -> [view_booker_identity(translator, booker)]
+      }
+      html.form([event.on_submit(submitted)], [
+        html.div(
+          [attribute.class("flex flex-col gap-2")],
+          list.flatten([
+            [
+              case submit_error {
+                Some(err) ->
+                  component.error_banner(
+                    g18n.translate(translator, "error.heading"),
+                    g18n.translate(translator, app_error_key(err)),
+                  )
+                None -> element.none()
+              },
+            ],
+            identity_section,
+            [
+              component.scout_form_field(
+                form,
+                g18n.translate(translator, "booking.responsible_name"),
+                "text",
+                "responsible_name",
+              ),
+              component.scout_form_field(
+                form,
+                g18n.translate(translator, "booking.phone_number"),
+                "tel",
+                "phone_number",
+              ),
+              component.scout_form_field(
+                form,
+                g18n.translate(translator, "booking.group_free_text"),
+                "text",
+                "group_free_text",
+              ),
+              component.scout_form_number_field(
+                form,
+                g18n.translate(translator, "booking.participant_count"),
+                "participant_count",
+                1,
+                max_participants,
+              ),
+              html.div([attribute.class("flex gap-2 justify-end")], [
+                component.scout_button_action(
+                  g18n.translate(translator, "booking.cancel"),
+                  "outlined",
+                  UserClickedCancelBooking,
+                ),
+                element.element(
+                  "scout-button",
+                  [
+                    attribute.attribute("variant", "primary"),
+                    attribute.attribute("type", "submit"),
+                  ],
+                  [
+                    element.text(g18n.translate(translator, "booking.submit")),
+                  ],
+                ),
+              ]),
+            ],
           ]),
+        ),
+      ])
+    }
+  }
+}
+
+/// The "åt någon annan" section of the booking form: the booker's own name
+/// (still recorded on the booking) above the kår picker, and a note about
+/// what gets stored.
+fn view_book_for_other(
+  translator: Translator,
+  booker: BookerIdentity,
+  booking_ui: BookingUi,
+  scout_groups: RemoteData(List(ScoutGroup)),
+) -> Element(Msg) {
+  html.div([attribute.class("flex flex-col gap-2")], [
+    case booker {
+      IdentityUnknown -> element.none()
+      Identity(name:, group_name: _) ->
+        component.scout_readonly_field(
+          g18n.translate(translator, "booking.scoutnet_name"),
+          name,
+        )
+    },
+    view_scout_group_picker(translator, scout_groups, booking_ui),
+    html.small(
+      [
+        attribute.styles([
+          #("color", "var(--color-text-base)"),
+          #("opacity", "0.7"),
+        ]),
+      ],
+      [element.text(g18n.translate(translator, "booking.for_other_note"))],
+    ),
+  ])
+}
+
+/// Searchable kår combobox for book-for-other, mirroring the activity form's
+/// location picker. Options come from `/api/scout-groups`; a loader (or the
+/// fetch error) shows in its place until they arrive.
+fn view_scout_group_picker(
+  translator: Translator,
+  scout_groups: RemoteData(List(ScoutGroup)),
+  booking_ui: BookingUi,
+) -> Element(Msg) {
+  let t = fn(key) { g18n.translate(translator, key) }
+  case scout_groups {
+    NotAsked | Loading ->
+      html.div([attribute.class("flex justify-center py-2")], [
+        component.scout_loader(t("booking.groups_loading")),
+      ])
+    Failed(err) ->
+      component.error_banner(t("error.heading"), t(app_error_key(err)))
+    Loaded(groups) -> {
+      let sorted =
+        list.sort(groups, fn(a, b) { string.compare(a.name, b.name) })
+      let name_of = fn(id) {
+        case list.find(sorted, fn(group) { group.id == id }) {
+          Ok(group) -> group.name
+          Error(_) -> ""
+        }
+      }
+      let matches =
+        list.filter(sorted, fn(group) {
+          case booking_ui.group_query |> string.trim |> string.lowercase {
+            "" -> True
+            needle -> string.contains(string.lowercase(group.name), needle)
+          }
+        })
+      // Field text: the live query while searching, else the chosen kår's name.
+      let field_value = case booking_ui.group_open, booking_ui.group_id {
+        True, _ -> booking_ui.group_query
+        False, Some(id) -> name_of(id)
+        False, None -> ""
+      }
+      let option_button = fn(group: ScoutGroup) {
+        let base =
+          "w-full text-left px-3 py-2 text-body-sm cursor-pointer hover:bg-gray-100 "
+        html.button(
+          [
+            attribute.type_("button"),
+            attribute.class(case booking_ui.group_id == Some(group.id) {
+              True -> base <> "bg-gray-100 font-semibold"
+              False -> base
+            }),
+            // mousedown (not click) so selection lands before the field's blur.
+            event.on(
+              "mousedown",
+              decode.success(UserSelectedBookingGroup(group.id)),
+            ),
+          ],
+          [element.text(group.name)],
+        )
+      }
+      html.div([attribute.class("flex flex-col gap-2")], [
+        html.h4([attribute.class("text-body-sm font-semibold")], [
+          element.text(t("booking.group_label")),
+        ]),
+        html.div([attribute.class("relative")], [
+          // Clicking the field opens the list; typing filters it; blur closes it.
+          html.div(
+            [event.on("click", decode.success(UserOpenedBookingGroupDropdown))],
+            [
+              element.element(
+                "scout-input",
+                [
+                  attribute.attribute("type", "text"),
+                  attribute.attribute("placeholder", t("booking.group_search")),
+                  attribute.attribute("value", field_value),
+                  event.on_input(UserSearchedBookingGroup),
+                  event.on(
+                    "scoutBlur",
+                    decode.success(UserClosedBookingGroupDropdown),
+                  ),
+                ],
+                [],
+              ),
+            ],
+          ),
+          case booking_ui.group_open {
+            False -> element.none()
+            True ->
+              html.div(
+                [
+                  attribute.class(
+                    "absolute left-0 right-0 z-10 mt-1 max-h-56 overflow-y-auto rounded-md border border-gray-300 bg-white shadow-lg",
+                  ),
+                ],
+                list.map(matches, option_button),
+              )
+          },
         ]),
       ])
     }

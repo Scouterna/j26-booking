@@ -309,6 +309,7 @@ pub type CreateBookingWithGroupRow {
     responsible_name: String,
     phone_number: String,
     participant_count: Int,
+    booked_for_other: Bool,
   )
 }
 
@@ -330,6 +331,7 @@ pub fn create_booking_with_group(
   arg_8: String,
   arg_9: String,
   arg_10: Int,
+  arg_11: Bool,
 ) -> Result(pog.Returned(CreateBookingWithGroupRow), pog.QueryError) {
   let decoder = {
     use id <- decode.field(0, uuid_decoder())
@@ -342,6 +344,7 @@ pub fn create_booking_with_group(
     use responsible_name <- decode.field(7, decode.string)
     use phone_number <- decode.field(8, decode.string)
     use participant_count <- decode.field(9, decode.int)
+    use booked_for_other <- decode.field(10, decode.bool)
     decode.success(CreateBookingWithGroupRow(
       id:,
       user_id:,
@@ -353,6 +356,7 @@ pub fn create_booking_with_group(
       responsible_name:,
       phone_number:,
       participant_count:,
+      booked_for_other:,
     ))
   }
 
@@ -366,9 +370,10 @@ pub fn create_booking_with_group(
         group_free_text,
         responsible_name,
         phone_number,
-        participant_count
+        participant_count,
+        booked_for_other
     )
-VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
 RETURNING id,
     user_id,
     activity_id,
@@ -378,7 +383,8 @@ RETURNING id,
     group_free_text,
     responsible_name,
     phone_number,
-    participant_count
+    participant_count,
+    booked_for_other
 "
   |> pog.query
   |> pog.parameter(pog.text(uuid.to_string(arg_1)))
@@ -391,6 +397,7 @@ RETURNING id,
   |> pog.parameter(pog.text(arg_8))
   |> pog.parameter(pog.text(arg_9))
   |> pog.parameter(pog.int(arg_10))
+  |> pog.parameter(pog.bool(arg_11))
   |> pog.returning(decoder)
   |> pog.execute(db)
 }
@@ -1367,6 +1374,7 @@ pub type GetBookingRow {
     responsible_name: String,
     phone_number: String,
     participant_count: Int,
+    booked_for_other: Bool,
   )
 }
 
@@ -1391,6 +1399,7 @@ pub fn get_booking(
     use responsible_name <- decode.field(7, decode.string)
     use phone_number <- decode.field(8, decode.string)
     use participant_count <- decode.field(9, decode.int)
+    use booked_for_other <- decode.field(10, decode.bool)
     decode.success(GetBookingRow(
       id:,
       user_id:,
@@ -1402,6 +1411,7 @@ pub fn get_booking(
       responsible_name:,
       phone_number:,
       participant_count:,
+      booked_for_other:,
     ))
   }
 
@@ -1414,7 +1424,8 @@ pub fn get_booking(
     group_free_text,
     responsible_name,
     phone_number,
-    participant_count
+    participant_count,
+    booked_for_other
 FROM booking
 WHERE id = $1
 "
@@ -1481,6 +1492,7 @@ pub type GetBookingsByActivityRow {
     responsible_name: String,
     phone_number: String,
     participant_count: Int,
+    booked_for_other: Bool,
   )
 }
 
@@ -1507,6 +1519,7 @@ pub fn get_bookings_by_activity(
     use responsible_name <- decode.field(7, decode.string)
     use phone_number <- decode.field(8, decode.string)
     use participant_count <- decode.field(9, decode.int)
+    use booked_for_other <- decode.field(10, decode.bool)
     decode.success(GetBookingsByActivityRow(
       id:,
       user_id:,
@@ -1518,6 +1531,7 @@ pub fn get_bookings_by_activity(
       responsible_name:,
       phone_number:,
       participant_count:,
+      booked_for_other:,
     ))
   }
 
@@ -1530,7 +1544,8 @@ pub fn get_bookings_by_activity(
     group_free_text,
     responsible_name,
     phone_number,
-    participant_count
+    participant_count,
+    booked_for_other
 FROM booking
 WHERE activity_id = $1
 ORDER BY responsible_name ASC
@@ -1563,6 +1578,7 @@ pub type GetBookingsByUserRow {
     responsible_name: String,
     phone_number: String,
     participant_count: Int,
+    booked_for_other: Bool,
   )
 }
 
@@ -1587,6 +1603,7 @@ pub fn get_bookings_by_user(
     use responsible_name <- decode.field(7, decode.string)
     use phone_number <- decode.field(8, decode.string)
     use participant_count <- decode.field(9, decode.int)
+    use booked_for_other <- decode.field(10, decode.bool)
     decode.success(GetBookingsByUserRow(
       id:,
       user_id:,
@@ -1598,6 +1615,7 @@ pub fn get_bookings_by_user(
       responsible_name:,
       phone_number:,
       participant_count:,
+      booked_for_other:,
     ))
   }
 
@@ -1610,7 +1628,8 @@ pub fn get_bookings_by_user(
     group_free_text,
     responsible_name,
     phone_number,
-    participant_count
+    participant_count,
+    booked_for_other
 FROM booking
 WHERE user_id = $1
 ORDER BY id;
@@ -3254,6 +3273,7 @@ pub type UpdateBookingRow {
     responsible_name: String,
     phone_number: String,
     participant_count: Int,
+    booked_for_other: Bool,
   )
 }
 
@@ -3282,6 +3302,7 @@ pub fn update_booking(
     use responsible_name <- decode.field(7, decode.string)
     use phone_number <- decode.field(8, decode.string)
     use participant_count <- decode.field(9, decode.int)
+    use booked_for_other <- decode.field(10, decode.bool)
     decode.success(UpdateBookingRow(
       id:,
       user_id:,
@@ -3293,6 +3314,7 @@ pub fn update_booking(
       responsible_name:,
       phone_number:,
       participant_count:,
+      booked_for_other:,
     ))
   }
 
@@ -3311,7 +3333,8 @@ RETURNING id,
     group_free_text,
     responsible_name,
     phone_number,
-    participant_count
+    participant_count,
+    booked_for_other
 "
   |> pog.query
   |> pog.parameter(pog.text(uuid.to_string(id)))

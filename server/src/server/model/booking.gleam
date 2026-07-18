@@ -21,6 +21,7 @@ pub fn from_create_booking_with_group_row(
     responsible_name: row.responsible_name,
     phone_number: row.phone_number,
     participant_count: row.participant_count,
+    booked_for_other: row.booked_for_other,
   )
 }
 
@@ -38,6 +39,9 @@ pub fn from_create_booking_without_group_row(
     responsible_name: row.responsible_name,
     phone_number: row.phone_number,
     participant_count: row.participant_count,
+    // The without-group insert is only ever a self-booking (a token with no
+    // kår); the column keeps its FALSE default.
+    booked_for_other: False,
   )
 }
 
@@ -53,6 +57,7 @@ pub fn from_get_booking_row(row: sql.GetBookingRow) -> Booking {
     responsible_name: row.responsible_name,
     phone_number: row.phone_number,
     participant_count: row.participant_count,
+    booked_for_other: row.booked_for_other,
   )
 }
 
@@ -70,6 +75,7 @@ pub fn from_get_bookings_by_activity_row(
     responsible_name: row.responsible_name,
     phone_number: row.phone_number,
     participant_count: row.participant_count,
+    booked_for_other: row.booked_for_other,
   )
 }
 
@@ -85,6 +91,7 @@ pub fn from_get_bookings_by_user_row(row: sql.GetBookingsByUserRow) -> Booking {
     responsible_name: row.responsible_name,
     phone_number: row.phone_number,
     participant_count: row.participant_count,
+    booked_for_other: row.booked_for_other,
   )
 }
 
@@ -100,6 +107,7 @@ pub fn from_update_booking_row(row: sql.UpdateBookingRow) -> Booking {
     responsible_name: row.responsible_name,
     phone_number: row.phone_number,
     participant_count: row.participant_count,
+    booked_for_other: row.booked_for_other,
   )
 }
 
@@ -154,6 +162,7 @@ pub fn to_json(booking: Booking) -> Json {
     responsible_name:,
     phone_number:,
     participant_count:,
+    booked_for_other:,
   ) = booking
   json.object([
     #("id", id |> uuid.to_string |> json.string),
@@ -166,5 +175,6 @@ pub fn to_json(booking: Booking) -> Json {
     #("responsible_name", json.string(responsible_name)),
     #("phone_number", json.string(phone_number)),
     #("participant_count", json.int(participant_count)),
+    #("booked_for_other", json.bool(booked_for_other)),
   ])
 }

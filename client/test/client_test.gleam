@@ -102,6 +102,7 @@ fn a_booking(id: Uuid, activity_id: Uuid) -> model.Booking {
     responsible_name: "Ada",
     phone_number: "0700000000",
     participant_count: 2,
+    booked_for_other: False,
   )
 }
 
@@ -152,6 +153,8 @@ fn base_model() -> client.Model {
     roles: [client.ManageActivities],
     booker: client.IdentityUnknown,
     edit_ui: client.default_edit_ui(),
+    booking_ui: client.default_booking_ui(),
+    scout_groups: client.NotAsked,
   )
 }
 
@@ -701,6 +704,98 @@ pub fn clicking_book_without_capacity_submits_directly_test() {
   let assert client.ActivityDetailPage(_, client.BookingSubmitting(mode)) =
     next.page
   assert mode == client.BookingNew
+}
+
+// A user who may book for others gets the form even on uncapped activities
+// (which normally book instantly), so they can pick the target kår.
+pub fn clicking_book_without_capacity_opens_form_for_other_bookers_test() {
+  let model_ =
+    client.Model(
+      ..base_model(),
+      roles: [client.BookingsOthersCreate],
+      page: client.ActivityDetailPage(id_a(), client.BookingClosed),
+      activities: dict.from_list([#(id_a(), a_summary(id_a(), "A", None))]),
+      details: dict.from_list([#(id_a(), client.Loaded(a_detail()))]),
+    )
+  let #(next, _) = client.update(model_, client.UserClickedBook)
+  let assert client.ActivityDetailPage(_, client.BookingOpen(_, _, mode)) =
+    next.page
+  assert mode == client.BookingNew
+}
+
+/// Submitting "åt någon annan" without a picked kår must not send: the form
+/// stays open with the validation error.
+pub fn submitting_for_other_without_kar_keeps_form_open_test() {
+  let model_ =
+    client.Model(
+      ..base_model(),
+      roles: [client.BookingsOthersCreate],
+      page: client.ActivityDetailPage(id_a(), client.BookingClosed),
+      activities: dict.from_list([#(id_a(), a_summary(id_a(), "A", Some(10)))]),
+      details: dict.from_list([#(id_a(), client.Loaded(a_detail()))]),
+    )
+  let #(opened, _) = client.update(model_, client.UserClickedBook)
+  let #(for_other, _) =
+    client.update(opened, client.UserSelectedBookingTarget(1))
+  let fields =
+    client.BookingFormFields(
+      group_free_text: "",
+      responsible_name: "Ada",
+      phone_number: "0700000000",
+      participant_count: 2,
+    )
+  let #(next, _) =
+    client.update(for_other, client.UserSubmittedBookingForm(Ok(fields)))
+  let assert client.ActivityDetailPage(_, client.BookingOpen(_, error, _)) =
+    next.page
+  assert error == Some(client.BookingGroupRequired)
+}
+
+/// With a kår picked, submitting "åt någon annan" proceeds to submitting.
+pub fn submitting_for_other_with_kar_submits_test() {
+  let model_ =
+    client.Model(
+      ..base_model(),
+      roles: [client.BookingsOthersCreate],
+      page: client.ActivityDetailPage(id_a(), client.BookingClosed),
+      activities: dict.from_list([#(id_a(), a_summary(id_a(), "A", Some(10)))]),
+      details: dict.from_list([#(id_a(), client.Loaded(a_detail()))]),
+    )
+  let #(opened, _) = client.update(model_, client.UserClickedBook)
+  let #(for_other, _) =
+    client.update(opened, client.UserSelectedBookingTarget(1))
+  let #(picked, _) =
+    client.update(for_other, client.UserSelectedBookingGroup(1102))
+  let fields =
+    client.BookingFormFields(
+      group_free_text: "",
+      responsible_name: "Ada",
+      phone_number: "0700000000",
+      participant_count: 2,
+    )
+  let #(next, _) =
+    client.update(picked, client.UserSubmittedBookingForm(Ok(fields)))
+  let assert client.ActivityDetailPage(_, client.BookingSubmitting(mode)) =
+    next.page
+  assert mode == client.BookingNew
+}
+
+pub fn booking_target_group_maps_target_and_selection_test() {
+  assert client.booking_target_group(client.default_booking_ui()) == Ok(None)
+  assert client.booking_target_group(client.BookingUi(
+      target: client.BookingForOther,
+      group_id: Some(1102),
+      group_query: "",
+      group_open: False,
+    ))
+    == Ok(Some(1102))
+  assert client.booking_target_group(client.BookingUi(
+      target: client.BookingForOther,
+      group_id: None,
+      group_query: "",
+      group_open: False,
+    ))
+    == Error(Nil)
 }
 
 pub fn clicking_change_booking_opens_edit_form_test() {

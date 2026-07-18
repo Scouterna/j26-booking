@@ -27,6 +27,11 @@ pub type BookingInput {
     responsible_name: String,
     phone_number: String,
     participant_count: Int,
+    /// The kår to book on behalf of. `Some` makes this a book-for-other
+    /// request (requires `bookings:others:create`); absent books for the
+    /// caller's own token group as always. Only honoured on create — the
+    /// update handler ignores it (the booked-for kår is immutable).
+    booker_group_id: option.Option(Int),
   )
 }
 
@@ -35,11 +40,17 @@ fn booking_input_decoder() -> decode.Decoder(BookingInput) {
   use responsible_name <- decode.field("responsible_name", decode.string)
   use phone_number <- decode.field("phone_number", decode.string)
   use participant_count <- decode.field("participant_count", decode.int)
+  use booker_group_id <- decode.optional_field(
+    "booker_group_id",
+    option.None,
+    decode.optional(decode.int),
+  )
   decode.success(BookingInput(
     group_free_text:,
     responsible_name:,
     phone_number:,
     participant_count:,
+    booker_group_id:,
   ))
 }
 
@@ -60,10 +71,6 @@ pub fn create(
 ) -> Response {
   use <- wisp.require_method(req, Post)
   use user <- web.with_authenticated_user(ctx)
-  // TODO(bookings-others): holders of bookings:others:create should be able
-  // to pick a booker group (likely from a hardcoded list) instead of booking
-  // for their own token group.
-  use <- web.require_role(user, web.BookingsSelfCreate)
   use activity_id <- given.ok(uuid.from_string(activity_id_str), fn(_) {
     wisp.bad_request("Invalid activity ID format")
   })
@@ -71,6 +78,13 @@ pub fn create(
   use input <- given.ok(decode.run(json_body, booking_input_decoder()), fn(_) {
     wisp.bad_request("Invalid JSON payload")
   })
+  // The required role follows the mode: a request naming a booker group books
+  // on behalf of that kår, anything else books for the caller's own group.
+  let required_role = case input.booker_group_id {
+    option.Some(_) -> web.BookingsOthersCreate
+    option.None -> web.BookingsSelfCreate
+  }
+  use <- web.require_role(user, required_role)
   use <- given.that(input.participant_count >= 1, else_return: fn() {
     wisp.bad_request("participant_count must be at least 1")
   })
@@ -180,8 +194,10 @@ fn booked_spots(
   }
 }
 
-/// Inserts the booking, choosing the with/without-group variant from the
-/// user's token group. Assumes capacity has already been checked.
+/// Inserts the booking. A book-for-other request (`input.booker_group_id` is
+/// `Some`) stores the requested kår and flags the row; a self-booking stores
+/// the user's token group as before. Assumes capacity and the mode's role have
+/// already been checked.
 fn insert_booking(
   conn: pog.Connection,
   id: uuid.Uuid,
@@ -190,9 +206,14 @@ fn insert_booking(
   activity_id: uuid.Uuid,
   input: BookingInput,
 ) -> Result(Booking, BookingError) {
-  // The booker group comes from the token. A token without one still creates a
-  // booking — the group columns are simply left NULL.
-  let inserted = case user.group_id {
+  // Book-for-other takes the kår from the request; a self-booking takes it
+  // from the token. A token without one still creates a booking — the group
+  // columns are simply left NULL.
+  let #(group_id, booked_for_other) = case input.booker_group_id {
+    option.Some(group_id) -> #(option.Some(group_id), True)
+    option.None -> #(user.group_id, False)
+  }
+  let inserted = case group_id {
     option.Some(group_id) ->
       sql.create_booking_with_group(
         conn,
@@ -206,6 +227,7 @@ fn insert_booking(
         input.responsible_name,
         input.phone_number,
         input.participant_count,
+        booked_for_other,
       )
       |> result.map(fn(returned) {
         list.map(returned.rows, booking.from_create_booking_with_group_row)

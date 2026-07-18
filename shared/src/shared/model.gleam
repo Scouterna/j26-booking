@@ -371,6 +371,10 @@ pub type Booking {
     responsible_name: String,
     phone_number: String,
     participant_count: Int,
+    /// True when the booking was made on behalf of another kår (by a holder of
+    /// `bookings:others:create`): `booker_name`/`user_id` are the person who
+    /// booked, `booker_group_*` the kår booked for.
+    booked_for_other: Bool,
   )
 }
 
@@ -395,6 +399,11 @@ pub fn booking_decoder() -> decode.Decoder(Booking) {
   use responsible_name <- decode.field("responsible_name", decode.string)
   use phone_number <- decode.field("phone_number", decode.string)
   use participant_count <- decode.field("participant_count", decode.int)
+  use booked_for_other <- decode.optional_field(
+    "booked_for_other",
+    False,
+    decode.bool,
+  )
   case
     uuid.from_string(id_str),
     uuid.from_string(user_id_str),
@@ -412,6 +421,7 @@ pub fn booking_decoder() -> decode.Decoder(Booking) {
         responsible_name:,
         phone_number:,
         participant_count:,
+        booked_for_other:,
       ))
     _, _, _ -> {
       let dummy =
@@ -426,6 +436,7 @@ pub fn booking_decoder() -> decode.Decoder(Booking) {
           responsible_name:,
           phone_number:,
           participant_count:,
+          booked_for_other:,
         )
       decode.failure(dummy, "valid UUID strings for id, user_id, activity_id")
     }
@@ -436,6 +447,41 @@ pub fn booking_decoder() -> decode.Decoder(Booking) {
 pub fn bookings_decoder() -> decode.Decoder(List(Booking)) {
   use bookings <- decode.field("bookings", decode.list(booking_decoder()))
   decode.success(bookings)
+}
+
+/// One registered kår: its Scoutnet kårnummer (the id carried in access
+/// tokens' `groups` claim and stored as `booker_group_id`) and display name.
+/// Served by `/api/scout-groups` to drive the book-for-other kår picker.
+pub type ScoutGroup {
+  ScoutGroup(id: Int, name: String)
+}
+
+/// Decode a `ScoutGroup` from `{"id": ..., "name": ...}`.
+pub fn scout_group_decoder() -> decode.Decoder(ScoutGroup) {
+  use id <- decode.field("id", decode.int)
+  use name <- decode.field("name", decode.string)
+  decode.success(ScoutGroup(id:, name:))
+}
+
+/// Decode the list response `{"scout_groups": [...]}`.
+pub fn scout_groups_decoder() -> decode.Decoder(List(ScoutGroup)) {
+  use scout_groups <- decode.field(
+    "scout_groups",
+    decode.list(scout_group_decoder()),
+  )
+  decode.success(scout_groups)
+}
+
+/// Encode a `ScoutGroup` to the shape `scout_group_decoder` expects.
+pub fn scout_group_to_json(group: ScoutGroup) -> Json {
+  let ScoutGroup(id:, name:) = group
+  json.object([#("id", json.int(id)), #("name", json.string(name))])
+}
+
+/// Encode the list response `{"scout_groups": [...]}` (inverse of
+/// `scout_groups_decoder`).
+pub fn scout_groups_to_json(groups: List(ScoutGroup)) -> Json {
+  json.object([#("scout_groups", json.array(groups, scout_group_to_json))])
 }
 
 /// One scout corps' (kår) participant tally within a recurring-activity slot,

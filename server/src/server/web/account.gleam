@@ -4,6 +4,7 @@ import gleam/list
 import gleam/option
 import server/scout_group
 import server/web
+import shared/model
 import wisp.{type Request, type Response}
 
 /// The authenticated user's identity and access roles, as the client needs
@@ -29,5 +30,23 @@ pub fn get_me(req: Request, ctx: web.Context) -> Response {
     ])
       |> json.to_string,
     200,
+  )
+}
+
+/// The full registered-kår list, for the book-for-other kår picker. Gated to
+/// `bookings:others:create` — the only users whose UI needs it. The body is
+/// identical for every authorized caller and changes only on deploy (the list
+/// is compiled in), so it revalidates by ETag as `SharedAcrossUsers`.
+pub fn get_scout_groups(req: Request, ctx: web.Context) -> Response {
+  use <- wisp.require_method(req, Get)
+  use user <- web.with_authenticated_user(ctx)
+  use <- web.require_role(user, web.BookingsOthersCreate)
+  let body = scout_group.groups |> model.scout_groups_to_json |> json.to_string
+  web.json_response_with_etag(
+    req,
+    body,
+    200,
+    "private, no-cache",
+    web.SharedAcrossUsers,
   )
 }

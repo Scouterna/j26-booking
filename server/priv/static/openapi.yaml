@@ -606,6 +606,7 @@ paths:
                         responsible_name: "Anna Svensson"
                         phone_number: "+46701234567"
                         participant_count: 12
+                        booked_for_other: false
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':
@@ -620,12 +621,20 @@ paths:
         - Bookings
       summary: Create booking for activity
       description: |
-        Create a new booking for a specific activity. Requires the
-        `bookings:self:create` role. The `user_id`, `booker_name`, and
-        `booker_group_id` come from the access token; `booker_group_name` is a
-        placeholder until group name resolution exists. Tokens without a scout
-        group can still book — `booker_group_id` and `booker_group_name` are
-        then `null`.
+        Create a new booking for a specific activity. The `user_id` and
+        `booker_name` always come from the access token.
+
+        Without `booker_group_id` in the body (the normal case) this books for
+        the caller's own group: requires the `bookings:self:create` role, and
+        `booker_group_id`/`booker_group_name` come from the token's scout
+        group. Tokens without a scout group can still book — both are then
+        `null`.
+
+        With `booker_group_id` in the body the booking is made **on behalf of
+        that kår** (info-tent flow): requires the `bookings:others:create`
+        role, stores the requested kår as the booker group, and sets
+        `booked_for_other` to `true` on the created booking. Valid ids are the
+        ones served by `GET /scout-groups`.
       operationId: createBooking
       security:
         - bearerAuth: []
@@ -667,6 +676,7 @@ paths:
                 responsible_name: "Anna Svensson"
                 phone_number: "+46701234567"
                 participant_count: 12
+                booked_for_other: false
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':
@@ -712,6 +722,7 @@ paths:
                 responsible_name: "Anna Svensson"
                 phone_number: "+46701234567"
                 participant_count: 12
+                booked_for_other: false
         '400':
           $ref: '#/components/responses/BadRequest'
         '404':
@@ -764,6 +775,7 @@ paths:
                 responsible_name: "Erik Johansson"
                 phone_number: "+46709876543"
                 participant_count: 15
+                booked_for_other: false
         '400':
           $ref: '#/components/responses/BadRequest'
         '404':
@@ -979,6 +991,51 @@ paths:
         '401':
           $ref: '#/components/responses/Unauthorized'
 
+  /scout-groups:
+    get:
+      tags:
+        - Configuration
+      summary: List registered scout groups (kårer)
+      description: |
+        Retrieve the full registered-kår list (kårnummer + display name) that
+        drives the book-for-other kår picker. Requires the
+        `bookings:others:create` role. The body is identical for every
+        authorized caller and changes only on deploy, so responses carry a
+        strong `ETag`; send it as `If-None-Match` to get a `304` when the list
+        is unchanged.
+      operationId: listScoutGroups
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+      responses:
+        '200':
+          description: Successfully retrieved the registered kår list
+          headers:
+            ETag:
+              $ref: '#/components/headers/ETag'
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - scout_groups
+                properties:
+                  scout_groups:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ScoutGroup'
+                    example:
+                      - id: 1102
+                        name: "Adolf Fredriks Scoutkår"
+                      - id: 1113
+                        name: "Hedvig Eleonora Scoutkår"
+        '304':
+          $ref: '#/components/responses/NotModified'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
   /statuses/me:
     get:
       tags:
@@ -1022,6 +1079,7 @@ paths:
                           responsible_name: "Anna Svensson"
                           phone_number: "+46701234567"
                           participant_count: 5
+                          booked_for_other: false
                       - activity_id: "b4219a53-4746-4a09-8b4e-3e2ac0c3df11"
                         status: "favourited"
         '401':
@@ -1775,6 +1833,7 @@ components:
         - responsible_name
         - phone_number
         - participant_count
+        - booked_for_other
       properties:
         id:
           type: string
@@ -1826,6 +1885,13 @@ components:
           type: integer
           description: Number of participants
           example: 12
+        booked_for_other:
+          type: boolean
+          description: >-
+            True when the booking was made on behalf of another kår by a holder
+            of `bookings:others:create` (the booker group is the kår booked
+            for, not the booker's own).
+          example: false
 
     GroupCount:
       type: object
@@ -1850,6 +1916,24 @@ components:
           type: integer
           description: Total participants booked by this group in the slot
           example: 8
+
+    ScoutGroup:
+      type: object
+      description: >-
+        One registered kår: its Scoutnet kårnummer (the id carried in tokens'
+        `groups` claim and stored as `booker_group_id`) and display name.
+      required:
+        - id
+        - name
+      properties:
+        id:
+          type: integer
+          description: Scoutnet kårnummer
+          example: 1102
+        name:
+          type: string
+          description: Kår display name
+          example: "Adolf Fredriks Scoutkår"
 
     BookingSlot:
       type: object
@@ -2155,6 +2239,15 @@ components:
           type: integer
           description: Number of participants
           example: 12
+        booker_group_id:
+          type: integer
+          description: >-
+            The kår to book on behalf of (a kårnummer from `GET
+            /scout-groups`). Only honoured on create, where its presence makes
+            the request a book-for-other booking requiring the
+            `bookings:others:create` role; omit to book for the caller's own
+            token group. Ignored on update (the booked-for kår is immutable).
+          example: 1102
 
     ActivityInput:
       type: object
