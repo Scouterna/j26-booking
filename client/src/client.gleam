@@ -81,6 +81,7 @@ fn english_translations() -> g18n.Translations {
   )
   |> g18n.add_translation("overview.fully_booked", "Fully booked!")
   |> g18n.add_translation("overview.empty", "No bookings for this day.")
+  |> g18n.add_translation("overview.slot_empty", "No bookings")
   |> g18n.add_translation("overview.refresh", "Refresh")
   |> g18n.add_translation("activity.booked", "Booked")
   |> g18n.add_translation("activity.needs_booking", "Needs booking")
@@ -217,6 +218,7 @@ fn swedish_translations() -> g18n.Translations {
   )
   |> g18n.add_translation("overview.fully_booked", "Fullbokat!")
   |> g18n.add_translation("overview.empty", "Inga bokningar den här dagen.")
+  |> g18n.add_translation("overview.slot_empty", "Inga bokningar")
   |> g18n.add_translation("overview.refresh", "Uppdatera")
   |> g18n.add_translation("activity.booked", "Bokad")
   |> g18n.add_translation("activity.needs_booking", "Behöver bokas")
@@ -4936,23 +4938,36 @@ fn view_slot_card(translator: Translator, slot: BookingSlot) -> Element(Msg) {
       ),
       html.div([attribute.class("shadow-sm rounded-[var(--spacing-6)]")], [
         component.scout_card([
-          html.div(
-            [attribute.class("flex flex-col gap-1")],
-            list.map(groups, fn(group) {
+          case groups {
+            // A slot nobody has booked shows an explicit note rather than an
+            // empty card body.
+            [] ->
+              html.span([attribute.class("text-body-l text-gray-500")], [
+                element.text(g18n.translate(translator, "overview.slot_empty")),
+              ])
+            _ ->
               html.div(
-                [attribute.class("flex items-baseline justify-between gap-3")],
-                [
-                  html.span([attribute.class("text-body-l break-words")], [
-                    element.text(group_display_name(translator, group)),
-                  ]),
-                  html.span(
-                    [attribute.class("text-body-l font-semibold shrink-0")],
-                    [element.text(int.to_string(group.count))],
-                  ),
-                ],
+                [attribute.class("flex flex-col gap-1")],
+                list.map(groups, fn(group) {
+                  html.div(
+                    [
+                      attribute.class(
+                        "flex items-baseline justify-between gap-3",
+                      ),
+                    ],
+                    [
+                      html.span([attribute.class("text-body-l break-words")], [
+                        element.text(group_display_name(translator, group)),
+                      ]),
+                      html.span(
+                        [attribute.class("text-body-l font-semibold shrink-0")],
+                        [element.text(int.to_string(group.count))],
+                      ),
+                    ],
+                  )
+                }),
               )
-            }),
-          ),
+          },
         ]),
       ]),
     ],
