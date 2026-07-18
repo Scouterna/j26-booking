@@ -153,7 +153,11 @@ fn english_translations() -> g18n.Translations {
     "list.empty_filtered",
     "No activities match the filters.",
   )
+  |> g18n.add_translation("list.empty", "No activities yet.")
   |> g18n.add_translation("list.retry", "Try again")
+  |> g18n.add_translation("not_found.title", "Not Found")
+  |> g18n.add_translation("not_found.message", "Page not found.")
+  |> g18n.add_translation("not_found.go_to_activities", "Go to activities")
   |> g18n.add_translation("error.heading", "Something went wrong")
   |> g18n.add_translation("error.load_activities", "Failed to load activities")
   |> g18n.add_translation("error.load_activity", "Failed to load activity")
@@ -285,7 +289,11 @@ fn swedish_translations() -> g18n.Translations {
     "list.empty_filtered",
     "Inga aktiviteter matchar filtren.",
   )
+  |> g18n.add_translation("list.empty", "Inga aktiviteter än.")
   |> g18n.add_translation("list.retry", "Försök igen")
+  |> g18n.add_translation("not_found.title", "Hittades inte")
+  |> g18n.add_translation("not_found.message", "Sidan hittades inte.")
+  |> g18n.add_translation("not_found.go_to_activities", "Till aktiviteter")
   |> g18n.add_translation("error.heading", "Något gick fel")
   |> g18n.add_translation(
     "error.load_activities",
@@ -3107,7 +3115,7 @@ fn view(model: Model) -> Element(Msg) {
       )
     RecurringBookingsPage(kind, selected_day, overview) ->
       view_recurring_bookings(model.translator, kind, selected_day, overview)
-    NotFoundPage -> view_not_found()
+    NotFoundPage -> view_not_found(model.translator)
   }
 }
 
@@ -3175,7 +3183,7 @@ fn view_activities_list(
           ])
         Loaded([]) ->
           html.div([attribute.class("py-6 text-center flex flex-col gap-3")], [
-            html.p([], [element.text("No activities yet.")]),
+            html.p([], [element.text(t("list.empty"))]),
           ])
         Loaded(items) ->
           view_grouped_activities(
@@ -5102,15 +5110,16 @@ fn spots_filled_text(
   }
 }
 
-fn view_not_found() -> Element(Msg) {
+fn view_not_found(translator: Translator) -> Element(Msg) {
+  let t = fn(key) { g18n.translate(translator, key) }
   html.div([attribute.class("flex flex-col")], [
     html.div([attribute.styles([#("padding", "var(--spacing-4)")])], [
-      html.h1([], [element.text("Not Found")]),
+      html.h1([], [element.text(t("not_found.title"))]),
     ]),
     html.div([attribute.styles([#("padding", "var(--spacing-6)")])], [
-      html.p([], [element.text("Page not found.")]),
+      html.p([], [element.text(t("not_found.message"))]),
       html.a([attribute.href(api_prefix <> "/activities")], [
-        element.text("Go to activities"),
+        element.text(t("not_found.go_to_activities")),
       ]),
     ]),
   ])
