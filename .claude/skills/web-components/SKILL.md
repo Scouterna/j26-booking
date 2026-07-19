@@ -9,6 +9,10 @@ Guide for using `@scouterna/ui-webc` web components in the Lustre client.
 
 **Working example:** [`examples/client/`](../../../examples/client/) — standalone Lustre app demonstrating all patterns below.
 **Storybook docs:** https://scouterna.github.io/j26-components/?path=/docs/home--docs
+**Source of truth:** the component sources live in the sibling repo
+`../j26-components` (`packages/ui-webc/src/components/<name>/<name>.tsx`, with
+usage examples in `packages/storybook/src/stories/`). The catalog below can
+lag behind — when exact props/slots/events matter, check the `.tsx` there.
 
 ## Connecting Scout Events to Lustre Msg
 
