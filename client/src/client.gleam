@@ -4030,10 +4030,16 @@ fn view_activities_list(
 fn view_partial_failure_callout(translator: Translator) -> Element(Msg) {
   let t = fn(key) { g18n.translate(translator, key) }
   component.hovering_callout(
-    "error",
+    component.CalloutError,
     t("error.heading"),
     t("list.partial_days_failed"),
-    [component.callout_action(t("list.retry"), "primary", UserClickedRetryLoad)],
+    [
+      component.callout_action(
+        t("list.retry"),
+        component.ButtonPrimary,
+        UserClickedRetryLoad,
+      ),
+    ],
     UserDismissedListWarning,
   )
 }

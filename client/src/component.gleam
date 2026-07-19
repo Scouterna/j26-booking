@@ -223,14 +223,61 @@ pub fn scout_drawer(
   )
 }
 
+/// Visual intent of a `scout-callout` — the component's six `variant`
+/// attribute values, typed so a call site can't pass a string the component
+/// silently ignores.
+pub type CalloutVariant {
+  CalloutInfo
+  CalloutTip
+  CalloutSuccess
+  CalloutWarning
+  CalloutError
+  CalloutAnnouncement
+}
+
+fn callout_variant_to_string(variant: CalloutVariant) -> String {
+  case variant {
+    CalloutInfo -> "info"
+    CalloutTip -> "tip"
+    CalloutSuccess -> "success"
+    CalloutWarning -> "warning"
+    CalloutError -> "error"
+    CalloutAnnouncement -> "announcement"
+  }
+}
+
+/// Visual style of a `scout-button` — the component's five `variant`
+/// attribute values.
+pub type ButtonVariant {
+  ButtonPrimary
+  ButtonOutlined
+  ButtonText
+  ButtonCaution
+  ButtonDanger
+}
+
+fn button_variant_to_string(variant: ButtonVariant) -> String {
+  case variant {
+    ButtonPrimary -> "primary"
+    ButtonOutlined -> "outlined"
+    ButtonText -> "text"
+    ButtonCaution -> "caution"
+    ButtonDanger -> "danger"
+  }
+}
+
 /// A `scout-button` for a callout's `actions` slot. Any button variant works
 /// here — the slot only lays actions out in a row.
-pub fn callout_action(text: String, variant: String, msg: msg) -> Element(msg) {
+pub fn callout_action(
+  text: String,
+  variant: ButtonVariant,
+  msg: msg,
+) -> Element(msg) {
   element.element(
     "scout-button",
     [
       attribute.attribute("slot", "actions"),
-      attribute.attribute("variant", variant),
+      attribute.attribute("variant", button_variant_to_string(variant)),
       event.on("scoutClick", decode.success(msg)),
     ],
     [element.text(text)],
@@ -244,7 +291,7 @@ pub fn callout_action(text: String, variant: String, msg: msg) -> Element(msg) {
 /// callout's actions slot; the component's built-in dismiss (×) button fires
 /// `on_dismiss` — the caller owns the shown/dismissed state.
 pub fn hovering_callout(
-  variant: String,
+  variant: CalloutVariant,
   heading: String,
   message: String,
   actions: List(Element(msg)),
@@ -255,7 +302,7 @@ pub fn hovering_callout(
       "scout-callout",
       [
         attribute.class("shadow-lg"),
-        attribute.attribute("variant", variant),
+        attribute.attribute("variant", callout_variant_to_string(variant)),
         attribute.attribute("heading", heading),
         attribute.attribute("dismissible", ""),
         event.on("scoutDismiss", decode.success(on_dismiss)),
