@@ -161,3 +161,7 @@ Follow [Conventional Commits](https://www.conventionalcommits.org/). Run `gleam 
 Format: `<type>[scope]: <description>`
 Types: feat, fix, docs, style, refactor, perf, test, chore, ci, build
 Scopes: router, db, sql, components, api, auth, client, shared
+
+When a commit resolves a GitHub issue, reference it with a closing keyword in
+the commit body (e.g. `Closes #35`) so the issue closes automatically when the
+commit lands on `main`. Use one `Closes #N` line per issue.
