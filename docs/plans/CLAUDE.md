@@ -46,3 +46,4 @@ When you create, finish, or touch a plan here, keep the folder consistent:
 | 18 | [Booking window: opens-at date & no booking after the end (issues #35 + #36)](18-booking-window.md) | ✅ Done 2026-07-19 |
 | 19 | [Optional location coordinates (issue #26)](19-optional-location-coordinates.md) | ✅ Done 2026-07-19 |
 | 20 | [Search the whole week: "Alla dagar" browse filter (issue #49)](20-all-days-browse-search.md) | ✅ Done 2026-07-19 |
+| 21 | [Booking cancellation with reason (issue #43)](21-booking-cancellation-with-reason.md) | 🔲 Not started |
