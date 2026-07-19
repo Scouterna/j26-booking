@@ -1,6 +1,8 @@
 # 17. `bookings:others:create` manages every booking
 
-> **Status: 🔲 Not started** (as of 2026-07-19)
+> **Status: ✅ Done 2026-07-19** (commit `990370a`; shipped as planned —
+> server rule, client gate, drawer identity, card caption, tests, and
+> OpenAPI all match §1–§5, verified live per the plan's four scenarios)
 
 ## Context
 
