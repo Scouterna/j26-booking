@@ -154,6 +154,10 @@ gh api 'repos/Scouterna/j26-booking/issues?state=open&per_page=100' \
   --jq '.[] | {number, title, priority: ([.issue_field_values[]? | select(.issue_field_name == "Priority") | .single_select_option.name] | first), type: .type.name}'
 ```
 
+When asked what a good next thing to work on would be, list the open issues
+with this command and pick by priority (High first), weighing in effort and
+how well-defined the issue is. Check `docs/plans/` for an existing plan first.
+
 ## Commits
 
 Follow [Conventional Commits](https://www.conventionalcommits.org/). Run `gleam format` before committing.
