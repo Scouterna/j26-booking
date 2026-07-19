@@ -3987,7 +3987,7 @@ fn view_activities_list(
       case load {
         ListLoading -> component.scout_loader(t("activity.loading"))
         ListFailed(err) ->
-          html.div([attribute.class("px-3 py-6")], [
+          html.div([attribute.class("px-3 py-6 w-full max-w-lg mx-auto")], [
             component.callout(
               component.CalloutError,
               t("error.heading"),
