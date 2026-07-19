@@ -149,7 +149,7 @@ fn english_translations() -> g18n.Translations {
   |> g18n.add_translation("booking.confirm_restore", "Yes, restore")
   |> g18n.add_translation(
     "booking.cancelled_notice",
-    "Booking cancelled by staff",
+    "Your booking was cancelled by staff",
   )
   |> g18n.add_translation("bookings.heading", "Bookings")
   |> g18n.add_translation("bookings.loading", "Loading bookings...")
@@ -329,7 +329,7 @@ fn swedish_translations() -> g18n.Translations {
   |> g18n.add_translation("booking.confirm_restore", "Ja, återställ")
   |> g18n.add_translation(
     "booking.cancelled_notice",
-    "Bokningen är avbokad av funktionär",
+    "Din bokning är avbokad av funktionär",
   )
   |> g18n.add_translation("bookings.heading", "Bokningar")
   |> g18n.add_translation("bookings.loading", "Laddar bokningar...")
