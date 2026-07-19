@@ -100,7 +100,7 @@ Request → web.middleware → router.handle_request → handler
 | GET/POST | `/api/location-tags` | List / Create |
 | GET/PUT/DELETE | `/api/location-tags/:id` | Single location-tag CRUD |
 | GET | `/api/app-config` | Navigation config |
-| GET | `/api/docs` | OpenAPI documentation (Scalar) |
+| GET | `/api/docs` | OpenAPI documentation (Scalar), admin-only |
 
 ### Environment Variables
 

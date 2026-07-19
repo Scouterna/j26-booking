@@ -571,7 +571,7 @@ pub fn api_documentation_page() -> Element(a) {
         [],
         "Scalar.createApiReference('#app', {url: '"
           <> base_path
-          <> "/static/openapi.yaml'})",
+          <> "/api/docs/openapi.yaml'})",
       ),
     ]),
   ])

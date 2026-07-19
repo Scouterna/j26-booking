@@ -13,4 +13,4 @@ Server-specific guidance. See root `CLAUDE.md` for monorepo-wide info (commands,
 
 ## API changes
 
-Whenever you change anything about the HTTP API — routes, request/response shapes, status codes, query parameters, error formats — update `server/priv/static/openapi.yaml` in the same change. The spec is served at `/api/docs` (Scalar UI) and is the contract clients rely on, so it must stay in sync with the code in `server/src/server/router.gleam`, `server/src/server/web/`, and `server/src/server/model/`.
+Whenever you change anything about the HTTP API — routes, request/response shapes, status codes, query parameters, error formats — update `server/priv/openapi.yaml` in the same change. The spec is served at `/api/docs` (Scalar UI, admin-only) and is the contract clients rely on, so it must stay in sync with the code in `server/src/server/router.gleam`, `server/src/server/web/`, and `server/src/server/model/`.

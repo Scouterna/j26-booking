@@ -1,4 +1,5 @@
 import gleam/http.{Delete, Get, Post, Put}
+import gleam/option
 import lustre/element
 import server/web.{type Context}
 import server/web/account
@@ -95,8 +96,10 @@ fn handle_api_request(
     _, ["location-tags", _] -> wisp.method_not_allowed([Get, Put, Delete])
     Get, ["app-config"] -> app_config.navigation(ctx)
     _, ["app-config"] -> wisp.method_not_allowed([Get])
-    Get, ["docs"] -> api_documentation()
+    Get, ["docs"] -> api_documentation(ctx)
     _, ["docs"] -> wisp.method_not_allowed([Get])
+    Get, ["docs", "openapi.yaml"] -> api_documentation_spec(ctx)
+    _, ["docs", "openapi.yaml"] -> wisp.method_not_allowed([Get])
     _, _ -> wisp.not_found()
   }
 }
@@ -107,8 +110,29 @@ fn spa_shell() -> Response {
   |> wisp.html_response(200)
 }
 
-fn api_documentation() -> Response {
+/// The Scalar documentation page. Admin-only (issue #46): the API surface —
+/// endpoints, roles, error formats — is internal detail that ordinary
+/// participants have no use for.
+pub fn api_documentation(ctx: Context) -> Response {
+  use user <- web.with_authenticated_user(ctx)
+  use <- web.require_role(user, web.Admin)
   web.api_documentation_page()
   |> element.to_string
   |> wisp.html_response(200)
+}
+
+/// The OpenAPI spec the Scalar page renders. Served through a guarded route
+/// rather than from `priv/static/` so hiding the docs page also hides the
+/// spec itself — `wisp.serve_static` would hand it to anyone.
+pub fn api_documentation_spec(ctx: Context) -> Response {
+  use user <- web.with_authenticated_user(ctx)
+  use <- web.require_role(user, web.Admin)
+  let assert Ok(priv_directory) = wisp.priv_directory("server")
+  wisp.response(200)
+  |> wisp.set_header("content-type", "application/yaml")
+  |> wisp.set_body(wisp.File(
+    path: priv_directory <> "/openapi.yaml",
+    offset: 0,
+    limit: option.None,
+  ))
 }
