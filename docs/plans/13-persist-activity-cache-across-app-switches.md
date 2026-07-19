@@ -383,4 +383,70 @@ optional later nicety.
   switches to StaleWhileRevalidate, this still holds and the two compound.
 - **Scope:** v1 persists the browse windows (+ optional vocab). Detail views,
   statuses, and spots remain fetch-on-demand by design.
-```
+
+---
+
+## Environment & investigation notes (verified 2026-07-17)
+
+Findings from an end-to-end investigation (Playwright + server logs) that will
+save the implementer time — especially for the Verification steps.
+
+### Two cache layers sit between the SPA and the server
+
+1. **Browser HTTP cache.** It stores the `private, no-cache` + ETag list
+   responses and revalidates them to `304` on every use — *independently* of
+   `Vary: Cookie`, which is **inert** for `no-cache` responses (revalidation is
+   unconditional and the `304` decision is ETag-only, cookie-independent; even
+   changing a cookie value still produced a `304`). So reopen bytes are already
+   cheap; this plan is about paint, not bytes.
+2. **The shell service worker** (`j26-app`). The **deployed** `sw.js` is *not*
+   the same as that repo's working-tree source — read the served file. It fronts
+   `/_services/(booking|signupinfo|notifications)/api/` with **NetworkFirst**,
+   `networkTimeoutSeconds: 5`, `cacheName: "subapp-api"`, `maxEntries: 200`,
+   `maxAgeSeconds: 86400`. On a slow network it falls back to its own cached
+   `200` after 5s.
+
+**Implication for §5:** a timed-out revalidation often returns the SW's cached
+`200` → `WindowLoaded` (not `WindowFailed`), so the offline callout fires only
+when the SW *also* has no copy (evicted / hard offline / no SW controlling).
+`localStorage` and the SW cache are two independent fallbacks — don't assume the
+callout appears on every network blip; force a true miss to test it.
+
+### Measurement traps (use the server log as ground truth)
+
+- **`transferSize` is unreliable** — Chrome reports a padded ~300 bytes for any
+  cache-served response, so it cannot distinguish a `304` revalidation from a
+  full download. Read the **server log** (`304` vs `200 GET …/api/activities`)
+  to know what actually happened.
+- **The SW masks page-level timing** — SW-served responses show
+  `deliveryType: "cache"`, `transferSize: 0` regardless of the underlying
+  behavior. To measure the *raw* HTTP cache, `navigator.serviceWorker` →
+  `unregister()` **and** navigate to a non-app same-origin page (e.g. the raw
+  JSON at `/_services/booking/api/app-config`) so the app doesn't immediately
+  re-register the SW.
+- **Playwright does NOT disable the HTTP cache here** — verified (a non-SW font
+  loaded with `deliveryType: "cache"`), so its cache behavior is representative
+  of production, not a CDP artifact.
+- **`browser_network_requests` accumulates** across SPA navigations and can show
+  stale indices; prefer the server log for reopen measurement.
+
+### Running it locally
+
+- `./start.sh` builds the client and serves on `:8000`; reach the full shell at
+  `https://local.j26.se` (Caddy proxies `/_services/booking` → :8000; booking is
+  in "local" mode in j26-cli `services.yaml`, `rewritePath: false`). Requires the
+  j26-cli docker stack (caddy, auth, db) running.
+- **Auth:** either the real ScoutID login (creds in `.creds.local`), or set
+  `DEV_AUTH_ROLES=admin` to authenticate tokenless `curl` as the seeded dev user.
+  The dev var only applies when *no* cookie/bearer is present, so browser
+  sessions still authenticate via the real cookie — the two don't interfere.
+
+### Endpoint facts confirmed
+
+- `/api/statuses/me` and `/api/activity-spots` send **no** caching headers (no
+  ETag / no Cache-Control) — they always refetch in full, which is why they are
+  excluded from persistence (and spots must stay fresh regardless).
+- Favourites is `GET /api/favourited-activities` (per-user, `Vary: Cookie`).
+- The manager list is a distinct URL `?include_call_offs=true`, cached separately
+  from the default list; both are user-independent (role-scoped), only favourites
+  and `statuses/me` are per-user.
