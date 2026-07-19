@@ -365,6 +365,30 @@ pub fn apply_filters_matches_title_case_insensitively_test() {
   assert client.apply_filters([climb, swim], filters, None) == [climb]
 }
 
+// The recurring tabs have no search/filter controls (issue #51): search and
+// facet state left over from another tab must not narrow their lists.
+pub fn apply_filters_ignores_search_on_recurring_tabs_test() {
+  let climb =
+    client.CardItem(
+      a_summary(id_a(), "Klättring", None),
+      model.NotInterested,
+      None,
+    )
+  let swim =
+    client.CardItem(
+      a_summary(id_b(), "Simning", None),
+      model.NotInterested,
+      None,
+    )
+  let filters =
+    client.ListFilters(
+      ..client.default_filters(),
+      search: "KLÄTT",
+      tab: client.TabBeachBus,
+    )
+  assert client.apply_filters([climb, swim], filters, None) == [climb, swim]
+}
+
 // LIST DERIVATION: tab_summaries -----------------------------------------------
 
 pub fn tab_summaries_browse_maps_id_window_through_cache_test() {

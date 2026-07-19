@@ -806,6 +806,18 @@ pub fn tab_from_index(index: Int) -> ActivitiesFilterTab {
   }
 }
 
+/// Whether the tab shows the search field and the målgrupp/tag filter
+/// controls. The recurring tabs (Badbuss / Klättervägg) each hold a single
+/// activity's slots — identical title, no tags — so free-text search and
+/// filters have nothing meaningful to narrow there (issue #51). Views hide
+/// the controls and `apply_filters` ignores the leftover state on these tabs.
+pub fn tab_has_search_and_filters(tab: ActivitiesFilterTab) -> Bool {
+  case tab {
+    TabActivities | TabFavourites -> True
+    TabBeachBus | TabClimbingWall -> False
+  }
+}
+
 /// A kind of recurring activity that gets its own booking-overview page
 /// (Badbuss / Klättervägg). Both pages share one view, differing only in which
 /// slots they load and their heading; the kind also maps to the server's
@@ -3979,7 +3991,9 @@ fn view_activities_list(
       locations,
     ),
     view_list_top_bar(translator, filters, page, browse_day, favourites_day),
-    case filters.more_open {
+    // `more_open` survives tab switches so the panel reappears when returning
+    // to a tab that has filter controls; the recurring tabs never show it.
+    case filters.more_open && tab_has_search_and_filters(filters.tab) {
       True -> view_more_filters_panel(translator, filters, activity_tags)
       False -> element.none()
     },
@@ -4092,11 +4106,15 @@ fn view_list_top_bar(
         UserSelectedTab,
         [attribute.class("w-full")],
       ),
-      component.scout_input_search(
-        filters.search,
-        t("list.search_placeholder"),
-        UserSearchedActivities,
-      ),
+      case tab_has_search_and_filters(filters.tab) {
+        True ->
+          component.scout_input_search(
+            filters.search,
+            t("list.search_placeholder"),
+            UserSearchedActivities,
+          )
+        False -> element.none()
+      },
       // Key the day select by its option set: `scout-select` consumes its own
       // `<option>` children, so reconciling them in place desyncs Lustre's DOM
       // when the set changes (the "Alla dagar" option appears/disappears
@@ -4111,15 +4129,20 @@ fn view_list_top_bar(
           },
           view_day_select(translator, selected_day, show_any),
         ),
-        #(
-          "more-filters",
-          component.filter_pill_icon(
-            t("list.filter.more"),
-            icons.filter,
-            filters.more_open,
-            UserToggledMoreFilters,
-          ),
-        ),
+        ..case tab_has_search_and_filters(filters.tab) {
+          True -> [
+            #(
+              "more-filters",
+              component.filter_pill_icon(
+                t("list.filter.more"),
+                icons.filter,
+                filters.more_open,
+                UserToggledMoreFilters,
+              ),
+            ),
+          ]
+          False -> []
+        }
       ]),
     ],
   )
@@ -6510,6 +6533,12 @@ pub fn apply_filters(
   f: ListFilters,
   client_day: Option(calendar.Date),
 ) -> List(CardItem) {
+  // The recurring tabs have no search or filter controls (issue #51), so
+  // filter state left over from the other tabs must not narrow their lists.
+  let f = case tab_has_search_and_filters(f.tab) {
+    True -> f
+    False -> ListFilters(..f, search: "", target_groups: [], tags: [])
+  }
   let needle = string.lowercase(string.trim(f.search))
   use item <- list.filter(items)
   let summary = item.summary
