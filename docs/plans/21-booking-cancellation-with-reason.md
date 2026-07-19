@@ -1,6 +1,13 @@
 # 21. Booking cancellation with reason (issue #43)
 
-> **Status: 🔲 Not started** (as of 2026-07-20)
+> **Status: ✅ Done 2026-07-20** (commit `828e051`; shipped as planned with
+> small deviations: the cancel form reuses the shared booking-drawer host
+> rather than a literal second drawer; `CancelReasonEditing` carries a
+> `submit_error` so a failed cancel keeps the typed reason and shows the
+> error; the callout heading became "Bokningen är avbokad av funktionär"
+> (user request); the create queries' RETURNING lists were left unchanged
+> (a fresh booking is always active); no new pure server tests emerged —
+> handlers were verified live per §10, including the UI round-trip)
 
 ## Context
 
