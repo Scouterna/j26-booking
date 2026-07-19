@@ -66,18 +66,14 @@ type BookingError {
   BookingQueryFailed(pog.QueryError)
 }
 
-/// Whether `user` may edit or delete `booking`. On-behalf bookings
-/// (`booked_for_other`) are team-managed: any holder of
-/// `bookings:others:create` may manage them, regardless of who created them.
-/// A self-booking may only be managed by its owner. `Admin` implies the role
-/// (via `has_role`) and additionally overrides the self-booking owner check.
+/// Whether `user` may edit or delete `booking`. Any holder of
+/// `bookings:others:create` (which `Admin` implies, via `has_role`) manages
+/// every booking; everyone else only their own. `booked_for_other` no longer
+/// affects authorization — it is purely informational.
 /// Public so tests can exercise the rule directly; production code only
 /// reaches it through the update/delete handlers.
 pub fn may_manage(user: web.User, booking: Booking) -> Bool {
-  case booking.booked_for_other {
-    True -> web.has_role(user, web.BookingsOthersCreate)
-    False -> booking.user_id == user.id || web.has_role(user, web.Admin)
-  }
+  booking.user_id == user.id || web.has_role(user, web.BookingsOthersCreate)
 }
 
 /// `may_manage` as a transaction step: rolls back with `NotBookingManager`

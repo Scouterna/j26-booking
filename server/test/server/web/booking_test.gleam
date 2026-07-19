@@ -44,25 +44,27 @@ pub fn self_booking_managed_by_owner_test() {
   assert !booking.may_manage(a_user(other_id(), []), booking)
 }
 
-/// bookings:others:create does NOT grant managing other users' self-bookings.
-pub fn self_booking_not_managed_by_role_holder_test() {
+/// bookings:others:create grants managing other users' self-bookings too;
+/// a role-less non-owner still may not.
+pub fn self_booking_managed_by_role_holder_test() {
   let booking = a_booking(owner_id(), False)
-  assert !booking.may_manage(
+  assert booking.may_manage(
     a_user(other_id(), [web.BookingsOthersCreate]),
     booking,
   )
+  assert !booking.may_manage(a_user(other_id(), []), booking)
 }
 
-/// On-behalf bookings are team-managed: any bookings:others:create holder may
-/// manage them — including ones created by someone else — but a user without
-/// the role may not manage even their own.
+/// On-behalf bookings are managed by any bookings:others:create holder —
+/// including ones created by someone else — and by their owner even without
+/// the role (they created it while holding it; ownership is enough).
 pub fn for_other_booking_managed_by_any_role_holder_test() {
   let booking = a_booking(owner_id(), True)
   assert booking.may_manage(
     a_user(other_id(), [web.BookingsOthersCreate]),
     booking,
   )
-  assert !booking.may_manage(a_user(owner_id(), []), booking)
+  assert booking.may_manage(a_user(owner_id(), []), booking)
 }
 
 /// Admin overrides both rules.

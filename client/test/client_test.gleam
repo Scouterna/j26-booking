@@ -1070,6 +1070,59 @@ pub fn unbook_card_confirms_then_submits_test() {
     next.page
 }
 
+/// Plan 17: the same edit flow works for another user's plain *self*-booking
+/// — the manage gate no longer depends on `booked_for_other`.
+pub fn edit_self_booking_card_opens_drawer_and_submits_test() {
+  let booking = a_booking(id_b(), id_a())
+  let model_ =
+    client.Model(
+      ..base_model(),
+      page: client.ActivityBookingsPage(
+        id_a(),
+        client.Loaded([booking]),
+        client.BookingClosed,
+      ),
+    )
+  let #(opened, _) =
+    client.update(model_, client.UserClickedEditBookingCard(booking))
+  let assert client.ActivityBookingsPage(_, _, client.BookingOpen(_, _, mode)) =
+    opened.page
+  assert mode == client.BookingEdit(id_b())
+  let fields =
+    client.BookingFormFields(
+      group_free_text: "",
+      responsible_name: "Ada",
+      phone_number: "0700000000",
+      participant_count: 3,
+    )
+  let #(next, _) =
+    client.update(opened, client.UserSubmittedBookingForm(Ok(fields)))
+  let assert client.ActivityBookingsPage(_, _, client.BookingSubmitting(_)) =
+    next.page
+}
+
+/// Plan 17: unbooking another user's self-booking from its card works too.
+pub fn unbook_self_booking_card_confirms_then_submits_test() {
+  let booking = a_booking(id_b(), id_a())
+  let model_ =
+    client.Model(
+      ..base_model(),
+      page: client.ActivityBookingsPage(
+        id_a(),
+        client.Loaded([booking]),
+        client.BookingClosed,
+      ),
+    )
+  let #(confirming, _) =
+    client.update(model_, client.UserClickedUnbookCard(id_b()))
+  let assert client.ActivityBookingsPage(_, _, client.UnbookConfirming(id)) =
+    confirming.page
+  assert id == id_b()
+  let #(next, _) = client.update(confirming, client.UserClickedConfirmUnbook)
+  let assert client.ActivityBookingsPage(_, _, client.UnbookSubmitting(_)) =
+    next.page
+}
+
 // UPDATE: bookings list fetch --------------------------------------------------
 
 pub fn returned_bookings_land_on_matching_page_test() {

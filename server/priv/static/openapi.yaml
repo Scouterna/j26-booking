@@ -742,10 +742,9 @@ paths:
         Update an existing booking. Only mutable fields (group_free_text,
         responsible_name, phone_number, participant_count) can be changed.
 
-        Authorization follows the booking's `booked_for_other` flag: an
-        on-behalf booking is team-managed and editable by any
-        `bookings:others:create` holder; a self-booking only by its owner.
-        `admin` overrides both. Otherwise the request is rejected with 403.
+        A booking is editable by its owner or by any `bookings:others:create`
+        holder (`admin` implies the role); otherwise the request is rejected
+        with 403. The `booked_for_other` flag does not affect authorization.
       operationId: updateBooking
       security:
         - bearerAuth: []
@@ -799,10 +798,9 @@ paths:
         - Bookings
       summary: Delete booking
       description: |
-        Delete a booking by its ID. Authorization matches update: an on-behalf
-        booking (`booked_for_other`) may be deleted by any
-        `bookings:others:create` holder, a self-booking only by its owner, and
-        `admin` overrides both — 403 otherwise.
+        Delete a booking by its ID. Authorization matches update: deletable by
+        the booking's owner or by any `bookings:others:create` holder (`admin`
+        implies the role) — 403 otherwise.
       operationId: deleteBooking
       security:
         - bearerAuth: []

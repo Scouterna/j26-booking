@@ -450,7 +450,7 @@ pub fn self_booking_of(status: ActivityStatus) -> Option(Booking) {
 
 /// Swap a booking (matched by id) inside my `Booked` list for an activity.
 /// Untouched when I don't hold the booking — an edit made from the bookings
-/// page may target another user's on-behalf booking.
+/// page may target another user's booking.
 fn replace_status_booking(
   statuses: Dict(Uuid, ActivityStatus),
   booking: Booking,
@@ -847,8 +847,8 @@ pub type Page {
   /// list is per-route state; the activity header (title/time/spots) reads from
   /// the shared `details` + `spots` caches, so it can't drift from the summary.
   /// `booking_form` is the page's own booking drawer (edit) / unbook-confirm
-  /// state, so `bookings:others:create` holders can manage on-behalf bookings
-  /// from the list without navigating away.
+  /// state, so `bookings:others:create` holders can manage any booking on
+  /// the list without navigating away.
   ActivityBookingsPage(
     id: Uuid,
     bookings: RemoteData(List(Booking)),
@@ -1814,7 +1814,7 @@ pub type Msg {
   UserSearchedBookingGroup(String)
   UserOpenedBookingGroupDropdown
   UserClosedBookingGroupDropdown
-  // Bookings page: manage an on-behalf booking straight from its card
+  // Bookings page: manage a booking straight from its card
   UserClickedEditBookingCard(Booking)
   UserClickedUnbookCard(Uuid)
   // Recurring-activity booking overview (Badbuss / Klättervägg)
@@ -2582,9 +2582,9 @@ pub fn update(model: Model, msg: Msg) -> #(Model, Effect(Msg)) {
       effect.none(),
     )
 
-    // Bookings page: open the drawer to edit an on-behalf booking straight
-    // from its card. The cap's add-back comes from the card's own booking —
-    // it may be another user's, so my statuses can't supply it.
+    // Bookings page: open the drawer to edit a booking straight from its
+    // card. The cap's add-back comes from the card's own booking — it may be
+    // another user's, so my statuses can't supply it.
     UserClickedEditBookingCard(booking) ->
       case model.page {
         ActivityBookingsPage(id, _, _) -> {
@@ -2970,8 +2970,8 @@ pub fn update(model: Model, msg: Msg) -> #(Model, Effect(Msg)) {
 
     ApiUpdatedBooking(Ok(booking)) -> {
       // Swap the booking in my statuses where present. An edit made from the
-      // bookings page may target another user's on-behalf booking, which
-      // isn't in my statuses at all — leave them untouched then.
+      // bookings page may target another user's booking, which isn't in my
+      // statuses at all — leave them untouched then.
       let statuses = replace_status_booking(model.statuses, booking)
       let model = set_page_booking_form(model, BookingClosed)
       // The bookings page shows the live list, so refetch it after an edit.
@@ -3014,8 +3014,8 @@ pub fn update(model: Model, msg: Msg) -> #(Model, Effect(Msg)) {
     ApiDeletedBooking(activity_id, booking_id, Ok(_)) -> {
       // Drop the booking from my statuses if I hold it; my last one going
       // downgrades to Favourited (unbooking keeps the favourite server-side).
-      // Deleting another user's on-behalf booking from the bookings page
-      // leaves my statuses untouched.
+      // Deleting another user's booking from the bookings page leaves my
+      // statuses untouched.
       let statuses =
         remove_status_booking(model.statuses, activity_id, booking_id)
       let model = set_page_booking_form(model, BookingClosed)
@@ -4807,6 +4807,7 @@ fn view_activity_detail_loaded(
           activity.max_attendees,
           spots_booked,
           bookings_of(status),
+          False,
           self_booking_of(status) != None,
           booker,
           can_book_others,
@@ -5165,6 +5166,11 @@ fn view_booking_form_section(
   // The bookings an edit's cap add-back is looked up in: the user's own
   // bookings on the detail page, the fetched list on the bookings page.
   bookings_in_scope: List(Booking),
+  // On the bookings page (True) an edit shows the booking's stored identity
+  // (kår + booked-by, read-only); the detail page (False) keeps the editor's
+  // own Scoutnet identity. An explicit flag because the client deliberately
+  // has no own-user id to compare against.
+  show_stored_identity_on_edit: Bool,
   // Locks a new booking to "åt någon annan": a second self-booking is never
   // offered. Only meaningful with `can_book_others`.
   has_self_booking: Bool,
@@ -5190,16 +5196,16 @@ fn view_booking_form_section(
         |> form.run
         |> UserSubmittedBookingForm
       }
-      // When editing an on-behalf booking, the identity block shows the kår
-      // it was booked for and who made it (read-only) — showing the editor's
-      // own Scoutnet identity there would wrongly suggest it gets stored.
-      let edited_for_other = case mode {
-        BookingEdit(booking_id) ->
-          case list.find(bookings_in_scope, fn(b) { b.id == booking_id }) {
-            Ok(b) if b.booked_for_other -> Some(b)
-            _ -> None
-          }
-        BookingNew -> None
+      // When editing from the bookings page, the identity block shows the
+      // booking's stored kår and who made it (read-only) — showing the
+      // editor's own Scoutnet identity there would wrongly suggest it gets
+      // stored. Detail-page edits (always the user's own self-booking) keep
+      // the editor's own identity.
+      let edited_booking = case mode, show_stored_identity_on_edit {
+        BookingEdit(booking_id), True ->
+          list.find(bookings_in_scope, fn(b) { b.id == booking_id })
+          |> option.from_result
+        BookingEdit(_), False | BookingNew, _ -> None
       }
       // Who the booking is for. Only a *new* booking by a user who may book
       // for others gets the "åt dig själv / åt någon annan" toggle (issue
@@ -5239,8 +5245,8 @@ fn view_booking_form_section(
             ]
           }
         _, _ ->
-          case edited_for_other {
-            Some(edited) -> [view_edited_for_other_identity(translator, edited)]
+          case edited_booking {
+            Some(edited) -> [view_edited_booking_identity(translator, edited)]
             None -> [view_booker_identity(translator, booker)]
           }
       }
@@ -5341,17 +5347,22 @@ fn view_book_for_other(
   ])
 }
 
-/// The identity block when editing an on-behalf booking: the kår it was
-/// booked for and who made it, read-only — the edit can change neither.
-fn view_edited_for_other_identity(
+/// The identity block when editing a booking from the bookings page: the kår
+/// it was booked for (skipped when the booking has none) and who made it,
+/// read-only — the edit can change neither.
+fn view_edited_booking_identity(
   translator: Translator,
   booking: Booking,
 ) -> Element(Msg) {
   html.div([attribute.class("flex flex-col gap-2")], [
-    component.scout_readonly_field(
-      g18n.translate(translator, "booking.group_label"),
-      option.unwrap(booking.booker_group_name, ""),
-    ),
+    case booking.booker_group_name {
+      Some(group_name) ->
+        component.scout_readonly_field(
+          g18n.translate(translator, "booking.group_label"),
+          group_name,
+        )
+      None -> element.none()
+    },
     component.scout_readonly_field(
       g18n.translate(translator, "booking.booked_by_label"),
       booking.booker_name,
@@ -5588,7 +5599,7 @@ fn view_activity_bookings(
   spots_booked: Option(Int),
   bookings: RemoteData(List(Booking)),
   booking_form: BookingFormState,
-  can_manage_for_other: Bool,
+  can_manage_bookings: Bool,
   booker: BookerIdentity,
   booking_ui: BookingUi,
   scout_groups: RemoteData(List(ScoutGroup)),
@@ -5604,8 +5615,8 @@ fn view_activity_bookings(
   }
   html.div([attribute.class("flex flex-col p-3 gap-4")], [
     // The same booking drawer as the detail page, hosting the edit form for
-    // on-behalf bookings managed straight from their cards. Only ever opens
-    // in edit mode here, so the for-other toggle never shows.
+    // bookings managed straight from their cards. Only ever opens in edit
+    // mode here, so the for-other toggle never shows.
     component.scout_drawer(
       case booking_form {
         BookingOpen(_, _, _) | BookingSubmitting(_) -> True
@@ -5620,6 +5631,7 @@ fn view_activity_bookings(
           max_attendees,
           spots_booked,
           loaded_bookings,
+          True,
           False,
           booker,
           False,
@@ -5653,10 +5665,10 @@ fn view_activity_bookings(
                 view_booking_card(
                   translator,
                   booking,
-                  // On-behalf bookings are team-managed: any
-                  // bookings:others:create holder may edit them, matching the
-                  // server's manage rule. Self-bookings stay view-only here.
-                  can_manage_for_other && booking.booked_for_other,
+                  // Any bookings:others:create holder manages every booking
+                  // on the list — including other users' self-bookings —
+                  // matching the server's manage rule.
+                  can_manage_bookings,
                   booking_form,
                 ),
               )
@@ -6001,22 +6013,33 @@ fn view_booking_card(
             [element.text(booking.phone_number)],
           ),
           // On-behalf bookings carry who actually made them — the group
-          // fields name the kår booked for, not the booker.
-          case booking.booked_for_other {
-            True ->
-              html.p([attribute.class("text-body-sm text-gray-500 italic")], [
-                element.text(
-                  g18n.translate(translator, "bookings.for_other_badge")
-                  <> " · "
-                  <> g18n.translate_with_params(
-                    translator,
-                    "bookings.booked_by",
-                    g18n.new_format_params()
-                      |> g18n.add_param("name", booking.booker_name),
+          // fields name the kår booked for, not the booker. Self-bookings
+          // name their booker too when the viewer can manage the list, so
+          // staff can tell whose booking each editable card is (read-only
+          // viewers see the same list without the extra line).
+          {
+            let booked_by =
+              g18n.translate_with_params(
+                translator,
+                "bookings.booked_by",
+                g18n.new_format_params()
+                  |> g18n.add_param("name", booking.booker_name),
+              )
+            case booking.booked_for_other, manageable {
+              True, _ ->
+                html.p([attribute.class("text-body-sm text-gray-500 italic")], [
+                  element.text(
+                    g18n.translate(translator, "bookings.for_other_badge")
+                    <> " · "
+                    <> booked_by,
                   ),
-                ),
-              ])
-            False -> element.none()
+                ])
+              False, True ->
+                html.p([attribute.class("text-body-sm text-gray-500 italic")], [
+                  element.text(booked_by),
+                ])
+              False, False -> element.none()
+            }
           },
           view_booking_card_actions(
             translator,
@@ -6030,7 +6053,7 @@ fn view_booking_card(
   )
 }
 
-/// The manage row on a bookings-page card: edit + unbook for on-behalf
+/// The manage row on a bookings-page card: edit + unbook for manageable
 /// bookings, swapping to an in-place confirm (and then a loader) while this
 /// card's unbook is pending. Nothing for view-only cards.
 fn view_booking_card_actions(
