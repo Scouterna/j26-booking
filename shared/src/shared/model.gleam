@@ -464,6 +464,11 @@ pub type Booking {
     /// `bookings:others:create`): `booker_name`/`user_id` are the person who
     /// booked, `booker_group_*` the kår booked for.
     booked_for_other: Bool,
+    /// `Some(reason)` when a `bookings:others:create` holder has soft-cancelled
+    /// the booking — the reason both the booker and the staff see. A cancelled
+    /// booking frees its spots and blocks the booker from re-booking the
+    /// activity until it is restored or hard-deleted. `None` = active.
+    cancellation: Option(String),
   )
 }
 
@@ -493,6 +498,11 @@ pub fn booking_decoder() -> decode.Decoder(Booking) {
     False,
     decode.bool,
   )
+  use cancellation <- decode.optional_field(
+    "cancellation",
+    None,
+    decode.optional(decode.string),
+  )
   case
     uuid.from_string(id_str),
     uuid.from_string(user_id_str),
@@ -511,6 +521,7 @@ pub fn booking_decoder() -> decode.Decoder(Booking) {
         phone_number:,
         participant_count:,
         booked_for_other:,
+        cancellation:,
       ))
     _, _, _ -> {
       let dummy =
@@ -526,6 +537,7 @@ pub fn booking_decoder() -> decode.Decoder(Booking) {
           phone_number:,
           participant_count:,
           booked_for_other:,
+          cancellation:,
         )
       decode.failure(dummy, "valid UUID strings for id, user_id, activity_id")
     }

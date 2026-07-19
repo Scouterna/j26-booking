@@ -138,6 +138,19 @@ fn english_translations() -> g18n.Translations {
   |> g18n.add_translation("booking.change", "Change booking")
   |> g18n.add_translation("booking.unbook", "Cancel booking")
   |> g18n.add_translation("booking.confirm_unbook", "Yes, cancel")
+  |> g18n.add_translation("booking.cancelled_badge", "Cancelled")
+  |> g18n.add_translation("booking.cancel_heading", "Cancel booking")
+  |> g18n.add_translation("booking.cancel_reason", "Reason")
+  |> g18n.add_translation("booking.confirm_cancel_booking", "Cancel booking")
+  |> g18n.add_translation("booking.cancelling", "Cancelling booking...")
+  |> g18n.add_translation("booking.remove", "Remove")
+  |> g18n.add_translation("booking.confirm_remove", "Yes, remove")
+  |> g18n.add_translation("booking.restore", "Restore")
+  |> g18n.add_translation("booking.confirm_restore", "Yes, restore")
+  |> g18n.add_translation(
+    "booking.cancelled_notice",
+    "Booking cancelled by staff",
+  )
   |> g18n.add_translation("bookings.heading", "Bookings")
   |> g18n.add_translation("bookings.loading", "Loading bookings...")
   |> g18n.add_translation("bookings.empty", "No bookings yet.")
@@ -193,6 +206,8 @@ fn english_translations() -> g18n.Translations {
   |> g18n.add_translation("error.delete_activity", "Failed to delete activity")
   |> g18n.add_translation("error.create_booking", "Failed to create booking")
   |> g18n.add_translation("error.update_booking", "Failed to update booking")
+  |> g18n.add_translation("error.cancel_booking", "Failed to cancel booking")
+  |> g18n.add_translation("error.restore_booking", "Failed to restore booking")
   |> g18n.add_translation("error.load_bookings", "Failed to load bookings")
   |> g18n.add_translation(
     "error.booking_group_required",
@@ -303,6 +318,19 @@ fn swedish_translations() -> g18n.Translations {
   |> g18n.add_translation("booking.change", "Ändra bokning")
   |> g18n.add_translation("booking.unbook", "Avboka")
   |> g18n.add_translation("booking.confirm_unbook", "Ja, avboka")
+  |> g18n.add_translation("booking.cancelled_badge", "Avbokad")
+  |> g18n.add_translation("booking.cancel_heading", "Avboka bokning")
+  |> g18n.add_translation("booking.cancel_reason", "Anledning")
+  |> g18n.add_translation("booking.confirm_cancel_booking", "Avboka")
+  |> g18n.add_translation("booking.cancelling", "Avbokar bokning...")
+  |> g18n.add_translation("booking.remove", "Ta bort")
+  |> g18n.add_translation("booking.confirm_remove", "Ja, ta bort")
+  |> g18n.add_translation("booking.restore", "Återställ")
+  |> g18n.add_translation("booking.confirm_restore", "Ja, återställ")
+  |> g18n.add_translation(
+    "booking.cancelled_notice",
+    "Bokningen är avbokad av funktionär",
+  )
   |> g18n.add_translation("bookings.heading", "Bokningar")
   |> g18n.add_translation("bookings.loading", "Laddar bokningar...")
   |> g18n.add_translation("bookings.empty", "Inga bokningar än.")
@@ -366,6 +394,11 @@ fn swedish_translations() -> g18n.Translations {
     "Kunde inte ta bort aktiviteten",
   )
   |> g18n.add_translation("error.create_booking", "Kunde inte skapa bokningen")
+  |> g18n.add_translation("error.cancel_booking", "Kunde inte avboka bokningen")
+  |> g18n.add_translation(
+    "error.restore_booking",
+    "Kunde inte återställa bokningen",
+  )
   |> g18n.add_translation(
     "error.update_booking",
     "Kunde inte uppdatera bokningen",
@@ -453,13 +486,34 @@ pub fn bookings_of(status: ActivityStatus) -> List(Booking) {
   }
 }
 
+/// Whether the user holds at least one *active* (not cancelled) booking on
+/// the activity. Drives the green "Bokad" chip and the booked detail-page
+/// actions; a status whose bookings are all cancelled is not "booked" in
+/// that sense — it shows the red "Avbokad" chip instead (issue #43).
+pub fn has_active_booking(status: ActivityStatus) -> Bool {
+  bookings_of(status)
+  |> list.any(fn(booking) { booking.cancellation == None })
+}
+
+/// The user's cancelled bookings on the activity ([] when none). Each carries
+/// the reason staff gave — the detail page surfaces it in a warning callout,
+/// and any cancelled booking blocks re-booking until staff restores or
+/// removes it (issue #43).
+pub fn cancelled_bookings_of(status: ActivityStatus) -> List(Booking) {
+  bookings_of(status)
+  |> list.filter(fn(booking) { booking.cancellation != None })
+}
+
 /// The user's self-booking (booked for their own group), if any. This is the
 /// booking the detail page's "Ändra bokning"/"Avboka" act on; on-behalf
 /// bookings are managed from the bookings page instead. At most one exists —
-/// the client never offers a second self-booking.
+/// the client never offers a second self-booking. Cancelled bookings don't
+/// count: they are managed from the bookings page (restore/remove) only.
 pub fn self_booking_of(status: ActivityStatus) -> Option(Booking) {
   bookings_of(status)
-  |> list.find(fn(booking) { !booking.booked_for_other })
+  |> list.find(fn(booking) {
+    !booking.booked_for_other && booking.cancellation == None
+  })
   |> option.from_result
 }
 
@@ -585,6 +639,19 @@ pub type BookingFormState {
   BookingSubmitting(mode: BookingMode)
   UnbookConfirming(booking_id: Uuid)
   UnbookSubmitting(booking_id: Uuid)
+  /// The bookings-page cancel drawer (issue #43): staff is typing the reason
+  /// the booking is cancelled with. Submit is disabled while the trimmed
+  /// reason is empty; a failed submit reopens this state with the typed
+  /// reason kept and the error shown.
+  CancelReasonEditing(
+    booking_id: Uuid,
+    reason: String,
+    submit_error: Option(AppError),
+  )
+  CancelSubmitting(booking_id: Uuid, reason: String)
+  /// In-place card confirm for restoring a cancelled booking to active.
+  RestoreConfirming(booking_id: Uuid)
+  RestoreSubmitting(booking_id: Uuid)
 }
 
 /// Who a new booking is for, chosen with the segmented control at the top of
@@ -668,6 +735,8 @@ pub type AppError {
   DeleteActivityFailed
   CreateBookingFailed
   UpdateBookingFailed
+  CancelBookingFailed
+  RestoreBookingFailed
   BookingCapacityExceeded
   /// Submitted a book-for-other booking without picking a kår.
   BookingGroupRequired
@@ -685,6 +754,8 @@ fn app_error_key(error: AppError) -> String {
     DeleteActivityFailed -> "error.delete_activity"
     CreateBookingFailed -> "error.create_booking"
     UpdateBookingFailed -> "error.update_booking"
+    CancelBookingFailed -> "error.cancel_booking"
+    RestoreBookingFailed -> "error.restore_booking"
     BookingCapacityExceeded -> "error.booking_full"
     BookingGroupRequired -> "error.booking_group_required"
     LoadBookingsFailed -> "error.load_bookings"
@@ -1947,6 +2018,8 @@ pub type Msg {
   ApiCreatedBooking(Result(Booking, rsvp.Error))
   ApiUpdatedBooking(Result(Booking, rsvp.Error))
   ApiDeletedBooking(Uuid, Uuid, Result(Nil, rsvp.Error))
+  ApiCancelledBooking(Uuid, Result(Booking, rsvp.Error))
+  ApiRestoredBooking(Uuid, Result(Booking, rsvp.Error))
   ApiReturnedBookings(Uuid, Result(List(Booking), rsvp.Error))
   ApiToggledFavourite(Uuid, Bool, Result(Nil, rsvp.Error))
   // Form submissions
@@ -1993,6 +2066,11 @@ pub type Msg {
   // Bookings page: manage a booking straight from its card
   UserClickedEditBookingCard(Booking)
   UserClickedUnbookCard(Uuid)
+  UserClickedCancelBookingCard(Uuid)
+  UserEditedCancelReason(String)
+  UserClickedConfirmCancelBooking
+  UserClickedRestoreBookingCard(Uuid)
+  UserClickedConfirmRestore
   // Recurring-activity booking overview (Badbuss / Klättervägg)
   ApiReturnedRecurringBookings(RecurringKey, RecurringResult)
   UserSelectedOverviewDay(Option(calendar.Date))
@@ -2834,6 +2912,67 @@ pub fn update(model: Model, msg: Msg) -> #(Model, Effect(Msg)) {
         _ -> #(model, effect.none())
       }
 
+    // Bookings page: open the cancel-reason drawer for a card's booking
+    // (issue #43).
+    UserClickedCancelBookingCard(booking_id) ->
+      case model.page {
+        ActivityBookingsPage(_, _, _) -> #(
+          set_page_booking_form(
+            model,
+            CancelReasonEditing(booking_id, "", None),
+          ),
+          effect.none(),
+        )
+        _ -> #(model, effect.none())
+      }
+
+    UserEditedCancelReason(reason) ->
+      case page_booking_form(model.page) {
+        Ok(#(_, CancelReasonEditing(booking_id, _, submit_error))) -> #(
+          set_page_booking_form(
+            model,
+            CancelReasonEditing(booking_id, reason, submit_error),
+          ),
+          effect.none(),
+        )
+        _ -> #(model, effect.none())
+      }
+
+    UserClickedConfirmCancelBooking ->
+      case page_booking_form(model.page) {
+        Ok(#(id, CancelReasonEditing(booking_id, reason, _))) ->
+          // The drawer disables submit on an empty trimmed reason; this guard
+          // is the update-side mirror of that rule.
+          case string.trim(reason) {
+            "" -> #(model, effect.none())
+            reason -> #(
+              set_page_booking_form(model, CancelSubmitting(booking_id, reason)),
+              cancel_booking(id, booking_id, reason),
+            )
+          }
+        _ -> #(model, effect.none())
+      }
+
+    // Bookings page: ask for confirmation before restoring a cancelled
+    // booking (issue #43).
+    UserClickedRestoreBookingCard(booking_id) ->
+      case model.page {
+        ActivityBookingsPage(_, _, _) -> #(
+          set_page_booking_form(model, RestoreConfirming(booking_id)),
+          effect.none(),
+        )
+        _ -> #(model, effect.none())
+      }
+
+    UserClickedConfirmRestore ->
+      case page_booking_form(model.page) {
+        Ok(#(id, RestoreConfirming(booking_id))) -> #(
+          set_page_booking_form(model, RestoreSubmitting(booking_id)),
+          restore_booking(id, booking_id),
+        )
+        _ -> #(model, effect.none())
+      }
+
     // Overview data arrived. Stored by key in the cache (like activity windows)
     // regardless of the open page, so a response for a day the user has since
     // left still populates its cache. `RecurringUnchanged` (a 304) keeps what's
@@ -2966,12 +3105,16 @@ pub fn update(model: Model, msg: Msg) -> #(Model, Effect(Msg)) {
               // bookings:others:create holder can keep stacking on-behalf
               // bookings — the form stays reachable, locked to "åt någon
               // annan" so no second self-booking can be created.
-              let has_self_booking =
-                self_booking_of(status_of(model.statuses, id)) != None
-              case
-                has_self_booking && !can_book_others(model),
-                activity.max_attendees
-              {
+              let status = status_of(model.statuses, id)
+              let has_self_booking = self_booking_of(status) != None
+              // A cancelled booking blocks re-booking until staff restores or
+              // removes it (issue #43) — the Boka button is hidden then, so
+              // ignore stray clicks too. The server enforces the same rule.
+              let blocked =
+                cancelled_bookings_of(status) != []
+                || has_self_booking
+                && !can_book_others(model)
+              case blocked, activity.max_attendees {
                 True, _ -> #(model, effect.none())
                 False, Some(_) ->
                   case booking_cap_for(model, id, BookingNew) {
@@ -3248,6 +3391,46 @@ pub fn update(model: Model, msg: Msg) -> #(Model, Effect(Msg)) {
     }
 
     ApiDeletedBooking(_, _, Error(_)) -> #(
+      set_page_booking_form(model, BookingClosed),
+      effect.none(),
+    )
+
+    // A cancel/restore changed the booking's status and its spots (a
+    // cancelled booking stops occupying capacity, a restored one takes it
+    // back), so both refresh the spots and — when still on the bookings page
+    // — the live list, mirroring ApiUpdatedBooking.
+    ApiCancelledBooking(activity_id, Ok(booking))
+    | ApiRestoredBooking(activity_id, Ok(booking)) -> {
+      // Swap the booking in my statuses where present: cancelling my own
+      // booking flips my chip to Avbokad, restoring it back to Bokad.
+      let statuses = replace_status_booking(model.statuses, booking)
+      let model = set_page_booking_form(model, BookingClosed)
+      let refetch = case model.page {
+        ActivityBookingsPage(id, _, _) if id == activity_id ->
+          fetch_bookings(id)
+        _ -> effect.none()
+      }
+      #(
+        Model(..model, statuses:),
+        effect.batch([fetch_activity_spots(activity_id), refetch]),
+      )
+    }
+
+    // A failed cancel reopens the drawer with the typed reason kept and the
+    // error shown, so the text isn't lost to a flaky network.
+    ApiCancelledBooking(_, Error(_)) ->
+      case page_booking_form(model.page) {
+        Ok(#(_, CancelSubmitting(booking_id, reason))) -> #(
+          set_page_booking_form(
+            model,
+            CancelReasonEditing(booking_id, reason, Some(CancelBookingFailed)),
+          ),
+          effect.none(),
+        )
+        _ -> #(model, effect.none())
+      }
+
+    ApiRestoredBooking(_, Error(_)) -> #(
       set_page_booking_form(model, BookingClosed),
       effect.none(),
     )
@@ -3683,6 +3866,34 @@ fn delete_booking(activity_id: Uuid, booking_id: Uuid) -> Effect(Msg) {
         Ok(_) -> ApiDeletedBooking(activity_id, booking_id, Ok(Nil))
         Error(err) -> ApiDeletedBooking(activity_id, booking_id, Error(err))
       }
+    }),
+  )
+}
+
+/// POST the soft-cancel (issue #43). Requires `bookings:others:create`
+/// server-side; the reason is what both the booker and staff see afterwards.
+fn cancel_booking(
+  activity_id: Uuid,
+  booking_id: Uuid,
+  reason: String,
+) -> Effect(Msg) {
+  rsvp.post(
+    api_prefix <> "/api/bookings/" <> uuid.to_string(booking_id) <> "/cancel",
+    json.object([#("reason", json.string(reason))]),
+    rsvp.expect_json(model.booking_decoder(), fn(result) {
+      ApiCancelledBooking(activity_id, result)
+    }),
+  )
+}
+
+/// POST the restore of a cancelled booking (issue #43). The server re-checks
+/// capacity — the booking occupies spots again.
+fn restore_booking(activity_id: Uuid, booking_id: Uuid) -> Effect(Msg) {
+  rsvp.post(
+    api_prefix <> "/api/bookings/" <> uuid.to_string(booking_id) <> "/restore",
+    json.null(),
+    rsvp.expect_json(model.booking_decoder(), fn(result) {
+      ApiRestoredBooking(activity_id, result)
     }),
   )
 }
@@ -4607,15 +4818,22 @@ fn card_status(
   summary: ActivitySummary,
   status: ActivityStatus,
 ) -> component.CardStatus {
-  case is_booked(status), summary.max_attendees {
-    True, _ ->
+  case is_booked(status), has_active_booking(status), summary.max_attendees {
+    True, True, _ ->
       component.StatusBooked(g18n.translate(translator, "activity.booked"))
-    False, Some(_) ->
+    // Every booking on the activity is cancelled (issue #43): the red
+    // Avbokad chip replaces Bokad so the booker spots it in the list.
+    True, False, _ ->
+      component.StatusCancelled(g18n.translate(
+        translator,
+        "booking.cancelled_badge",
+      ))
+    False, _, Some(_) ->
       component.StatusNeedsBooking(g18n.translate(
         translator,
         "activity.needs_booking",
       ))
-    False, None -> component.StatusNone
+    False, _, None -> component.StatusNone
   }
 }
 
@@ -5064,16 +5282,15 @@ fn view_activity_detail_loaded(
   let heart_btn =
     component.heart_button(
       is_favourited(status),
-      is_booked(status),
+      // Only an *active* booking locks the heart — a user whose booking was
+      // cancelled may still unfavourite the activity.
+      has_active_booking(status),
       UserToggledFavourite(activity.id),
       False,
     )
   html.div([attribute.class("flex flex-col")], [
     component.scout_drawer(
-      case booking {
-        BookingOpen(_, _, _) | BookingSubmitting(_) -> True
-        BookingClosed | UnbookConfirming(_) | UnbookSubmitting(_) -> False
-      },
+      booking_drawer_open(booking),
       booking_drawer_heading(translator, booking),
       UserClickedCancelBooking,
       [
@@ -5158,6 +5375,7 @@ fn view_activity_detail_loaded(
                   translator,
                   activity,
                   self_booking_of(status) != None,
+                  cancelled_bookings_of(status) != [],
                   booking,
                   spots_booked,
                   can_book_others,
@@ -5232,6 +5450,16 @@ fn view_activity_detail_loaded(
             },
           ],
         ),
+        // Cancelled-booking notice (issue #43): staff removed the user's
+        // booking — surface the reason they gave right above the description.
+        element.fragment(
+          list.map(cancelled_bookings_of(status), fn(cancelled) {
+            component.warning_banner(
+              g18n.translate(translator, "booking.cancelled_notice"),
+              option.unwrap(cancelled.cancellation, ""),
+            )
+          }),
+        ),
         html.div([], [
           html.p([attribute.class("text-body-m")], [
             element.text(localized(translator, activity.description)),
@@ -5274,8 +5502,26 @@ fn view_detail_chips(
   }
 }
 
+/// Whether the booking drawer is open: it hosts the create/edit form and the
+/// cancel-reason form (issue #43); the in-place card confirms (unbook,
+/// restore) keep it closed.
+fn booking_drawer_open(booking: BookingFormState) -> Bool {
+  case booking {
+    BookingOpen(_, _, _)
+    | BookingSubmitting(_)
+    | CancelReasonEditing(_, _, _)
+    | CancelSubmitting(_, _) -> True
+    BookingClosed
+    | UnbookConfirming(_)
+    | UnbookSubmitting(_)
+    | RestoreConfirming(_)
+    | RestoreSubmitting(_) -> False
+  }
+}
+
 /// Heading for the booking drawer, based on whether the user is creating a
-/// new booking or changing an existing one. Empty when the drawer is closed.
+/// new booking, changing an existing one, or cancelling one with a reason.
+/// Empty when the drawer is closed.
 fn booking_drawer_heading(
   translator: Translator,
   booking: BookingFormState,
@@ -5285,8 +5531,69 @@ fn booking_drawer_heading(
       g18n.translate(translator, "activity.book")
     BookingOpen(_, _, BookingEdit(_)) | BookingSubmitting(BookingEdit(_)) ->
       g18n.translate(translator, "booking.change")
-    BookingClosed | UnbookConfirming(_) | UnbookSubmitting(_) -> ""
+    CancelReasonEditing(_, _, _) | CancelSubmitting(_, _) ->
+      g18n.translate(translator, "booking.cancel_heading")
+    BookingClosed
+    | UnbookConfirming(_)
+    | UnbookSubmitting(_)
+    | RestoreConfirming(_)
+    | RestoreSubmitting(_) -> ""
   }
+}
+
+/// The cancel drawer's body (issue #43): the reason textarea and the
+/// Avbryt/Avboka pair. Submit stays disabled until a non-empty reason is
+/// typed (mirroring the server's 400 on an empty one); a failed submit shows
+/// the error above the field with the typed reason kept.
+fn view_cancel_reason_form(
+  translator: Translator,
+  reason: String,
+  submit_error: Option(AppError),
+) -> Element(Msg) {
+  let t = fn(key) { g18n.translate(translator, key) }
+  html.div([attribute.class("flex flex-col gap-4")], [
+    case submit_error {
+      Some(error) ->
+        component.error_banner(t("error.heading"), t(app_error_key(error)))
+      None -> element.none()
+    },
+    component.scout_field(
+      t("booking.cancel_reason"),
+      element.element(
+        "scout-text-area",
+        [
+          attribute.attribute("name", "cancel-reason"),
+          attribute.attribute("rows", "3"),
+          attribute.attribute("value", reason),
+          event.on("scoutInputChange", {
+            use value <- decode.subfield(["detail", "value"], decode.string)
+            decode.success(UserEditedCancelReason(value))
+          }),
+        ],
+        [],
+      ),
+    ),
+    html.div([attribute.class("flex gap-2 justify-end")], [
+      component.scout_button_action(
+        t("booking.cancel"),
+        component.ButtonOutlined,
+        UserClickedCancelBooking,
+      ),
+      case string.trim(reason) {
+        "" ->
+          component.scout_button_disabled(
+            t("booking.confirm_cancel_booking"),
+            component.ButtonDanger,
+          )
+        _ ->
+          component.scout_button_action(
+            t("booking.confirm_cancel_booking"),
+            component.ButtonDanger,
+            UserClickedConfirmCancelBooking,
+          )
+      },
+    ]),
+  ])
 }
 
 /// Splits the detail-page actions into a `#(primary, secondary)` pair so the
@@ -5296,6 +5603,10 @@ fn view_detail_actions(
   translator: Translator,
   activity: Activity,
   self_booked: Bool,
+  // The user has a cancelled booking here (issue #43): booking again is
+  // blocked until staff restores or removes it, so no "Boka" is offered —
+  // the cancelled-booking callout explains why.
+  has_cancelled: Bool,
   booking: BookingFormState,
   spots_booked: Option(Int),
   can_book_others: Bool,
@@ -5349,12 +5660,13 @@ fn view_detail_actions(
       ),
     )
 
-    // Not booked (no self-booking): the "Boka" action. A called-off activity
-    // offers no booking action at all.
+    // Not booked (no active self-booking): the "Boka" action. A called-off
+    // activity offers no booking action at all, and neither does one where
+    // the user's booking was cancelled (issue #43).
     False, _ ->
-      case activity.cancellation {
-        Some(_) -> #(element.none(), element.none())
-        None -> #(
+      case activity.cancellation, has_cancelled {
+        Some(_), _ | None, True -> #(element.none(), element.none())
+        None, False -> #(
           book_action(translator, activity, spots_booked),
           element.none(),
         )
@@ -5500,6 +5812,14 @@ fn view_booking_form_section(
     BookingClosed -> element.none()
     UnbookConfirming(_) -> element.none()
     UnbookSubmitting(_) -> element.none()
+    RestoreConfirming(_) -> element.none()
+    RestoreSubmitting(_) -> element.none()
+    CancelReasonEditing(_, reason, submit_error) ->
+      view_cancel_reason_form(translator, reason, submit_error)
+    CancelSubmitting(_, _) ->
+      html.div([attribute.class("flex justify-center py-4")], [
+        component.scout_loader(g18n.translate(translator, "booking.cancelling")),
+      ])
     BookingSubmitting(_) ->
       html.div([attribute.class("flex justify-center py-4")], [
         component.scout_loader(g18n.translate(translator, "booking.submitting")),
@@ -5935,10 +6255,7 @@ fn view_activity_bookings(
     // bookings managed straight from their cards. Only ever opens in edit
     // mode here, so the for-other toggle never shows.
     component.scout_drawer(
-      case booking_form {
-        BookingOpen(_, _, _) | BookingSubmitting(_) -> True
-        BookingClosed | UnbookConfirming(_) | UnbookSubmitting(_) -> False
-      },
+      booking_drawer_open(booking_form),
       booking_drawer_heading(translator, booking_form),
       UserClickedCancelBooking,
       [
@@ -6295,14 +6612,26 @@ fn view_booking_card(
     [
       component.scout_card([
         html.div([attribute.class("flex flex-col gap-1")], [
-          html.h3(
-            [
-              attribute.class(
-                "text-body-l font-semibold leading-tight break-words",
-              ),
-            ],
-            [element.text(group_title)],
-          ),
+          html.div([attribute.class("flex items-start gap-2")], [
+            html.h3(
+              [
+                attribute.class(
+                  "flex-1 min-w-0 text-body-l font-semibold leading-tight break-words",
+                ),
+              ],
+              [element.text(group_title)],
+            ),
+            // Cancelled bookings keep their card, marked with the red
+            // Avbokad tag (issue #43).
+            case booking.cancellation {
+              Some(_) ->
+                component.badge(
+                  component.BadgeRed,
+                  g18n.translate(translator, "booking.cancelled_badge"),
+                )
+              None -> element.none()
+            },
+          ]),
           // Show the free-text group as a secondary line only when it isn't already
           // the title (i.e. a token group name is present) and it's non-empty.
           case booking.booker_group_name, booking.group_free_text {
@@ -6358,6 +6687,15 @@ fn view_booking_card(
               False, False -> element.none()
             }
           },
+          // The cancel reason, so staff sees why straight on the card (the
+          // booker sees the same reason on the activity's detail page).
+          case booking.cancellation {
+            Some(reason) ->
+              html.p([attribute.class("text-body-sm text-gray-500 italic")], [
+                element.text(reason),
+              ])
+            None -> element.none()
+          },
           view_booking_card_actions(
             translator,
             booking,
@@ -6370,9 +6708,11 @@ fn view_booking_card(
   )
 }
 
-/// The manage row on a bookings-page card: edit + unbook for manageable
-/// bookings, swapping to an in-place confirm (and then a loader) while this
-/// card's unbook is pending. Nothing for view-only cards.
+/// The manage row on a bookings-page card (issue #43): an active booking
+/// offers Ändra / Avboka (soft-cancel with reason, via the drawer) / Ta bort
+/// (hard delete); a cancelled one offers Återställ / Ta bort. Ta bort and
+/// Återställ swap to an in-place confirm (and then a loader) while this
+/// card's action is pending. Nothing for view-only cards.
 fn view_booking_card_actions(
   translator: Translator,
   booking: Booking,
@@ -6389,7 +6729,7 @@ fn view_booking_card_actions(
         UserClickedCancelUnbook,
       ),
       component.scout_button_action(
-        t("booking.confirm_unbook"),
+        t("booking.confirm_remove"),
         component.ButtonDanger,
         UserClickedConfirmUnbook,
       ),
@@ -6397,18 +6737,53 @@ fn view_booking_card_actions(
     UnbookSubmitting(id) if id == booking.id -> [
       component.scout_loader(t("booking.submitting")),
     ]
-    _ -> [
+    RestoreConfirming(id) if id == booking.id -> [
       component.scout_button_action(
-        t("booking.unbook"),
-        component.ButtonDanger,
-        UserClickedUnbookCard(booking.id),
+        t("booking.cancel"),
+        component.ButtonOutlined,
+        UserClickedCancelUnbook,
       ),
       component.scout_button_action(
-        t("booking.change"),
+        t("booking.confirm_restore"),
         component.ButtonPrimary,
-        UserClickedEditBookingCard(booking),
+        UserClickedConfirmRestore,
       ),
     ]
+    RestoreSubmitting(id) if id == booking.id -> [
+      component.scout_loader(t("booking.submitting")),
+    ]
+    _ ->
+      case booking.cancellation {
+        Some(_) -> [
+          component.scout_button_action(
+            t("booking.remove"),
+            component.ButtonDanger,
+            UserClickedUnbookCard(booking.id),
+          ),
+          component.scout_button_action(
+            t("booking.restore"),
+            component.ButtonPrimary,
+            UserClickedRestoreBookingCard(booking.id),
+          ),
+        ]
+        None -> [
+          component.scout_button_action(
+            t("booking.remove"),
+            component.ButtonDanger,
+            UserClickedUnbookCard(booking.id),
+          ),
+          component.scout_button_action(
+            t("booking.unbook"),
+            component.ButtonCaution,
+            UserClickedCancelBookingCard(booking.id),
+          ),
+          component.scout_button_action(
+            t("booking.change"),
+            component.ButtonPrimary,
+            UserClickedEditBookingCard(booking),
+          ),
+        ]
+      }
   })
 }
 

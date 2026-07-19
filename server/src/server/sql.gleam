@@ -11,6 +11,98 @@ import gleam/time/timestamp.{type Timestamp}
 import pog
 import youid/uuid.{type Uuid}
 
+/// A row you get from running the `cancel_booking` query
+/// defined in `./src/server/sql/cancel_booking.sql`.
+///
+/// > 🐿️ This type definition was generated automatically using v4.7.0 of the
+/// > [squirrel package](https://github.com/giacomocavalieri/squirrel).
+///
+pub type CancelBookingRow {
+  CancelBookingRow(
+    id: Uuid,
+    user_id: Uuid,
+    activity_id: Uuid,
+    booker_name: String,
+    booker_group_id: Option(Int),
+    booker_group_name: Option(String),
+    group_free_text: String,
+    responsible_name: String,
+    phone_number: String,
+    participant_count: Int,
+    booked_for_other: Bool,
+    cancellation_reason: Option(String),
+  )
+}
+
+/// Soft-cancel a booking: store the reason a bookings:others:create holder
+/// gave. A cancelled booking stops occupying spots (the capacity aggregates
+/// exclude it) but stays visible in booking lists so both the booker and the
+/// staff can see that it was removed and why.
+///
+/// > 🐿️ This function was generated automatically using v4.7.0 of
+/// > the [squirrel package](https://github.com/giacomocavalieri/squirrel).
+///
+pub fn cancel_booking(
+  db: pog.Connection,
+  id: Uuid,
+  cancellation_reason: String,
+) -> Result(pog.Returned(CancelBookingRow), pog.QueryError) {
+  let decoder = {
+    use id <- decode.field(0, uuid_decoder())
+    use user_id <- decode.field(1, uuid_decoder())
+    use activity_id <- decode.field(2, uuid_decoder())
+    use booker_name <- decode.field(3, decode.string)
+    use booker_group_id <- decode.field(4, decode.optional(decode.int))
+    use booker_group_name <- decode.field(5, decode.optional(decode.string))
+    use group_free_text <- decode.field(6, decode.string)
+    use responsible_name <- decode.field(7, decode.string)
+    use phone_number <- decode.field(8, decode.string)
+    use participant_count <- decode.field(9, decode.int)
+    use booked_for_other <- decode.field(10, decode.bool)
+    use cancellation_reason <- decode.field(11, decode.optional(decode.string))
+    decode.success(CancelBookingRow(
+      id:,
+      user_id:,
+      activity_id:,
+      booker_name:,
+      booker_group_id:,
+      booker_group_name:,
+      group_free_text:,
+      responsible_name:,
+      phone_number:,
+      participant_count:,
+      booked_for_other:,
+      cancellation_reason:,
+    ))
+  }
+
+  "-- Soft-cancel a booking: store the reason a bookings:others:create holder
+-- gave. A cancelled booking stops occupying spots (the capacity aggregates
+-- exclude it) but stays visible in booking lists so both the booker and the
+-- staff can see that it was removed and why.
+UPDATE booking
+SET cancellation_reason = $2
+WHERE id = $1
+RETURNING id,
+    user_id,
+    activity_id,
+    booker_name,
+    booker_group_id,
+    booker_group_name,
+    group_free_text,
+    responsible_name,
+    phone_number,
+    participant_count,
+    booked_for_other,
+    cancellation_reason
+"
+  |> pog.query
+  |> pog.parameter(pog.text(uuid.to_string(id)))
+  |> pog.parameter(pog.text(cancellation_reason))
+  |> pog.returning(decoder)
+  |> pog.execute(db)
+}
+
 /// Clear an activity's booking-opens-at override so it falls back to the
 /// global BOOKING_OPENS_AT default. Counterpart of
 /// set_activity_booking_opens_at.
@@ -1481,6 +1573,7 @@ pub type GetActivitySpotsRow {
 
 /// Booked spot count for a single activity. The aggregate has no GROUP BY, so
 /// it always returns exactly one row (0 when the activity has no bookings).
+/// Cancelled bookings don't occupy spots.
 ///
 /// > 🐿️ This function was generated automatically using v4.7.0 of
 /// > the [squirrel package](https://github.com/giacomocavalieri/squirrel).
@@ -1496,9 +1589,11 @@ pub fn get_activity_spots(
 
   "-- Booked spot count for a single activity. The aggregate has no GROUP BY, so
 -- it always returns exactly one row (0 when the activity has no bookings).
+-- Cancelled bookings don't occupy spots.
 SELECT COALESCE(SUM(participant_count), 0) AS spots_booked
 FROM booking
 WHERE activity_id = $1
+    AND cancellation_reason IS NULL
 "
   |> pog.query
   |> pog.parameter(pog.text(uuid.to_string(activity_id)))
@@ -1564,6 +1659,7 @@ pub type GetBookingRow {
     phone_number: String,
     participant_count: Int,
     booked_for_other: Bool,
+    cancellation_reason: Option(String),
   )
 }
 
@@ -1589,6 +1685,7 @@ pub fn get_booking(
     use phone_number <- decode.field(8, decode.string)
     use participant_count <- decode.field(9, decode.int)
     use booked_for_other <- decode.field(10, decode.bool)
+    use cancellation_reason <- decode.field(11, decode.optional(decode.string))
     decode.success(GetBookingRow(
       id:,
       user_id:,
@@ -1601,6 +1698,7 @@ pub fn get_booking(
       phone_number:,
       participant_count:,
       booked_for_other:,
+      cancellation_reason:,
     ))
   }
 
@@ -1614,7 +1712,8 @@ pub fn get_booking(
     responsible_name,
     phone_number,
     participant_count,
-    booked_for_other
+    booked_for_other,
+    cancellation_reason
 FROM booking
 WHERE id = $1
 "
@@ -1682,6 +1781,7 @@ pub type GetBookingsByActivityRow {
     phone_number: String,
     participant_count: Int,
     booked_for_other: Bool,
+    cancellation_reason: Option(String),
   )
 }
 
@@ -1709,6 +1809,7 @@ pub fn get_bookings_by_activity(
     use phone_number <- decode.field(8, decode.string)
     use participant_count <- decode.field(9, decode.int)
     use booked_for_other <- decode.field(10, decode.bool)
+    use cancellation_reason <- decode.field(11, decode.optional(decode.string))
     decode.success(GetBookingsByActivityRow(
       id:,
       user_id:,
@@ -1721,6 +1822,7 @@ pub fn get_bookings_by_activity(
       phone_number:,
       participant_count:,
       booked_for_other:,
+      cancellation_reason:,
     ))
   }
 
@@ -1734,7 +1836,8 @@ pub fn get_bookings_by_activity(
     responsible_name,
     phone_number,
     participant_count,
-    booked_for_other
+    booked_for_other,
+    cancellation_reason
 FROM booking
 WHERE activity_id = $1
 ORDER BY responsible_name ASC
@@ -1768,6 +1871,7 @@ pub type GetBookingsByUserRow {
     phone_number: String,
     participant_count: Int,
     booked_for_other: Bool,
+    cancellation_reason: Option(String),
   )
 }
 
@@ -1793,6 +1897,7 @@ pub fn get_bookings_by_user(
     use phone_number <- decode.field(8, decode.string)
     use participant_count <- decode.field(9, decode.int)
     use booked_for_other <- decode.field(10, decode.bool)
+    use cancellation_reason <- decode.field(11, decode.optional(decode.string))
     decode.success(GetBookingsByUserRow(
       id:,
       user_id:,
@@ -1805,6 +1910,7 @@ pub fn get_bookings_by_user(
       phone_number:,
       participant_count:,
       booked_for_other:,
+      cancellation_reason:,
     ))
   }
 
@@ -1818,7 +1924,8 @@ pub fn get_bookings_by_user(
     responsible_name,
     phone_number,
     participant_count,
-    booked_for_other
+    booked_for_other,
+    cancellation_reason
 FROM booking
 WHERE user_id = $1
 ORDER BY id;
@@ -1876,6 +1983,53 @@ WHERE activity_id = $1;
 "
   |> pog.query
   |> pog.parameter(pog.text(uuid.to_string(arg_1)))
+  |> pog.returning(decoder)
+  |> pog.execute(db)
+}
+
+/// A row you get from running the `get_cancelled_booking_by_user_and_activity` query
+/// defined in `./src/server/sql/get_cancelled_booking_by_user_and_activity.sql`.
+///
+/// > 🐿️ This type definition was generated automatically using v4.7.0 of the
+/// > [squirrel package](https://github.com/giacomocavalieri/squirrel).
+///
+pub type GetCancelledBookingByUserAndActivityRow {
+  GetCancelledBookingByUserAndActivityRow(id: Uuid)
+}
+
+/// Whether the user has a cancelled booking on the activity. A cancelled
+/// booking blocks re-booking until a bookings:others:create holder restores
+/// or hard-deletes it (the create handler answers 409).
+///
+/// > 🐿️ This function was generated automatically using v4.7.0 of
+/// > the [squirrel package](https://github.com/giacomocavalieri/squirrel).
+///
+pub fn get_cancelled_booking_by_user_and_activity(
+  db: pog.Connection,
+  user_id: Uuid,
+  activity_id: Uuid,
+) -> Result(
+  pog.Returned(GetCancelledBookingByUserAndActivityRow),
+  pog.QueryError,
+) {
+  let decoder = {
+    use id <- decode.field(0, uuid_decoder())
+    decode.success(GetCancelledBookingByUserAndActivityRow(id:))
+  }
+
+  "-- Whether the user has a cancelled booking on the activity. A cancelled
+-- booking blocks re-booking until a bookings:others:create holder restores
+-- or hard-deletes it (the create handler answers 409).
+SELECT id
+FROM booking
+WHERE user_id = $1
+    AND activity_id = $2
+    AND cancellation_reason IS NOT NULL
+LIMIT 1
+"
+  |> pog.query
+  |> pog.parameter(pog.text(uuid.to_string(user_id)))
+  |> pog.parameter(pog.text(uuid.to_string(activity_id)))
   |> pog.returning(decoder)
   |> pog.execute(db)
 }
@@ -2360,6 +2514,7 @@ pub type ListActivitySpotsRow {
 
 /// Booked spot count per activity. LEFT JOIN so activities with no bookings
 /// return 0 (not absent) — the client distinguishes known-zero from unknown.
+/// Cancelled bookings don't occupy spots.
 ///
 /// > 🐿️ This function was generated automatically using v4.7.0 of
 /// > the [squirrel package](https://github.com/giacomocavalieri/squirrel).
@@ -2375,10 +2530,12 @@ pub fn list_activity_spots(
 
   "-- Booked spot count per activity. LEFT JOIN so activities with no bookings
 -- return 0 (not absent) — the client distinguishes known-zero from unknown.
+-- Cancelled bookings don't occupy spots.
 SELECT activity.id AS activity_id,
     COALESCE(SUM(booking.participant_count), 0) AS spots_booked
 FROM activity
     LEFT JOIN booking ON booking.activity_id = activity.id
+    AND booking.cancellation_reason IS NULL
 GROUP BY activity.id
 "
   |> pog.query
@@ -2983,10 +3140,10 @@ pub type ListRecurringBookingsOverviewRow {
 /// row per (activity, booker group): `group_count` is that group's participant
 /// total and `booking_count` how many bookings it aggregates. An activity with
 /// no bookings still yields a single row (LEFT JOIN) with NULL group columns and
-/// a zero `booking_count`, so every bookable slot appears. Called-off slots are
-/// excluded. Restricted to a single day window: `$2` (inclusive) .. `$3`
-/// (exclusive), matching the activity list queries. Ordered so a slot's rows are
-/// contiguous and groups sort by name.
+/// a zero `booking_count`, so every bookable slot appears. Called-off slots and
+/// cancelled bookings are excluded. Restricted to a single day window: `$2`
+/// (inclusive) .. `$3` (exclusive), matching the activity list queries. Ordered
+/// so a slot's rows are contiguous and groups sort by name.
 ///
 /// > 🐿️ This function was generated automatically using v4.7.0 of
 /// > the [squirrel package](https://github.com/giacomocavalieri/squirrel).
@@ -3023,10 +3180,10 @@ pub fn list_recurring_bookings_overview(
 -- row per (activity, booker group): `group_count` is that group's participant
 -- total and `booking_count` how many bookings it aggregates. An activity with
 -- no bookings still yields a single row (LEFT JOIN) with NULL group columns and
--- a zero `booking_count`, so every bookable slot appears. Called-off slots are
--- excluded. Restricted to a single day window: `$2` (inclusive) .. `$3`
--- (exclusive), matching the activity list queries. Ordered so a slot's rows are
--- contiguous and groups sort by name.
+-- a zero `booking_count`, so every bookable slot appears. Called-off slots and
+-- cancelled bookings are excluded. Restricted to a single day window: `$2`
+-- (inclusive) .. `$3` (exclusive), matching the activity list queries. Ordered
+-- so a slot's rows are contiguous and groups sort by name.
 SELECT
     a.id AS activity_id,
     a.start_time,
@@ -3038,6 +3195,7 @@ SELECT
     COUNT(b.id) AS booking_count
 FROM activity a
 LEFT JOIN booking b ON b.activity_id = a.id
+    AND b.cancellation_reason IS NULL
 WHERE a.recurring_activity_kind = $1
     AND NOT EXISTS (
         SELECT 1 FROM call_off c WHERE c.activity_id = a.id
@@ -3110,6 +3268,92 @@ SELECT max_attendees,
 FROM activity
 WHERE id = $1
 FOR UPDATE;
+"
+  |> pog.query
+  |> pog.parameter(pog.text(uuid.to_string(id)))
+  |> pog.returning(decoder)
+  |> pog.execute(db)
+}
+
+/// A row you get from running the `restore_booking` query
+/// defined in `./src/server/sql/restore_booking.sql`.
+///
+/// > 🐿️ This type definition was generated automatically using v4.7.0 of the
+/// > [squirrel package](https://github.com/giacomocavalieri/squirrel).
+///
+pub type RestoreBookingRow {
+  RestoreBookingRow(
+    id: Uuid,
+    user_id: Uuid,
+    activity_id: Uuid,
+    booker_name: String,
+    booker_group_id: Option(Int),
+    booker_group_name: Option(String),
+    group_free_text: String,
+    responsible_name: String,
+    phone_number: String,
+    participant_count: Int,
+    booked_for_other: Bool,
+    cancellation_reason: Option(String),
+  )
+}
+
+/// Restore a cancelled booking to active by clearing its reason. The handler
+/// re-checks capacity first — a restored booking occupies spots again.
+///
+/// > 🐿️ This function was generated automatically using v4.7.0 of
+/// > the [squirrel package](https://github.com/giacomocavalieri/squirrel).
+///
+pub fn restore_booking(
+  db: pog.Connection,
+  id: Uuid,
+) -> Result(pog.Returned(RestoreBookingRow), pog.QueryError) {
+  let decoder = {
+    use id <- decode.field(0, uuid_decoder())
+    use user_id <- decode.field(1, uuid_decoder())
+    use activity_id <- decode.field(2, uuid_decoder())
+    use booker_name <- decode.field(3, decode.string)
+    use booker_group_id <- decode.field(4, decode.optional(decode.int))
+    use booker_group_name <- decode.field(5, decode.optional(decode.string))
+    use group_free_text <- decode.field(6, decode.string)
+    use responsible_name <- decode.field(7, decode.string)
+    use phone_number <- decode.field(8, decode.string)
+    use participant_count <- decode.field(9, decode.int)
+    use booked_for_other <- decode.field(10, decode.bool)
+    use cancellation_reason <- decode.field(11, decode.optional(decode.string))
+    decode.success(RestoreBookingRow(
+      id:,
+      user_id:,
+      activity_id:,
+      booker_name:,
+      booker_group_id:,
+      booker_group_name:,
+      group_free_text:,
+      responsible_name:,
+      phone_number:,
+      participant_count:,
+      booked_for_other:,
+      cancellation_reason:,
+    ))
+  }
+
+  "-- Restore a cancelled booking to active by clearing its reason. The handler
+-- re-checks capacity first — a restored booking occupies spots again.
+UPDATE booking
+SET cancellation_reason = NULL
+WHERE id = $1
+RETURNING id,
+    user_id,
+    activity_id,
+    booker_name,
+    booker_group_id,
+    booker_group_name,
+    group_free_text,
+    responsible_name,
+    phone_number,
+    participant_count,
+    booked_for_other,
+    cancellation_reason
 "
   |> pog.query
   |> pog.parameter(pog.text(uuid.to_string(id)))
@@ -3564,6 +3808,7 @@ pub type UpdateBookingRow {
     phone_number: String,
     participant_count: Int,
     booked_for_other: Bool,
+    cancellation_reason: Option(String),
   )
 }
 
@@ -3593,6 +3838,7 @@ pub fn update_booking(
     use phone_number <- decode.field(8, decode.string)
     use participant_count <- decode.field(9, decode.int)
     use booked_for_other <- decode.field(10, decode.bool)
+    use cancellation_reason <- decode.field(11, decode.optional(decode.string))
     decode.success(UpdateBookingRow(
       id:,
       user_id:,
@@ -3605,6 +3851,7 @@ pub fn update_booking(
       phone_number:,
       participant_count:,
       booked_for_other:,
+      cancellation_reason:,
     ))
   }
 
@@ -3624,7 +3871,8 @@ RETURNING id,
     responsible_name,
     phone_number,
     participant_count,
-    booked_for_other
+    booked_for_other,
+    cancellation_reason
 "
   |> pog.query
   |> pog.parameter(pog.text(uuid.to_string(id)))

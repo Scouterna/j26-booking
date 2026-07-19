@@ -607,6 +607,7 @@ paths:
                         phone_number: "+46701234567"
                         participant_count: 12
                         booked_for_other: false
+                        cancellation: null
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':
@@ -677,6 +678,7 @@ paths:
                 phone_number: "+46701234567"
                 participant_count: 12
                 booked_for_other: false
+                cancellation: null
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':
@@ -687,12 +689,14 @@ paths:
           $ref: '#/components/responses/NotFound'
         '409':
           description: >-
-            Conflict — the booking is not possible right now. Four variants
+            Conflict — the booking is not possible right now. Five variants
             share this status: the capacity check failed (same body as
             `CapacityExceeded`), the activity is called off, booking has not
             opened yet (`booking_opens_at` reports when it will, as a Unix
-            timestamp in seconds), or the activity has already passed (past
-            its end time).
+            timestamp in seconds), the activity has already passed (past
+            its end time), or the caller has a cancelled booking on the
+            activity (which blocks re-booking until it is restored or
+            deleted).
           content:
             application/json:
               schema:
@@ -729,6 +733,12 @@ paths:
                       error:
                         type: string
                         enum: ["Activity has passed"]
+                  - type: object
+                    required: [error]
+                    properties:
+                      error:
+                        type: string
+                        enum: ["Cancelled booking exists"]
               example:
                 error: "Booking is not open yet"
                 booking_opens_at: 1748764800
@@ -768,6 +778,7 @@ paths:
                 phone_number: "+46701234567"
                 participant_count: 12
                 booked_for_other: false
+                cancellation: null
         '400':
           $ref: '#/components/responses/BadRequest'
         '404':
@@ -790,6 +801,9 @@ paths:
         A booking is editable by its owner or by any `bookings:others:create`
         holder (`admin` implies the role); otherwise the request is rejected
         with 403. The `booked_for_other` flag does not affect authorization.
+
+        A cancelled booking (`cancellation` non-null) cannot be edited —
+        the request is rejected with 409. Restore it first.
       operationId: updateBooking
       security:
         - bearerAuth: []
@@ -827,6 +841,7 @@ paths:
                 phone_number: "+46709876543"
                 participant_count: 15
                 booked_for_other: false
+                cancellation: null
         '400':
           $ref: '#/components/responses/BadRequest'
         '404':
@@ -834,7 +849,32 @@ paths:
         '401':
           $ref: '#/components/responses/Unauthorized'
         '409':
-          $ref: '#/components/responses/CapacityExceeded'
+          description: >-
+            Conflict — either the capacity check failed (same body as
+            `CapacityExceeded`) or the booking is cancelled and must be
+            restored before it can be edited.
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - type: object
+                    required: [error, max_attendees, spots_booked]
+                    properties:
+                      error:
+                        type: string
+                        enum: [capacity_exceeded]
+                      max_attendees:
+                        type: integer
+                      spots_booked:
+                        type: integer
+                  - type: object
+                    required: [error]
+                    properties:
+                      error:
+                        type: string
+                        enum: ["Booking is cancelled"]
+              example:
+                error: "Booking is cancelled"
         '500':
           $ref: '#/components/responses/ServerError'
 
@@ -863,6 +903,167 @@ paths:
           $ref: '#/components/responses/Unauthorized'
         '403':
           $ref: '#/components/responses/Forbidden'
+        '500':
+          $ref: '#/components/responses/ServerError'
+
+  /bookings/{id}/cancel:
+    post:
+      tags:
+        - Bookings
+      summary: Cancel booking with a reason
+      description: |
+        Soft-cancel a booking (issue #43): stores the given reason on the
+        booking instead of deleting it, so both the booker and staff can see
+        that it was removed and why. Requires the `bookings:others:create`
+        role (`admin` implies it) — deliberately stricter than edit/delete;
+        owners without the role remove their booking with `DELETE` instead.
+
+        A cancelled booking stops occupying the activity's spots, cannot be
+        edited or cancelled again (409), and blocks its user from booking the
+        activity again until the booking is restored or deleted.
+      operationId: cancelBooking
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/BookingId'
+      requestBody:
+        description: The reason the booking is cancelled. Must be non-empty.
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [reason]
+              properties:
+                reason:
+                  type: string
+                  description: Why the booking was cancelled, shown to the booker.
+                  example: "Dubbelbokning — kåren har redan en tid"
+            example:
+              reason: "Dubbelbokning — kåren har redan en tid"
+      responses:
+        '200':
+          description: Booking cancelled; returns the booking with `cancellation` set.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Booking'
+              example:
+                id: "dd000001-0000-4000-8000-000000000001"
+                user_id: "a1b2c3d4-e5f6-4a90-abcd-ef1234567890"
+                activity_id: "6f5e1d46-5f58-4e23-9a9d-8c2bfc2d22a0"
+                booker_name: "Anna Svensson"
+                booker_group_id: 101
+                booker_group_name: "Sjöscoutkåren Dansen"
+                group_free_text: "Patrull Örnarna"
+                responsible_name: "Anna Svensson"
+                phone_number: "+46701234567"
+                participant_count: 12
+                booked_for_other: false
+                cancellation: "Dubbelbokning — kåren har redan en tid"
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          description: The booking is already cancelled.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [error]
+                properties:
+                  error:
+                    type: string
+                    enum: ["Booking is already cancelled"]
+                    example: "Booking is already cancelled"
+              example:
+                error: "Booking is already cancelled"
+        '500':
+          $ref: '#/components/responses/ServerError'
+
+  /bookings/{id}/restore:
+    post:
+      tags:
+        - Bookings
+      summary: Restore a cancelled booking
+      description: |
+        Restore a cancelled booking to active by clearing its cancellation
+        reason (issue #43). Requires the `bookings:others:create` role
+        (`admin` implies it).
+
+        The restored booking occupies spots again, so the activity's capacity
+        and call-off state are re-checked in the same locking transaction as
+        booking creation. The booking-window opens-at is not re-checked — the
+        booking predates it.
+      operationId: restoreBooking
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/BookingId'
+      responses:
+        '200':
+          description: Booking restored; returns the booking with `cancellation` null.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Booking'
+              example:
+                id: "dd000001-0000-4000-8000-000000000001"
+                user_id: "a1b2c3d4-e5f6-4a90-abcd-ef1234567890"
+                activity_id: "6f5e1d46-5f58-4e23-9a9d-8c2bfc2d22a0"
+                booker_name: "Anna Svensson"
+                booker_group_id: 101
+                booker_group_name: "Sjöscoutkåren Dansen"
+                group_free_text: "Patrull Örnarna"
+                responsible_name: "Anna Svensson"
+                phone_number: "+46701234567"
+                participant_count: 12
+                booked_for_other: false
+                cancellation: null
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          description: >-
+            Conflict — the capacity check failed (same body as
+            `CapacityExceeded`), the activity is called off, or the booking is
+            not cancelled.
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - type: object
+                    required: [error, max_attendees, spots_booked]
+                    properties:
+                      error:
+                        type: string
+                        enum: [capacity_exceeded]
+                      max_attendees:
+                        type: integer
+                      spots_booked:
+                        type: integer
+                  - type: object
+                    required: [error]
+                    properties:
+                      error:
+                        type: string
+                        enum:
+                          - "Activity is called off"
+                          - "Booking is not cancelled"
+              example:
+                error: "Booking is not cancelled"
         '500':
           $ref: '#/components/responses/ServerError'
 
@@ -1138,6 +1339,7 @@ paths:
                             phone_number: "+46701234567"
                             participant_count: 5
                             booked_for_other: false
+                            cancellation: null
                       - activity_id: "b4219a53-4746-4a09-8b4e-3e2ac0c3df11"
                         status: "favourited"
         '401':
@@ -1915,6 +2117,7 @@ components:
         - phone_number
         - participant_count
         - booked_for_other
+        - cancellation
       properties:
         id:
           type: string
@@ -1973,6 +2176,16 @@ components:
             of `bookings:others:create` (the booker group is the kår booked
             for, not the booker's own).
           example: false
+        cancellation:
+          type: string
+          nullable: true
+          description: >-
+            The reason a `bookings:others:create` holder soft-cancelled the
+            booking (`POST /bookings/{id}/cancel`); null for an active
+            booking. A cancelled booking stops occupying spots, cannot be
+            edited or cancelled again, and blocks its user from booking the
+            activity again until it is restored or deleted.
+          example: null
 
     GroupCount:
       type: object
@@ -2652,31 +2865,3 @@ components:
 
     Forbidden:
       description: Forbidden - the authenticated user lacks the required role
-
-    CapacityExceeded:
-      description: >-
-        The booking would push the activity past its `max_attendees` cap. The
-        body reports the cap and the count already booked so the client can
-        refresh its view.
-      content:
-        application/json:
-          schema:
-            type: object
-            required: [error, max_attendees, spots_booked]
-            properties:
-              error:
-                type: string
-                enum: [capacity_exceeded]
-                example: "capacity_exceeded"
-              max_attendees:
-                type: integer
-                description: The activity's attendee cap.
-                example: 20
-              spots_booked:
-                type: integer
-                description: Spots already booked at the time of the check.
-                example: 18
-          example:
-            error: "capacity_exceeded"
-            max_attendees: 20
-            spots_booked: 18

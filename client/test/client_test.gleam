@@ -108,6 +108,15 @@ fn a_booking(id: Uuid, activity_id: Uuid) -> model.Booking {
     phone_number: "0700000000",
     participant_count: 2,
     booked_for_other: False,
+    cancellation: None,
+  )
+}
+
+/// `a_booking` soft-cancelled with a reason (issue #43).
+fn a_cancelled_booking(id: Uuid, activity_id: Uuid) -> model.Booking {
+  model.Booking(
+    ..a_booking(id, activity_id),
+    cancellation: Some("Dubbelbokning"),
   )
 }
 
@@ -1152,6 +1161,184 @@ pub fn unbook_self_booking_card_confirms_then_submits_test() {
   let #(next, _) = client.update(confirming, client.UserClickedConfirmUnbook)
   let assert client.ActivityBookingsPage(_, _, client.UnbookSubmitting(_)) =
     next.page
+}
+
+// UPDATE: cancel / restore a booking (issue #43) --------------------------------
+
+/// A bookings page showing exactly `booking`, with no form open.
+fn bookings_page_model(booking: model.Booking) -> client.Model {
+  client.Model(
+    ..base_model(),
+    page: client.ActivityBookingsPage(
+      id_a(),
+      client.Loaded([booking]),
+      client.BookingClosed,
+    ),
+  )
+}
+
+pub fn cancel_card_opens_reason_drawer_test() {
+  let model_ = bookings_page_model(a_booking(id_b(), id_a()))
+  let #(next, _) =
+    client.update(model_, client.UserClickedCancelBookingCard(id_b()))
+  let assert client.ActivityBookingsPage(
+    _,
+    _,
+    client.CancelReasonEditing(id, reason, error),
+  ) = next.page
+  assert id == id_b()
+  assert reason == ""
+  assert error == None
+}
+
+/// Confirming with a blank (or whitespace-only) reason is ignored — the
+/// drawer's submit button is disabled, and the update guard mirrors that.
+pub fn confirm_cancel_with_empty_reason_is_ignored_test() {
+  let model_ = bookings_page_model(a_booking(id_b(), id_a()))
+  let #(editing, _) =
+    client.update(model_, client.UserClickedCancelBookingCard(id_b()))
+  let #(typed, _) = client.update(editing, client.UserEditedCancelReason("  "))
+  let #(next, _) = client.update(typed, client.UserClickedConfirmCancelBooking)
+  let assert client.ActivityBookingsPage(
+    _,
+    _,
+    client.CancelReasonEditing(_, _, _),
+  ) = next.page
+}
+
+pub fn cancel_reason_confirm_moves_to_submitting_test() {
+  let model_ = bookings_page_model(a_booking(id_b(), id_a()))
+  let #(editing, _) =
+    client.update(model_, client.UserClickedCancelBookingCard(id_b()))
+  let #(typed, _) =
+    client.update(editing, client.UserEditedCancelReason(" Dubbelbokning "))
+  let #(next, _) = client.update(typed, client.UserClickedConfirmCancelBooking)
+  let assert client.ActivityBookingsPage(
+    _,
+    _,
+    client.CancelSubmitting(id, reason),
+  ) = next.page
+  assert id == id_b()
+  assert reason == "Dubbelbokning"
+}
+
+/// A successful cancel swaps the booking in my statuses (my chip flips to
+/// Avbokad) and closes the drawer.
+pub fn cancelled_booking_replaces_status_and_closes_test() {
+  let cancelled = a_cancelled_booking(id_b(), id_a())
+  let model_ =
+    client.Model(
+      ..bookings_page_model(a_booking(id_b(), id_a())),
+      statuses: dict.from_list([
+        #(id_a(), model.Booked([a_booking(id_b(), id_a())])),
+      ]),
+      page: client.ActivityBookingsPage(
+        id_a(),
+        client.Loaded([a_booking(id_b(), id_a())]),
+        client.CancelSubmitting(id_b(), "Dubbelbokning"),
+      ),
+    )
+  let #(next, _) =
+    client.update(model_, client.ApiCancelledBooking(id_a(), Ok(cancelled)))
+  let assert client.ActivityBookingsPage(_, _, client.BookingClosed) = next.page
+  let status = client.status_of(next.statuses, id_a())
+  assert client.cancelled_bookings_of(status) == [cancelled]
+  assert !client.has_active_booking(status)
+}
+
+/// A failed cancel reopens the drawer with the typed reason kept and the
+/// error shown, so the text isn't lost.
+pub fn failed_cancel_keeps_reason_and_shows_error_test() {
+  let model_ =
+    client.Model(
+      ..bookings_page_model(a_booking(id_b(), id_a())),
+      page: client.ActivityBookingsPage(
+        id_a(),
+        client.Loaded([a_booking(id_b(), id_a())]),
+        client.CancelSubmitting(id_b(), "Dubbelbokning"),
+      ),
+    )
+  let #(next, _) =
+    client.update(
+      model_,
+      client.ApiCancelledBooking(id_a(), Error(rsvp.BadBody)),
+    )
+  let assert client.ActivityBookingsPage(
+    _,
+    _,
+    client.CancelReasonEditing(id, reason, error),
+  ) = next.page
+  assert id == id_b()
+  assert reason == "Dubbelbokning"
+  assert error == Some(client.CancelBookingFailed)
+}
+
+pub fn restore_card_confirms_then_submits_test() {
+  let model_ = bookings_page_model(a_cancelled_booking(id_b(), id_a()))
+  let #(confirming, _) =
+    client.update(model_, client.UserClickedRestoreBookingCard(id_b()))
+  let assert client.ActivityBookingsPage(_, _, client.RestoreConfirming(id)) =
+    confirming.page
+  assert id == id_b()
+  let #(next, _) = client.update(confirming, client.UserClickedConfirmRestore)
+  let assert client.ActivityBookingsPage(_, _, client.RestoreSubmitting(_)) =
+    next.page
+}
+
+/// A successful restore swaps the booking back to active in my statuses.
+pub fn restored_booking_replaces_status_and_closes_test() {
+  let restored = a_booking(id_b(), id_a())
+  let model_ =
+    client.Model(
+      ..bookings_page_model(a_cancelled_booking(id_b(), id_a())),
+      statuses: dict.from_list([
+        #(id_a(), model.Booked([a_cancelled_booking(id_b(), id_a())])),
+      ]),
+      page: client.ActivityBookingsPage(
+        id_a(),
+        client.Loaded([a_cancelled_booking(id_b(), id_a())]),
+        client.RestoreSubmitting(id_b()),
+      ),
+    )
+  let #(next, _) =
+    client.update(model_, client.ApiRestoredBooking(id_a(), Ok(restored)))
+  let assert client.ActivityBookingsPage(_, _, client.BookingClosed) = next.page
+  let status = client.status_of(next.statuses, id_a())
+  assert client.has_active_booking(status)
+  assert client.cancelled_bookings_of(status) == []
+}
+
+/// A cancelled booking blocks booking the activity again (issue #43) — the
+/// Boka button is hidden and stray clicks are ignored.
+pub fn clicking_book_with_cancelled_booking_is_ignored_test() {
+  let model_ =
+    client.Model(
+      ..base_model(),
+      page: client.ActivityDetailPage(id_a(), client.BookingClosed),
+      activities: dict.from_list([#(id_a(), a_summary(id_a(), "A", Some(10)))]),
+      details: dict.from_list([#(id_a(), client.Loaded(a_detail()))]),
+      statuses: dict.from_list([
+        #(id_a(), model.Booked([a_cancelled_booking(id_b(), id_a())])),
+      ]),
+    )
+  let #(next, _) = client.update(model_, client.UserClickedBook)
+  let assert client.ActivityDetailPage(_, client.BookingClosed) = next.page
+}
+
+/// The status helpers behind the Avbokad chip: only cancelled bookings left
+/// means "no active booking", and `self_booking_of` skips cancelled ones so
+/// the detail page offers no Ändra/Avboka pair for them.
+pub fn cancelled_bookings_are_not_active_test() {
+  let cancelled = model.Booked([a_cancelled_booking(id_b(), id_a())])
+  assert !client.has_active_booking(cancelled)
+  assert client.self_booking_of(cancelled) == None
+  let mixed =
+    model.Booked([
+      a_cancelled_booking(id_b(), id_a()),
+      a_booking(id_c(), id_a()),
+    ])
+  assert client.has_active_booking(mixed)
+  assert client.self_booking_of(mixed) == Some(a_booking(id_c(), id_a()))
 }
 
 // UPDATE: bookings list fetch --------------------------------------------------

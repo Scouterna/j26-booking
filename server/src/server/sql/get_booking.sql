@@ -8,6 +8,7 @@ SELECT id,
     responsible_name,
     phone_number,
     participant_count,
-    booked_for_other
+    booked_for_other,
+    cancellation_reason
 FROM booking
 WHERE id = $1

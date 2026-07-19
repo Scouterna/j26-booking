@@ -30,6 +30,7 @@ fn a_booking(id: String, activity_id: Uuid) -> model.Booking {
     phone_number: "0700000000",
     participant_count: 1,
     booked_for_other: False,
+    cancellation: None,
   )
 }
 

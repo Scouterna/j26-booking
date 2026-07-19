@@ -34,6 +34,7 @@ fn a_booking(user_id: Uuid, booked_for_other: Bool) -> model.Booking {
     phone_number: "0700000000",
     participant_count: 1,
     booked_for_other:,
+    cancellation: None,
   )
 }
 

@@ -1,8 +1,7 @@
+-- Restore a cancelled booking to active by clearing its reason. The handler
+-- re-checks capacity first — a restored booking occupies spots again.
 UPDATE booking
-SET group_free_text = $2,
-    responsible_name = $3,
-    phone_number = $4,
-    participant_count = $5
+SET cancellation_reason = NULL
 WHERE id = $1
 RETURNING id,
     user_id,

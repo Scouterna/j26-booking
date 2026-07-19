@@ -70,8 +70,25 @@ type BookingError {
   BookingNotFound
   /// The caller may not edit/delete this booking (see `may_manage`).
   NotBookingManager
+  /// The booking is soft-cancelled: it cannot be edited or cancelled again
+  /// (issue #43) — only restored or hard-deleted.
+  BookingAlreadyCancelled
+  /// Restore was asked of a booking that is not cancelled.
+  BookingNotCancelled
+  /// The user has a cancelled booking on the activity, which blocks booking
+  /// it again until staff restores or removes it (issue #43).
+  CancelledBookingExists
   CapacityExceeded(max: Int, spots_booked: Int)
   BookingQueryFailed(pog.QueryError)
+}
+
+/// A 409 with a machine-readable error message, the shape every booking
+/// conflict answer shares.
+fn conflict_response(message: String) -> Response {
+  wisp.json_response(
+    json.object([#("error", json.string(message))]) |> json.to_string,
+    409,
+  )
 }
 
 /// Whether `user` may edit or delete `booking`. Any holder of
@@ -135,6 +152,11 @@ pub fn create(
       // call-off.
       use _ <- result.try(ensure_not_called_off(conn, activity_id))
       use _ <- result.try(ensure_bookable(now, activity, ctx.booking_opens_at))
+      use _ <- result.try(ensure_no_cancelled_booking(
+        conn,
+        user_id,
+        activity_id,
+      ))
       use spots_booked <- result.try(booked_spots(conn, activity_id))
       case
         web.exceeds_capacity(
@@ -198,6 +220,8 @@ pub fn create(
           |> json.to_string,
         409,
       )
+    Error(pog.TransactionRolledBack(CancelledBookingExists)) ->
+      conflict_response("Cancelled booking exists")
     Error(pog.TransactionRolledBack(CapacityExceeded(max, spots_booked))) ->
       web.capacity_exceeded(max, spots_booked)
     Error(pog.TransactionRolledBack(BookingQueryFailed(error))) ->
@@ -206,6 +230,23 @@ pub fn create(
       wisp.log_error("TransactionError " <> string.inspect(error))
       wisp.internal_server_error()
     }
+  }
+}
+
+/// Rolls back the create transaction with `CancelledBookingExists` when the
+/// calling user has a cancelled booking on the activity — a cancelled booking
+/// blocks re-booking until staff restores or hard-deletes it (issue #43).
+fn ensure_no_cancelled_booking(
+  conn: pog.Connection,
+  user_id: uuid.Uuid,
+  activity_id: uuid.Uuid,
+) -> Result(Nil, BookingError) {
+  case
+    sql.get_cancelled_booking_by_user_and_activity(conn, user_id, activity_id)
+  {
+    Error(error) -> Error(BookingQueryFailed(error))
+    Ok(pog.Returned(_, [])) -> Ok(Nil)
+    Ok(pog.Returned(_, [_, ..])) -> Error(CancelledBookingExists)
   }
 }
 
@@ -480,6 +521,7 @@ pub fn update(req: Request, id: String, ctx: web.Context) -> Response {
     pog.transaction(ctx.db_connection, fn(conn) {
       use existing <- result.try(load_booking(conn, booking_id))
       use _ <- result.try(ensure_may_manage(user, existing))
+      use _ <- result.try(ensure_not_cancelled(existing))
       use activity <- result.try(lock_activity(conn, existing.activity_id))
       use spots_booked <- result.try(booked_spots(conn, existing.activity_id))
       let already_booked = spots_booked - existing.participant_count
@@ -505,6 +547,135 @@ pub fn update(req: Request, id: String, ctx: web.Context) -> Response {
     Error(pog.TransactionRolledBack(BookingNotFound)) -> wisp.not_found()
     Error(pog.TransactionRolledBack(ActivityNotFound)) -> wisp.not_found()
     Error(pog.TransactionRolledBack(NotBookingManager)) -> wisp.response(403)
+    Error(pog.TransactionRolledBack(BookingAlreadyCancelled)) ->
+      conflict_response("Booking is cancelled")
+    Error(pog.TransactionRolledBack(CapacityExceeded(max, spots_booked))) ->
+      web.capacity_exceeded(max, spots_booked)
+    Error(pog.TransactionRolledBack(BookingQueryFailed(error))) ->
+      web.query_error(error)
+    Error(error) -> {
+      wisp.log_error("TransactionError " <> string.inspect(error))
+      wisp.internal_server_error()
+    }
+  }
+}
+
+/// A cancelled booking may not be edited or cancelled again — only restored
+/// or hard-deleted (issue #43).
+fn ensure_not_cancelled(booking: Booking) -> Result(Nil, BookingError) {
+  case booking.cancellation {
+    option.None -> Ok(Nil)
+    option.Some(_) -> Error(BookingAlreadyCancelled)
+  }
+}
+
+/// Soft-cancel a booking with a reason (issue #43): POST
+/// /api/bookings/:id/cancel with `{"reason": "..."}`. Requires
+/// `bookings:others:create` (which `admin` implies) — deliberately stricter
+/// than `may_manage`; owners without the role hard-delete instead. The
+/// cancelled booking keeps its row (both sides see the reason), stops
+/// occupying spots, and blocks the booker from re-booking the activity.
+pub fn cancel(req: Request, id: String, ctx: web.Context) -> Response {
+  use <- wisp.require_method(req, Post)
+  use user <- web.with_authenticated_user(ctx)
+  use <- web.require_role(user, web.BookingsOthersCreate)
+  use booking_id <- given.ok(uuid.from_string(id), fn(_) {
+    wisp.bad_request("Invalid booking ID format")
+  })
+  use json_body <- wisp.require_json(req)
+  use reason <- given.ok(
+    decode.run(json_body, {
+      use reason <- decode.field("reason", decode.string)
+      decode.success(reason)
+    }),
+    fn(_) { wisp.bad_request("Invalid JSON payload") },
+  )
+  let reason = string.trim(reason)
+  use <- given.that(reason != "", else_return: fn() {
+    wisp.bad_request("reason must not be empty")
+  })
+
+  // Load first so the not-cancelled invariant can answer a clean 409; the
+  // races that remain (concurrent cancel/delete) resolve harmlessly.
+  case sql.get_booking(ctx.db_connection, booking_id) {
+    Error(error) -> web.query_error(error)
+    Ok(pog.Returned(_, [])) -> wisp.not_found()
+    Ok(pog.Returned(_, [row, ..])) ->
+      case ensure_not_cancelled(booking.from_get_booking_row(row)) {
+        Error(_) -> conflict_response("Booking is already cancelled")
+        Ok(Nil) ->
+          case sql.cancel_booking(ctx.db_connection, booking_id, reason) {
+            Error(error) -> web.query_error(error)
+            Ok(pog.Returned(_, [])) -> wisp.not_found()
+            Ok(pog.Returned(_, [row, ..])) ->
+              wisp.json_response(
+                row
+                  |> booking.from_cancel_booking_row
+                  |> booking.to_json
+                  |> json.to_string,
+                200,
+              )
+          }
+      }
+  }
+}
+
+/// Restore a cancelled booking to active (issue #43): POST
+/// /api/bookings/:id/restore. Requires `bookings:others:create`. Runs the
+/// same locking transaction shape as create — a restored booking occupies
+/// spots again, so capacity and the call-off state are re-checked. The
+/// booking-window opens-at is deliberately not re-checked: the booking
+/// predates it.
+pub fn restore(req: Request, id: String, ctx: web.Context) -> Response {
+  use <- wisp.require_method(req, Post)
+  web.discard_body(req)
+  use user <- web.with_authenticated_user(ctx)
+  use <- web.require_role(user, web.BookingsOthersCreate)
+  use booking_id <- given.ok(uuid.from_string(id), fn(_) {
+    wisp.bad_request("Invalid booking ID format")
+  })
+
+  let transaction_result =
+    pog.transaction(ctx.db_connection, fn(conn) {
+      use existing <- result.try(load_booking(conn, booking_id))
+      use _ <- result.try(case existing.cancellation {
+        option.Some(_) -> Ok(Nil)
+        option.None -> Error(BookingNotCancelled)
+      })
+      use activity <- result.try(lock_activity(conn, existing.activity_id))
+      use _ <- result.try(ensure_not_called_off(conn, existing.activity_id))
+      use spots_booked <- result.try(booked_spots(conn, existing.activity_id))
+      case
+        web.exceeds_capacity(
+          activity.max_attendees,
+          spots_booked,
+          existing.participant_count,
+        )
+      {
+        True ->
+          Error(CapacityExceeded(
+            option.unwrap(activity.max_attendees, 0),
+            spots_booked,
+          ))
+        False ->
+          case sql.restore_booking(conn, booking_id) {
+            Error(error) -> Error(BookingQueryFailed(error))
+            Ok(pog.Returned(_, [])) -> Error(BookingNotFound)
+            Ok(pog.Returned(_, [row, ..])) ->
+              Ok(booking.from_restore_booking_row(row))
+          }
+      }
+    })
+
+  case transaction_result {
+    Ok(restored) ->
+      wisp.json_response(restored |> booking.to_json |> json.to_string, 200)
+    Error(pog.TransactionRolledBack(BookingNotFound)) -> wisp.not_found()
+    Error(pog.TransactionRolledBack(ActivityNotFound)) -> wisp.not_found()
+    Error(pog.TransactionRolledBack(BookingNotCancelled)) ->
+      conflict_response("Booking is not cancelled")
+    Error(pog.TransactionRolledBack(ActivityCalledOff)) ->
+      conflict_response("Activity is called off")
     Error(pog.TransactionRolledBack(CapacityExceeded(max, spots_booked))) ->
       web.capacity_exceeded(max, spots_booked)
     Error(pog.TransactionRolledBack(BookingQueryFailed(error))) ->

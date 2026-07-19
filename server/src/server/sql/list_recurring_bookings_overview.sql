@@ -3,10 +3,10 @@
 -- row per (activity, booker group): `group_count` is that group's participant
 -- total and `booking_count` how many bookings it aggregates. An activity with
 -- no bookings still yields a single row (LEFT JOIN) with NULL group columns and
--- a zero `booking_count`, so every bookable slot appears. Called-off slots are
--- excluded. Restricted to a single day window: `$2` (inclusive) .. `$3`
--- (exclusive), matching the activity list queries. Ordered so a slot's rows are
--- contiguous and groups sort by name.
+-- a zero `booking_count`, so every bookable slot appears. Called-off slots and
+-- cancelled bookings are excluded. Restricted to a single day window: `$2`
+-- (inclusive) .. `$3` (exclusive), matching the activity list queries. Ordered
+-- so a slot's rows are contiguous and groups sort by name.
 SELECT
     a.id AS activity_id,
     a.start_time,
@@ -18,6 +18,7 @@ SELECT
     COUNT(b.id) AS booking_count
 FROM activity a
 LEFT JOIN booking b ON b.activity_id = a.id
+    AND b.cancellation_reason IS NULL
 WHERE a.recurring_activity_kind = $1
     AND NOT EXISTS (
         SELECT 1 FROM call_off c WHERE c.activity_id = a.id
