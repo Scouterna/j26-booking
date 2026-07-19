@@ -9,6 +9,7 @@ import gleam/time/timestamp
 import gleam/uri
 import gleeunit
 import rsvp
+import shared/event as event_dates
 import shared/model
 import youid/uuid.{type Uuid}
 
@@ -146,8 +147,8 @@ fn base_model() -> client.Model {
     etags: dict.new(),
     recurring_windows: dict.new(),
     recurring_etags: dict.new(),
-    today: test_today(),
-    browse_day_filter: None,
+    // Seeded to today like `init` does; `None` means "Alla dagar".
+    browse_day_filter: Some(test_today()),
     favourites_day_filter: None,
     details: dict.new(),
     statuses: dict.new(),
@@ -385,7 +386,7 @@ pub fn tab_summaries_browse_maps_id_window_through_cache_test() {
       filters_for(client.TabActivities),
       client.ActivitiesListPage(client.default_filters()),
     )
-    == client.Loaded([summary_a, summary_b])
+    == client.ListLoaded([summary_a, summary_b], [])
 }
 
 pub fn tab_summaries_browse_drops_uncached_ids_test() {
@@ -405,16 +406,17 @@ pub fn tab_summaries_browse_drops_uncached_ids_test() {
       filters_for(client.TabActivities),
       client.ActivitiesListPage(client.default_filters()),
     )
-    == client.Loaded([summary_a])
+    == client.ListLoaded([summary_a], [])
 }
 
 pub fn tab_summaries_browse_reflects_fetch_state_test() {
+  // An unfetched window renders as loading (the fetch fires on view entry).
   assert client.tab_summaries(
       base_model(),
       filters_for(client.TabBeachBus),
       client.ActivitiesListPage(client.default_filters()),
     )
-    == client.NotAsked
+    == client.ListLoading
 }
 
 pub fn tab_summaries_favourites_derived_from_statuses_test() {
@@ -437,7 +439,7 @@ pub fn tab_summaries_favourites_derived_from_statuses_test() {
       client.favourites_key(),
       client.Loaded([]),
     )
-  let assert client.Loaded(summaries) =
+  let assert client.ListLoaded(summaries, []) =
     client.tab_summaries(
       model_,
       filters_for(client.TabFavourites),
@@ -456,7 +458,7 @@ pub fn tab_summaries_favourites_empty_reflects_fetch_state_test() {
       filters_for(client.TabFavourites),
       client.ActivitiesListPage(client.default_filters()),
     )
-    == client.NotAsked
+    == client.ListLoading
   let loading =
     client.set_window_remote(
       base_model(),
@@ -468,7 +470,7 @@ pub fn tab_summaries_favourites_empty_reflects_fetch_state_test() {
       filters_for(client.TabFavourites),
       client.ActivitiesListPage(client.default_filters()),
     )
-    == client.Loading
+    == client.ListLoading
 }
 
 pub fn tab_summaries_browse_hides_called_off_manage_shows_it_test() {
@@ -493,7 +495,7 @@ pub fn tab_summaries_browse_hides_called_off_manage_shows_it_test() {
       filters_for(client.TabActivities),
       client.ActivitiesListPage(client.default_filters()),
     )
-    == client.Loaded([active])
+    == client.ListLoaded([active], [])
   // Manage: both are shown.
   assert client.tab_summaries(
       model_,
@@ -503,7 +505,7 @@ pub fn tab_summaries_browse_hides_called_off_manage_shows_it_test() {
         client.ActivityFormClosed,
       ),
     )
-    == client.Loaded([active, called_off])
+    == client.ListLoaded([active, called_off], [])
 }
 
 // LIST WINDOWS: window_remote / set_window_remote / load_or_revalidate ---------
@@ -1466,9 +1468,171 @@ pub fn effective_day_is_independent_per_view_test() {
   assert client.effective_day(model_, client.TabActivities) == Some(other_day())
   // Favourites' default is all days (`None`), independent of the browse pick.
   assert client.effective_day(model_, client.TabFavourites) == None
-  // A browse tab with no pick falls back to today.
+  // A browse tab defaults to the seeded today.
   assert client.effective_day(base_model(), client.TabActivities)
     == Some(test_today())
+}
+
+// UPDATE: "Alla dagar" on browse tabs (issue #49) -------------------------------
+
+/// A browse model sitting on "Alla dagar" (`browse_day_filter: None`).
+fn all_days_model() -> client.Model {
+  client.Model(..base_model(), browse_day_filter: None)
+}
+
+/// The per-day Activities window key for `base_model`'s manager view.
+fn day_window(day: calendar.Date) -> client.WindowKey {
+  #(client.SourceActivities, Some(day), True)
+}
+
+pub fn selecting_all_days_on_browse_loads_every_day_window_test() {
+  // Picking "Alla dagar" clears the browse day and fetches all eight per-day
+  // windows (the API stays per-day; the client unions the responses).
+  let #(next, _) = client.update(base_model(), client.UserSelectedDay(None))
+  assert next.browse_day_filter == None
+  assert list.length(client.window_keys_for(next, client.SourceActivities)) == 8
+  list.each(event_dates.event_days(), fn(day) {
+    assert client.window_remote(next, day_window(day)) == client.Loading
+  })
+}
+
+pub fn all_days_summaries_union_all_loaded_days_test() {
+  let summary_a = a_summary(id_a(), "A", None)
+  let summary_b = a_summary(id_b(), "B", None)
+  let model_ =
+    client.Model(
+      ..all_days_model(),
+      activities: dict.from_list([#(id_a(), summary_a), #(id_b(), summary_b)]),
+    )
+  // Every day loaded (mostly empty); two days carry one activity each.
+  let model_ =
+    list.fold(event_dates.event_days(), model_, fn(m, day) {
+      client.set_window_remote(m, day_window(day), client.Loaded([]))
+    })
+  let model_ =
+    client.set_window_remote(
+      model_,
+      day_window(test_today()),
+      client.Loaded([id_a()]),
+    )
+  let model_ =
+    client.set_window_remote(
+      model_,
+      day_window(other_day()),
+      client.Loaded([id_b()]),
+    )
+  assert client.tab_summaries(
+      model_,
+      filters_for(client.TabActivities),
+      client.ActivitiesListPage(client.default_filters()),
+    )
+    == client.ListLoaded([summary_a, summary_b], [])
+}
+
+pub fn all_days_summaries_loading_until_every_day_settles_test() {
+  // Seven days loaded, one still in flight: one spinner, no partial list, so
+  // search never runs over a half-loaded week.
+  let model_ =
+    list.fold(event_dates.event_days(), all_days_model(), fn(m, day) {
+      client.set_window_remote(m, day_window(day), client.Loaded([]))
+    })
+  let model_ =
+    client.set_window_remote(model_, day_window(other_day()), client.Loading)
+  assert client.tab_summaries(
+      model_,
+      filters_for(client.TabActivities),
+      client.ActivitiesListPage(client.default_filters()),
+    )
+    == client.ListLoading
+}
+
+pub fn all_days_summaries_partial_failure_lists_failed_days_test() {
+  // One day failed while the rest loaded: render the partial week and carry
+  // the failed day so the view can warn instead of silently missing it.
+  let model_ =
+    list.fold(event_dates.event_days(), all_days_model(), fn(m, day) {
+      client.set_window_remote(m, day_window(day), client.Loaded([]))
+    })
+  let model_ =
+    client.set_window_remote(
+      model_,
+      day_window(other_day()),
+      client.Failed(client.LoadActivitiesFailed),
+    )
+  assert client.tab_summaries(
+      model_,
+      filters_for(client.TabActivities),
+      client.ActivitiesListPage(client.default_filters()),
+    )
+    == client.ListLoaded([], [other_day()])
+}
+
+pub fn all_days_summaries_all_failed_is_whole_view_error_test() {
+  let model_ =
+    list.fold(event_dates.event_days(), all_days_model(), fn(m, day) {
+      client.set_window_remote(
+        m,
+        day_window(day),
+        client.Failed(client.LoadActivitiesFailed),
+      )
+    })
+  assert client.tab_summaries(
+      model_,
+      filters_for(client.TabActivities),
+      client.ActivitiesListPage(client.default_filters()),
+    )
+    == client.ListFailed(client.LoadActivitiesFailed)
+}
+
+pub fn retry_on_all_days_refetches_failed_and_keeps_loaded_test() {
+  // Retry flips failed windows to Loading and refetches; loaded windows keep
+  // their data (they revalidate conditionally in the background).
+  let model_ =
+    list.fold(event_dates.event_days(), all_days_model(), fn(m, day) {
+      client.set_window_remote(m, day_window(day), client.Loaded([id_a()]))
+    })
+  let model_ =
+    client.set_window_remote(
+      model_,
+      day_window(other_day()),
+      client.Failed(client.LoadActivitiesFailed),
+    )
+  let #(next, _) = client.update(model_, client.UserClickedRetryLoad)
+  assert client.window_remote(next, day_window(other_day())) == client.Loading
+  assert client.window_remote(next, day_window(test_today()))
+    == client.Loaded([id_a()])
+}
+
+pub fn switching_to_recurring_tab_snaps_all_days_to_a_day_test() {
+  // Badbuss / Klättervägg have no "Alla dagar" option, so switching to one
+  // while the shared browse day is all-days snaps it to a concrete day
+  // (today, recomputed from the clock — so assert the mode, not the date)
+  // and loads a single window rather than fanning out.
+  let #(next, _) = client.update(all_days_model(), client.UserSelectedTab(1))
+  assert next.browse_day_filter != None
+  assert list.length(client.window_keys_for(next, client.SourceBeachBus)) == 1
+}
+
+pub fn all_days_resets_to_today_on_reentering_the_list_test() {
+  // "Alla dagar" is transient: navigating away and back to the list snaps the
+  // browse day back to today (a picked concrete day persists — see
+  // browse_day_survives_page_rebuild_via_route_change_test).
+  let #(detail, _) =
+    client.update(
+      all_days_model(),
+      client.OnRouteChange(parse_uri(
+        "/_services/booking/activities/" <> uuid.to_string(id_a()),
+      )),
+    )
+  assert detail.browse_day_filter == None
+  let #(back, _) =
+    client.update(
+      detail,
+      client.OnRouteChange(parse_uri("/_services/booking/activities")),
+    )
+  // The reset recomputes "today" from the clock (clamped into the event
+  // range), so assert the mode flipped rather than a specific date.
+  assert back.browse_day_filter != None
 }
 
 pub fn searching_updates_filters_on_list_page_test() {

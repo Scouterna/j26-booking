@@ -173,6 +173,10 @@ fn english_translations() -> g18n.Translations {
     "No activities match the filters.",
   )
   |> g18n.add_translation("list.empty", "No activities yet.")
+  |> g18n.add_translation(
+    "list.partial_days_failed",
+    "Some days could not be loaded, so the list may be incomplete.",
+  )
   |> g18n.add_translation("list.retry", "Try again")
   |> g18n.add_translation("not_found.title", "Not Found")
   |> g18n.add_translation("not_found.message", "Page not found.")
@@ -331,6 +335,10 @@ fn swedish_translations() -> g18n.Translations {
     "Inga aktiviteter matchar filtren.",
   )
   |> g18n.add_translation("list.empty", "Inga aktiviteter än.")
+  |> g18n.add_translation(
+    "list.partial_days_failed",
+    "Vissa dagar kunde inte laddas, så listan kan vara ofullständig.",
+  )
   |> g18n.add_translation("list.retry", "Försök igen")
   |> g18n.add_translation("not_found.title", "Hittades inte")
   |> g18n.add_translation("not_found.message", "Sidan hittades inte.")
@@ -916,11 +924,10 @@ pub type Model {
     // revalidates on reopen/timer/refresh (a `304` keeps what's shown).
     recurring_windows: Dict(RecurringKey, RemoteData(List(BookingSlot))),
     recurring_etags: Dict(RecurringKey, String),
-    // Today clamped into the event range — the browse tabs' default day.
-    today: calendar.Date,
     // The day shared by the browse tabs (Aktiviteter / Badbuss / Klättervägg),
-    // lifted out of the page so it survives navigation. `None` resolves to
-    // `today` (browse has no "all days" option).
+    // lifted out of the page so it survives navigation. Seeded to `today` at
+    // init (the default selection); `None` means "all days" — the whole event
+    // range in one window, so search matches across the week (issue #49).
     browse_day_filter: Option(calendar.Date),
     // Favourites' own day, independent of the browse tabs. `None` = "all days"
     // (its default); a pick narrows the all-days list client-side.
@@ -1035,12 +1042,15 @@ fn set_list_filters(page: Page, filters: ListFilters) -> Page {
   }
 }
 
-/// Revalidate the current activities list's window (browse or manage) in place;
-/// a no-op off a list page.
+/// Revalidate the current activities list's windows (browse or manage) in
+/// place; a no-op off a list page.
 fn revalidate_current_list(model: Model) -> #(Model, Effect(Msg)) {
   case list_filters(model.page) {
     Ok(filters) ->
-      load_or_revalidate(model, window_key_for(model, tab_source(filters.tab)))
+      load_or_revalidate_all(
+        model,
+        window_keys_for(model, tab_source(filters.tab)),
+      )
     Error(_) -> #(model, effect.none())
   }
 }
@@ -1153,32 +1163,45 @@ pub fn favourites_key() -> WindowKey {
   #(SourceFavourites, None, False)
 }
 
-/// The fetch identity for a source: browse sources window by the shared browse
-/// day (`browse_day_filter`, else the clamped "today"); Favourites spans all
-/// days regardless of its own day pick (which narrows client-side only).
-/// `include_call_offs` is role-derived.
-pub fn window_key_for(model: Model, source: ActivityListSource) -> WindowKey {
+/// The fetch identities for a source. Favourites is a single all-days window;
+/// a browse source is one per-day window — or, when the browse day is "Alla
+/// dagar" (`None`, offered only on Aktiviteter; the update handlers snap the
+/// recurring tabs to a concrete day), the eight per-day windows of the event,
+/// fetched individually (the API stays per-day only) and unioned for
+/// rendering. Each
+/// per-day window keeps its own ETag, so an all-days view composes with the
+/// per-day cache: days already visited render from cache and revalidate with
+/// cheap 304s. `include_call_offs` is role-derived.
+pub fn window_keys_for(
+  model: Model,
+  source: ActivityListSource,
+) -> List(WindowKey) {
   case source {
-    SourceFavourites -> favourites_key()
-    _ -> #(
-      source,
-      Some(option.unwrap(model.browse_day_filter, model.today)),
-      source_include_call_offs(model, source),
-    )
+    SourceFavourites -> [favourites_key()]
+    _ -> {
+      let include_call_offs = source_include_call_offs(model, source)
+      case model.browse_day_filter {
+        Some(day) -> [#(source, Some(day), include_call_offs)]
+        None ->
+          list.map(event_dates.event_days(), fn(day) {
+            #(source, Some(day), include_call_offs)
+          })
+      }
+    }
   }
 }
 
 /// The day a tab currently resolves to, read from the Model's per-view day
-/// fields (so it survives page rebuilds): Favourites uses its own day (`None` =
-/// all days, its default); the browse tabs share `browse_day_filter`, defaulting
-/// to the clamped `today` (browse has no "all days").
+/// fields (so it survives page rebuilds): Favourites uses its own day; the
+/// browse tabs share `browse_day_filter` (seeded to `today`). `None` = all
+/// days for either view.
 pub fn effective_day(
   model: Model,
   tab: ActivitiesFilterTab,
 ) -> Option(calendar.Date) {
   case tab {
     TabFavourites -> model.favourites_day_filter
-    _ -> Some(option.unwrap(model.browse_day_filter, model.today))
+    _ -> model.browse_day_filter
   }
 }
 
@@ -1198,6 +1221,45 @@ pub fn load_or_revalidate(
     )
     Loaded(_) -> #(model, fetch_window(model, key))
     Loading | Failed(_) -> #(model, effect.none())
+  }
+}
+
+/// Run a per-window step over every window of a view (one for a single-day or
+/// Favourites view, eight for "Alla dagar"), threading the model and batching
+/// the effects.
+fn fold_windows(
+  model: Model,
+  keys: List(WindowKey),
+  step: fn(Model, WindowKey) -> #(Model, Effect(Msg)),
+) -> #(Model, Effect(Msg)) {
+  list.fold(keys, #(model, effect.none()), fn(acc, key) {
+    let #(model, effects) = acc
+    let #(model, effect) = step(model, key)
+    #(model, effect.batch([effects, effect]))
+  })
+}
+
+/// `load_or_revalidate` for every window of a view.
+pub fn load_or_revalidate_all(
+  model: Model,
+  keys: List(WindowKey),
+) -> #(Model, Effect(Msg)) {
+  fold_windows(model, keys, load_or_revalidate)
+}
+
+/// Retry semantics for one window: failed and never-loaded windows flip to
+/// `Loading` and fetch; loaded windows refetch conditionally in the background
+/// (mostly 304s); in-flight windows are left alone. The list retry action runs
+/// this over every window of the current view, so an "Alla dagar" retry
+/// refetches the whole week.
+fn retry_window(model: Model, key: WindowKey) -> #(Model, Effect(Msg)) {
+  case window_remote(model, key) {
+    NotAsked | Failed(_) -> #(
+      set_window_remote(model, key, Loading),
+      fetch_window(model, key),
+    )
+    Loaded(_) -> #(model, fetch_window(model, key))
+    Loading -> #(model, effect.none())
   }
 }
 
@@ -1238,15 +1300,30 @@ fn load_or_revalidate_recurring(
   }
 }
 
-/// Resolves a tab into the `RemoteData` of summaries to render. Browse tabs map
-/// their id window through the entity cache (dropping ids not yet cached).
+/// What the activities list renders for a tab. Not `RemoteData`: an "Alla
+/// dagar" browse view aggregates eight per-day windows, which can settle
+/// mixed — some days loaded, some failed. `failed_days` carries the days
+/// whose window failed while others loaded, rendered as a warning banner over
+/// the partial list (a silent gap would quietly hide search matches, the very
+/// bug issue #49 is about). Single-window views never have `failed_days`.
+pub type ListLoad {
+  ListLoading
+  ListFailed(AppError)
+  ListLoaded(summaries: List(ActivitySummary), failed_days: List(calendar.Date))
+}
+
+/// Resolves a tab into what the list should render. Browse tabs union their
+/// per-day id windows (one, or eight on "Alla dagar") through the entity cache
+/// (dropping ids not yet cached): one spinner until every window has settled
+/// (Loaded or Failed) so search never runs over a half-loaded week, an error
+/// only when nothing loaded at all, otherwise the union plus any failed days.
 /// Favourites derives membership from the complete `statuses` map; its
 /// `favourited` fetch only supplies hydration + loading/error state.
 pub fn tab_summaries(
   model: Model,
   filters: ListFilters,
   page: Page,
-) -> RemoteData(List(ActivitySummary)) {
+) -> ListLoad {
   case filters.tab {
     TabFavourites -> {
       // Membership is derived from the complete `statuses` map; the favourites
@@ -1259,26 +1336,60 @@ pub fn tab_summaries(
         |> list.filter_map(fn(id) { dict.get(model.activities, id) })
       case derived, window_remote(model, favourites_key()) {
         // Nothing cached to render yet — reflect the fetch state.
-        [], NotAsked -> NotAsked
-        [], Loading -> Loading
-        [], Failed(err) -> Failed(err)
+        [], NotAsked | [], Loading -> ListLoading
+        [], Failed(err) -> ListFailed(err)
         // We can already render from the cache. Show it and let any refetch
         // hydrate in the background instead of blanking the list with a blocking
         // spinner — which, on slow networks, reads as a failed load when
         // re-entering Favourites after a favourite/booking change.
-        _, _ -> Loaded(derived)
+        _, _ -> ListLoaded(derived, [])
       }
     }
-    _ ->
-      case
-        window_remote(model, window_key_for(model, tab_source(filters.tab)))
-      {
-        NotAsked -> NotAsked
-        Loading -> Loading
-        Failed(err) -> Failed(err)
-        Loaded(ids) -> {
+    _ -> {
+      let windows =
+        window_keys_for(model, tab_source(filters.tab))
+        |> list.map(fn(key) { #(key, window_remote(model, key)) })
+      let settled =
+        list.all(windows, fn(window) {
+          case window.1 {
+            Loaded(_) | Failed(_) -> True
+            NotAsked | Loading -> False
+          }
+        })
+      let any_loaded =
+        list.any(windows, fn(window) {
+          case window.1 {
+            Loaded(_) -> True
+            NotAsked | Loading | Failed(_) -> False
+          }
+        })
+      let failures =
+        list.filter_map(windows, fn(window) {
+          case window {
+            #(#(_, day, _), Failed(err)) -> Ok(#(day, err))
+            _ -> Error(Nil)
+          }
+        })
+      case settled, any_loaded, failures {
+        False, _, _ -> ListLoading
+        // Every window failed (a single-day view's only window, or all eight):
+        // a whole-view error with retry. A loaded-but-empty day still counts
+        // as loaded, so a mixed empty-week + one failed day renders partial.
+        True, False, [#(_, err), ..] -> ListFailed(err)
+        // Nothing failed and nothing loaded can't happen once settled (a view
+        // always has at least one window), but renders harmlessly as empty.
+        True, _, _ -> {
+          let loaded_ids =
+            list.flat_map(windows, fn(window) {
+              case window.1 {
+                Loaded(ids) -> ids
+                NotAsked | Loading | Failed(_) -> []
+              }
+            })
           let summaries =
-            list.filter_map(ids, fn(id) { dict.get(model.activities, id) })
+            list.filter_map(loaded_ids, fn(id) {
+              dict.get(model.activities, id)
+            })
           // Browse lists never render called-off activities — they surface only
           // in the management list. Booked/favourited users still reach their
           // called-off activities via the Favourites tab and the detail page.
@@ -1287,9 +1398,13 @@ pub fn tab_summaries(
             _ ->
               list.filter(summaries, fn(s) { option.is_none(s.cancellation) })
           }
-          Loaded(visible)
+          ListLoaded(
+            visible,
+            list.filter_map(failures, fn(f) { option.to_result(f.0, Nil) }),
+          )
         }
       }
+    }
   }
 }
 
@@ -1737,9 +1852,9 @@ fn init(_flags) -> #(Model, Effect(Msg)) {
       etags: dict.new(),
       recurring_windows: dict.new(),
       recurring_etags: dict.new(),
-      today:,
-      // Browse defaults to today (via `None`); Favourites to all days (`None`).
-      browse_day_filter: None,
+      // Browse defaults to today (seeded, so `None` is free to mean "all
+      // days"); Favourites to all days (`None`).
+      browse_day_filter: Some(today),
       favourites_day_filter: None,
       details: seed_detail_loading(dict.new(), page),
       statuses: dict.new(),
@@ -1881,6 +1996,18 @@ pub fn update(model: Model, msg: Msg) -> #(Model, Effect(Msg)) {
       // The form overlay is `ManageActivitiesPage` state, so a route change to any
       // other page drops it automatically — a stale form can't linger.
       let model = Model(..model, page:, details:)
+      // "Alla dagar" is transient: re-entering a list page snaps the browse
+      // day back to today, so users don't unknowingly stay in the whole-week
+      // eight-window mode. A picked concrete day still persists (issue #40).
+      // Runs before the revalidation below so it loads today's window.
+      let model = case page, model.browse_day_filter {
+        ActivitiesListPage(_), None | ManageActivitiesPage(_, _), None ->
+          Model(
+            ..model,
+            browse_day_filter: Some(event_dates.clamp_to_event(today())),
+          )
+        _, _ -> model
+      }
       // Entering a list page revalidates the active tab (cheap 304 when
       // unchanged), so a returning view stays fresh without a blocking reload;
       // entering an overview page does the same for its day.
@@ -2376,10 +2503,24 @@ pub fn update(model: Model, msg: Msg) -> #(Model, Effect(Msg)) {
           let tab = tab_from_index(index)
           // Each tab reads its own persistent day (browse tabs share
           // `browse_day_filter`, Favourites its own), so switching tabs just
-          // changes the tab and revalidates that tab's resolved window.
+          // changes the tab and revalidates that tab's resolved windows.
           let filters = ListFilters(..filters, tab:)
+          // The recurring tabs have no "Alla dagar" option: switching to one
+          // while the shared browse day is all-days snaps it to today
+          // (all-days is transient anyway — it also resets on navigation).
+          let model = case tab, model.browse_day_filter {
+            TabBeachBus, None | TabClimbingWall, None ->
+              Model(
+                ..model,
+                browse_day_filter: Some(event_dates.clamp_to_event(today())),
+              )
+            _, _ -> model
+          }
           let #(model, fetch_effect) =
-            load_or_revalidate(model, window_key_for(model, tab_source(tab)))
+            load_or_revalidate_all(
+              model,
+              window_keys_for(model, tab_source(tab)),
+            )
           #(
             Model(..model, page: set_list_filters(model.page, filters)),
             fetch_effect,
@@ -2390,7 +2531,8 @@ pub fn update(model: Model, msg: Msg) -> #(Model, Effect(Msg)) {
 
     // Picking a day persists it to the current tab's own day field (so it
     // survives navigation and stays independent per view), then revalidates.
-    // On a browse tab that fetches the newly-selected day's window (instant from
+    // On a browse tab that fetches the newly-selected window — a single day's,
+    // or the whole event's when "all days" (`None`) is picked (instant from
     // cache + background revalidate); on Favourites the day only narrows the
     // rendered list client-side, so this just revalidates the all-days window.
     UserSelectedDay(d) ->
@@ -2408,9 +2550,9 @@ pub fn update(model: Model, msg: Msg) -> #(Model, Effect(Msg)) {
               }
             _ -> Model(..model, browse_day_filter: d)
           }
-          load_or_revalidate(
+          load_or_revalidate_all(
             model,
-            window_key_for(model, tab_source(filters.tab)),
+            window_keys_for(model, tab_source(filters.tab)),
           )
         }
         Error(_) -> #(model, effect.none())
@@ -2743,10 +2885,12 @@ pub fn update(model: Model, msg: Msg) -> #(Model, Effect(Msg)) {
 
     UserClickedRetryLoad ->
       case list_filters(model.page) {
-        Ok(filters) -> {
-          let key = window_key_for(model, tab_source(filters.tab))
-          #(set_window_remote(model, key, Loading), fetch_window(model, key))
-        }
+        Ok(filters) ->
+          fold_windows(
+            model,
+            window_keys_for(model, tab_source(filters.tab)),
+            retry_window,
+          )
         Error(_) -> #(model, effect.none())
       }
 
@@ -3734,7 +3878,6 @@ fn view(model: Model) -> Element(Msg) {
         filters,
         model.activity_tags,
         page,
-        model.today,
         model.browse_day_filter,
         model.favourites_day_filter,
         model.edit_ui,
@@ -3779,13 +3922,12 @@ fn view(model: Model) -> Element(Msg) {
 
 fn view_activities_list(
   translator: Translator,
-  summaries: RemoteData(List(ActivitySummary)),
+  load: ListLoad,
   statuses: Dict(Uuid, ActivityStatus),
   spots: Dict(Uuid, Int),
   filters: ListFilters,
   activity_tags: Dict(Uuid, ActivityTag),
   page: Page,
-  today: calendar.Date,
   browse_day: Option(calendar.Date),
   favourites_day: Option(calendar.Date),
   edit_ui: EditUi,
@@ -3815,22 +3957,15 @@ fn view_activities_list(
       activity_tags,
       locations,
     ),
-    view_list_top_bar(
-      translator,
-      filters,
-      page,
-      today,
-      browse_day,
-      favourites_day,
-    ),
+    view_list_top_bar(translator, filters, page, browse_day, favourites_day),
     case filters.more_open {
       True -> view_more_filters_panel(translator, filters, activity_tags)
       False -> element.none()
     },
     html.div([attribute.class("flex flex-col gap-3 mt-3")], [
-      case summaries {
-        NotAsked | Loading -> component.scout_loader(t("activity.loading"))
-        Failed(err) ->
+      case load {
+        ListLoading -> component.scout_loader(t("activity.loading"))
+        ListFailed(err) ->
           html.div([attribute.class("py-6 flex flex-col items-center gap-3")], [
             component.error_banner(t("error.heading"), t(app_error_key(err))),
             component.scout_button_action(
@@ -3839,20 +3974,45 @@ fn view_activities_list(
               UserClickedRetryLoad,
             ),
           ])
-        Loaded([]) ->
+        ListLoaded([], []) ->
           html.div([attribute.class("py-6 text-center flex flex-col gap-3")], [
             html.p([], [element.text(t("list.empty"))]),
           ])
-        Loaded(items) ->
-          view_grouped_activities(
-            translator,
-            to_card_items(items, statuses, spots),
-            filters,
-            page,
-            client_day,
-          )
+        ListLoaded(items, failed_days) ->
+          html.div([attribute.class("flex flex-col gap-3")], [
+            // Some (but not all) day windows of an "Alla dagar" view failed:
+            // show what loaded, but warn that the week — and any search over
+            // it — is incomplete, with a retry for the missing days.
+            case failed_days {
+              [] -> element.none()
+              _ -> view_partial_failure_banner(translator)
+            },
+            view_grouped_activities(
+              translator,
+              to_card_items(items, statuses, spots),
+              filters,
+              page,
+              client_day,
+            ),
+          ])
       },
     ]),
+  ])
+}
+
+/// Warning above a partially-loaded "Alla dagar" list: some day windows
+/// failed while others loaded, so the list may be missing days. The retry
+/// refetches every window of the view (failed days load fresh, loaded days
+/// revalidate as cheap 304s).
+fn view_partial_failure_banner(translator: Translator) -> Element(Msg) {
+  let t = fn(key) { g18n.translate(translator, key) }
+  html.div([attribute.class("px-3 flex flex-col items-center gap-3")], [
+    component.error_banner(t("error.heading"), t("list.partial_days_failed")),
+    component.scout_button_action(
+      t("list.retry"),
+      "primary",
+      UserClickedRetryLoad,
+    ),
   ])
 }
 
@@ -3860,19 +4020,23 @@ fn view_list_top_bar(
   translator: Translator,
   filters: ListFilters,
   page: Page,
-  today: calendar.Date,
   browse_day: Option(calendar.Date),
   favourites_day: Option(calendar.Date),
 ) -> Element(Msg) {
   let t = fn(key) { g18n.translate(translator, key) }
-  // The day dropdown is a static list of the event dates. Favourites offers an
-  // "all days" option and defaults to it; the browse tabs offer only single
-  // days and default to today (clamped into the event range). The selection is
+  // The day dropdown is a static list of the event dates, plus "Alla dagar"
+  // on Aktiviteter (picking it fans out the per-day windows so search matches
+  // across the week — issue #49) and Favourites (its default). The recurring
+  // tabs (Badbuss / Klättervägg) are strictly single-day. Browse defaults to
+  // today (clamped into the event range, seeded at init). The selection is
   // read from the Model's per-view day fields so it survives navigation.
-  let show_any = filters.tab == TabFavourites
+  let show_any = case filters.tab {
+    TabActivities | TabFavourites -> True
+    TabBeachBus | TabClimbingWall -> False
+  }
   let selected_day = case filters.tab {
     TabFavourites -> favourites_day
-    _ -> Some(option.unwrap(browse_day, today))
+    _ -> browse_day
   }
   let tab_labels = list.map(list_tabs(), fn(tab) { tab_label(translator, tab) })
   html.div(
@@ -3901,9 +4065,9 @@ fn view_list_top_bar(
       ),
       // Key the day select by its option set: `scout-select` consumes its own
       // `<option>` children, so reconciling them in place desyncs Lustre's DOM
-      // when the set changes (the "all days" option appears/disappears crossing
-      // the Favourites boundary). A key that flips with `show_any` makes Lustre
-      // replace the whole element instead.
+      // when the set changes (the "Alla dagar" option appears/disappears
+      // crossing the recurring-tab boundary). A key that flips with `show_any`
+      // makes Lustre replace the whole element instead.
       keyed.div([attribute.class("flex items-center gap-2")], [
         #(
           "day-select-"
@@ -3954,8 +4118,9 @@ fn tab_label(translator: Translator, tab: ActivitiesFilterTab) -> String {
 }
 
 /// The day dropdown. Options are the static event dates; `show_any` adds the
-/// leading "all days" option (Favourites only). `selected` drives which option
-/// is marked selected.
+/// leading "Alla dagar" option (Aktiviteter and Favourites — the recurring
+/// tabs are single-day only). `selected` drives which option is marked
+/// selected (`None` = all days).
 fn view_day_select(
   translator: Translator,
   selected: Option(calendar.Date),
@@ -3967,6 +4132,7 @@ fn view_day_select(
     Some(date) -> date_to_iso(date)
   }
   let any_option = case show_any {
+    False -> []
     True -> [
       html.option(
         [
@@ -3976,7 +4142,6 @@ fn view_day_select(
         g18n.translate(translator, "list.day.any"),
       ),
     ]
-    False -> []
   }
   let date_options =
     list.map(event_dates.event_days(), fn(date) {
