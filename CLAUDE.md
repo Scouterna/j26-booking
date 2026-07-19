@@ -142,6 +142,18 @@ of work, serial-numbered, each with a status header). Check there for prior/
 in-flight designs before starting significant work, and see `docs/plans/CLAUDE.md`
 for how to add a plan and keep its status and the index current.
 
+## GitHub Issues
+
+Issue priorities (Low/Medium/High) and types (Feature/Bug) are set with GitHub's
+issue fields feature — they are NOT labels, milestones, or project-board fields,
+so `gh issue list` and `gh project item-list` won't show them. Read them from
+the REST API's `issue_field_values`:
+
+```sh
+gh api 'repos/Scouterna/j26-booking/issues?state=open&per_page=100' \
+  --jq '.[] | {number, title, priority: ([.issue_field_values[]? | select(.issue_field_name == "Priority") | .single_select_option.name] | first), type: .type.name}'
+```
+
 ## Commits
 
 Follow [Conventional Commits](https://www.conventionalcommits.org/). Run `gleam format` before committing.
