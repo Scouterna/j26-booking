@@ -1,4 +1,5 @@
 import client
+import formal/form
 import gleam/dict
 import gleam/json
 import gleam/list
@@ -49,6 +50,7 @@ fn a_summary(
     tags: [],
     target_groups: [],
     cancellation: None,
+    booking_opens_at: None,
   )
 }
 
@@ -64,6 +66,8 @@ fn an_activity(id: Uuid, max: Option(Int)) -> model.Activity {
     tags: [],
     target_groups: [],
     cancellation: None,
+    booking_opens_at: None,
+    booking_opens_at_override: None,
   )
 }
 
@@ -87,6 +91,7 @@ fn a_detail() -> client.ActivityDetail {
   client.ActivityDetail(
     description: model.BilingualString(sv: "Desc", en: "Desc"),
     location: None,
+    booking_opens_at_override: None,
   )
 }
 
@@ -1586,6 +1591,46 @@ pub fn edit_open_seeds_none_when_activity_has_no_location_test() {
       client.ApiReturnedActivity(id_a(), Ok(an_activity(id_a(), None))),
     )
   assert next.edit_ui.location_id == None
+}
+
+/// The edit form must round-trip the *stored* opens-at override, not the
+/// effective value — an activity gated only by the global default seeds an
+/// empty field, so saving it can't freeze the global date into an override.
+pub fn edit_open_seeds_empty_opens_at_when_only_global_default_test() {
+  let activity =
+    model.Activity(
+      ..an_activity(id_a(), None),
+      booking_opens_at: Some(timestamp.from_unix_seconds(1_749_000_000)),
+      booking_opens_at_override: None,
+    )
+  let model_ = manage_model(client.ActivityFormEdit(id_a(), client.EditLoading))
+  let #(next, _) =
+    client.update(model_, client.ApiReturnedActivity(id_a(), Ok(activity)))
+  let assert client.ManageActivitiesPage(
+    _,
+    client.ActivityFormEdit(_, client.EditReady(form: seeded_form, ..)),
+  ) = next.page
+  let assert Ok(parsed) = form.run(seeded_form)
+  assert parsed.booking_opens_at == None
+}
+
+/// An activity with its own override seeds the field, and it parses back.
+pub fn edit_open_seeds_opens_at_override_test() {
+  let activity =
+    model.Activity(
+      ..an_activity(id_a(), None),
+      booking_opens_at: Some(timestamp.from_unix_seconds(1_749_000_000)),
+      booking_opens_at_override: Some(timestamp.from_unix_seconds(1_749_000_000)),
+    )
+  let model_ = manage_model(client.ActivityFormEdit(id_a(), client.EditLoading))
+  let #(next, _) =
+    client.update(model_, client.ApiReturnedActivity(id_a(), Ok(activity)))
+  let assert client.ManageActivitiesPage(
+    _,
+    client.ActivityFormEdit(_, client.EditReady(form: seeded_form, ..)),
+  ) = next.page
+  let assert Ok(parsed) = form.run(seeded_form)
+  let assert Some(_) = parsed.booking_opens_at
 }
 
 pub fn detail_fetch_caches_activity_location_test() {

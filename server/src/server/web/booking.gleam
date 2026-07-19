@@ -1,5 +1,6 @@
 import given
 import gleam/dynamic/decode
+import gleam/float
 import gleam/http.{Delete, Get, Post, Put}
 import gleam/int
 import gleam/json
@@ -7,6 +8,7 @@ import gleam/list
 import gleam/option
 import gleam/result
 import gleam/string
+import gleam/time/timestamp
 import pog
 import server/model/booking
 import server/scout_group
@@ -59,6 +61,12 @@ fn booking_input_decoder() -> decode.Decoder(BookingInput) {
 type BookingError {
   ActivityNotFound
   ActivityCalledOff
+  /// Booking has not opened for the activity yet (issue #36); carries the
+  /// effective opens-at so the 409 body can tell the client when it will.
+  BookingNotYetOpen(opens_at: timestamp.Timestamp)
+  /// The activity is over — past its end time (or start time, had it no end)
+  /// — so it can no longer be booked (issue #35).
+  ActivityHasPassed
   BookingNotFound
   /// The caller may not edit/delete this booking (see `may_manage`).
   NotBookingManager
@@ -114,26 +122,32 @@ pub fn create(
   })
   let id = uuid.v7()
   let user_id = user.id
+  let now = timestamp.system_time()
 
-  // Lock the activity row, verify capacity, and insert in one transaction so
-  // concurrent bookings for the same activity serialise and can't overbook.
+  // Lock the activity row, verify the booking window and capacity, and insert
+  // in one transaction so concurrent bookings for the same activity serialise
+  // and can't overbook.
   let transaction_result =
     pog.transaction(ctx.db_connection, fn(conn) {
-      use max_attendees <- result.try(lock_activity(conn, activity_id))
+      use activity <- result.try(lock_activity(conn, activity_id))
       // A called-off activity accepts no new bookings. Checked inside the same
       // transaction that locks the activity so it can't race a concurrent
       // call-off.
       use _ <- result.try(ensure_not_called_off(conn, activity_id))
+      use _ <- result.try(ensure_bookable(now, activity, ctx.booking_opens_at))
       use spots_booked <- result.try(booked_spots(conn, activity_id))
       case
         web.exceeds_capacity(
-          max_attendees,
+          activity.max_attendees,
           spots_booked,
           input.participant_count,
         )
       {
         True ->
-          Error(CapacityExceeded(option.unwrap(max_attendees, 0), spots_booked))
+          Error(CapacityExceeded(
+            option.unwrap(activity.max_attendees, 0),
+            spots_booked,
+          ))
         False -> insert_booking(conn, id, user_id, user, activity_id, input)
       }
     })
@@ -166,6 +180,24 @@ pub fn create(
           |> json.to_string,
         409,
       )
+    Error(pog.TransactionRolledBack(BookingNotYetOpen(opens_at))) ->
+      wisp.json_response(
+        json.object([
+          #("error", json.string("Booking is not open yet")),
+          #(
+            "booking_opens_at",
+            json.int(timestamp.to_unix_seconds(opens_at) |> float.round),
+          ),
+        ])
+          |> json.to_string,
+        409,
+      )
+    Error(pog.TransactionRolledBack(ActivityHasPassed)) ->
+      wisp.json_response(
+        json.object([#("error", json.string("Activity has passed"))])
+          |> json.to_string,
+        409,
+      )
     Error(pog.TransactionRolledBack(CapacityExceeded(max, spots_booked))) ->
       web.capacity_exceeded(max, spots_booked)
     Error(pog.TransactionRolledBack(BookingQueryFailed(error))) ->
@@ -174,6 +206,31 @@ pub fn create(
       wisp.log_error("TransactionError " <> string.inspect(error))
       wisp.internal_server_error()
     }
+  }
+}
+
+/// The booking-window check (issues #35 and #36) as a transaction step: rolls
+/// back with `BookingNotYetOpen` before the activity's effective opens-at
+/// (its own override, else the global `BOOKING_OPENS_AT` default) and with
+/// `ActivityHasPassed` once the activity is over. The window itself is
+/// defined by the shared `model.booking_window`, which the client mirrors.
+fn ensure_bookable(
+  now: timestamp.Timestamp,
+  activity: sql.LockActivityForBookingRow,
+  default_booking_opens_at: option.Option(timestamp.Timestamp),
+) -> Result(Nil, BookingError) {
+  let opens_at = option.or(activity.booking_opens_at, default_booking_opens_at)
+  case
+    model.booking_window(
+      now:,
+      opens_at:,
+      start_time: activity.start_time,
+      end_time: option.Some(activity.end_time),
+    )
+  {
+    model.BookingOpen -> Ok(Nil)
+    model.BookingNotYetOpen(opens_at) -> Error(BookingNotYetOpen(opens_at))
+    model.BookingClosed -> Error(ActivityHasPassed)
   }
 }
 
@@ -191,16 +248,17 @@ fn ensure_not_called_off(
   }
 }
 
-/// Locks the activity row for the transaction and returns its cap. Missing
-/// activity rolls back the transaction as `ActivityNotFound`.
+/// Locks the activity row for the transaction and returns what the booking
+/// flow validates against (capacity + booking window times). Missing activity
+/// rolls back the transaction as `ActivityNotFound`.
 fn lock_activity(
   conn: pog.Connection,
   activity_id: uuid.Uuid,
-) -> Result(option.Option(Int), BookingError) {
-  case sql.lock_activity_max_attendees(conn, activity_id) {
+) -> Result(sql.LockActivityForBookingRow, BookingError) {
+  case sql.lock_activity_for_booking(conn, activity_id) {
     Error(error) -> Error(BookingQueryFailed(error))
     Ok(pog.Returned(_, [])) -> Error(ActivityNotFound)
-    Ok(pog.Returned(_, [row, ..])) -> Ok(row.max_attendees)
+    Ok(pog.Returned(_, [row, ..])) -> Ok(row)
   }
 }
 
@@ -422,18 +480,21 @@ pub fn update(req: Request, id: String, ctx: web.Context) -> Response {
     pog.transaction(ctx.db_connection, fn(conn) {
       use existing <- result.try(load_booking(conn, booking_id))
       use _ <- result.try(ensure_may_manage(user, existing))
-      use max_attendees <- result.try(lock_activity(conn, existing.activity_id))
+      use activity <- result.try(lock_activity(conn, existing.activity_id))
       use spots_booked <- result.try(booked_spots(conn, existing.activity_id))
       let already_booked = spots_booked - existing.participant_count
       case
         web.exceeds_capacity(
-          max_attendees,
+          activity.max_attendees,
           already_booked,
           input.participant_count,
         )
       {
         True ->
-          Error(CapacityExceeded(option.unwrap(max_attendees, 0), spots_booked))
+          Error(CapacityExceeded(
+            option.unwrap(activity.max_attendees, 0),
+            spots_booked,
+          ))
         False -> update_booking(conn, booking_id, input)
       }
     })

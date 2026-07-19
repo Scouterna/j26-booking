@@ -123,6 +123,7 @@ pub fn group_target_groups_by_activity(
 pub fn from_create_activity_with_max_attendees_row(
   row: sql.CreateActivityWithMaxAttendeesRow,
   embeds: Embeds,
+  default_booking_opens_at: Option(timestamp.Timestamp),
 ) -> Activity {
   Activity(
     id: row.id,
@@ -138,12 +139,15 @@ pub fn from_create_activity_with_max_attendees_row(
     tags: embed_tags(embeds, row.id),
     target_groups: embed_target_groups(embeds, row.id),
     cancellation: embed_cancellation(embeds, row.id),
+    booking_opens_at: option.or(row.booking_opens_at, default_booking_opens_at),
+    booking_opens_at_override: row.booking_opens_at,
   )
 }
 
 pub fn from_create_activity_without_max_attendees_row(
   row: sql.CreateActivityWithoutMaxAttendeesRow,
   embeds: Embeds,
+  default_booking_opens_at: Option(timestamp.Timestamp),
 ) -> Activity {
   Activity(
     id: row.id,
@@ -159,12 +163,15 @@ pub fn from_create_activity_without_max_attendees_row(
     tags: embed_tags(embeds, row.id),
     target_groups: embed_target_groups(embeds, row.id),
     cancellation: embed_cancellation(embeds, row.id),
+    booking_opens_at: option.or(row.booking_opens_at, default_booking_opens_at),
+    booking_opens_at_override: row.booking_opens_at,
   )
 }
 
 pub fn from_search_activity_row(
   row: sql.SearchActivitiesRow,
   embeds: Embeds,
+  default_booking_opens_at: Option(timestamp.Timestamp),
 ) -> Activity {
   Activity(
     id: row.id,
@@ -180,12 +187,15 @@ pub fn from_search_activity_row(
     tags: embed_tags(embeds, row.id),
     target_groups: embed_target_groups(embeds, row.id),
     cancellation: embed_cancellation(embeds, row.id),
+    booking_opens_at: option.or(row.booking_opens_at, default_booking_opens_at),
+    booking_opens_at_override: row.booking_opens_at,
   )
 }
 
 pub fn from_get_activity_row(
   row: sql.GetActivityRow,
   embeds: Embeds,
+  default_booking_opens_at: Option(timestamp.Timestamp),
 ) -> Activity {
   Activity(
     id: row.id,
@@ -201,12 +211,15 @@ pub fn from_get_activity_row(
     tags: embed_tags(embeds, row.id),
     target_groups: embed_target_groups(embeds, row.id),
     cancellation: embed_cancellation(embeds, row.id),
+    booking_opens_at: option.or(row.booking_opens_at, default_booking_opens_at),
+    booking_opens_at_override: row.booking_opens_at,
   )
 }
 
 pub fn from_get_activities_by_title_row(
   row: sql.GetActivitiesByTitleRow,
   embeds: Embeds,
+  default_booking_opens_at: Option(timestamp.Timestamp),
 ) -> Activity {
   Activity(
     id: row.id,
@@ -222,12 +235,15 @@ pub fn from_get_activities_by_title_row(
     tags: embed_tags(embeds, row.id),
     target_groups: embed_target_groups(embeds, row.id),
     cancellation: embed_cancellation(embeds, row.id),
+    booking_opens_at: option.or(row.booking_opens_at, default_booking_opens_at),
+    booking_opens_at_override: row.booking_opens_at,
   )
 }
 
 pub fn from_get_activities_by_start_time_row(
   row: sql.GetActivitiesByStartTimeRow,
   embeds: Embeds,
+  default_booking_opens_at: Option(timestamp.Timestamp),
 ) -> Activity {
   Activity(
     id: row.id,
@@ -243,12 +259,15 @@ pub fn from_get_activities_by_start_time_row(
     tags: embed_tags(embeds, row.id),
     target_groups: embed_target_groups(embeds, row.id),
     cancellation: embed_cancellation(embeds, row.id),
+    booking_opens_at: option.or(row.booking_opens_at, default_booking_opens_at),
+    booking_opens_at_override: row.booking_opens_at,
   )
 }
 
 pub fn from_list_activities_by_title_row(
   row: sql.ListActivitiesByTitleRow,
   embeds: Embeds,
+  default_booking_opens_at: Option(timestamp.Timestamp),
 ) -> Activity {
   Activity(
     id: row.id,
@@ -264,12 +283,15 @@ pub fn from_list_activities_by_title_row(
     tags: embed_tags(embeds, row.id),
     target_groups: embed_target_groups(embeds, row.id),
     cancellation: embed_cancellation(embeds, row.id),
+    booking_opens_at: option.or(row.booking_opens_at, default_booking_opens_at),
+    booking_opens_at_override: row.booking_opens_at,
   )
 }
 
 pub fn from_list_activities_by_start_time_row(
   row: sql.ListActivitiesByStartTimeRow,
   embeds: Embeds,
+  default_booking_opens_at: Option(timestamp.Timestamp),
 ) -> Activity {
   Activity(
     id: row.id,
@@ -285,12 +307,15 @@ pub fn from_list_activities_by_start_time_row(
     tags: embed_tags(embeds, row.id),
     target_groups: embed_target_groups(embeds, row.id),
     cancellation: embed_cancellation(embeds, row.id),
+    booking_opens_at: option.or(row.booking_opens_at, default_booking_opens_at),
+    booking_opens_at_override: row.booking_opens_at,
   )
 }
 
 pub fn from_list_beach_bus_activities_row(
   row: sql.ListBeachBusActivitiesRow,
   embeds: Embeds,
+  default_booking_opens_at: Option(timestamp.Timestamp),
 ) -> Activity {
   Activity(
     id: row.id,
@@ -306,12 +331,15 @@ pub fn from_list_beach_bus_activities_row(
     tags: embed_tags(embeds, row.id),
     target_groups: embed_target_groups(embeds, row.id),
     cancellation: embed_cancellation(embeds, row.id),
+    booking_opens_at: option.or(row.booking_opens_at, default_booking_opens_at),
+    booking_opens_at_override: row.booking_opens_at,
   )
 }
 
 pub fn from_list_climbing_wall_activities_row(
   row: sql.ListClimbingWallActivitiesRow,
   embeds: Embeds,
+  default_booking_opens_at: Option(timestamp.Timestamp),
 ) -> Activity {
   Activity(
     id: row.id,
@@ -327,12 +355,15 @@ pub fn from_list_climbing_wall_activities_row(
     tags: embed_tags(embeds, row.id),
     target_groups: embed_target_groups(embeds, row.id),
     cancellation: embed_cancellation(embeds, row.id),
+    booking_opens_at: option.or(row.booking_opens_at, default_booking_opens_at),
+    booking_opens_at_override: row.booking_opens_at,
   )
 }
 
 pub fn from_list_favourited_activities_row(
   row: sql.ListFavouritedActivitiesRow,
   embeds: Embeds,
+  default_booking_opens_at: Option(timestamp.Timestamp),
 ) -> Activity {
   Activity(
     id: row.id,
@@ -348,12 +379,15 @@ pub fn from_list_favourited_activities_row(
     tags: embed_tags(embeds, row.id),
     target_groups: embed_target_groups(embeds, row.id),
     cancellation: embed_cancellation(embeds, row.id),
+    booking_opens_at: option.or(row.booking_opens_at, default_booking_opens_at),
+    booking_opens_at_override: row.booking_opens_at,
   )
 }
 
 pub fn from_update_activity_with_max_attendees_row(
   row: sql.UpdateActivityWithMaxAttendeesRow,
   embeds: Embeds,
+  default_booking_opens_at: Option(timestamp.Timestamp),
 ) -> Activity {
   Activity(
     id: row.id,
@@ -369,12 +403,15 @@ pub fn from_update_activity_with_max_attendees_row(
     tags: embed_tags(embeds, row.id),
     target_groups: embed_target_groups(embeds, row.id),
     cancellation: embed_cancellation(embeds, row.id),
+    booking_opens_at: option.or(row.booking_opens_at, default_booking_opens_at),
+    booking_opens_at_override: row.booking_opens_at,
   )
 }
 
 pub fn from_update_activity_without_max_attendees_row(
   row: sql.UpdateActivityWithoutMaxAttendeesRow,
   embeds: Embeds,
+  default_booking_opens_at: Option(timestamp.Timestamp),
 ) -> Activity {
   Activity(
     id: row.id,
@@ -390,6 +427,8 @@ pub fn from_update_activity_without_max_attendees_row(
     tags: embed_tags(embeds, row.id),
     target_groups: embed_target_groups(embeds, row.id),
     cancellation: embed_cancellation(embeds, row.id),
+    booking_opens_at: option.or(row.booking_opens_at, default_booking_opens_at),
+    booking_opens_at_override: row.booking_opens_at,
   )
 }
 
@@ -443,6 +482,8 @@ pub fn to_json(activity: Activity) -> Json {
     tags:,
     target_groups:,
     cancellation:,
+    booking_opens_at:,
+    booking_opens_at_override:,
   ) = activity
   json.object([
     #("id", id |> uuid.to_string |> json.string),
@@ -458,6 +499,11 @@ pub fn to_json(activity: Activity) -> Json {
     #("tags", json.array(tags, uuid_to_json)),
     #("target_groups", json.array(target_groups, model.target_group_to_json)),
     #("cancellation", json.nullable(cancellation, json.string)),
+    #("booking_opens_at", json.nullable(booking_opens_at, unix_seconds_to_json)),
+    #(
+      "booking_opens_at_override",
+      json.nullable(booking_opens_at_override, unix_seconds_to_json),
+    ),
   ])
 }
 
@@ -475,6 +521,8 @@ pub fn summary_to_json(activity: Activity) -> Json {
     tags:,
     target_groups:,
     cancellation:,
+    booking_opens_at:,
+    booking_opens_at_override: _,
   ) = activity
   json.object([
     #("id", id |> uuid.to_string |> json.string),
@@ -495,7 +543,12 @@ pub fn summary_to_json(activity: Activity) -> Json {
     #("tags", json.array(tags, uuid_to_json)),
     #("target_groups", json.array(target_groups, model.target_group_to_json)),
     #("cancellation", json.nullable(cancellation, json.string)),
+    #("booking_opens_at", json.nullable(booking_opens_at, unix_seconds_to_json)),
   ])
+}
+
+fn unix_seconds_to_json(value: timestamp.Timestamp) -> Json {
+  json.int(timestamp.to_unix_seconds(value) |> float.round)
 }
 
 pub fn activity_tag_to_json(tag: ActivityTag) -> Json {

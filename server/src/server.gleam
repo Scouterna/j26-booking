@@ -39,6 +39,13 @@ pub fn main() -> Nil {
       "OPEN_ID_CONFIGURATION_URL",
       "https://app.dev.j26.se/auth/.well-known/openid-configuration",
     )
+  // Booking opens at the start of the camp (Swedish midnight, 25 July)
+  // unless BOOKING_OPENS_AT says otherwise.
+  let booking_opens_at =
+    option.Some(utils.get_env_rfc3339(
+      "BOOKING_OPENS_AT",
+      default: "2026-07-25T00:00:00+02:00",
+    ))
 
   let pool_name = process.new_name("j26booking_pool")
   let pool_child = case pog.url_config(pool_name, database_url) {
@@ -60,6 +67,7 @@ pub fn main() -> Nil {
       jwt_verify_keys:,
       authentication_result: web.NotAuthenticated,
       dev_fallback_user: dev_fallback_user_from_env(),
+      booking_opens_at:,
     )
   let handler = router.handle_request(_, ctx)
 

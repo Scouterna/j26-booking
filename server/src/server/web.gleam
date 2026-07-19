@@ -94,6 +94,11 @@ pub type Context {
     /// `Some` in local development (`DEV_AUTH_ROLES`), where the app runs
     /// without the j26-app shell that normally provides the token cookie.
     dev_fallback_user: Option(User),
+    /// The global default for when booking opens (`BOOKING_OPENS_AT`).
+    /// `None` means booking is open immediately. Activities can override it
+    /// per row with `activity.booking_opens_at`; handlers coalesce the two
+    /// into the effective opens-at exposed on activity JSON (issue #36).
+    booking_opens_at: Option(Timestamp),
   )
 }
 

@@ -202,6 +202,35 @@ fn write_activity_location(
   }
 }
 
+/// Writes the booking-opens-at override during a fresh create. Only a chosen
+/// value needs writing — a just-inserted row's override is already NULL.
+fn set_new_activity_booking_opens_at(
+  conn: pog.Connection,
+  activity_id: Uuid,
+  booking_opens_at: Option(timestamp.Timestamp),
+) -> Result(pog.Returned(Nil), pog.QueryError) {
+  case booking_opens_at {
+    Some(opens_at) ->
+      sql.set_activity_booking_opens_at(conn, activity_id, opens_at)
+    None -> Ok(pog.Returned(0, []))
+  }
+}
+
+/// Writes the booking-opens-at override during an update: sets the chosen
+/// value or clears it back to the global default. An existing row may already
+/// hold an override; a fresh create uses `set_new_activity_booking_opens_at`.
+fn write_activity_booking_opens_at(
+  conn: pog.Connection,
+  activity_id: Uuid,
+  booking_opens_at: Option(timestamp.Timestamp),
+) -> Result(pog.Returned(Nil), pog.QueryError) {
+  case booking_opens_at {
+    Some(opens_at) ->
+      sql.set_activity_booking_opens_at(conn, activity_id, opens_at)
+    None -> sql.clear_activity_booking_opens_at(conn, activity_id)
+  }
+}
+
 /// Resolve the chosen `location_id` to the full location, for embedding into the
 /// create/update response. `None` when no location was chosen (unknown ids are
 /// rejected upstream by `require_valid_location`). Used to override the response's
@@ -224,6 +253,21 @@ fn with_location(
   location: Option(Location),
 ) -> model.Activity {
   model.Activity(..activity, location:)
+}
+
+/// Stitches the request's booking-opens-at override into the response
+/// activity. Like the location, the override is written separately after the
+/// INSERT/UPDATE, so the returned row still carries the old (or NULL) value.
+fn with_booking_opens_at(
+  activity: model.Activity,
+  override override: Option(timestamp.Timestamp),
+  default default: Option(timestamp.Timestamp),
+) -> model.Activity {
+  model.Activity(
+    ..activity,
+    booking_opens_at: option.or(override, default),
+    booking_opens_at_override: override,
+  )
 }
 
 fn response_from_db_activity_summaries(
@@ -288,7 +332,11 @@ pub fn get_page(req: Request, ctx: web.Context) -> Response {
           day_start,
           day_end,
         ),
-        activity.from_list_activities_by_start_time_row(_, embeds),
+        activity.from_list_activities_by_start_time_row(
+          _,
+          embeds,
+          ctx.booking_opens_at,
+        ),
         list_audience(include_call_offs),
       )
     Title ->
@@ -300,7 +348,11 @@ pub fn get_page(req: Request, ctx: web.Context) -> Response {
           day_start,
           day_end,
         ),
-        activity.from_list_activities_by_title_row(_, embeds),
+        activity.from_list_activities_by_title_row(
+          _,
+          embeds,
+          ctx.booking_opens_at,
+        ),
         list_audience(include_call_offs),
       )
   }
@@ -322,7 +374,7 @@ pub fn get_beach_bus(req: Request, ctx: web.Context) -> Response {
       day_start,
       day_end,
     ),
-    activity.from_list_beach_bus_activities_row(_, embeds),
+    activity.from_list_beach_bus_activities_row(_, embeds, ctx.booking_opens_at),
     list_audience(include_call_offs),
   )
 }
@@ -343,7 +395,11 @@ pub fn get_climbing_wall(req: Request, ctx: web.Context) -> Response {
       day_start,
       day_end,
     ),
-    activity.from_list_climbing_wall_activities_row(_, embeds),
+    activity.from_list_climbing_wall_activities_row(
+      _,
+      embeds,
+      ctx.booking_opens_at,
+    ),
     list_audience(include_call_offs),
   )
 }
@@ -359,7 +415,11 @@ pub fn get_favourited(req: Request, ctx: web.Context) -> Response {
   response_from_db_activity_summaries(
     req,
     sql.list_favourited_activities(ctx.db_connection, user.id),
-    activity.from_list_favourited_activities_row(_, embeds),
+    activity.from_list_favourited_activities_row(
+      _,
+      embeds,
+      ctx.booking_opens_at,
+    ),
     // Per-user list (keyed on the caller's id), so it must never be shared.
     web.ScopedToUser,
   )
@@ -377,7 +437,7 @@ pub fn get_one(req: Request, id: String, ctx: web.Context) -> Response {
     Ok(pog.Returned(_, [row, ..])) ->
       wisp.json_response(
         row
-          |> activity.from_get_activity_row(embeds)
+          |> activity.from_get_activity_row(embeds, ctx.booking_opens_at)
           |> activity.to_json
           |> json.to_string,
         200,
@@ -420,6 +480,10 @@ pub type ActivityInput {
     /// The chosen location's id, or `None` for no location. Omitting the field
     /// or sending `null` both clear the location.
     location_id: Option(Uuid),
+    /// The per-activity booking-opens-at override as unix seconds, or `None`
+    /// to fall back to the global `BOOKING_OPENS_AT` default. Omitting the
+    /// field or sending `null` both clear the override.
+    booking_opens_at: Option(Int),
   )
 }
 
@@ -453,6 +517,13 @@ fn activity_input_decoder() -> decode.Decoder(ActivityInput) {
     None,
     decode.optional(uuid_decoder()),
   )
+  use booking_opens_at <- decode.optional_field(
+    "booking_opens_at",
+    None,
+    decode.optional(
+      decode.one_of(decode.int, [decode.float |> decode.map(float.round)]),
+    ),
+  )
   decode.success(ActivityInput(
     title:,
     description:,
@@ -462,6 +533,7 @@ fn activity_input_decoder() -> decode.Decoder(ActivityInput) {
     tags:,
     target_groups:,
     location_id:,
+    booking_opens_at:,
   ))
 }
 
@@ -498,6 +570,8 @@ pub fn create(req: Request, ctx: web.Context) -> Response {
   let id = uuid.v7()
   let start_time = timestamp.from_unix_seconds(input.start_time)
   let end_time = timestamp.from_unix_seconds(input.end_time)
+  let booking_opens_at =
+    option.map(input.booking_opens_at, timestamp.from_unix_seconds)
   let target_groups_sql =
     list.map(input.target_groups, activity.model_target_group_to_sql)
   // Locations are fetched so the chosen id can be validated and resolved for
@@ -539,11 +613,24 @@ pub fn create(req: Request, ctx: web.Context) -> Response {
           id,
           input.location_id,
         ))
+        use _ <- result.try(set_new_activity_booking_opens_at(
+          conn,
+          id,
+          booking_opens_at,
+        ))
         Ok(created)
       })
       |> creation_response(fn(row) {
-        activity.from_create_activity_with_max_attendees_row(row, embeds)
+        activity.from_create_activity_with_max_attendees_row(
+          row,
+          embeds,
+          ctx.booking_opens_at,
+        )
         |> with_location(location)
+        |> with_booking_opens_at(
+          override: booking_opens_at,
+          default: ctx.booking_opens_at,
+        )
       })
     None ->
       pog.transaction(ctx.db_connection, fn(conn) {
@@ -568,11 +655,24 @@ pub fn create(req: Request, ctx: web.Context) -> Response {
           id,
           input.location_id,
         ))
+        use _ <- result.try(set_new_activity_booking_opens_at(
+          conn,
+          id,
+          booking_opens_at,
+        ))
         Ok(created)
       })
       |> creation_response(fn(row) {
-        activity.from_create_activity_without_max_attendees_row(row, embeds)
+        activity.from_create_activity_without_max_attendees_row(
+          row,
+          embeds,
+          ctx.booking_opens_at,
+        )
         |> with_location(location)
+        |> with_booking_opens_at(
+          override: booking_opens_at,
+          default: ctx.booking_opens_at,
+        )
       })
   }
 }
@@ -618,6 +718,8 @@ pub fn update(req: Request, id: String, ctx: web.Context) -> Response {
   use <- require_valid_location(locations, input.location_id)
   let start_time = timestamp.from_unix_seconds(input.start_time)
   let end_time = timestamp.from_unix_seconds(input.end_time)
+  let booking_opens_at =
+    option.map(input.booking_opens_at, timestamp.from_unix_seconds)
   let target_groups_sql =
     list.map(input.target_groups, activity.model_target_group_to_sql)
   let embeds =
@@ -666,13 +768,29 @@ pub fn update(req: Request, id: String, ctx: web.Context) -> Response {
               write_activity_location(conn, activity_id, input.location_id)
               |> result.map_error(UpdateQueryFailed),
             )
+            use _ <- result.try(
+              write_activity_booking_opens_at(
+                conn,
+                activity_id,
+                booking_opens_at,
+              )
+              |> result.map_error(UpdateQueryFailed),
+            )
             Ok(row)
           }
         }
       })
       |> update_response(fn(row) {
-        activity.from_update_activity_with_max_attendees_row(row, embeds)
+        activity.from_update_activity_with_max_attendees_row(
+          row,
+          embeds,
+          ctx.booking_opens_at,
+        )
         |> with_location(location)
+        |> with_booking_opens_at(
+          override: booking_opens_at,
+          default: ctx.booking_opens_at,
+        )
       })
     None ->
       pog.transaction(ctx.db_connection, fn(conn) {
@@ -705,13 +823,29 @@ pub fn update(req: Request, id: String, ctx: web.Context) -> Response {
               write_activity_location(conn, activity_id, input.location_id)
               |> result.map_error(UpdateQueryFailed),
             )
+            use _ <- result.try(
+              write_activity_booking_opens_at(
+                conn,
+                activity_id,
+                booking_opens_at,
+              )
+              |> result.map_error(UpdateQueryFailed),
+            )
             Ok(row)
           }
         }
       })
       |> update_response(fn(row) {
-        activity.from_update_activity_without_max_attendees_row(row, embeds)
+        activity.from_update_activity_without_max_attendees_row(
+          row,
+          embeds,
+          ctx.booking_opens_at,
+        )
         |> with_location(location)
+        |> with_booking_opens_at(
+          override: booking_opens_at,
+          default: ctx.booking_opens_at,
+        )
       })
   }
 }
@@ -760,7 +894,7 @@ pub fn cancel(req: Request, id: String, ctx: web.Context) -> Response {
           use embeds <- with_embeds(ctx)
           wisp.json_response(
             row
-              |> activity.from_get_activity_row(embeds)
+              |> activity.from_get_activity_row(embeds, ctx.booking_opens_at)
               |> activity.to_json
               |> json.to_string,
             200,

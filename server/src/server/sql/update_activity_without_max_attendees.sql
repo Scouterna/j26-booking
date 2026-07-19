@@ -14,4 +14,5 @@ RETURNING id,
     description_en,
     start_time,
     end_time,
-    location_id
+    location_id,
+    booking_opens_at

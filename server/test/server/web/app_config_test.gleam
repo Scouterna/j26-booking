@@ -18,6 +18,7 @@ fn context_with_auth(auth: web.AuthenticationResult) -> web.Context {
     jwt_verify_keys: web.JWTVerifyKeys("", []),
     authentication_result: auth,
     dev_fallback_user: None,
+    booking_opens_at: None,
   )
 }
 

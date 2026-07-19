@@ -686,7 +686,52 @@ paths:
         '404':
           $ref: '#/components/responses/NotFound'
         '409':
-          $ref: '#/components/responses/CapacityExceeded'
+          description: >-
+            Conflict — the booking is not possible right now. Four variants
+            share this status: the capacity check failed (same body as
+            `CapacityExceeded`), the activity is called off, booking has not
+            opened yet (`booking_opens_at` reports when it will, as a Unix
+            timestamp in seconds), or the activity has already passed (past
+            its end time).
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - type: object
+                    required: [error, max_attendees, spots_booked]
+                    properties:
+                      error:
+                        type: string
+                        enum: [capacity_exceeded]
+                      max_attendees:
+                        type: integer
+                      spots_booked:
+                        type: integer
+                  - type: object
+                    required: [error]
+                    properties:
+                      error:
+                        type: string
+                        enum: ["Activity is called off"]
+                  - type: object
+                    required: [error, booking_opens_at]
+                    properties:
+                      error:
+                        type: string
+                        enum: ["Booking is not open yet"]
+                      booking_opens_at:
+                        type: integer
+                        format: int64
+                        description: When booking opens, as a Unix timestamp in seconds.
+                  - type: object
+                    required: [error]
+                    properties:
+                      error:
+                        type: string
+                        enum: ["Activity has passed"]
+              example:
+                error: "Booking is not open yet"
+                booking_opens_at: 1748764800
         '500':
           $ref: '#/components/responses/ServerError'
 
@@ -1698,6 +1743,18 @@ components:
           nullable: true
           description: The reason the activity was called off, or null when it is active. A non-null value means the activity is cancelled ("inställd") and only booked/favourited users (and managers) see it.
           example: "Inställd på grund av väder"
+        booking_opens_at:
+          type: integer
+          format: int64
+          nullable: true
+          description: When booking opens, as a Unix timestamp in seconds — the effective value (the per-activity override, else the server's global `BOOKING_OPENS_AT` default). Null means booking is open immediately. Booking closes at `end_time`.
+          example: 1748764800
+        booking_opens_at_override:
+          type: integer
+          format: int64
+          nullable: true
+          description: The per-activity opens-at override as stored, or null when the activity follows the global default. Edit forms must round-trip this value — not `booking_opens_at` — or they would freeze the global default into an override.
+          example: 1748764800
 
     ActivitySummary:
       type: object
@@ -1754,6 +1811,12 @@ components:
           nullable: true
           description: The reason the activity was called off, or null when it is active. A non-null value means the activity is cancelled ("inställd") and only booked/favourited users (and managers) see it.
           example: "Inställd på grund av väder"
+        booking_opens_at:
+          type: integer
+          format: int64
+          nullable: true
+          description: When booking opens, as a Unix timestamp in seconds — the effective value (per-activity override, else the global default). Null means booking is open immediately.
+          example: 1748764800
 
     TargetGroup:
       type: string
@@ -2312,6 +2375,11 @@ components:
           nullable: true
           description: Id of an existing location to hold this activity at. Null or omit for no location.
           example: "0190f3a1-1c2d-7e3f-9a4b-5c6d7e8f9a0b"
+        booking_opens_at:
+          type: number
+          nullable: true
+          description: Per-activity booking-opens-at override as Unix timestamp in seconds (accepts integer or float). Null or omit to fall back to the server's global `BOOKING_OPENS_AT` default.
+          example: 1748764800
 
     AppConfig:
       type: object

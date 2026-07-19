@@ -11,6 +11,32 @@ import gleam/time/timestamp.{type Timestamp}
 import pog
 import youid/uuid.{type Uuid}
 
+/// Clear an activity's booking-opens-at override so it falls back to the
+/// global BOOKING_OPENS_AT default. Counterpart of
+/// set_activity_booking_opens_at.
+///
+/// > 🐿️ This function was generated automatically using v4.7.0 of
+/// > the [squirrel package](https://github.com/giacomocavalieri/squirrel).
+///
+pub fn clear_activity_booking_opens_at(
+  db: pog.Connection,
+  id: Uuid,
+) -> Result(pog.Returned(Nil), pog.QueryError) {
+  let decoder = decode.map(decode.dynamic, fn(_) { Nil })
+
+  "-- Clear an activity's booking-opens-at override so it falls back to the
+-- global BOOKING_OPENS_AT default. Counterpart of
+-- set_activity_booking_opens_at.
+UPDATE activity
+SET booking_opens_at = NULL
+WHERE id = $1
+"
+  |> pog.query
+  |> pog.parameter(pog.text(uuid.to_string(id)))
+  |> pog.returning(decoder)
+  |> pog.execute(db)
+}
+
 /// Runs the `clear_activity_location` query
 /// defined in `./src/server/sql/clear_activity_location.sql`.
 ///
@@ -128,6 +154,7 @@ pub type CreateActivityWithMaxAttendeesRow {
     start_time: Timestamp,
     end_time: Timestamp,
     location_id: Option(Uuid),
+    booking_opens_at: Option(Timestamp),
   )
 }
 
@@ -158,6 +185,10 @@ pub fn create_activity_with_max_attendees(
     use start_time <- decode.field(6, pog.timestamp_decoder())
     use end_time <- decode.field(7, pog.timestamp_decoder())
     use location_id <- decode.field(8, decode.optional(uuid_decoder()))
+    use booking_opens_at <- decode.field(
+      9,
+      decode.optional(pog.timestamp_decoder()),
+    )
     decode.success(CreateActivityWithMaxAttendeesRow(
       id:,
       title:,
@@ -168,6 +199,7 @@ pub fn create_activity_with_max_attendees(
       start_time:,
       end_time:,
       location_id:,
+      booking_opens_at:,
     ))
   }
 
@@ -190,7 +222,8 @@ RETURNING id,
     max_attendees,
     start_time,
     end_time,
-    location_id"
+    location_id,
+    booking_opens_at"
   |> pog.query
   |> pog.parameter(pog.text(uuid.to_string(arg_1)))
   |> pog.parameter(pog.text(arg_2))
@@ -220,6 +253,7 @@ pub type CreateActivityWithoutMaxAttendeesRow {
     start_time: Timestamp,
     end_time: Timestamp,
     location_id: Option(Uuid),
+    booking_opens_at: Option(Timestamp),
   )
 }
 
@@ -248,6 +282,10 @@ pub fn create_activity_without_max_attendees(
     use start_time <- decode.field(5, pog.timestamp_decoder())
     use end_time <- decode.field(6, pog.timestamp_decoder())
     use location_id <- decode.field(7, decode.optional(uuid_decoder()))
+    use booking_opens_at <- decode.field(
+      8,
+      decode.optional(pog.timestamp_decoder()),
+    )
     decode.success(CreateActivityWithoutMaxAttendeesRow(
       id:,
       title:,
@@ -257,6 +295,7 @@ pub fn create_activity_without_max_attendees(
       start_time:,
       end_time:,
       location_id:,
+      booking_opens_at:,
     ))
   }
 
@@ -278,7 +317,8 @@ RETURNING id,
     description_en,
     start_time,
     end_time,
-    location_id"
+    location_id,
+    booking_opens_at"
   |> pog.query
   |> pog.parameter(pog.text(uuid.to_string(arg_1)))
   |> pog.parameter(pog.text(arg_2))
@@ -1088,6 +1128,7 @@ pub type GetActivitiesByStartTimeRow {
     location_id: Option(Uuid),
     title_en: String,
     description_en: String,
+    booking_opens_at: Option(Timestamp),
   )
 }
 
@@ -1116,6 +1157,10 @@ pub fn get_activities_by_start_time(
     use location_id <- decode.field(7, decode.optional(uuid_decoder()))
     use title_en <- decode.field(8, decode.string)
     use description_en <- decode.field(9, decode.string)
+    use booking_opens_at <- decode.field(
+      10,
+      decode.optional(pog.timestamp_decoder()),
+    )
     decode.success(GetActivitiesByStartTimeRow(
       id:,
       title:,
@@ -1127,6 +1172,7 @@ pub fn get_activities_by_start_time(
       location_id:,
       title_en:,
       description_en:,
+      booking_opens_at:,
     ))
   }
 
@@ -1159,6 +1205,7 @@ pub type GetActivitiesByTitleRow {
     location_id: Option(Uuid),
     title_en: String,
     description_en: String,
+    booking_opens_at: Option(Timestamp),
   )
 }
 
@@ -1187,6 +1234,10 @@ pub fn get_activities_by_title(
     use location_id <- decode.field(7, decode.optional(uuid_decoder()))
     use title_en <- decode.field(8, decode.string)
     use description_en <- decode.field(9, decode.string)
+    use booking_opens_at <- decode.field(
+      10,
+      decode.optional(pog.timestamp_decoder()),
+    )
     decode.success(GetActivitiesByTitleRow(
       id:,
       title:,
@@ -1198,6 +1249,7 @@ pub fn get_activities_by_title(
       location_id:,
       title_en:,
       description_en:,
+      booking_opens_at:,
     ))
   }
 
@@ -1230,6 +1282,7 @@ pub type GetActivityRow {
     location_id: Option(Uuid),
     title_en: String,
     description_en: String,
+    booking_opens_at: Option(Timestamp),
   )
 }
 
@@ -1257,6 +1310,10 @@ pub fn get_activity(
     use location_id <- decode.field(7, decode.optional(uuid_decoder()))
     use title_en <- decode.field(8, decode.string)
     use description_en <- decode.field(9, decode.string)
+    use booking_opens_at <- decode.field(
+      10,
+      decode.optional(pog.timestamp_decoder()),
+    )
     decode.success(GetActivityRow(
       id:,
       title:,
@@ -1268,6 +1325,7 @@ pub fn get_activity(
       location_id:,
       title_en:,
       description_en:,
+      booking_opens_at:,
     ))
   }
 
@@ -2001,6 +2059,7 @@ pub type ListActivitiesByStartTimeRow {
     location_id: Option(Uuid),
     title_en: String,
     description_en: String,
+    booking_opens_at: Option(Timestamp),
   )
 }
 
@@ -2030,6 +2089,10 @@ pub fn list_activities_by_start_time(
     use location_id <- decode.field(7, decode.optional(uuid_decoder()))
     use title_en <- decode.field(8, decode.string)
     use description_en <- decode.field(9, decode.string)
+    use booking_opens_at <- decode.field(
+      10,
+      decode.optional(pog.timestamp_decoder()),
+    )
     decode.success(ListActivitiesByStartTimeRow(
       id:,
       title:,
@@ -2041,6 +2104,7 @@ pub fn list_activities_by_start_time(
       location_id:,
       title_en:,
       description_en:,
+      booking_opens_at:,
     ))
   }
 
@@ -2083,6 +2147,7 @@ pub type ListActivitiesByTitleRow {
     location_id: Option(Uuid),
     title_en: String,
     description_en: String,
+    booking_opens_at: Option(Timestamp),
   )
 }
 
@@ -2112,6 +2177,10 @@ pub fn list_activities_by_title(
     use location_id <- decode.field(7, decode.optional(uuid_decoder()))
     use title_en <- decode.field(8, decode.string)
     use description_en <- decode.field(9, decode.string)
+    use booking_opens_at <- decode.field(
+      10,
+      decode.optional(pog.timestamp_decoder()),
+    )
     decode.success(ListActivitiesByTitleRow(
       id:,
       title:,
@@ -2123,6 +2192,7 @@ pub fn list_activities_by_title(
       location_id:,
       title_en:,
       description_en:,
+      booking_opens_at:,
     ))
   }
 
@@ -2312,6 +2382,7 @@ pub type ListBeachBusActivitiesRow {
     location_id: Option(Uuid),
     title_en: String,
     description_en: String,
+    booking_opens_at: Option(Timestamp),
   )
 }
 
@@ -2341,6 +2412,10 @@ pub fn list_beach_bus_activities(
     use location_id <- decode.field(7, decode.optional(uuid_decoder()))
     use title_en <- decode.field(8, decode.string)
     use description_en <- decode.field(9, decode.string)
+    use booking_opens_at <- decode.field(
+      10,
+      decode.optional(pog.timestamp_decoder()),
+    )
     decode.success(ListBeachBusActivitiesRow(
       id:,
       title:,
@@ -2352,6 +2427,7 @@ pub fn list_beach_bus_activities(
       location_id:,
       title_en:,
       description_en:,
+      booking_opens_at:,
     ))
   }
 
@@ -2437,6 +2513,7 @@ pub type ListClimbingWallActivitiesRow {
     location_id: Option(Uuid),
     title_en: String,
     description_en: String,
+    booking_opens_at: Option(Timestamp),
   )
 }
 
@@ -2466,6 +2543,10 @@ pub fn list_climbing_wall_activities(
     use location_id <- decode.field(7, decode.optional(uuid_decoder()))
     use title_en <- decode.field(8, decode.string)
     use description_en <- decode.field(9, decode.string)
+    use booking_opens_at <- decode.field(
+      10,
+      decode.optional(pog.timestamp_decoder()),
+    )
     decode.success(ListClimbingWallActivitiesRow(
       id:,
       title:,
@@ -2477,6 +2558,7 @@ pub fn list_climbing_wall_activities(
       location_id:,
       title_en:,
       description_en:,
+      booking_opens_at:,
     ))
   }
 
@@ -2519,6 +2601,7 @@ pub type ListFavouritedActivitiesRow {
     location_id: Option(Uuid),
     title_en: String,
     description_en: String,
+    booking_opens_at: Option(Timestamp),
   )
 }
 
@@ -2546,6 +2629,10 @@ pub fn list_favourited_activities(
     use location_id <- decode.field(7, decode.optional(uuid_decoder()))
     use title_en <- decode.field(8, decode.string)
     use description_en <- decode.field(9, decode.string)
+    use booking_opens_at <- decode.field(
+      10,
+      decode.optional(pog.timestamp_decoder()),
+    )
     decode.success(ListFavouritedActivitiesRow(
       id:,
       title:,
@@ -2557,6 +2644,7 @@ pub fn list_favourited_activities(
       location_id:,
       title_en:,
       description_en:,
+      booking_opens_at:,
     ))
   }
 
@@ -2837,36 +2925,57 @@ ORDER BY a.start_time ASC, a.id, b.booker_group_name ASC;
   |> pog.execute(db)
 }
 
-/// A row you get from running the `lock_activity_max_attendees` query
-/// defined in `./src/server/sql/lock_activity_max_attendees.sql`.
+/// A row you get from running the `lock_activity_for_booking` query
+/// defined in `./src/server/sql/lock_activity_for_booking.sql`.
 ///
 /// > 🐿️ This type definition was generated automatically using v4.7.0 of the
 /// > [squirrel package](https://github.com/giacomocavalieri/squirrel).
 ///
-pub type LockActivityMaxAttendeesRow {
-  LockActivityMaxAttendeesRow(max_attendees: Option(Int))
+pub type LockActivityForBookingRow {
+  LockActivityForBookingRow(
+    max_attendees: Option(Int),
+    start_time: Timestamp,
+    end_time: Timestamp,
+    booking_opens_at: Option(Timestamp),
+  )
 }
 
 /// Lock a single activity row for the duration of the transaction and return
-/// its capacity. Used by the booking create/update flow to serialise concurrent
-/// bookings for the same activity so the capacity check can't be raced.
+/// what the booking create flow validates against: the capacity and the booking
+/// window (opens-at override plus start/end times). Locking serialises
+/// concurrent bookings for the same activity so the checks can't be raced.
 ///
 /// > 🐿️ This function was generated automatically using v4.7.0 of
 /// > the [squirrel package](https://github.com/giacomocavalieri/squirrel).
 ///
-pub fn lock_activity_max_attendees(
+pub fn lock_activity_for_booking(
   db: pog.Connection,
   id: Uuid,
-) -> Result(pog.Returned(LockActivityMaxAttendeesRow), pog.QueryError) {
+) -> Result(pog.Returned(LockActivityForBookingRow), pog.QueryError) {
   let decoder = {
     use max_attendees <- decode.field(0, decode.optional(decode.int))
-    decode.success(LockActivityMaxAttendeesRow(max_attendees:))
+    use start_time <- decode.field(1, pog.timestamp_decoder())
+    use end_time <- decode.field(2, pog.timestamp_decoder())
+    use booking_opens_at <- decode.field(
+      3,
+      decode.optional(pog.timestamp_decoder()),
+    )
+    decode.success(LockActivityForBookingRow(
+      max_attendees:,
+      start_time:,
+      end_time:,
+      booking_opens_at:,
+    ))
   }
 
   "-- Lock a single activity row for the duration of the transaction and return
--- its capacity. Used by the booking create/update flow to serialise concurrent
--- bookings for the same activity so the capacity check can't be raced.
-SELECT max_attendees
+-- what the booking create flow validates against: the capacity and the booking
+-- window (opens-at override plus start/end times). Locking serialises
+-- concurrent bookings for the same activity so the checks can't be raced.
+SELECT max_attendees,
+    start_time,
+    end_time,
+    booking_opens_at
 FROM activity
 WHERE id = $1
 FOR UPDATE;
@@ -2959,6 +3068,7 @@ pub type SearchActivitiesRow {
     location_id: Option(Uuid),
     title_en: String,
     description_en: String,
+    booking_opens_at: Option(Timestamp),
   )
 }
 
@@ -2985,6 +3095,10 @@ pub fn search_activities(
     use location_id <- decode.field(7, decode.optional(uuid_decoder()))
     use title_en <- decode.field(8, decode.string)
     use description_en <- decode.field(9, decode.string)
+    use booking_opens_at <- decode.field(
+      10,
+      decode.optional(pog.timestamp_decoder()),
+    )
     decode.success(SearchActivitiesRow(
       id:,
       title:,
@@ -2996,6 +3110,7 @@ pub fn search_activities(
       location_id:,
       title_en:,
       description_en:,
+      booking_opens_at:,
     ))
   }
 
@@ -3006,6 +3121,36 @@ WHERE title ILIKE '%' || $1 || '%'
 ORDER BY title;"
   |> pog.query
   |> pog.parameter(pog.text(arg_1))
+  |> pog.returning(decoder)
+  |> pog.execute(db)
+}
+
+/// Set an activity's per-activity booking-opens-at override. Cleared with
+/// clear_activity_booking_opens_at (the column is nullable and squirrel
+/// parameters are not, hence the set/clear pair — same pattern as
+/// set/clear_activity_location).
+///
+/// > 🐿️ This function was generated automatically using v4.7.0 of
+/// > the [squirrel package](https://github.com/giacomocavalieri/squirrel).
+///
+pub fn set_activity_booking_opens_at(
+  db: pog.Connection,
+  id: Uuid,
+  booking_opens_at: Timestamp,
+) -> Result(pog.Returned(Nil), pog.QueryError) {
+  let decoder = decode.map(decode.dynamic, fn(_) { Nil })
+
+  "-- Set an activity's per-activity booking-opens-at override. Cleared with
+-- clear_activity_booking_opens_at (the column is nullable and squirrel
+-- parameters are not, hence the set/clear pair — same pattern as
+-- set/clear_activity_location).
+UPDATE activity
+SET booking_opens_at = $2
+WHERE id = $1
+"
+  |> pog.query
+  |> pog.parameter(pog.text(uuid.to_string(id)))
+  |> pog.parameter(pog.timestamp(booking_opens_at))
   |> pog.returning(decoder)
   |> pog.execute(db)
 }
@@ -3096,6 +3241,7 @@ pub type UpdateActivityWithMaxAttendeesRow {
     start_time: Timestamp,
     end_time: Timestamp,
     location_id: Option(Uuid),
+    booking_opens_at: Option(Timestamp),
   )
 }
 
@@ -3126,6 +3272,10 @@ pub fn update_activity_with_max_attendees(
     use start_time <- decode.field(6, pog.timestamp_decoder())
     use end_time <- decode.field(7, pog.timestamp_decoder())
     use location_id <- decode.field(8, decode.optional(uuid_decoder()))
+    use booking_opens_at <- decode.field(
+      9,
+      decode.optional(pog.timestamp_decoder()),
+    )
     decode.success(UpdateActivityWithMaxAttendeesRow(
       id:,
       title:,
@@ -3136,6 +3286,7 @@ pub fn update_activity_with_max_attendees(
       start_time:,
       end_time:,
       location_id:,
+      booking_opens_at:,
     ))
   }
 
@@ -3156,7 +3307,8 @@ RETURNING id,
     max_attendees,
     start_time,
     end_time,
-    location_id"
+    location_id,
+    booking_opens_at"
   |> pog.query
   |> pog.parameter(pog.text(uuid.to_string(id)))
   |> pog.parameter(pog.text(arg_2))
@@ -3186,6 +3338,7 @@ pub type UpdateActivityWithoutMaxAttendeesRow {
     start_time: Timestamp,
     end_time: Timestamp,
     location_id: Option(Uuid),
+    booking_opens_at: Option(Timestamp),
   )
 }
 
@@ -3214,6 +3367,10 @@ pub fn update_activity_without_max_attendees(
     use start_time <- decode.field(5, pog.timestamp_decoder())
     use end_time <- decode.field(6, pog.timestamp_decoder())
     use location_id <- decode.field(7, decode.optional(uuid_decoder()))
+    use booking_opens_at <- decode.field(
+      8,
+      decode.optional(pog.timestamp_decoder()),
+    )
     decode.success(UpdateActivityWithoutMaxAttendeesRow(
       id:,
       title:,
@@ -3223,6 +3380,7 @@ pub fn update_activity_without_max_attendees(
       start_time:,
       end_time:,
       location_id:,
+      booking_opens_at:,
     ))
   }
 
@@ -3242,7 +3400,8 @@ RETURNING id,
     description_en,
     start_time,
     end_time,
-    location_id"
+    location_id,
+    booking_opens_at"
   |> pog.query
   |> pog.parameter(pog.text(uuid.to_string(id)))
   |> pog.parameter(pog.text(arg_2))

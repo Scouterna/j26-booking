@@ -30,6 +30,7 @@ fn context_with_keys(keys: List(VerifyKey)) -> web.Context {
     jwt_verify_keys: web.JWTVerifyKeys(test_issuer, keys),
     authentication_result: web.NotAuthenticated,
     dev_fallback_user: None,
+    booking_opens_at: None,
   )
 }
 

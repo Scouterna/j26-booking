@@ -3,6 +3,7 @@ import gleam/float
 import gleam/int
 import gleam/json.{type Json}
 import gleam/option.{type Option, None, Some}
+import gleam/order
 import gleam/time/timestamp.{type Timestamp}
 import shared/utils
 import youid/uuid.{type Uuid}
@@ -25,6 +26,18 @@ pub type Activity {
     /// The call-off reason when this activity has been cancelled, else `None`.
     /// `Some(reason)` means the activity is called off ("inställd").
     cancellation: Option(String),
+    /// When booking opens for this activity — the *effective* value, already
+    /// coalesced server-side from the per-activity override and the global
+    /// `BOOKING_OPENS_AT` default. `None` means booking is open immediately.
+    /// Drives the booking-window gate; not what the edit form round-trips
+    /// (see `booking_opens_at_override`).
+    booking_opens_at: Option(Timestamp),
+    /// The per-activity opens-at override as stored on the row, `None` when
+    /// the activity falls back to the global default. This — never the
+    /// effective value — is what the manager edit form shows and submits;
+    /// seeding the form from the effective value would silently freeze the
+    /// global default into an override.
+    booking_opens_at_override: Option(Timestamp),
   )
 }
 
@@ -67,6 +80,16 @@ pub fn activity_decoder() -> decode.Decoder(Activity) {
     None,
     decode.optional(decode.string),
   )
+  use booking_opens_at <- decode.optional_field(
+    "booking_opens_at",
+    None,
+    decode.optional(unix_seconds_decoder()),
+  )
+  use booking_opens_at_override <- decode.optional_field(
+    "booking_opens_at_override",
+    None,
+    decode.optional(unix_seconds_decoder()),
+  )
   case uuid.from_string(id_str) {
     Ok(id) ->
       decode.success(Activity(
@@ -80,6 +103,8 @@ pub fn activity_decoder() -> decode.Decoder(Activity) {
         tags:,
         target_groups:,
         cancellation:,
+        booking_opens_at:,
+        booking_opens_at_override:,
       ))
     Error(_) ->
       decode.failure(
@@ -94,10 +119,19 @@ pub fn activity_decoder() -> decode.Decoder(Activity) {
           tags:,
           target_groups:,
           cancellation:,
+          booking_opens_at:,
+          booking_opens_at_override:,
         ),
         "valid UUID string",
       )
   }
+}
+
+/// Decode a timestamp sent as unix seconds, tolerating a float encoding the
+/// same way the start/end time fields do.
+fn unix_seconds_decoder() -> decode.Decoder(Timestamp) {
+  decode.one_of(decode.int, [decode.float |> decode.map(float.round)])
+  |> decode.map(timestamp.from_unix_seconds)
 }
 
 /// Decode a list of activities from the API response `{"activities": [...]}`.
@@ -219,6 +253,10 @@ pub type ActivitySummary {
     /// The call-off reason when this activity has been cancelled, else `None`.
     /// `Some(reason)` means the activity is called off ("inställd").
     cancellation: Option(String),
+    /// When booking opens — the *effective* value (per-activity override
+    /// coalesced with the global default server-side). `None` means booking
+    /// is open immediately. See `Activity.booking_opens_at`.
+    booking_opens_at: Option(Timestamp),
   )
 }
 
@@ -260,6 +298,11 @@ pub fn activity_summary_decoder() -> decode.Decoder(ActivitySummary) {
     None,
     decode.optional(decode.string),
   )
+  use booking_opens_at <- decode.optional_field(
+    "booking_opens_at",
+    None,
+    decode.optional(unix_seconds_decoder()),
+  )
   case uuid.from_string(id_str) {
     Ok(id) ->
       decode.success(ActivitySummary(
@@ -272,6 +315,7 @@ pub fn activity_summary_decoder() -> decode.Decoder(ActivitySummary) {
         tags:,
         target_groups:,
         cancellation:,
+        booking_opens_at:,
       ))
     Error(_) ->
       decode.failure(
@@ -285,6 +329,7 @@ pub fn activity_summary_decoder() -> decode.Decoder(ActivitySummary) {
           tags:,
           target_groups:,
           cancellation:,
+          booking_opens_at:,
         ),
         "valid UUID string",
       )
@@ -356,6 +401,50 @@ pub fn spots_remaining(
     None, _ -> Unlimited
     Some(_), None -> UnknownSpots
     Some(max), Some(booked) -> Remaining(int.max(0, max - booked))
+  }
+}
+
+/// Whether an activity can be booked right now (issues #35 and #36). The
+/// server enforces this in the booking create transaction; the client uses
+/// the same function to gate the "Boka" button. The server is the source of
+/// truth — the client check is cosmetic.
+pub type BookingWindow {
+  /// Booking has not opened yet; carries when it will, for display.
+  BookingNotYetOpen(opens_at: Timestamp)
+  BookingOpen
+  /// The activity's cutoff (end time, or start time when it has no end) has
+  /// passed.
+  BookingClosed
+}
+
+/// Derive the booking window state at `now`.
+///
+/// The window opens at `opens_at` (`None` means open immediately — callers
+/// pass the *effective* opens-at, already coalesced with any global default)
+/// and closes when the activity is over: at `end_time` when it has one, else
+/// at `start_time`. Both bounds are inclusive. `end_time` is an `Option`
+/// ahead of issue #39 (optional end time) — today every activity has one, so
+/// callers pass `Some`.
+pub fn booking_window(
+  now now: Timestamp,
+  opens_at opens_at: Option(Timestamp),
+  start_time start_time: Timestamp,
+  end_time end_time: Option(Timestamp),
+) -> BookingWindow {
+  let cutoff = option.unwrap(end_time, start_time)
+  let open_or_closed = fn() {
+    case timestamp.compare(now, cutoff) {
+      order.Gt -> BookingClosed
+      order.Lt | order.Eq -> BookingOpen
+    }
+  }
+  case opens_at {
+    None -> open_or_closed()
+    Some(opens_at) ->
+      case timestamp.compare(now, opens_at) {
+        order.Lt -> BookingNotYetOpen(opens_at)
+        order.Gt | order.Eq -> open_or_closed()
+      }
   }
 }
 

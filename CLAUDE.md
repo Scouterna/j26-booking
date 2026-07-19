@@ -112,6 +112,7 @@ Request → web.middleware → router.handle_request → handler
 | `SECRET_KEY_BASE` | (random) | Session secret (required in production) |
 | `OPEN_ID_CONFIGURATION_URL` | `https://app.dev.j26.se/auth/...` | OpenID Connect discovery |
 | `DEV_AUTH_ROLES` | (unset) | Local dev only: comma-separated roles (e.g. `admin`); tokenless requests authenticate as the seeded dev user |
+| `BOOKING_OPENS_AT` | `2026-07-25T00:00:00+02:00` | Global date booking opens (RFC 3339), defaulting to the start of the camp; invalid ⇒ startup failure. Activities can override per row |
 
 **Base path:** The app is hosted in an iframe at `/_services/booking`. This is hardcoded as `web.base_path` (server) and `api_prefix` (client). All absolute paths must use these constants; prefer relative paths where possible.
 

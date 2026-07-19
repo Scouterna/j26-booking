@@ -17,4 +17,5 @@ RETURNING id,
     max_attendees,
     start_time,
     end_time,
-    location_id
+    location_id,
+    booking_opens_at

@@ -95,9 +95,11 @@ fn english_translations() -> g18n.Translations {
   |> g18n.add_translation("edit.max_attendees", "Max attendees")
   |> g18n.add_translation("edit.start_time", "Start time")
   |> g18n.add_translation("edit.end_time", "End time")
+  |> g18n.add_translation("edit.booking_opens_at", "Booking opens (optional)")
   |> g18n.add_translation("edit.location", "Location")
   |> g18n.add_translation("edit.location_none", "No location")
   |> g18n.add_translation("edit.location_search", "Search location")
+  |> g18n.add_translation("activity.booking_opens", "Booking opens {date}")
   |> g18n.add_translation("edit.call_off", "Call off")
   |> g18n.add_translation("edit.cancel", "Cancel")
   |> g18n.add_translation("edit.save", "Save")
@@ -251,9 +253,14 @@ fn swedish_translations() -> g18n.Translations {
   |> g18n.add_translation("edit.max_attendees", "Max antal deltagare")
   |> g18n.add_translation("edit.start_time", "Starttid")
   |> g18n.add_translation("edit.end_time", "Sluttid")
+  |> g18n.add_translation(
+    "edit.booking_opens_at",
+    "Bokningen öppnar (valfritt)",
+  )
   |> g18n.add_translation("edit.location", "Plats")
   |> g18n.add_translation("edit.location_none", "Ingen plats")
   |> g18n.add_translation("edit.location_search", "Sök plats")
+  |> g18n.add_translation("activity.booking_opens", "Bokningen öppnar {date}")
   |> g18n.add_translation("edit.call_off", "Ställ in")
   |> g18n.add_translation("edit.cancel", "Avbryt")
   |> g18n.add_translation("edit.save", "Spara")
@@ -538,6 +545,11 @@ pub type ActivityForm {
     max_attendees: Option(Int),
     start_time: #(calendar.Date, calendar.TimeOfDay),
     end_time: #(calendar.Date, calendar.TimeOfDay),
+    /// Per-activity booking-opens-at override; `None` falls back to the
+    /// server's global default. Seeded from the activity's
+    /// `booking_opens_at_override` — never the effective `booking_opens_at`,
+    /// which would freeze the global default into an override on save.
+    booking_opens_at: Option(#(calendar.Date, calendar.TimeOfDay)),
   )
 }
 
@@ -872,7 +884,14 @@ pub type Page {
 /// so a list refetch can never leave an open detail view showing stale summary
 /// fields.
 pub type ActivityDetail {
-  ActivityDetail(description: model.BilingualString, location: Option(Location))
+  ActivityDetail(
+    description: model.BilingualString,
+    location: Option(Location),
+    /// The stored per-activity opens-at override — detail-only because only
+    /// the edit form needs it (gating uses the summary's effective
+    /// `booking_opens_at`).
+    booking_opens_at_override: Option(Timestamp),
+  )
 }
 
 pub type Model {
@@ -1327,12 +1346,17 @@ fn to_summary(a: Activity) -> ActivitySummary {
     tags: a.tags,
     target_groups: a.target_groups,
     cancellation: a.cancellation,
+    booking_opens_at: a.booking_opens_at,
   )
 }
 
 /// Extract the detail-only fields from a full activity.
 fn to_detail(a: Activity) -> ActivityDetail {
-  ActivityDetail(description: a.description, location: a.location)
+  ActivityDetail(
+    description: a.description,
+    location: a.location,
+    booking_opens_at_override: a.booking_opens_at_override,
+  )
 }
 
 /// Compose a full activity from a cached summary and its loaded detail fields.
@@ -1348,6 +1372,8 @@ fn to_activity(summary: ActivitySummary, detail: ActivityDetail) -> Activity {
     tags: summary.tags,
     target_groups: summary.target_groups,
     cancellation: summary.cancellation,
+    booking_opens_at: summary.booking_opens_at,
+    booking_opens_at_override: detail.booking_opens_at_override,
   )
 }
 
@@ -1535,6 +1561,10 @@ fn activity_form() -> Form(ActivityForm) {
     )
     use start_time <- form.field("start_time", form.parse_date_time)
     use end_time <- form.field("end_time", form.parse_date_time)
+    use booking_opens_at <- form.field(
+      "booking_opens_at",
+      form.parse_optional(form.parse_date_time),
+    )
     form.success(ActivityForm(
       title:,
       title_en:,
@@ -1543,6 +1573,7 @@ fn activity_form() -> Form(ActivityForm) {
       max_attendees:,
       start_time:,
       end_time:,
+      booking_opens_at:,
     ))
   })
 }
@@ -1566,6 +1597,17 @@ fn form_from_activity(activity: Activity) -> Form(ActivityForm) {
     "end_time",
     timestamp.to_rfc3339(activity.end_time, calendar.local_offset())
       |> string.slice(0, 16),
+  )
+  // The form edits the stored override — the effective `booking_opens_at`
+  // may just mirror the global default, which must not be saved per-activity.
+  |> form.add_string(
+    "booking_opens_at",
+    case activity.booking_opens_at_override {
+      Some(opens_at) ->
+        timestamp.to_rfc3339(opens_at, calendar.local_offset())
+        |> string.slice(0, 16)
+      None -> ""
+    },
   )
 }
 
@@ -3592,6 +3634,10 @@ fn activity_form_to_json(
     }),
     #("start_time", json.int(to_secs(af.start_time))),
     #("end_time", json.int(to_secs(af.end_time))),
+    #("booking_opens_at", case af.booking_opens_at {
+      Some(opens_at) -> json.int(to_secs(opens_at))
+      None -> json.null()
+    }),
     #("tags", json.array(tags, fn(id) { json.string(uuid.to_string(id)) })),
     #("target_groups", json.array(target_groups, model.target_group_to_json)),
     #(
@@ -4585,6 +4631,12 @@ fn view_activity_form(
                 "datetime-local",
                 "end_time",
               ),
+              component.scout_form_field(
+                form,
+                t("edit.booking_opens_at"),
+                "datetime-local",
+                "booking_opens_at",
+              ),
               ..list.append(
                 view_target_group_and_tag_pickers(
                   translator,
@@ -5084,31 +5136,70 @@ fn view_detail_actions(
   }
 }
 
-/// The "Boka" action for an activity: the button while spots remain, a
-/// disabled "Full" one when none do (known count only), and nothing for
-/// uncapped activities (they are not booked via the UI).
+/// The "Boka" action for an activity: the button while the booking window is
+/// open and spots remain, a disabled "Full" one when none do (known count
+/// only), a disabled "Bokningen öppnar …" one before booking opens (issue
+/// #36), and nothing once the activity has passed (issue #35 — mirrors the
+/// server's booking-window check) or for uncapped activities (they are not
+/// booked via the UI).
 fn book_action(
   translator: Translator,
   activity: Activity,
   spots_booked: Option(Int),
 ) -> Element(Msg) {
   case activity.max_attendees {
-    Some(_) ->
-      case model.spots_remaining(activity.max_attendees, spots_booked) {
-        model.Remaining(0) ->
-          component.scout_button_disabled(
-            g18n.translate(translator, "activity.full"),
-            "primary",
-          )
-        _ ->
-          component.scout_button_action(
-            g18n.translate(translator, "activity.book"),
-            "primary",
-            UserClickedBook,
-          )
-      }
     None -> element.none()
+    Some(_) ->
+      case
+        model.booking_window(
+          now: timestamp.system_time(),
+          opens_at: activity.booking_opens_at,
+          start_time: activity.start_time,
+          end_time: Some(activity.end_time),
+        )
+      {
+        model.BookingNotYetOpen(opens_at) ->
+          component.scout_button_disabled(
+            booking_opens_label(translator, opens_at),
+            "primary",
+          )
+        model.BookingClosed -> element.none()
+        model.BookingOpen ->
+          case model.spots_remaining(activity.max_attendees, spots_booked) {
+            model.Remaining(0) ->
+              component.scout_button_disabled(
+                g18n.translate(translator, "activity.full"),
+                "primary",
+              )
+            _ ->
+              component.scout_button_action(
+                g18n.translate(translator, "activity.book"),
+                "primary",
+                UserClickedBook,
+              )
+          }
+      }
   }
+}
+
+/// "Bokningen öppnar {date}" with the opens-at rendered in local time, in the
+/// same short format as the activity's own times.
+fn booking_opens_label(
+  translator: Translator,
+  opens_at: timestamp.Timestamp,
+) -> String {
+  let opens_calendar = timestamp.to_calendar(opens_at, calendar.local_offset())
+  g18n.translate_with_params(
+    translator,
+    "activity.booking_opens",
+    g18n.new_format_params()
+      |> g18n.add_param(
+        "date",
+        format_date_short(translator, opens_calendar.0)
+          <> " "
+          <> format_clock(translator, opens_calendar.1),
+      ),
+  )
 }
 
 /// The booker identity block at the top of the booking form: the name and
