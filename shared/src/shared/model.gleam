@@ -798,8 +798,11 @@ pub type Location {
     /// Icon style variant, e.g. `outline` or `filled`.
     icon_variant: String,
     color: String,
-    latitude: Float,
-    longitude: Float,
+    /// Where the location sits on the map. `None` for locations that only
+    /// have a name — those get no map marker or preview. Latitude without
+    /// longitude (or vice versa) is unrepresentable by design; the DB
+    /// enforces the same pairing with a CHECK constraint.
+    coordinates: Option(Coordinates),
     /// Opening hours as stored, keyed by ISO date
     /// (`{"YYYY-MM-DD": [{"from": "09:00", "to": "12:00"}]}`). Carried as an
     /// opaque `Json` value and passed through untouched rather than modelled.
@@ -820,6 +823,13 @@ pub type LocationTag {
   )
 }
 
+/// A latitude/longitude pair in decimal degrees. In JSON the pair is carried
+/// as flat `latitude`/`longitude` fields that are either both numbers or both
+/// null/absent.
+pub type Coordinates {
+  Coordinates(latitude: Float, longitude: Float)
+}
+
 /// Decodes a UUID string, failing the field on an unparseable value.
 fn uuid_decoder() -> decode.Decoder(Uuid) {
   use str <- decode.then(decode.string)
@@ -832,16 +842,13 @@ fn uuid_decoder() -> decode.Decoder(Uuid) {
 /// Decode a Location from API JSON (matches the server's `location.to_json`).
 /// `opening_hours` is carried through as an opaque `Json` value.
 pub fn location_decoder() -> decode.Decoder(Location) {
-  let float_field =
-    decode.one_of(decode.float, [decode.int |> decode.map(int.to_float)])
   use id <- decode.field("id", uuid_decoder())
   use name <- decode.field("name", bilingual_string_decoder())
   use description <- decode.field("description", bilingual_string_decoder())
   use icon_name <- decode.field("icon_name", decode.string)
   use icon_variant <- decode.field("icon_variant", decode.string)
   use color <- decode.field("color", decode.string)
-  use latitude <- decode.field("latitude", float_field)
-  use longitude <- decode.field("longitude", float_field)
+  use coordinates <- decode.then(coordinates_decoder())
   use opening_hours <- decode.optional_field(
     "opening_hours",
     json.object([]),
@@ -858,11 +865,30 @@ pub fn location_decoder() -> decode.Decoder(Location) {
     icon_name:,
     icon_variant:,
     color:,
-    latitude:,
-    longitude:,
+    coordinates:,
     opening_hours:,
     tags:,
   ))
+}
+
+/// Decode the flat `latitude`/`longitude` fields into an optional pair.
+/// Both present decodes to `Some`, both null/absent to `None`, and one
+/// without the other fails the decode — a half-set coordinate is invalid
+/// input, not a coordinate-less location.
+pub fn coordinates_decoder() -> decode.Decoder(Option(Coordinates)) {
+  let coordinate_field =
+    decode.optional(
+      decode.one_of(decode.float, [decode.int |> decode.map(int.to_float)]),
+    )
+  use latitude <- decode.optional_field("latitude", None, coordinate_field)
+  use longitude <- decode.optional_field("longitude", None, coordinate_field)
+  case latitude, longitude {
+    Some(latitude), Some(longitude) ->
+      decode.success(Some(Coordinates(latitude:, longitude:)))
+    None, None -> decode.success(None)
+    Some(_), None | None, Some(_) ->
+      decode.failure(None, "both latitude and longitude, or neither")
+  }
 }
 
 /// Decode a list of locations from the API response `{"locations": [...]}`.

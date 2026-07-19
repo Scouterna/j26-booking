@@ -1,9 +1,9 @@
 import given
 import gleam/dynamic/decode
 import gleam/http.{Delete, Get, Post, Put}
-import gleam/int
 import gleam/json
 import gleam/list
+import gleam/option.{type Option, None, Some}
 import gleam/result
 import gleam/string
 import pog
@@ -24,8 +24,8 @@ pub type LocationInput {
     icon_name: String,
     icon_variant: String,
     color: String,
-    latitude: Float,
-    longitude: Float,
+    /// `None` for name-only locations without a map position (issue #26).
+    coordinates: Option(model.Coordinates),
     opening_hours: json.Json,
     tags: List(Uuid),
   )
@@ -47,11 +47,6 @@ fn uuid_decoder() -> decode.Decoder(Uuid) {
   }
 }
 
-/// Coordinates arrive as JSON numbers; accept both float and int forms.
-fn coordinate_decoder() -> decode.Decoder(Float) {
-  decode.one_of(decode.float, [decode.int |> decode.map(int.to_float)])
-}
-
 fn location_input_decoder() -> decode.Decoder(LocationInput) {
   use name <- decode.field("name", model.bilingual_string_decoder())
   use description <- decode.field(
@@ -61,8 +56,9 @@ fn location_input_decoder() -> decode.Decoder(LocationInput) {
   use icon_name <- decode.field("icon_name", decode.string)
   use icon_variant <- decode.field("icon_variant", decode.string)
   use color <- decode.field("color", decode.string)
-  use latitude <- decode.field("latitude", coordinate_decoder())
-  use longitude <- decode.field("longitude", coordinate_decoder())
+  // Both-or-neither: a payload with only one of latitude/longitude fails the
+  // decode, which the handlers turn into a 400.
+  use coordinates <- decode.then(model.coordinates_decoder())
   use opening_hours <- decode.optional_field(
     "opening_hours",
     json.object([]),
@@ -75,8 +71,7 @@ fn location_input_decoder() -> decode.Decoder(LocationInput) {
     icon_name:,
     icon_variant:,
     color:,
-    latitude:,
-    longitude:,
+    coordinates:,
     opening_hours:,
     tags:,
   ))
@@ -138,28 +133,57 @@ pub fn create(req: Request, ctx: web.Context) -> Response {
     wisp.bad_request("Invalid JSON payload")
   })
   let id = uuid.v7()
+  // Squirrel cannot generate optional query parameters, so inserting with or
+  // without coordinates goes through separate query variants. Each branch
+  // converts its own row type, so the transaction yields ready `Location`s.
   let transaction_result =
     pog.transaction(ctx.db_connection, fn(conn) {
-      use created <- result.try(sql.create_location(
-        conn,
-        id,
-        input.name.sv,
-        input.name.en,
-        input.description.sv,
-        input.description.en,
-        input.icon_name,
-        input.icon_variant,
-        input.color,
-        input.latitude,
-        input.longitude,
-        input.opening_hours,
-      ))
+      use created <- result.try(case input.coordinates {
+        Some(coordinates) -> {
+          use returned <- result.map(sql.create_location_with_coordinates(
+            conn,
+            id,
+            input.name.sv,
+            input.name.en,
+            input.description.sv,
+            input.description.en,
+            input.icon_name,
+            input.icon_variant,
+            input.color,
+            coordinates.latitude,
+            coordinates.longitude,
+            input.opening_hours,
+          ))
+          list.map(returned.rows, fn(row) {
+            location.from_create_location_with_coordinates_row(row, input.tags)
+          })
+        }
+        None -> {
+          use returned <- result.map(sql.create_location_without_coordinates(
+            conn,
+            id,
+            input.name.sv,
+            input.name.en,
+            input.description.sv,
+            input.description.en,
+            input.icon_name,
+            input.icon_variant,
+            input.color,
+            input.opening_hours,
+          ))
+          list.map(returned.rows, fn(row) {
+            location.from_create_location_without_coordinates_row(
+              row,
+              input.tags,
+            )
+          })
+        }
+      })
       use _ <- result.try(sql.insert_location_tag_links(conn, id, input.tags))
       Ok(created)
     })
   case transaction_result {
-    Ok(pog.Returned(_, [row, ..])) -> {
-      let created = location.from_create_location_row(row, input.tags)
+    Ok([created, ..]) ->
       created
       |> location.to_json
       |> json.to_string
@@ -168,8 +192,7 @@ pub fn create(req: Request, ctx: web.Context) -> Response {
         "location",
         web.base_path <> "/api/locations/" <> uuid.to_string(created.id),
       )
-    }
-    Ok(pog.Returned(_, [])) -> wisp.internal_server_error()
+    Ok([]) -> wisp.internal_server_error()
     Error(error) -> transaction_error(error)
   }
 }
@@ -192,28 +215,61 @@ pub fn update(req: Request, id: String, ctx: web.Context) -> Response {
   use input <- given.ok(decode.run(body, location_input_decoder()), fn(_) {
     wisp.bad_request("Invalid JSON payload")
   })
+  // Setting and clearing coordinates are separate query variants (Squirrel
+  // cannot generate optional query parameters); each branch converts its own
+  // row type so the transaction yields ready `Location`s.
   let transaction_result =
     pog.transaction(ctx.db_connection, fn(conn) {
       use updated <- result.try(
-        sql.update_location(
-          conn,
-          location_id,
-          input.name.sv,
-          input.name.en,
-          input.description.sv,
-          input.description.en,
-          input.icon_name,
-          input.icon_variant,
-          input.color,
-          input.latitude,
-          input.longitude,
-          input.opening_hours,
-        )
+        case input.coordinates {
+          Some(coordinates) -> {
+            use returned <- result.map(sql.update_location_with_coordinates(
+              conn,
+              location_id,
+              input.name.sv,
+              input.name.en,
+              input.description.sv,
+              input.description.en,
+              input.icon_name,
+              input.icon_variant,
+              input.color,
+              coordinates.latitude,
+              coordinates.longitude,
+              input.opening_hours,
+            ))
+            list.map(returned.rows, fn(row) {
+              location.from_update_location_with_coordinates_row(
+                row,
+                input.tags,
+              )
+            })
+          }
+          None -> {
+            use returned <- result.map(sql.update_location_without_coordinates(
+              conn,
+              location_id,
+              input.name.sv,
+              input.name.en,
+              input.description.sv,
+              input.description.en,
+              input.icon_name,
+              input.icon_variant,
+              input.color,
+              input.opening_hours,
+            ))
+            list.map(returned.rows, fn(row) {
+              location.from_update_location_without_coordinates_row(
+                row,
+                input.tags,
+              )
+            })
+          }
+        }
         |> result.map_error(UpdateQueryFailed),
       )
-      case updated.rows {
+      case updated {
         [] -> Error(LocationNotFound)
-        [row, ..] -> {
+        [updated, ..] -> {
           // Re-sync the tag links to match the request body.
           use _ <- result.try(
             sql.delete_location_tag_links(conn, location_id)
@@ -223,13 +279,13 @@ pub fn update(req: Request, id: String, ctx: web.Context) -> Response {
             sql.insert_location_tag_links(conn, location_id, input.tags)
             |> result.map_error(UpdateQueryFailed),
           )
-          Ok(row)
+          Ok(updated)
         }
       }
     })
   case transaction_result {
-    Ok(row) ->
-      location.from_update_location_row(row, input.tags)
+    Ok(updated) ->
+      updated
       |> location.to_json
       |> json.to_string
       |> wisp.json_response(200)

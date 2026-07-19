@@ -1,7 +1,7 @@
 import gleam/dict.{type Dict}
 import gleam/json.{type Json}
 import gleam/list
-import gleam/option.{None, Some}
+import gleam/option.{type Option, None, Some}
 import gleam/result
 import pog
 import server/sql
@@ -28,15 +28,14 @@ pub fn from_list_locations_row(
     icon_name: row.icon_name,
     icon_variant: row.icon_variant,
     color: row.color,
-    latitude: row.latitude,
-    longitude: row.longitude,
+    coordinates: coordinates_from_columns(row.latitude, row.longitude),
     opening_hours: parse_opening_hours(row.opening_hours),
     tags:,
   )
 }
 
-pub fn from_create_location_row(
-  row: sql.CreateLocationRow,
+pub fn from_create_location_with_coordinates_row(
+  row: sql.CreateLocationWithCoordinatesRow,
   tags: List(Uuid),
 ) -> Location {
   Location(
@@ -49,8 +48,27 @@ pub fn from_create_location_row(
     icon_name: row.icon_name,
     icon_variant: row.icon_variant,
     color: row.color,
-    latitude: row.latitude,
-    longitude: row.longitude,
+    coordinates: coordinates_from_columns(row.latitude, row.longitude),
+    opening_hours: parse_opening_hours(row.opening_hours),
+    tags:,
+  )
+}
+
+pub fn from_create_location_without_coordinates_row(
+  row: sql.CreateLocationWithoutCoordinatesRow,
+  tags: List(Uuid),
+) -> Location {
+  Location(
+    id: row.id,
+    name: model.BilingualString(sv: row.name, en: row.name_en),
+    description: model.BilingualString(
+      sv: row.description,
+      en: row.description_en,
+    ),
+    icon_name: row.icon_name,
+    icon_variant: row.icon_variant,
+    color: row.color,
+    coordinates: coordinates_from_columns(row.latitude, row.longitude),
     opening_hours: parse_opening_hours(row.opening_hours),
     tags:,
   )
@@ -70,15 +88,14 @@ pub fn from_get_location_row(
     icon_name: row.icon_name,
     icon_variant: row.icon_variant,
     color: row.color,
-    latitude: row.latitude,
-    longitude: row.longitude,
+    coordinates: coordinates_from_columns(row.latitude, row.longitude),
     opening_hours: parse_opening_hours(row.opening_hours),
     tags:,
   )
 }
 
-pub fn from_update_location_row(
-  row: sql.UpdateLocationRow,
+pub fn from_update_location_with_coordinates_row(
+  row: sql.UpdateLocationWithCoordinatesRow,
   tags: List(Uuid),
 ) -> Location {
   Location(
@@ -91,11 +108,45 @@ pub fn from_update_location_row(
     icon_name: row.icon_name,
     icon_variant: row.icon_variant,
     color: row.color,
-    latitude: row.latitude,
-    longitude: row.longitude,
+    coordinates: coordinates_from_columns(row.latitude, row.longitude),
     opening_hours: parse_opening_hours(row.opening_hours),
     tags:,
   )
+}
+
+pub fn from_update_location_without_coordinates_row(
+  row: sql.UpdateLocationWithoutCoordinatesRow,
+  tags: List(Uuid),
+) -> Location {
+  Location(
+    id: row.id,
+    name: model.BilingualString(sv: row.name, en: row.name_en),
+    description: model.BilingualString(
+      sv: row.description,
+      en: row.description_en,
+    ),
+    icon_name: row.icon_name,
+    icon_variant: row.icon_variant,
+    color: row.color,
+    coordinates: coordinates_from_columns(row.latitude, row.longitude),
+    opening_hours: parse_opening_hours(row.opening_hours),
+    tags:,
+  )
+}
+
+/// Pair the two nullable coordinate columns into an optional `Coordinates`.
+/// The `location_coordinates_paired` CHECK constraint guarantees the columns
+/// are either both set or both null, so the mixed cases cannot occur; they
+/// collapse to `None` rather than crashing if the constraint were ever lost.
+fn coordinates_from_columns(
+  latitude: Option(Float),
+  longitude: Option(Float),
+) -> Option(model.Coordinates) {
+  case latitude, longitude {
+    Some(latitude), Some(longitude) ->
+      Some(model.Coordinates(latitude:, longitude:))
+    _, _ -> None
+  }
 }
 
 fn parse_opening_hours(raw: String) -> Json {
@@ -192,8 +243,7 @@ pub fn to_json(location: Location) -> Json {
     icon_name:,
     icon_variant:,
     color:,
-    latitude:,
-    longitude:,
+    coordinates:,
     opening_hours:,
     tags:,
   ) = location
@@ -204,8 +254,20 @@ pub fn to_json(location: Location) -> Json {
     #("icon_name", json.string(icon_name)),
     #("icon_variant", json.string(icon_variant)),
     #("color", json.string(color)),
-    #("latitude", json.float(latitude)),
-    #("longitude", json.float(longitude)),
+    #(
+      "latitude",
+      json.nullable(
+        option.map(coordinates, fn(c: model.Coordinates) { c.latitude }),
+        json.float,
+      ),
+    ),
+    #(
+      "longitude",
+      json.nullable(
+        option.map(coordinates, fn(c: model.Coordinates) { c.longitude }),
+        json.float,
+      ),
+    ),
     #("opening_hours", opening_hours),
     #("tags", json.array(tags, uuid_to_json)),
   ])

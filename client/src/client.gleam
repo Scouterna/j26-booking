@@ -4809,15 +4809,17 @@ fn view_activity_detail(
   }
 }
 
-/// Builds the map preview iframe URL for a location. The map's `icon` param
-/// takes the bare tabler icon name, without the `tabler-` prefix locations
-/// store it with.
-fn map_preview_src(location: model.Location) -> String {
+/// Builds the map preview iframe URL for a location, or `None` for a
+/// location that only has a name and no coordinates (nothing to preview).
+/// The map's `icon` param takes the bare tabler icon name, without the
+/// `tabler-` prefix locations store it with.
+fn map_preview_src(location: model.Location) -> Option(String) {
+  use coordinates <- option.map(location.coordinates)
   let icon = string.replace(location.icon_name, each: "tabler-", with: "")
   "/_services/map/preview.html?lat="
-  <> float.to_string(location.latitude)
+  <> float.to_string(coordinates.latitude)
   <> "&lng="
-  <> float.to_string(location.longitude)
+  <> float.to_string(coordinates.longitude)
   <> "&icon="
   <> icon
   <> "&variant="
@@ -4868,8 +4870,10 @@ fn view_activity_detail_loaded(
         ),
       ],
     ),
-    case activity.location {
-      Some(location) ->
+    // The map preview only renders when the location has coordinates; a
+    // name-only location shows no map (issue #26).
+    case option.then(activity.location, map_preview_src) {
+      Some(src) ->
         html.div(
           // Map
           [
@@ -4877,7 +4881,7 @@ fn view_activity_detail_loaded(
           ],
           [
             html.iframe([
-              attribute.src(map_preview_src(location)),
+              attribute.src(src),
               attribute.class("w-full h-full outline-none pointer-events-none"),
               attribute.loading("lazy"),
             ]),

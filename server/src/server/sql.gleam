@@ -605,131 +605,6 @@ RETURNING id,
   |> pog.execute(db)
 }
 
-/// A row you get from running the `create_location` query
-/// defined in `./src/server/sql/create_location.sql`.
-///
-/// > 🐿️ This type definition was generated automatically using v4.7.0 of the
-/// > [squirrel package](https://github.com/giacomocavalieri/squirrel).
-///
-pub type CreateLocationRow {
-  CreateLocationRow(
-    id: Uuid,
-    name: String,
-    name_en: String,
-    description: String,
-    description_en: String,
-    icon_name: String,
-    icon_variant: String,
-    color: String,
-    latitude: Float,
-    longitude: Float,
-    opening_hours: String,
-  )
-}
-
-/// Creates a location and returns it. opening_hours is sent as JSON text; the
-/// parameter type is inferred as jsonb from the target column.
-///
-/// > 🐿️ This function was generated automatically using v4.7.0 of
-/// > the [squirrel package](https://github.com/giacomocavalieri/squirrel).
-///
-pub fn create_location(
-  db: pog.Connection,
-  arg_1: Uuid,
-  arg_2: String,
-  arg_3: String,
-  arg_4: String,
-  arg_5: String,
-  arg_6: String,
-  arg_7: String,
-  arg_8: String,
-  arg_9: Float,
-  arg_10: Float,
-  arg_11: Json,
-) -> Result(pog.Returned(CreateLocationRow), pog.QueryError) {
-  let decoder = {
-    use id <- decode.field(0, uuid_decoder())
-    use name <- decode.field(1, decode.string)
-    use name_en <- decode.field(2, decode.string)
-    use description <- decode.field(3, decode.string)
-    use description_en <- decode.field(4, decode.string)
-    use icon_name <- decode.field(5, decode.string)
-    use icon_variant <- decode.field(6, decode.string)
-    use color <- decode.field(7, decode.string)
-    use latitude <- decode.field(8, decode.float)
-    use longitude <- decode.field(9, decode.float)
-    use opening_hours <- decode.field(10, decode.string)
-    decode.success(CreateLocationRow(
-      id:,
-      name:,
-      name_en:,
-      description:,
-      description_en:,
-      icon_name:,
-      icon_variant:,
-      color:,
-      latitude:,
-      longitude:,
-      opening_hours:,
-    ))
-  }
-
-  "-- Creates a location and returns it. opening_hours is sent as JSON text; the
--- parameter type is inferred as jsonb from the target column.
-INSERT INTO location (
-        id,
-        name,
-        name_en,
-        description,
-        description_en,
-        icon_name,
-        icon_variant,
-        color,
-        latitude,
-        longitude,
-        opening_hours
-    )
-VALUES (
-        $1,
-        $2,
-        $3,
-        $4,
-        $5,
-        $6,
-        $7,
-        $8,
-        $9,
-        $10,
-        $11
-    )
-RETURNING id,
-    name,
-    name_en,
-    description,
-    description_en,
-    icon_name,
-    icon_variant,
-    color,
-    latitude,
-    longitude,
-    opening_hours;
-"
-  |> pog.query
-  |> pog.parameter(pog.text(uuid.to_string(arg_1)))
-  |> pog.parameter(pog.text(arg_2))
-  |> pog.parameter(pog.text(arg_3))
-  |> pog.parameter(pog.text(arg_4))
-  |> pog.parameter(pog.text(arg_5))
-  |> pog.parameter(pog.text(arg_6))
-  |> pog.parameter(pog.text(arg_7))
-  |> pog.parameter(pog.text(arg_8))
-  |> pog.parameter(pog.float(arg_9))
-  |> pog.parameter(pog.float(arg_10))
-  |> pog.parameter(pog.text(json.to_string(arg_11)))
-  |> pog.returning(decoder)
-  |> pog.execute(db)
-}
-
 /// A row you get from running the `create_location_tag` query
 /// defined in `./src/server/sql/create_location_tag.sql`.
 ///
@@ -789,6 +664,262 @@ RETURNING id,
   |> pog.parameter(pog.text(arg_3))
   |> pog.parameter(pog.text(arg_4))
   |> pog.parameter(pog.text(arg_5))
+  |> pog.returning(decoder)
+  |> pog.execute(db)
+}
+
+/// A row you get from running the `create_location_with_coordinates` query
+/// defined in `./src/server/sql/create_location_with_coordinates.sql`.
+///
+/// > 🐿️ This type definition was generated automatically using v4.7.0 of the
+/// > [squirrel package](https://github.com/giacomocavalieri/squirrel).
+///
+pub type CreateLocationWithCoordinatesRow {
+  CreateLocationWithCoordinatesRow(
+    id: Uuid,
+    name: String,
+    name_en: String,
+    description: String,
+    description_en: String,
+    icon_name: String,
+    icon_variant: String,
+    color: String,
+    latitude: Option(Float),
+    longitude: Option(Float),
+    opening_hours: String,
+  )
+}
+
+/// Creates a location that has coordinates and returns it. opening_hours is
+/// sent as JSON text; the parameter type is inferred as jsonb from the target
+/// column. Squirrel cannot generate optional query parameters, so a location
+/// without coordinates is created by the _without_coordinates variant instead.
+///
+/// > 🐿️ This function was generated automatically using v4.7.0 of
+/// > the [squirrel package](https://github.com/giacomocavalieri/squirrel).
+///
+pub fn create_location_with_coordinates(
+  db: pog.Connection,
+  arg_1: Uuid,
+  arg_2: String,
+  arg_3: String,
+  arg_4: String,
+  arg_5: String,
+  arg_6: String,
+  arg_7: String,
+  arg_8: String,
+  arg_9: Float,
+  arg_10: Float,
+  arg_11: Json,
+) -> Result(pog.Returned(CreateLocationWithCoordinatesRow), pog.QueryError) {
+  let decoder = {
+    use id <- decode.field(0, uuid_decoder())
+    use name <- decode.field(1, decode.string)
+    use name_en <- decode.field(2, decode.string)
+    use description <- decode.field(3, decode.string)
+    use description_en <- decode.field(4, decode.string)
+    use icon_name <- decode.field(5, decode.string)
+    use icon_variant <- decode.field(6, decode.string)
+    use color <- decode.field(7, decode.string)
+    use latitude <- decode.field(8, decode.optional(decode.float))
+    use longitude <- decode.field(9, decode.optional(decode.float))
+    use opening_hours <- decode.field(10, decode.string)
+    decode.success(CreateLocationWithCoordinatesRow(
+      id:,
+      name:,
+      name_en:,
+      description:,
+      description_en:,
+      icon_name:,
+      icon_variant:,
+      color:,
+      latitude:,
+      longitude:,
+      opening_hours:,
+    ))
+  }
+
+  "-- Creates a location that has coordinates and returns it. opening_hours is
+-- sent as JSON text; the parameter type is inferred as jsonb from the target
+-- column. Squirrel cannot generate optional query parameters, so a location
+-- without coordinates is created by the _without_coordinates variant instead.
+INSERT INTO location (
+        id,
+        name,
+        name_en,
+        description,
+        description_en,
+        icon_name,
+        icon_variant,
+        color,
+        latitude,
+        longitude,
+        opening_hours
+    )
+VALUES (
+        $1,
+        $2,
+        $3,
+        $4,
+        $5,
+        $6,
+        $7,
+        $8,
+        $9,
+        $10,
+        $11
+    )
+RETURNING id,
+    name,
+    name_en,
+    description,
+    description_en,
+    icon_name,
+    icon_variant,
+    color,
+    latitude,
+    longitude,
+    opening_hours;
+"
+  |> pog.query
+  |> pog.parameter(pog.text(uuid.to_string(arg_1)))
+  |> pog.parameter(pog.text(arg_2))
+  |> pog.parameter(pog.text(arg_3))
+  |> pog.parameter(pog.text(arg_4))
+  |> pog.parameter(pog.text(arg_5))
+  |> pog.parameter(pog.text(arg_6))
+  |> pog.parameter(pog.text(arg_7))
+  |> pog.parameter(pog.text(arg_8))
+  |> pog.parameter(pog.float(arg_9))
+  |> pog.parameter(pog.float(arg_10))
+  |> pog.parameter(pog.text(json.to_string(arg_11)))
+  |> pog.returning(decoder)
+  |> pog.execute(db)
+}
+
+/// A row you get from running the `create_location_without_coordinates` query
+/// defined in `./src/server/sql/create_location_without_coordinates.sql`.
+///
+/// > 🐿️ This type definition was generated automatically using v4.7.0 of the
+/// > [squirrel package](https://github.com/giacomocavalieri/squirrel).
+///
+pub type CreateLocationWithoutCoordinatesRow {
+  CreateLocationWithoutCoordinatesRow(
+    id: Uuid,
+    name: String,
+    name_en: String,
+    description: String,
+    description_en: String,
+    icon_name: String,
+    icon_variant: String,
+    color: String,
+    latitude: Option(Float),
+    longitude: Option(Float),
+    opening_hours: String,
+  )
+}
+
+/// Creates a location that has no coordinates (name-only, no map marker) and
+/// returns it. opening_hours is sent as JSON text; the parameter type is
+/// inferred as jsonb from the target column. Squirrel cannot generate optional
+/// query parameters, so the NULL coordinates are literals here rather than
+/// parameters of the _with_coordinates variant.
+///
+/// > 🐿️ This function was generated automatically using v4.7.0 of
+/// > the [squirrel package](https://github.com/giacomocavalieri/squirrel).
+///
+pub fn create_location_without_coordinates(
+  db: pog.Connection,
+  arg_1: Uuid,
+  arg_2: String,
+  arg_3: String,
+  arg_4: String,
+  arg_5: String,
+  arg_6: String,
+  arg_7: String,
+  arg_8: String,
+  arg_9: Json,
+) -> Result(pog.Returned(CreateLocationWithoutCoordinatesRow), pog.QueryError) {
+  let decoder = {
+    use id <- decode.field(0, uuid_decoder())
+    use name <- decode.field(1, decode.string)
+    use name_en <- decode.field(2, decode.string)
+    use description <- decode.field(3, decode.string)
+    use description_en <- decode.field(4, decode.string)
+    use icon_name <- decode.field(5, decode.string)
+    use icon_variant <- decode.field(6, decode.string)
+    use color <- decode.field(7, decode.string)
+    use latitude <- decode.field(8, decode.optional(decode.float))
+    use longitude <- decode.field(9, decode.optional(decode.float))
+    use opening_hours <- decode.field(10, decode.string)
+    decode.success(CreateLocationWithoutCoordinatesRow(
+      id:,
+      name:,
+      name_en:,
+      description:,
+      description_en:,
+      icon_name:,
+      icon_variant:,
+      color:,
+      latitude:,
+      longitude:,
+      opening_hours:,
+    ))
+  }
+
+  "-- Creates a location that has no coordinates (name-only, no map marker) and
+-- returns it. opening_hours is sent as JSON text; the parameter type is
+-- inferred as jsonb from the target column. Squirrel cannot generate optional
+-- query parameters, so the NULL coordinates are literals here rather than
+-- parameters of the _with_coordinates variant.
+INSERT INTO location (
+        id,
+        name,
+        name_en,
+        description,
+        description_en,
+        icon_name,
+        icon_variant,
+        color,
+        latitude,
+        longitude,
+        opening_hours
+    )
+VALUES (
+        $1,
+        $2,
+        $3,
+        $4,
+        $5,
+        $6,
+        $7,
+        $8,
+        NULL,
+        NULL,
+        $9
+    )
+RETURNING id,
+    name,
+    name_en,
+    description,
+    description_en,
+    icon_name,
+    icon_variant,
+    color,
+    latitude,
+    longitude,
+    opening_hours;
+"
+  |> pog.query
+  |> pog.parameter(pog.text(uuid.to_string(arg_1)))
+  |> pog.parameter(pog.text(arg_2))
+  |> pog.parameter(pog.text(arg_3))
+  |> pog.parameter(pog.text(arg_4))
+  |> pog.parameter(pog.text(arg_5))
+  |> pog.parameter(pog.text(arg_6))
+  |> pog.parameter(pog.text(arg_7))
+  |> pog.parameter(pog.text(arg_8))
+  |> pog.parameter(pog.text(json.to_string(arg_9)))
   |> pog.returning(decoder)
   |> pog.execute(db)
 }
@@ -1805,8 +1936,8 @@ pub type GetLocationRow {
     icon_name: String,
     icon_variant: String,
     color: String,
-    latitude: Float,
-    longitude: Float,
+    latitude: Option(Float),
+    longitude: Option(Float),
     opening_hours: String,
   )
 }
@@ -1829,8 +1960,8 @@ pub fn get_location(
     use icon_name <- decode.field(5, decode.string)
     use icon_variant <- decode.field(6, decode.string)
     use color <- decode.field(7, decode.string)
-    use latitude <- decode.field(8, decode.float)
-    use longitude <- decode.field(9, decode.float)
+    use latitude <- decode.field(8, decode.optional(decode.float))
+    use longitude <- decode.field(9, decode.optional(decode.float))
     use opening_hours <- decode.field(10, decode.string)
     decode.success(GetLocationRow(
       id:,
@@ -2765,8 +2896,8 @@ pub type ListLocationsRow {
     icon_name: String,
     icon_variant: String,
     color: String,
-    latitude: Float,
-    longitude: Float,
+    latitude: Option(Float),
+    longitude: Option(Float),
     opening_hours: String,
   )
 }
@@ -2789,8 +2920,8 @@ pub fn list_locations(
     use icon_name <- decode.field(5, decode.string)
     use icon_variant <- decode.field(6, decode.string)
     use color <- decode.field(7, decode.string)
-    use latitude <- decode.field(8, decode.float)
-    use longitude <- decode.field(9, decode.float)
+    use latitude <- decode.field(8, decode.optional(decode.float))
+    use longitude <- decode.field(9, decode.optional(decode.float))
     use opening_hours <- decode.field(10, decode.string)
     decode.success(ListLocationsRow(
       id:,
@@ -3505,117 +3636,6 @@ RETURNING id,
   |> pog.execute(db)
 }
 
-/// A row you get from running the `update_location` query
-/// defined in `./src/server/sql/update_location.sql`.
-///
-/// > 🐿️ This type definition was generated automatically using v4.7.0 of the
-/// > [squirrel package](https://github.com/giacomocavalieri/squirrel).
-///
-pub type UpdateLocationRow {
-  UpdateLocationRow(
-    id: Uuid,
-    name: String,
-    name_en: String,
-    description: String,
-    description_en: String,
-    icon_name: String,
-    icon_variant: String,
-    color: String,
-    latitude: Float,
-    longitude: Float,
-    opening_hours: String,
-  )
-}
-
-/// Updates a location and returns it. opening_hours is sent as JSON text; the
-/// parameter type is inferred as jsonb from the target column.
-///
-/// > 🐿️ This function was generated automatically using v4.7.0 of
-/// > the [squirrel package](https://github.com/giacomocavalieri/squirrel).
-///
-pub fn update_location(
-  db: pog.Connection,
-  id: Uuid,
-  arg_2: String,
-  arg_3: String,
-  arg_4: String,
-  arg_5: String,
-  arg_6: String,
-  arg_7: String,
-  arg_8: String,
-  arg_9: Float,
-  arg_10: Float,
-  opening_hours: Json,
-) -> Result(pog.Returned(UpdateLocationRow), pog.QueryError) {
-  let decoder = {
-    use id <- decode.field(0, uuid_decoder())
-    use name <- decode.field(1, decode.string)
-    use name_en <- decode.field(2, decode.string)
-    use description <- decode.field(3, decode.string)
-    use description_en <- decode.field(4, decode.string)
-    use icon_name <- decode.field(5, decode.string)
-    use icon_variant <- decode.field(6, decode.string)
-    use color <- decode.field(7, decode.string)
-    use latitude <- decode.field(8, decode.float)
-    use longitude <- decode.field(9, decode.float)
-    use opening_hours <- decode.field(10, decode.string)
-    decode.success(UpdateLocationRow(
-      id:,
-      name:,
-      name_en:,
-      description:,
-      description_en:,
-      icon_name:,
-      icon_variant:,
-      color:,
-      latitude:,
-      longitude:,
-      opening_hours:,
-    ))
-  }
-
-  "-- Updates a location and returns it. opening_hours is sent as JSON text; the
--- parameter type is inferred as jsonb from the target column.
-UPDATE location
-SET name = $2,
-    name_en = $3,
-    description = $4,
-    description_en = $5,
-    icon_name = $6,
-    icon_variant = $7,
-    color = $8,
-    latitude = $9,
-    longitude = $10,
-    opening_hours = $11
-WHERE id = $1
-RETURNING id,
-    name,
-    name_en,
-    description,
-    description_en,
-    icon_name,
-    icon_variant,
-    color,
-    latitude,
-    longitude,
-    opening_hours;
-"
-  |> pog.query
-  |> pog.parameter(pog.text(uuid.to_string(id)))
-  |> pog.parameter(pog.text(arg_2))
-  |> pog.parameter(pog.text(arg_3))
-  |> pog.parameter(pog.text(arg_4))
-  |> pog.parameter(pog.text(arg_5))
-  |> pog.parameter(pog.text(arg_6))
-  |> pog.parameter(pog.text(arg_7))
-  |> pog.parameter(pog.text(arg_8))
-  |> pog.parameter(pog.float(arg_9))
-  |> pog.parameter(pog.float(arg_10))
-  |> pog.parameter(pog.text(json.to_string(opening_hours)))
-  |> pog.returning(decoder)
-  |> pog.execute(db)
-}
-
 /// A row you get from running the `update_location_tag` query
 /// defined in `./src/server/sql/update_location_tag.sql`.
 ///
@@ -3679,6 +3699,234 @@ RETURNING id,
   |> pog.parameter(pog.text(arg_3))
   |> pog.parameter(pog.text(arg_4))
   |> pog.parameter(pog.text(icon_variant))
+  |> pog.returning(decoder)
+  |> pog.execute(db)
+}
+
+/// A row you get from running the `update_location_with_coordinates` query
+/// defined in `./src/server/sql/update_location_with_coordinates.sql`.
+///
+/// > 🐿️ This type definition was generated automatically using v4.7.0 of the
+/// > [squirrel package](https://github.com/giacomocavalieri/squirrel).
+///
+pub type UpdateLocationWithCoordinatesRow {
+  UpdateLocationWithCoordinatesRow(
+    id: Uuid,
+    name: String,
+    name_en: String,
+    description: String,
+    description_en: String,
+    icon_name: String,
+    icon_variant: String,
+    color: String,
+    latitude: Option(Float),
+    longitude: Option(Float),
+    opening_hours: String,
+  )
+}
+
+/// Updates a location, setting its coordinates, and returns it. opening_hours
+/// is sent as JSON text; the parameter type is inferred as jsonb from the
+/// target column. Squirrel cannot generate optional query parameters, so
+/// clearing the coordinates goes through the _without_coordinates variant.
+///
+/// > 🐿️ This function was generated automatically using v4.7.0 of
+/// > the [squirrel package](https://github.com/giacomocavalieri/squirrel).
+///
+pub fn update_location_with_coordinates(
+  db: pog.Connection,
+  id: Uuid,
+  arg_2: String,
+  arg_3: String,
+  arg_4: String,
+  arg_5: String,
+  arg_6: String,
+  arg_7: String,
+  arg_8: String,
+  arg_9: Float,
+  arg_10: Float,
+  opening_hours: Json,
+) -> Result(pog.Returned(UpdateLocationWithCoordinatesRow), pog.QueryError) {
+  let decoder = {
+    use id <- decode.field(0, uuid_decoder())
+    use name <- decode.field(1, decode.string)
+    use name_en <- decode.field(2, decode.string)
+    use description <- decode.field(3, decode.string)
+    use description_en <- decode.field(4, decode.string)
+    use icon_name <- decode.field(5, decode.string)
+    use icon_variant <- decode.field(6, decode.string)
+    use color <- decode.field(7, decode.string)
+    use latitude <- decode.field(8, decode.optional(decode.float))
+    use longitude <- decode.field(9, decode.optional(decode.float))
+    use opening_hours <- decode.field(10, decode.string)
+    decode.success(UpdateLocationWithCoordinatesRow(
+      id:,
+      name:,
+      name_en:,
+      description:,
+      description_en:,
+      icon_name:,
+      icon_variant:,
+      color:,
+      latitude:,
+      longitude:,
+      opening_hours:,
+    ))
+  }
+
+  "-- Updates a location, setting its coordinates, and returns it. opening_hours
+-- is sent as JSON text; the parameter type is inferred as jsonb from the
+-- target column. Squirrel cannot generate optional query parameters, so
+-- clearing the coordinates goes through the _without_coordinates variant.
+UPDATE location
+SET name = $2,
+    name_en = $3,
+    description = $4,
+    description_en = $5,
+    icon_name = $6,
+    icon_variant = $7,
+    color = $8,
+    latitude = $9,
+    longitude = $10,
+    opening_hours = $11
+WHERE id = $1
+RETURNING id,
+    name,
+    name_en,
+    description,
+    description_en,
+    icon_name,
+    icon_variant,
+    color,
+    latitude,
+    longitude,
+    opening_hours;
+"
+  |> pog.query
+  |> pog.parameter(pog.text(uuid.to_string(id)))
+  |> pog.parameter(pog.text(arg_2))
+  |> pog.parameter(pog.text(arg_3))
+  |> pog.parameter(pog.text(arg_4))
+  |> pog.parameter(pog.text(arg_5))
+  |> pog.parameter(pog.text(arg_6))
+  |> pog.parameter(pog.text(arg_7))
+  |> pog.parameter(pog.text(arg_8))
+  |> pog.parameter(pog.float(arg_9))
+  |> pog.parameter(pog.float(arg_10))
+  |> pog.parameter(pog.text(json.to_string(opening_hours)))
+  |> pog.returning(decoder)
+  |> pog.execute(db)
+}
+
+/// A row you get from running the `update_location_without_coordinates` query
+/// defined in `./src/server/sql/update_location_without_coordinates.sql`.
+///
+/// > 🐿️ This type definition was generated automatically using v4.7.0 of the
+/// > [squirrel package](https://github.com/giacomocavalieri/squirrel).
+///
+pub type UpdateLocationWithoutCoordinatesRow {
+  UpdateLocationWithoutCoordinatesRow(
+    id: Uuid,
+    name: String,
+    name_en: String,
+    description: String,
+    description_en: String,
+    icon_name: String,
+    icon_variant: String,
+    color: String,
+    latitude: Option(Float),
+    longitude: Option(Float),
+    opening_hours: String,
+  )
+}
+
+/// Updates a location, clearing its coordinates, and returns it. opening_hours
+/// is sent as JSON text; the parameter type is inferred as jsonb from the
+/// target column. Squirrel cannot generate optional query parameters, so the
+/// NULL coordinates are literals here rather than parameters of the
+/// _with_coordinates variant.
+///
+/// > 🐿️ This function was generated automatically using v4.7.0 of
+/// > the [squirrel package](https://github.com/giacomocavalieri/squirrel).
+///
+pub fn update_location_without_coordinates(
+  db: pog.Connection,
+  id: Uuid,
+  arg_2: String,
+  arg_3: String,
+  arg_4: String,
+  arg_5: String,
+  arg_6: String,
+  arg_7: String,
+  arg_8: String,
+  opening_hours: Json,
+) -> Result(pog.Returned(UpdateLocationWithoutCoordinatesRow), pog.QueryError) {
+  let decoder = {
+    use id <- decode.field(0, uuid_decoder())
+    use name <- decode.field(1, decode.string)
+    use name_en <- decode.field(2, decode.string)
+    use description <- decode.field(3, decode.string)
+    use description_en <- decode.field(4, decode.string)
+    use icon_name <- decode.field(5, decode.string)
+    use icon_variant <- decode.field(6, decode.string)
+    use color <- decode.field(7, decode.string)
+    use latitude <- decode.field(8, decode.optional(decode.float))
+    use longitude <- decode.field(9, decode.optional(decode.float))
+    use opening_hours <- decode.field(10, decode.string)
+    decode.success(UpdateLocationWithoutCoordinatesRow(
+      id:,
+      name:,
+      name_en:,
+      description:,
+      description_en:,
+      icon_name:,
+      icon_variant:,
+      color:,
+      latitude:,
+      longitude:,
+      opening_hours:,
+    ))
+  }
+
+  "-- Updates a location, clearing its coordinates, and returns it. opening_hours
+-- is sent as JSON text; the parameter type is inferred as jsonb from the
+-- target column. Squirrel cannot generate optional query parameters, so the
+-- NULL coordinates are literals here rather than parameters of the
+-- _with_coordinates variant.
+UPDATE location
+SET name = $2,
+    name_en = $3,
+    description = $4,
+    description_en = $5,
+    icon_name = $6,
+    icon_variant = $7,
+    color = $8,
+    latitude = NULL,
+    longitude = NULL,
+    opening_hours = $9
+WHERE id = $1
+RETURNING id,
+    name,
+    name_en,
+    description,
+    description_en,
+    icon_name,
+    icon_variant,
+    color,
+    latitude,
+    longitude,
+    opening_hours;
+"
+  |> pog.query
+  |> pog.parameter(pog.text(uuid.to_string(id)))
+  |> pog.parameter(pog.text(arg_2))
+  |> pog.parameter(pog.text(arg_3))
+  |> pog.parameter(pog.text(arg_4))
+  |> pog.parameter(pog.text(arg_5))
+  |> pog.parameter(pog.text(arg_6))
+  |> pog.parameter(pog.text(arg_7))
+  |> pog.parameter(pog.text(arg_8))
+  |> pog.parameter(pog.text(json.to_string(opening_hours)))
   |> pog.returning(decoder)
   |> pog.execute(db)
 }

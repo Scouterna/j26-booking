@@ -44,6 +44,21 @@ VALUES (
         55.980512,
         14.135702,
         '{}'::jsonb
+    ),
+    -- A name-only location without coordinates (issue #26): no map marker or
+    -- preview, only the name is shown.
+    (
+        '0190f3a1-5061-7273-de84-9f0a1b2c3d4e',
+        'Samlingsplatsen',
+        'The meeting point',
+        'Samlingsplats – exakt plats meddelas på plats.',
+        'Meeting point – exact spot announced on site.',
+        'tabler-flag',
+        'outline',
+        '#16a34a',
+        NULL,
+        NULL,
+        '{}'::jsonb
     );
 
 INSERT INTO location_tag (id, name, name_en, icon_name, icon_variant)

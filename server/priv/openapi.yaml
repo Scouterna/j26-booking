@@ -2159,12 +2159,18 @@ components:
         latitude:
           type: number
           format: double
-          description: Latitude in decimal degrees
+          nullable: true
+          description: >-
+            Latitude in decimal degrees. Null for locations that only have a
+            name and no map position; always null together with `longitude`.
           example: 55.979798511431689
         longitude:
           type: number
           format: double
-          description: Longitude in decimal degrees
+          nullable: true
+          description: >-
+            Longitude in decimal degrees. Null for locations that only have a
+            name and no map position; always null together with `latitude`.
           example: 14.134385999313892
         opening_hours:
           $ref: '#/components/schemas/OpeningHours'
@@ -2236,15 +2242,17 @@ components:
 
     LocationInput:
       type: object
-      description: Input for creating or updating a location
+      description: >-
+        Input for creating or updating a location. Coordinates are
+        all-or-nothing: provide both `latitude` and `longitude` for a location
+        with a map position, or neither (omitted or null) for a name-only
+        location. Providing exactly one of the two is rejected with 400.
       required:
         - name
         - description
         - icon_name
         - icon_variant
         - color
-        - latitude
-        - longitude
       properties:
         name:
           $ref: '#/components/schemas/BilingualString'
@@ -2262,10 +2270,12 @@ components:
         latitude:
           type: number
           format: double
+          nullable: true
           example: 55.979798511431689
         longitude:
           type: number
           format: double
+          nullable: true
           example: 14.134385999313892
         opening_hours:
           $ref: '#/components/schemas/OpeningHours'

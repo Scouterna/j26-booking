@@ -1,5 +1,7 @@
--- Updates a location and returns it. opening_hours is sent as JSON text; the
--- parameter type is inferred as jsonb from the target column.
+-- Updates a location, setting its coordinates, and returns it. opening_hours
+-- is sent as JSON text; the parameter type is inferred as jsonb from the
+-- target column. Squirrel cannot generate optional query parameters, so
+-- clearing the coordinates goes through the _without_coordinates variant.
 UPDATE location
 SET name = $2,
     name_en = $3,

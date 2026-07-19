@@ -79,8 +79,7 @@ fn a_location(id: Uuid, name: String) -> model.Location {
     icon_name: "pin",
     icon_variant: "outline",
     color: "#000000",
-    latitude: 0.0,
-    longitude: 0.0,
+    coordinates: Some(model.Coordinates(latitude: 0.0, longitude: 0.0)),
     opening_hours: json.object([]),
     tags: [],
   )

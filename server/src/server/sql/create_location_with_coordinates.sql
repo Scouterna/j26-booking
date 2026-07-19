@@ -1,5 +1,7 @@
--- Creates a location and returns it. opening_hours is sent as JSON text; the
--- parameter type is inferred as jsonb from the target column.
+-- Creates a location that has coordinates and returns it. opening_hours is
+-- sent as JSON text; the parameter type is inferred as jsonb from the target
+-- column. Squirrel cannot generate optional query parameters, so a location
+-- without coordinates is created by the _without_coordinates variant instead.
 INSERT INTO location (
         id,
         name,
