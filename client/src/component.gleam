@@ -250,7 +250,7 @@ pub fn hovering_callout(
   actions: List(Element(msg)),
   on_dismiss: msg,
 ) -> Element(msg) {
-  html.div([attribute.class("fixed bottom-3 inset-x-3 z-20")], [
+  html.div([attribute.class("fixed bottom-3 inset-x-3 z-20 mx-auto max-w-lg")], [
     element.element(
       "scout-callout",
       [
