@@ -223,8 +223,8 @@ pub fn scout_drawer(
   )
 }
 
-/// A `scout-button` for a callout's `actions` slot. Match the variant to the
-/// callout's intent (e.g. `"danger"` inside an error callout).
+/// A `scout-button` for a callout's `actions` slot. Any button variant works
+/// here — the slot only lays actions out in a row.
 pub fn callout_action(text: String, variant: String, msg: msg) -> Element(msg) {
   element.element(
     "scout-button",

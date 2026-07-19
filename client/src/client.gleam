@@ -4033,7 +4033,7 @@ fn view_partial_failure_callout(translator: Translator) -> Element(Msg) {
     "error",
     t("error.heading"),
     t("list.partial_days_failed"),
-    [component.callout_action(t("list.retry"), "danger", UserClickedRetryLoad)],
+    [component.callout_action(t("list.retry"), "primary", UserClickedRetryLoad)],
     UserDismissedListWarning,
   )
 }
