@@ -1,6 +1,6 @@
 # 21. Booking cancellation with reason (issue #43)
 
-> **Status: ✅ Done 2026-07-20** (commit `828e051`; shipped as planned with
+> **Status: ✅ Done 2026-07-20** (commit `6991515`; shipped as planned with
 > small deviations: the cancel form reuses the shared booking-drawer host
 > rather than a literal second drawer; `CancelReasonEditing` carries a
 > `submit_error` so a failed cancel keeps the typed reason and shows the
