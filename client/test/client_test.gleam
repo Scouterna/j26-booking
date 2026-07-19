@@ -150,6 +150,7 @@ fn base_model() -> client.Model {
     // Seeded to today like `init` does; `None` means "Alla dagar".
     browse_day_filter: Some(test_today()),
     favourites_day_filter: None,
+    list_warning_dismissed: False,
     details: dict.new(),
     statuses: dict.new(),
     spots: dict.new(),
@@ -1611,6 +1612,23 @@ pub fn switching_to_recurring_tab_snaps_all_days_to_a_day_test() {
   let #(next, _) = client.update(all_days_model(), client.UserSelectedTab(1))
   assert next.browse_day_filter != None
   assert list.length(client.window_keys_for(next, client.SourceBeachBus)) == 1
+}
+
+pub fn dismissing_list_warning_hides_it_until_next_fetch_test() {
+  // Dismissing the hovering partial-failure callout sets the flag; any
+  // refetch of the list (retry, day pick, tab switch) clears it so a fresh
+  // failure warns again.
+  let #(dismissed, _) =
+    client.update(base_model(), client.UserDismissedListWarning)
+  assert dismissed.list_warning_dismissed == True
+  let #(after_retry, _) = client.update(dismissed, client.UserClickedRetryLoad)
+  assert after_retry.list_warning_dismissed == False
+  let #(after_day_pick, _) =
+    client.update(dismissed, client.UserSelectedDay(Some(other_day())))
+  assert after_day_pick.list_warning_dismissed == False
+  let #(after_tab_switch, _) =
+    client.update(dismissed, client.UserSelectedTab(1))
+  assert after_tab_switch.list_warning_dismissed == False
 }
 
 pub fn all_days_resets_to_today_on_reentering_the_list_test() {

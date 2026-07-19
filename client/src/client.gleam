@@ -932,6 +932,11 @@ pub type Model {
     // Favourites' own day, independent of the browse tabs. `None` = "all days"
     // (its default); a pick narrows the all-days list client-side.
     favourites_day_filter: Option(calendar.Date),
+    // True after the user dismisses the hovering list warning (the
+    // partially-loaded "Alla dagar" callout). Cleared whenever the list
+    // refetches (retry, day/tab pick, navigation) so a fresh failure warns
+    // again.
+    list_warning_dismissed: Bool,
     // Detail-only fields (description + full location), fetched lazily per
     // detail view. Composed with the summary from `activities` at read time.
     details: Dict(Uuid, RemoteData(ActivityDetail)),
@@ -1856,6 +1861,7 @@ fn init(_flags) -> #(Model, Effect(Msg)) {
       // days"); Favourites to all days (`None`).
       browse_day_filter: Some(today),
       favourites_day_filter: None,
+      list_warning_dismissed: False,
       details: seed_detail_loading(dict.new(), page),
       statuses: dict.new(),
       spots: dict.new(),
@@ -1953,6 +1959,7 @@ pub type Msg {
   UserClickedCancelUnbook
   UserToggledFavourite(Uuid)
   UserClickedRetryLoad
+  UserDismissedListWarning
   // List page filters
   UserSearchedActivities(String)
   UserSelectedTab(Int)
@@ -1994,8 +2001,10 @@ pub fn update(model: Model, msg: Msg) -> #(Model, Effect(Msg)) {
       }
       let nav_effect = notify_navigation(uri)
       // The form overlay is `ManageActivitiesPage` state, so a route change to any
-      // other page drops it automatically — a stale form can't linger.
-      let model = Model(..model, page:, details:)
+      // other page drops it automatically — a stale form can't linger. A
+      // dismissed list warning likewise resets, so returning to a
+      // still-broken list warns again.
+      let model = Model(..model, page:, details:, list_warning_dismissed: False)
       // "Alla dagar" is transient: re-entering a list page snaps the browse
       // day back to today, so users don't unknowingly stay in the whole-week
       // eight-window mode. A picked concrete day still persists (issue #40).
@@ -2505,6 +2514,8 @@ pub fn update(model: Model, msg: Msg) -> #(Model, Effect(Msg)) {
           // `browse_day_filter`, Favourites its own), so switching tabs just
           // changes the tab and revalidates that tab's resolved windows.
           let filters = ListFilters(..filters, tab:)
+          // A new view is a fresh attempt — un-dismiss the list warning.
+          let model = Model(..model, list_warning_dismissed: False)
           // The recurring tabs have no "Alla dagar" option: switching to one
           // while the shared browse day is all-days snaps it to today
           // (all-days is transient anyway — it also resets on navigation).
@@ -2538,6 +2549,8 @@ pub fn update(model: Model, msg: Msg) -> #(Model, Effect(Msg)) {
     UserSelectedDay(d) ->
       case list_filters(model.page) {
         Ok(filters) -> {
+          // A new day pick refetches — un-dismiss the list warning.
+          let model = Model(..model, list_warning_dismissed: False)
           let model = case filters.tab {
             // Picking a concrete day on Favourites also moves the browse day
             // there, so switching back to a browse tab lands on the same day;
@@ -2887,12 +2900,18 @@ pub fn update(model: Model, msg: Msg) -> #(Model, Effect(Msg)) {
       case list_filters(model.page) {
         Ok(filters) ->
           fold_windows(
-            model,
+            // Retrying is a fresh attempt, so a still-failing day warns anew.
+            Model(..model, list_warning_dismissed: False),
             window_keys_for(model, tab_source(filters.tab)),
             retry_window,
           )
         Error(_) -> #(model, effect.none())
       }
+
+    UserDismissedListWarning -> #(
+      Model(..model, list_warning_dismissed: True),
+      effect.none(),
+    )
 
     UserToggledFavourite(activity_id) ->
       case status_of(model.statuses, activity_id) {
@@ -3880,6 +3899,7 @@ fn view(model: Model) -> Element(Msg) {
         page,
         model.browse_day_filter,
         model.favourites_day_filter,
+        model.list_warning_dismissed,
         model.edit_ui,
         model.locations,
       )
@@ -3930,6 +3950,7 @@ fn view_activities_list(
   page: Page,
   browse_day: Option(calendar.Date),
   favourites_day: Option(calendar.Date),
+  warning_dismissed: Bool,
   edit_ui: EditUi,
   locations: Dict(Uuid, Location),
 ) -> Element(Msg) {
@@ -3982,10 +4003,12 @@ fn view_activities_list(
           html.div([attribute.class("flex flex-col gap-3")], [
             // Some (but not all) day windows of an "Alla dagar" view failed:
             // show what loaded, but warn that the week — and any search over
-            // it — is incomplete, with a retry for the missing days.
-            case failed_days {
-              [] -> element.none()
-              _ -> view_partial_failure_banner(translator)
+            // it — is incomplete, with a retry for the missing days. The
+            // warning hovers over the list and can be dismissed; dismissal
+            // lasts until the list refetches.
+            case failed_days, warning_dismissed {
+              [], _ | _, True -> element.none()
+              _, False -> view_partial_failure_callout(translator)
             },
             view_grouped_activities(
               translator,
@@ -4000,20 +4023,19 @@ fn view_activities_list(
   ])
 }
 
-/// Warning above a partially-loaded "Alla dagar" list: some day windows
-/// failed while others loaded, so the list may be missing days. The retry
-/// refetches every window of the view (failed days load fresh, loaded days
-/// revalidate as cheap 304s).
-fn view_partial_failure_banner(translator: Translator) -> Element(Msg) {
+/// Warning over a partially-loaded "Alla dagar" list: some day windows
+/// failed while others loaded, so the list may be missing days. Hovers at
+/// the bottom of the screen; the retry action refetches every window of the
+/// view (failed days load fresh, loaded days revalidate as cheap 304s).
+fn view_partial_failure_callout(translator: Translator) -> Element(Msg) {
   let t = fn(key) { g18n.translate(translator, key) }
-  html.div([attribute.class("px-3 flex flex-col items-center gap-3")], [
-    component.error_banner(t("error.heading"), t("list.partial_days_failed")),
-    component.scout_button_action(
-      t("list.retry"),
-      "primary",
-      UserClickedRetryLoad,
-    ),
-  ])
+  component.hovering_callout(
+    "error",
+    t("error.heading"),
+    t("list.partial_days_failed"),
+    [component.callout_action(t("list.retry"), "danger", UserClickedRetryLoad)],
+    UserDismissedListWarning,
+  )
 }
 
 fn view_list_top_bar(

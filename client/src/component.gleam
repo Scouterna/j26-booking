@@ -223,6 +223,48 @@ pub fn scout_drawer(
   )
 }
 
+/// A `scout-button` for a callout's `actions` slot. Match the variant to the
+/// callout's intent (e.g. `"danger"` inside an error callout).
+pub fn callout_action(text: String, variant: String, msg: msg) -> Element(msg) {
+  element.element(
+    "scout-button",
+    [
+      attribute.attribute("slot", "actions"),
+      attribute.attribute("variant", variant),
+      event.on("scoutClick", decode.success(msg)),
+    ],
+    [element.text(text)],
+  )
+}
+
+/// A dismissable callout hovering at the bottom of the viewport, floating
+/// over the page content instead of displacing it — for error/warning
+/// messages that annotate a list or page (e.g. the partially-loaded
+/// "Alla dagar" week). `actions` are `callout_action` buttons rendered in the
+/// callout's actions slot; the component's built-in dismiss (×) button fires
+/// `on_dismiss` — the caller owns the shown/dismissed state.
+pub fn hovering_callout(
+  variant: String,
+  heading: String,
+  message: String,
+  actions: List(Element(msg)),
+  on_dismiss: msg,
+) -> Element(msg) {
+  html.div([attribute.class("fixed bottom-3 inset-x-3 z-20")], [
+    element.element(
+      "scout-callout",
+      [
+        attribute.class("shadow-lg"),
+        attribute.attribute("variant", variant),
+        attribute.attribute("heading", heading),
+        attribute.attribute("dismissible", ""),
+        event.on("scoutDismiss", decode.success(on_dismiss)),
+      ],
+      [element.text(message), ..actions],
+    ),
+  ])
+}
+
 pub fn error_banner(heading: String, message: String) -> Element(msg) {
   element.element(
     "scout-callout",
