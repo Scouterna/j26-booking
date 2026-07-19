@@ -312,6 +312,26 @@ pub fn hovering_callout(
   ])
 }
 
+/// An inline callout with action buttons in the component's `actions` slot
+/// (use `callout_action`) — for states where the callout is the content
+/// itself, e.g. a failed view offering a retry. Contrast `hovering_callout`,
+/// which floats over content it merely annotates.
+pub fn callout(
+  variant: CalloutVariant,
+  heading: String,
+  message: String,
+  actions: List(Element(msg)),
+) -> Element(msg) {
+  element.element(
+    "scout-callout",
+    [
+      attribute.attribute("variant", callout_variant_to_string(variant)),
+      attribute.attribute("heading", heading),
+    ],
+    [element.text(message), ..actions],
+  )
+}
+
 pub fn error_banner(heading: String, message: String) -> Element(msg) {
   element.element(
     "scout-callout",

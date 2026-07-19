@@ -3987,12 +3987,18 @@ fn view_activities_list(
       case load {
         ListLoading -> component.scout_loader(t("activity.loading"))
         ListFailed(err) ->
-          html.div([attribute.class("py-6 flex flex-col items-center gap-3")], [
-            component.error_banner(t("error.heading"), t(app_error_key(err))),
-            component.scout_button_action(
-              t("list.retry"),
-              "primary",
-              UserClickedRetryLoad,
+          html.div([attribute.class("px-3 py-6")], [
+            component.callout(
+              component.CalloutError,
+              t("error.heading"),
+              t(app_error_key(err)),
+              [
+                component.callout_action(
+                  t("list.retry"),
+                  component.ButtonPrimary,
+                  UserClickedRetryLoad,
+                ),
+              ],
             ),
           ])
         ListLoaded([], []) ->
