@@ -1,6 +1,11 @@
 # 18. Booking window: opens-at date & no booking after the end (issues #35 + #36)
 
-> **Status: 🔲 Not started** (as of 2026-07-19)
+> **Status: ✅ Done 2026-07-19** (commit `93cf499`; shipped as planned with
+> one divergence: `BOOKING_OPENS_AT` unset no longer means "open immediately"
+> — it defaults to the start of the camp, `2026-07-25T00:00:00+02:00`
+> (Markus's call during implementation), so the global gate is always `Some`.
+> Verified live per §Verification: all six scenarios pass, plus the UI gate
+> and form field checked in the browser.)
 
 ## Context
 

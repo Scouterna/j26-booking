@@ -43,4 +43,4 @@ When you create, finish, or touch a plan here, keep the folder consistent:
 | 15 | [Create a booking for someone else (issue #27)](15-book-for-someone-else.md) | ✅ Done 2026-07-19 |
 | 16 | [Multiple bookings per person + manage-bookings interface](16-multiple-bookings-and-manage-bookings-page.md) | ✅ Done 2026-07-19 |
 | 17 | [`bookings:others:create` manages every booking](17-others-create-manages-all-bookings.md) | ✅ Done 2026-07-19 |
-| 18 | [Booking window: opens-at date & no booking after the end (issues #35 + #36)](18-booking-window.md) | 🔲 Not started |
+| 18 | [Booking window: opens-at date & no booking after the end (issues #35 + #36)](18-booking-window.md) | ✅ Done 2026-07-19 |
