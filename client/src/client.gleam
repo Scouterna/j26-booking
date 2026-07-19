@@ -4937,7 +4937,7 @@ fn view_call_off_confirm(
       ),
       component.scout_button_action(
         t("edit.confirm_call_off"),
-        "danger",
+        component.ButtonDanger,
         UserClickedConfirmCallOff,
       ),
     ]),
@@ -5151,7 +5151,7 @@ fn view_activity_detail_loaded(
                   True ->
                     component.scout_button_action(
                       g18n.translate(translator, "activity.show_bookings"),
-                      "outlined",
+                      component.ButtonOutlined,
                       UserClickedShowBookings,
                     )
                   False -> element.none()
@@ -5282,12 +5282,12 @@ fn view_detail_actions(
     True, UnbookConfirming(_) -> #(
       component.scout_button_action(
         g18n.translate(translator, "booking.confirm_unbook"),
-        "danger",
+        component.ButtonDanger,
         UserClickedConfirmUnbook,
       ),
       component.scout_button_action(
         g18n.translate(translator, "booking.cancel"),
-        "outlined",
+        component.ButtonOutlined,
         UserClickedCancelUnbook,
       ),
     )
@@ -5314,14 +5314,14 @@ fn view_detail_actions(
             },
             component.scout_button_action(
               g18n.translate(translator, "booking.change"),
-              "primary",
+              component.ButtonPrimary,
               UserClickedChangeBooking,
             ),
           ])
       },
       component.scout_button_action(
         g18n.translate(translator, "booking.unbook"),
-        "danger",
+        component.ButtonDanger,
         UserClickedUnbook,
       ),
     )
@@ -5364,7 +5364,7 @@ fn book_action(
         model.BookingNotYetOpen(opens_at) ->
           component.scout_button_disabled(
             booking_opens_label(translator, opens_at),
-            "primary",
+            component.ButtonPrimary,
           )
         model.BookingClosed -> element.none()
         model.BookingOpen ->
@@ -5372,12 +5372,12 @@ fn book_action(
             model.Remaining(0) ->
               component.scout_button_disabled(
                 g18n.translate(translator, "activity.full"),
-                "primary",
+                component.ButtonPrimary,
               )
             _ ->
               component.scout_button_action(
                 g18n.translate(translator, "activity.book"),
-                "primary",
+                component.ButtonPrimary,
                 UserClickedBook,
               )
           }
@@ -5588,7 +5588,7 @@ fn view_booking_form_section(
               html.div([attribute.class("flex gap-2 justify-end")], [
                 component.scout_button_action(
                   g18n.translate(translator, "booking.cancel"),
-                  "outlined",
+                  component.ButtonOutlined,
                   UserClickedCancelBooking,
                 ),
                 element.element(
@@ -6362,12 +6362,12 @@ fn view_booking_card_actions(
     UnbookConfirming(id) if id == booking.id -> [
       component.scout_button_action(
         t("booking.cancel"),
-        "outlined",
+        component.ButtonOutlined,
         UserClickedCancelUnbook,
       ),
       component.scout_button_action(
         t("booking.confirm_unbook"),
-        "danger",
+        component.ButtonDanger,
         UserClickedConfirmUnbook,
       ),
     ]
@@ -6377,12 +6377,12 @@ fn view_booking_card_actions(
     _ -> [
       component.scout_button_action(
         t("booking.unbook"),
-        "danger",
+        component.ButtonDanger,
         UserClickedUnbookCard(booking.id),
       ),
       component.scout_button_action(
         t("booking.change"),
-        "primary",
+        component.ButtonPrimary,
         UserClickedEditBookingCard(booking),
       ),
     ]

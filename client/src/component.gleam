@@ -147,50 +147,30 @@ pub fn scout_textarea_field(
 
 pub fn scout_button_action(
   text: String,
-  variant: String,
+  variant: ButtonVariant,
   msg: msg,
 ) -> Element(msg) {
   element.element(
     "scout-button",
     [
-      attribute.attribute("variant", variant),
+      attribute.attribute("variant", button_variant_to_string(variant)),
       event.on("scoutClick", decode.success(msg)),
     ],
     [element.text(text)],
   )
 }
 
-pub fn scout_button_el(text: String, variant: String) -> Element(msg) {
-  element.element("scout-button", [attribute.attribute("variant", variant)], [
-    element.text(text),
-  ])
-}
-
-pub fn scout_button_disabled(text: String, variant: String) -> Element(msg) {
-  element.element(
-    "scout-button",
-    [
-      attribute.attribute("variant", variant),
-      attribute.attribute("disabled", ""),
-    ],
-    [element.text(text)],
-  )
-}
-
-pub fn scout_button_icon(
+pub fn scout_button_disabled(
   text: String,
-  variant: String,
-  icon: String,
+  variant: ButtonVariant,
 ) -> Element(msg) {
   element.element(
     "scout-button",
     [
-      attribute.attribute("variant", variant),
-      attribute.attribute("icon", icon),
-      attribute.attribute("icon-only", ""),
-      attribute.attribute("aria-label", text),
+      attribute.attribute("variant", button_variant_to_string(variant)),
+      attribute.attribute("disabled", ""),
     ],
-    [],
+    [element.text(text)],
   )
 }
 
@@ -333,27 +313,13 @@ pub fn callout(
 }
 
 pub fn error_banner(heading: String, message: String) -> Element(msg) {
-  element.element(
-    "scout-callout",
-    [
-      attribute.attribute("variant", "error"),
-      attribute.attribute("heading", heading),
-    ],
-    [element.text(message)],
-  )
+  callout(CalloutError, heading, message, [])
 }
 
 /// A warning-variant callout, used for the "called off" notice on a cancelled
 /// activity's detail page.
 pub fn warning_banner(heading: String, message: String) -> Element(msg) {
-  element.element(
-    "scout-callout",
-    [
-      attribute.attribute("variant", "warning"),
-      attribute.attribute("heading", heading),
-    ],
-    [element.text(message)],
-  )
+  callout(CalloutWarning, heading, message, [])
 }
 
 pub fn quick_info_tile(
