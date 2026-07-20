@@ -67,6 +67,23 @@ fn english_translations() -> g18n.Translations {
   |> g18n.add_translation("app_bar.activity_edit", "Edit activity")
   |> g18n.add_translation("app_bar.manage_activities", "Manage activities")
   |> g18n.add_translation("manage.new_activity", "New activity")
+  |> g18n.add_translation(
+    "manage.bulk_edit.beach_bus",
+    "Edit all beach bus slots",
+  )
+  |> g18n.add_translation(
+    "manage.bulk_edit.climbing_wall",
+    "Edit all climbing wall slots",
+  )
+  |> g18n.add_translation(
+    "bulk_edit.applies_to_all_heading",
+    "Applies to every slot",
+  )
+  |> g18n.add_translation(
+    "bulk_edit.applies_to_all",
+    "Saving updates the name, description and place of every slot, on all days.",
+  )
+  |> g18n.add_translation("error.bulk_update", "Failed to update the slots")
   |> g18n.add_translation("form.error.required", "Must not be blank")
   |> g18n.add_translation("form.error.int", "Must be a number")
   |> g18n.add_translation(
@@ -244,6 +261,26 @@ fn swedish_translations() -> g18n.Translations {
   |> g18n.add_translation("app_bar.activity_edit", "Redigera aktivitet")
   |> g18n.add_translation("app_bar.manage_activities", "Hantera aktiviteter")
   |> g18n.add_translation("manage.new_activity", "Ny aktivitet")
+  |> g18n.add_translation(
+    "manage.bulk_edit.beach_bus",
+    "Redigera alla badbusspass",
+  )
+  |> g18n.add_translation(
+    "manage.bulk_edit.climbing_wall",
+    "Redigera alla klätterväggspass",
+  )
+  |> g18n.add_translation(
+    "bulk_edit.applies_to_all_heading",
+    "Gäller alla pass",
+  )
+  |> g18n.add_translation(
+    "bulk_edit.applies_to_all",
+    "När du sparar uppdateras namn, beskrivning och plats för alla pass, alla dagar.",
+  )
+  |> g18n.add_translation(
+    "error.bulk_update",
+    "Det gick inte att uppdatera passen",
+  )
   |> g18n.add_translation("form.error.required", "Får inte vara tomt")
   |> g18n.add_translation("form.error.int", "Måste vara ett tal")
   |> g18n.add_translation(
@@ -615,6 +652,18 @@ pub type ActivityForm {
   )
 }
 
+/// The shared, kind-wide fields of a recurring activity's slots — what the
+/// bulk edit form edits (issue #31). Per-slot fields (times, capacity) are
+/// deliberately absent: they stay editable per slot only.
+pub type BulkEditForm {
+  BulkEditForm(
+    title: String,
+    title_en: String,
+    description: String,
+    description_en: String,
+  )
+}
+
 pub type BookingFormFields {
   BookingFormFields(
     group_free_text: String,
@@ -731,6 +780,8 @@ pub type AppError {
   LoadActivityFailed
   CreateActivityFailed
   UpdateActivityFailed
+  /// A bulk edit of a recurring kind's shared fields failed to save.
+  BulkUpdateActivitiesFailed
   CallOffActivityFailed
   DeleteActivityFailed
   CreateBookingFailed
@@ -750,6 +801,7 @@ fn app_error_key(error: AppError) -> String {
     LoadActivityFailed -> "error.load_activity"
     CreateActivityFailed -> "error.create_activity"
     UpdateActivityFailed -> "error.update_activity"
+    BulkUpdateActivitiesFailed -> "error.bulk_update"
     CallOffActivityFailed -> "error.call_off_activity"
     DeleteActivityFailed -> "error.delete_activity"
     CreateBookingFailed -> "error.create_booking"
@@ -934,6 +986,18 @@ pub type ActivityFormState {
     target_groups: List(TargetGroup),
   )
   ActivityFormEdit(id: Uuid, state: EditState)
+  /// Bulk edit of a recurring kind's shared fields (issue #31): saving applies
+  /// title/description/location to *every* slot of the kind at once.
+  ActivityFormBulkEdit(kind: RecurringKind, state: BulkEditState)
+}
+
+/// The bulk edit form's lifecycle. The form is seeded from one slot — they all
+/// share the bulk-editable fields, so any slot seeds them correctly:
+/// `BulkEditLoading` while that seed slot is fetched (mirroring `EditLoading`),
+/// `BulkEditReady` once the form is filled.
+pub type BulkEditState {
+  BulkEditLoading(seed: Uuid)
+  BulkEditReady(form: Form(BulkEditForm), submit_error: Option(AppError))
 }
 
 pub type Page {
@@ -1220,6 +1284,39 @@ pub fn tab_source(tab: ActivitiesFilterTab) -> ActivityListSource {
     TabClimbingWall -> SourceClimbingWall
     TabFavourites -> SourceFavourites
   }
+}
+
+/// The recurring kind a browse tab lists, for the tabs that list one — the
+/// gate for the manage page's bulk-edit affordance.
+fn tab_recurring_kind(tab: ActivitiesFilterTab) -> Result(RecurringKind, Nil) {
+  case tab {
+    TabBeachBus -> Ok(BeachBus)
+    TabClimbingWall -> Ok(ClimbingWall)
+    TabActivities | TabFavourites -> Error(Nil)
+  }
+}
+
+/// The browse-list source whose windows hold a recurring kind's slots.
+fn recurring_kind_source(kind: RecurringKind) -> ActivityListSource {
+  case kind {
+    BeachBus -> SourceBeachBus
+    ClimbingWall -> SourceClimbingWall
+  }
+}
+
+/// Drop the cached detail of every activity id cached under `source`'s
+/// windows (across all days). After a bulk edit their description/location
+/// changed server-side, and details — unlike windows — are never revalidated
+/// once loaded.
+fn drop_details_for_source(model: Model, source: ActivityListSource) -> Model {
+  let ids =
+    dict.fold(model.windows, [], fn(ids, key, remote) {
+      case key.0 == source, remote {
+        True, Loaded(window_ids) -> list.append(window_ids, ids)
+        _, _ -> ids
+      }
+    })
+  Model(..model, details: dict.drop(model.details, ids))
 }
 
 /// The `RemoteData` cached for a window key (`NotAsked` if never fetched).
@@ -1814,6 +1911,35 @@ fn form_from_activity(activity: Activity) -> Form(ActivityForm) {
   )
 }
 
+fn bulk_edit_form() -> Form(BulkEditForm) {
+  form.new({
+    use title <- form.field("title", form.parse_string |> form.check_not_empty)
+    use title_en <- form.field(
+      "title_en",
+      form.parse_string |> form.check_not_empty,
+    )
+    use description <- form.field(
+      "description",
+      form.parse_string |> form.check_not_empty,
+    )
+    use description_en <- form.field(
+      "description_en",
+      form.parse_string |> form.check_not_empty,
+    )
+    form.success(BulkEditForm(title:, title_en:, description:, description_en:))
+  })
+}
+
+/// Seed the bulk edit form from one fetched slot — every slot of a kind shares
+/// these fields, so any slot seeds them correctly.
+fn bulk_edit_form_from_activity(activity: Activity) -> Form(BulkEditForm) {
+  bulk_edit_form()
+  |> form.add_string("title", activity.title.sv)
+  |> form.add_string("title_en", activity.title.en)
+  |> form.add_string("description", activity.description.sv)
+  |> form.add_string("description_en", activity.description.en)
+}
+
 /// Build a fresh edit state from a just-fetched activity: seed the form and the
 /// working tag/målgrupp selections from it.
 fn edit_ready_from_activity(activity: Activity) -> EditState {
@@ -2013,6 +2139,8 @@ pub type Msg {
   ApiReturnedScoutGroups(Result(List(ScoutGroup), rsvp.Error))
   ApiCreatedActivity(Result(Activity, rsvp.Error))
   ApiUpdatedActivity(Result(Activity, rsvp.Error))
+  /// The bulk edit saved (Ok carries how many slots were updated) or failed.
+  ApiBulkUpdatedRecurring(RecurringKind, Result(Int, rsvp.Error))
   ApiCancelledActivity(Result(Activity, rsvp.Error))
   ApiDeletedActivity(Uuid, Result(Nil, rsvp.Error))
   ApiCreatedBooking(Result(Booking, rsvp.Error))
@@ -2025,11 +2153,13 @@ pub type Msg {
   // Form submissions
   UserSubmittedCreateForm(Result(ActivityForm, Form(ActivityForm)))
   UserSubmittedEditForm(Result(ActivityForm, Form(ActivityForm)))
+  UserSubmittedBulkEditForm(Result(BulkEditForm, Form(BulkEditForm)))
   UserSubmittedBookingForm(Result(BookingFormFields, Form(BookingFormFields)))
   // User actions
   UserClickedShowBookings
   UserClickedNewActivity
   UserClickedEditActivity(Uuid)
+  UserClickedBulkEditRecurring(kind: RecurringKind, seed: Uuid)
   UserClickedDelete
   UserClickedCancelEdit
   UserSelectedEditLanguage(EditLanguage)
@@ -2169,6 +2299,18 @@ pub fn update(model: Model, msg: Msg) -> #(Model, Effect(Msg)) {
             location_id: option.map(activity.location, fn(l) { l.id }),
           ),
         )
+        // The bulk edit form waits on its seed slot the same way — any slot of
+        // the kind carries the shared fields it edits.
+        ActivityFormBulkEdit(kind, BulkEditLoading(seed)) if seed == id -> #(
+          ActivityFormBulkEdit(
+            kind,
+            BulkEditReady(bulk_edit_form_from_activity(activity), None),
+          ),
+          EditUi(
+            ..default_edit_ui(),
+            location_id: option.map(activity.location, fn(l) { l.id }),
+          ),
+        )
         other -> #(other, model.edit_ui)
       }
       // The detail fetch carries the full location too; fold it into the cache
@@ -2193,6 +2335,8 @@ pub fn update(model: Model, msg: Msg) -> #(Model, Effect(Msg)) {
       // drawer (back to the management list) rather than spinning forever.
       let activity_form = case activity_form_of(model) {
         ActivityFormEdit(edit_id, EditLoading) if edit_id == id ->
+          ActivityFormClosed
+        ActivityFormBulkEdit(_, BulkEditLoading(seed)) if seed == id ->
           ActivityFormClosed
         other -> other
       }
@@ -2374,6 +2518,32 @@ pub fn update(model: Model, msg: Msg) -> #(Model, Effect(Msg)) {
         _ -> #(model, effect.none())
       }
 
+    // A successful bulk edit changed every slot of the kind server-side. The
+    // list windows revalidate by ETag next time they're viewed (and the
+    // current one right now, via the refresh), but cached details never do —
+    // drop them for every slot id cached under this kind's windows so detail
+    // views refetch the new description/location.
+    ApiBulkUpdatedRecurring(kind, Ok(_)) ->
+      close_form_and_refresh(drop_details_for_source(
+        model,
+        recurring_kind_source(kind),
+      ))
+
+    ApiBulkUpdatedRecurring(_, Error(_)) ->
+      case activity_form_of(model) {
+        ActivityFormBulkEdit(kind, BulkEditReady(form, _)) -> #(
+          set_activity_form(
+            model,
+            ActivityFormBulkEdit(
+              kind,
+              BulkEditReady(form, Some(BulkUpdateActivitiesFailed)),
+            ),
+          ),
+          effect.none(),
+        )
+        _ -> #(model, effect.none())
+      }
+
     // A successful call-off refreshes both caches (so the cancelled state and
     // reason show immediately) and closes the drawer, matching the save flow.
     ApiCancelledActivity(Ok(activity)) ->
@@ -2513,6 +2683,39 @@ pub fn update(model: Model, msg: Msg) -> #(Model, Effect(Msg)) {
         _ -> #(model, effect.none())
       }
 
+    UserSubmittedBulkEditForm(Ok(bulk_form)) ->
+      case activity_form_of(model) {
+        ActivityFormBulkEdit(kind, BulkEditReady(..)) -> #(
+          model,
+          bulk_update_recurring(kind, bulk_form, model.edit_ui.location_id),
+        )
+        _ -> #(model, effect.none())
+      }
+
+    UserSubmittedBulkEditForm(Error(f)) ->
+      case activity_form_of(model) {
+        ActivityFormBulkEdit(kind, BulkEditReady(_, submit_error)) -> {
+          // Same as the single-slot form: surface the language whose bilingual
+          // fields still have errors, so they're never hidden by the toggle.
+          let model =
+            Model(
+              ..model,
+              edit_ui: EditUi(
+                ..model.edit_ui,
+                language: language_needing_attention(f, model.edit_ui.language),
+              ),
+            )
+          #(
+            set_activity_form(
+              model,
+              ActivityFormBulkEdit(kind, BulkEditReady(f, submit_error)),
+            ),
+            effect.none(),
+          )
+        }
+        _ -> #(model, effect.none())
+      }
+
     // The "Visa bokningar" button on the detail page navigates to this
     // activity's bookings list; the route change fires the fetch (uri_to_page).
     UserClickedShowBookings ->
@@ -2544,6 +2747,17 @@ pub fn update(model: Model, msg: Msg) -> #(Model, Effect(Msg)) {
     UserClickedEditActivity(id) -> #(
       set_activity_form(model, ActivityFormEdit(id, EditLoading)),
       fetch_activity(id),
+    )
+
+    // The recurring tabs' bulk-edit affordance (issue #31): open the drawer and
+    // fetch one slot to seed the shared fields from — they're identical on
+    // every slot of the kind, so the first listed slot will do.
+    UserClickedBulkEditRecurring(kind, seed) -> #(
+      set_activity_form(
+        Model(..model, edit_ui: default_edit_ui()),
+        ActivityFormBulkEdit(kind, BulkEditLoading(seed)),
+      ),
+      fetch_activity(seed),
     )
 
     // "Avbryt" — discard changes and close the drawer (both edit and create).
@@ -3946,6 +4160,50 @@ fn update_activity(
   )
 }
 
+/// Applies the shared fields (title, description, location) to every slot of
+/// a recurring kind in one request. The response carries how many slots were
+/// written.
+fn bulk_update_recurring(
+  kind: RecurringKind,
+  bulk_form: BulkEditForm,
+  location_id: Option(Uuid),
+) -> Effect(Msg) {
+  let path = case kind {
+    BeachBus -> "/api/recurring-activities/beach-bus"
+    ClimbingWall -> "/api/recurring-activities/climbing-wall"
+  }
+  let body =
+    json.object([
+      #(
+        "title",
+        model.bilingual_string_to_json(model.BilingualString(
+          sv: bulk_form.title,
+          en: bulk_form.title_en,
+        )),
+      ),
+      #(
+        "description",
+        model.bilingual_string_to_json(model.BilingualString(
+          sv: bulk_form.description,
+          en: bulk_form.description_en,
+        )),
+      ),
+      #(
+        "location_id",
+        json.nullable(location_id, fn(id) { json.string(uuid.to_string(id)) }),
+      ),
+    ])
+  let updated_decoder = {
+    use updated <- decode.field("updated", decode.int)
+    decode.success(updated)
+  }
+  rsvp.put(
+    api_prefix <> path,
+    body,
+    rsvp.expect_json(updated_decoder, ApiBulkUpdatedRecurring(kind, _)),
+  )
+}
+
 /// Calls off (cancels) an activity with a reason. The server keeps the activity
 /// but hides it from browse lists for everyone except booked/favourited users.
 fn cancel_activity(id: Uuid, reason: String) -> Effect(Msg) {
@@ -4209,6 +4467,15 @@ fn view_activities_list(
       False -> element.none()
     },
     html.div([attribute.class("flex flex-col gap-3 mt-3")], [
+      // The manage page's recurring tabs offer a kind-wide bulk edit of the
+      // shared fields (issue #31). It seeds from the first listed slot, so it
+      // only shows when the list has one — on an empty day there is nothing to
+      // seed from (pick a day with slots; the fields are shared anyway).
+      case page, tab_recurring_kind(filters.tab), load {
+        ManageActivitiesPage(..), Ok(kind), ListLoaded([first, ..], _) ->
+          view_bulk_edit_button(translator, kind, first.id)
+        _, _, _ -> element.none()
+      },
       case load {
         ListLoading -> component.scout_loader(t("activity.loading"))
         ListFailed(err) ->
@@ -4374,6 +4641,36 @@ fn view_new_activity_button(translator: Translator) -> Element(Msg) {
     ],
     [element.text(g18n.translate(translator, "manage.new_activity"))],
   )
+}
+
+/// The manage page's kind-wide bulk edit affordance, shown on the recurring
+/// tabs. Carries the first listed slot's id as the seed the form is filled
+/// from.
+fn view_bulk_edit_button(
+  translator: Translator,
+  kind: RecurringKind,
+  seed: Uuid,
+) -> Element(Msg) {
+  let label = case kind {
+    BeachBus -> g18n.translate(translator, "manage.bulk_edit.beach_bus")
+    ClimbingWall -> g18n.translate(translator, "manage.bulk_edit.climbing_wall")
+  }
+  html.div([attribute.class("px-3 w-full max-w-lg mx-auto")], [
+    element.element(
+      "scout-button",
+      [
+        attribute.attribute("variant", "outlined"),
+        attribute.attribute("icon", icons.pencil),
+        attribute.attribute("icon-position", "before"),
+        attribute.class("w-full"),
+        event.on(
+          "scoutClick",
+          decode.success(UserClickedBulkEditRecurring(kind, seed)),
+        ),
+      ],
+      [element.text(label)],
+    ),
+  ])
 }
 
 fn tab_label(translator: Translator, tab: ActivitiesFilterTab) -> String {
@@ -4854,9 +5151,11 @@ fn form_error_message(
 
 /// After a failed submit, pick the language whose bilingual fields still have
 /// errors so they're visible under the sv/en toggle. Stays on the current
-/// language if it already has errors (or if neither language does).
+/// language if it already has errors (or if neither language does). Generic
+/// over the form type: the single-slot and bulk edit forms share the bilingual
+/// field names.
 fn language_needing_attention(
-  form: Form(ActivityForm),
+  form: Form(a),
   current: EditLanguage,
 ) -> EditLanguage {
   let has = fn(name) { form.field_errors(form, name) != [] }
@@ -4910,6 +5209,11 @@ fn view_activity_form_drawer(
         True -> t("edit.call_off_title")
         False -> t("app_bar.activity_edit")
       }
+    ActivityFormBulkEdit(kind, _) ->
+      case kind {
+        BeachBus -> t("manage.bulk_edit.beach_bus")
+        ClimbingWall -> t("manage.bulk_edit.climbing_wall")
+      }
   }
   let content = case form_state {
     ActivityFormClosed -> []
@@ -4947,6 +5251,15 @@ fn view_activity_form_drawer(
         locations,
         EditActivity,
       ),
+    ]
+    // Fetching the seed slot before the bulk form can open, like edit above.
+    ActivityFormBulkEdit(_, BulkEditLoading(_)) -> [
+      html.div([attribute.class("flex justify-center py-8")], [
+        component.scout_loader(t("activity.loading")),
+      ]),
+    ]
+    ActivityFormBulkEdit(_, BulkEditReady(form:, submit_error:)) -> [
+      view_bulk_edit_form(translator, form, submit_error, edit_ui, locations),
     ]
   }
   // scout-drawer's container is a fixed-height box with `overflow: hidden` and
@@ -5100,6 +5413,102 @@ fn view_activity_form(
         ]),
       ])
   }
+}
+
+/// The bulk edit form for a recurring kind's shared fields, rendered inside
+/// `view_activity_form_drawer`. A trimmed-down `view_activity_form`: only the
+/// fields every slot shares (bilingual title/description + location picker),
+/// with a callout making the kind-wide blast radius explicit. No call-off, no
+/// delete — those stay per-slot.
+fn view_bulk_edit_form(
+  translator: Translator,
+  form: Form(BulkEditForm),
+  submit_error: Option(AppError),
+  edit_ui: EditUi,
+  locations: Dict(Uuid, Location),
+) -> Element(Msg) {
+  let t = fn(key) { g18n.translate(translator, key) }
+  // Localize validation errors — formal's built-in messages are English only.
+  let form = form.language(form, form_error_message(translator, _))
+  let submitted = fn(values) {
+    UserSubmittedBulkEditForm(form |> form.add_values(values) |> form.run)
+  }
+  let sv_active = edit_ui.language == EditSwedish
+  let lang_index = case edit_ui.language {
+    EditSwedish -> 0
+    EditEnglish -> 1
+  }
+  // Both language variants stay mounted (hidden) so their values survive a
+  // toggle and all submit — the same trick as the single-slot form.
+  let hidden_unless = fn(active: Bool) {
+    attribute.class(case active {
+      True -> ""
+      False -> "hidden"
+    })
+  }
+  let field = fn(active: Bool, label: String, input_type: String, name: String) {
+    html.div([hidden_unless(active)], [
+      component.scout_form_field(form, label, input_type, name),
+    ])
+  }
+  let area = fn(active: Bool, label: String, name: String) {
+    html.div([hidden_unless(active)], [
+      component.scout_textarea_field(form, label, name, 4),
+    ])
+  }
+  html.div([attribute.class("flex flex-col gap-4 p-3")], [
+    html.div([attribute.class("flex justify-end")], [
+      component.scout_segmented_control(
+        lang_index,
+        [t("edit.lang_sv"), t("edit.lang_en")],
+        fn(index) {
+          case index {
+            0 -> UserSelectedEditLanguage(EditSwedish)
+            _ -> UserSelectedEditLanguage(EditEnglish)
+          }
+        },
+        [],
+      ),
+    ]),
+    case submit_error {
+      Some(err) ->
+        component.error_banner(t("error.heading"), t(app_error_key(err)))
+      None -> element.none()
+    },
+    component.callout(
+      component.CalloutInfo,
+      t("bulk_edit.applies_to_all_heading"),
+      t("bulk_edit.applies_to_all"),
+      [],
+    ),
+    html.form([event.on_submit(submitted)], [
+      component.scout_card([
+        html.div([attribute.class("flex flex-col gap-2")], [
+          field(sv_active, t("edit.name"), "text", "title"),
+          field(!sv_active, t("edit.name"), "text", "title_en"),
+          area(sv_active, t("edit.description"), "description"),
+          area(!sv_active, t("edit.description"), "description_en"),
+          view_location_picker(
+            translator,
+            locations,
+            edit_ui.location_id,
+            edit_ui.location_query,
+            edit_ui.location_open,
+          ),
+          html.div([attribute.class("flex flex-wrap gap-2 pt-2")], [
+            element.element(
+              "scout-button",
+              [
+                attribute.attribute("variant", "primary"),
+                attribute.attribute("type", "submit"),
+              ],
+              [element.text(t("edit.save"))],
+            ),
+          ]),
+        ]),
+      ]),
+    ]),
+  ])
 }
 
 /// The form's action row. Edit shows call off (ställ in) + save (spara); create

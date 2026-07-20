@@ -39,6 +39,9 @@ fn handle_api_request(
     Get, ["climbing-wall-bookings"] ->
       booking.get_climbing_wall_overview(req, ctx)
     _, ["climbing-wall-bookings"] -> wisp.method_not_allowed([Get])
+    Put, ["recurring-activities", kind] ->
+      activities.update_recurring(req, kind, ctx)
+    _, ["recurring-activities", _] -> wisp.method_not_allowed([Put])
     Get, ["favourited-activities"] -> activities.get_favourited(req, ctx)
     _, ["favourited-activities"] -> wisp.method_not_allowed([Get])
     Get, ["activity-spots"] -> spots.get_all(req, ctx)

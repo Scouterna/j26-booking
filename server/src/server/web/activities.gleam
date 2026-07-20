@@ -850,6 +850,129 @@ pub fn update(req: Request, id: String, ctx: web.Context) -> Response {
   }
 }
 
+// --- Bulk edit of recurring activities ---------------------------------------
+
+/// A recurring activity kind — the two special multi-slot activities (badbuss
+/// and klättervägg) whose slots share title/description/location. Parsed from
+/// the `:kind` path segment of `PUT /api/recurring-activities/:kind`; the
+/// strings match the `activity.recurring_activity_kind` column values.
+pub type RecurringActivityKind {
+  BeachBus
+  ClimbingWall
+}
+
+fn parse_recurring_activity_kind(
+  segment: String,
+) -> Result(RecurringActivityKind, Nil) {
+  case segment {
+    "beach-bus" -> Ok(BeachBus)
+    "climbing-wall" -> Ok(ClimbingWall)
+    _ -> Error(Nil)
+  }
+}
+
+fn recurring_activity_kind_to_sql(kind: RecurringActivityKind) -> String {
+  case kind {
+    BeachBus -> "beach-bus"
+    ClimbingWall -> "climbing-wall"
+  }
+}
+
+/// The shared fields a bulk edit applies to every slot of a recurring kind —
+/// exactly the fields the slots duplicate. Per-slot fields (times, capacity,
+/// tags, målgrupp, booking window) are deliberately absent.
+type RecurringActivitiesInput {
+  RecurringActivitiesInput(
+    title: BilingualString,
+    description: BilingualString,
+    /// The chosen location's id, or `None` for no location. Omitting the field
+    /// or sending `null` both clear the location on every slot.
+    location_id: Option(Uuid),
+  )
+}
+
+fn recurring_activities_input_decoder() -> decode.Decoder(
+  RecurringActivitiesInput,
+) {
+  use title <- decode.field("title", model.bilingual_string_decoder())
+  use description <- decode.field(
+    "description",
+    model.bilingual_string_decoder(),
+  )
+  use location_id <- decode.optional_field(
+    "location_id",
+    None,
+    decode.optional(uuid_decoder()),
+  )
+  decode.success(RecurringActivitiesInput(title:, description:, location_id:))
+}
+
+/// Writes the location of every slot of a kind, inside the bulk-edit
+/// transaction. The kind-wide sibling of `write_activity_location` (and split
+/// into set/clear queries for the same reason: squirrel params can't be null).
+fn write_recurring_activities_location(
+  conn: pog.Connection,
+  kind: String,
+  location_id: Option(Uuid),
+) -> Result(pog.Returned(Nil), pog.QueryError) {
+  case location_id {
+    Some(id) -> sql.set_recurring_activities_location(conn, kind, id)
+    None -> sql.clear_recurring_activities_location(conn, kind)
+  }
+}
+
+/// Bulk-applies the shared fields (title, description, location) to every
+/// slot of a recurring activity kind — editing them one slot at a time is
+/// error-prone with dozens of slots (issue #31). Manager-only. Responds with
+/// how many slots were updated; 0 simply means no slots of the kind exist,
+/// which is not an error (the write is idempotent).
+pub fn update_recurring(
+  req: Request,
+  kind_segment: String,
+  ctx: web.Context,
+) -> Response {
+  use <- wisp.require_method(req, Put)
+  use user <- web.with_authenticated_user(ctx)
+  use <- web.require_role(user, web.ActivitiesManage)
+  use kind <- given.ok(parse_recurring_activity_kind(kind_segment), fn(_) {
+    wisp.not_found()
+  })
+  use json_body <- wisp.require_json(req)
+  use input <- given.ok(
+    decode.run(json_body, recurring_activities_input_decoder()),
+    fn(_) { wisp.bad_request("Invalid JSON payload") },
+  )
+  use locations <- with_locations(ctx)
+  use <- require_valid_location(locations, input.location_id)
+  let kind_sql = recurring_activity_kind_to_sql(kind)
+  let transaction_result =
+    pog.transaction(ctx.db_connection, fn(conn) {
+      use updated <- result.try(sql.update_recurring_activities(
+        conn,
+        kind_sql,
+        input.title.sv,
+        input.title.en,
+        input.description.sv,
+        input.description.en,
+      ))
+      use _ <- result.try(write_recurring_activities_location(
+        conn,
+        kind_sql,
+        input.location_id,
+      ))
+      Ok(updated)
+    })
+  case transaction_result {
+    Ok(pog.Returned(_, rows)) ->
+      wisp.json_response(
+        json.object([#("updated", json.int(list.length(rows)))])
+          |> json.to_string,
+        200,
+      )
+    Error(error) -> transaction_error(error)
+  }
+}
+
 // --- Call off --------------------------------------------------------------
 
 type CallOffInput {

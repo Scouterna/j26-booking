@@ -48,3 +48,5 @@ When you create, finish, or touch a plan here, keep the folder consistent:
 | 20 | [Search the whole week: "Alla dagar" browse filter (issue #49)](20-all-days-browse-search.md) | ✅ Done 2026-07-19 |
 | 21 | [Booking cancellation with reason (issue #43)](21-booking-cancellation-with-reason.md) | ✅ Done 2026-07-20 |
 | 22 | [Seed bookings only on capped activities](22-seed-bookings-only-on-capped-activities.md) | 🔲 Not started |
+| 23 | [Anonymous browsing: activities load without login (issue #20)](23-anonymous-browse.md) | 🚧 In progress |
+| 24 | [Bulk edit beach bus & climbing wall shared fields (issue #31)](24-bulk-edit-recurring-activities.md) | ✅ Done 2026-07-20 |

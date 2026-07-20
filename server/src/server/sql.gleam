@@ -151,6 +151,30 @@ WHERE id = $1
   |> pog.execute(db)
 }
 
+/// Remove the location from every slot of a recurring activity kind. The
+/// kind-wide counterpart of clear_activity_location.
+///
+/// > 🐿️ This function was generated automatically using v4.7.0 of
+/// > the [squirrel package](https://github.com/giacomocavalieri/squirrel).
+///
+pub fn clear_recurring_activities_location(
+  db: pog.Connection,
+  arg_1: String,
+) -> Result(pog.Returned(Nil), pog.QueryError) {
+  let decoder = decode.map(decode.dynamic, fn(_) { Nil })
+
+  "-- Remove the location from every slot of a recurring activity kind. The
+-- kind-wide counterpart of clear_activity_location.
+UPDATE activity
+SET location_id = NULL
+WHERE recurring_activity_kind = $1;
+"
+  |> pog.query
+  |> pog.parameter(pog.text(arg_1))
+  |> pog.returning(decoder)
+  |> pog.execute(db)
+}
+
 /// A row you get from running the `count_favourites_by_activity` query
 /// defined in `./src/server/sql/count_favourites_by_activity.sql`.
 ///
@@ -3554,6 +3578,34 @@ WHERE id = $1
   |> pog.execute(db)
 }
 
+/// Point every slot of a recurring activity kind at the same location. The
+/// kind-wide counterpart of set_activity_location (a separate query from the
+/// bulk text update because squirrel parameters cannot be optional).
+///
+/// > 🐿️ This function was generated automatically using v4.7.0 of
+/// > the [squirrel package](https://github.com/giacomocavalieri/squirrel).
+///
+pub fn set_recurring_activities_location(
+  db: pog.Connection,
+  arg_1: String,
+  location_id: Uuid,
+) -> Result(pog.Returned(Nil), pog.QueryError) {
+  let decoder = decode.map(decode.dynamic, fn(_) { Nil })
+
+  "-- Point every slot of a recurring activity kind at the same location. The
+-- kind-wide counterpart of set_activity_location (a separate query from the
+-- bulk text update because squirrel parameters cannot be optional).
+UPDATE activity
+SET location_id = $2
+WHERE recurring_activity_kind = $1;
+"
+  |> pog.query
+  |> pog.parameter(pog.text(arg_1))
+  |> pog.parameter(pog.text(uuid.to_string(location_id)))
+  |> pog.returning(decoder)
+  |> pog.execute(db)
+}
+
 /// A row you get from running the `update_activity_tag` query
 /// defined in `./src/server/sql/update_activity_tag.sql`.
 ///
@@ -4175,6 +4227,59 @@ RETURNING id,
   |> pog.parameter(pog.text(arg_7))
   |> pog.parameter(pog.text(arg_8))
   |> pog.parameter(pog.text(json.to_string(opening_hours)))
+  |> pog.returning(decoder)
+  |> pog.execute(db)
+}
+
+/// A row you get from running the `update_recurring_activities` query
+/// defined in `./src/server/sql/update_recurring_activities.sql`.
+///
+/// > 🐿️ This type definition was generated automatically using v4.7.0 of the
+/// > [squirrel package](https://github.com/giacomocavalieri/squirrel).
+///
+pub type UpdateRecurringActivitiesRow {
+  UpdateRecurringActivitiesRow(id: Uuid)
+}
+
+/// Bulk-apply the shared text fields of a recurring activity kind (badbuss /
+/// klättervägg) to every slot of that kind. The slots duplicate these fields,
+/// so they are always written together; per-slot fields (times, capacity) are
+/// untouched. Returns the updated ids so the handler can report the count.
+///
+/// > 🐿️ This function was generated automatically using v4.7.0 of
+/// > the [squirrel package](https://github.com/giacomocavalieri/squirrel).
+///
+pub fn update_recurring_activities(
+  db: pog.Connection,
+  recurring_activity_kind: String,
+  arg_2: String,
+  arg_3: String,
+  arg_4: String,
+  description_en: String,
+) -> Result(pog.Returned(UpdateRecurringActivitiesRow), pog.QueryError) {
+  let decoder = {
+    use id <- decode.field(0, uuid_decoder())
+    decode.success(UpdateRecurringActivitiesRow(id:))
+  }
+
+  "-- Bulk-apply the shared text fields of a recurring activity kind (badbuss /
+-- klättervägg) to every slot of that kind. The slots duplicate these fields,
+-- so they are always written together; per-slot fields (times, capacity) are
+-- untouched. Returns the updated ids so the handler can report the count.
+UPDATE activity
+SET title = $2,
+    title_en = $3,
+    description = $4,
+    description_en = $5
+WHERE recurring_activity_kind = $1
+RETURNING id;
+"
+  |> pog.query
+  |> pog.parameter(pog.text(recurring_activity_kind))
+  |> pog.parameter(pog.text(arg_2))
+  |> pog.parameter(pog.text(arg_3))
+  |> pog.parameter(pog.text(arg_4))
+  |> pog.parameter(pog.text(description_en))
   |> pog.returning(decoder)
   |> pog.execute(db)
 }

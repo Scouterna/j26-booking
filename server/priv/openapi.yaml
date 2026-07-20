@@ -254,6 +254,74 @@ paths:
         '500':
           $ref: '#/components/responses/ServerError'
 
+  /recurring-activities/{kind}:
+    put:
+      tags:
+        - Activities
+      summary: Bulk edit a recurring activity kind
+      description: |
+        Apply the shared fields — title, description, and location — to every
+        slot of a recurring activity kind (beach bus / climbing wall) in one
+        write. The slots duplicate these fields, so this replaces editing each
+        slot individually. Per-slot fields (times, capacity, tags, target
+        groups, booking window) are untouched. Requires the
+        `activities:manage` role. Omitting `location_id` (or sending `null`)
+        clears the location on every slot. Idempotent; `updated: 0` means no
+        slots of the kind exist.
+      operationId: updateRecurringActivities
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+      parameters:
+        - name: kind
+          in: path
+          required: true
+          description: The recurring activity kind to bulk edit.
+          schema:
+            type: string
+            enum:
+              - beach-bus
+              - climbing-wall
+      requestBody:
+        description: The shared fields to apply to every slot of the kind.
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RecurringActivitiesInput'
+            example:
+              title:
+                sv: "Badbuss"
+                en: "Beach bus"
+              description:
+                sv: "Buss till badplatsen. Avgår från huvudentrén."
+                en: "Bus to the beach. Departs from the main entrance."
+              location_id: "b7a3559f-8f1a-4a3e-9d8e-2f6c1f1a2b3c"
+      responses:
+        '200':
+          description: Shared fields applied to every slot of the kind
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - updated
+                properties:
+                  updated:
+                    type: integer
+                    description: How many slots were updated.
+                    example: 42
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/ServerError'
+
   /beach-bus-bookings:
     get:
       tags:
@@ -2603,6 +2671,24 @@ components:
           nullable: true
           description: Per-activity booking-opens-at override as Unix timestamp in seconds (accepts integer or float). Null or omit to fall back to the server's global `BOOKING_OPENS_AT` default.
           example: 1748764800
+
+    RecurringActivitiesInput:
+      type: object
+      description: The shared fields a bulk edit applies to every slot of a recurring activity kind
+      required:
+        - title
+        - description
+      properties:
+        title:
+          $ref: '#/components/schemas/BilingualString'
+        description:
+          $ref: '#/components/schemas/BilingualString'
+        location_id:
+          type: string
+          format: uuid
+          nullable: true
+          description: Id of an existing location to hold every slot at. Null or omit to clear the location on every slot.
+          example: "0190f3a1-1c2d-7e3f-9a4b-5c6d7e8f9a0b"
 
     AppConfig:
       type: object
