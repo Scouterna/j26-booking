@@ -1,7 +1,8 @@
 # 24. Bulk edit beach bus & climbing wall shared fields (issue #31)
 
-> **Status: ✅ Done 2026-07-20** (implemented as planned; verified end-to-end —
-> API set/clear/403/404 paths curl-tested, UI flow driven in the browser)
+> **Status: ✅ Done 2026-07-20** (commit `47eafea`; implemented as planned;
+> verified end-to-end — API set/clear/403/404 paths curl-tested, UI flow
+> driven in the browser)
 
 ## Context
 
