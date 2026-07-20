@@ -31,17 +31,17 @@ fn handle_api_request(
     Post, ["activities"] -> activities.create(req, ctx)
     _, ["activities"] -> wisp.method_not_allowed([Get, Post])
     Get, ["beach-bus-activities"] -> activities.get_beach_bus(req, ctx)
-    _, ["beach-bus-activities"] -> wisp.method_not_allowed([Get])
+    Put, ["beach-bus-activities"] -> activities.update_beach_bus(req, ctx)
+    _, ["beach-bus-activities"] -> wisp.method_not_allowed([Get, Put])
     Get, ["climbing-wall-activities"] -> activities.get_climbing_wall(req, ctx)
-    _, ["climbing-wall-activities"] -> wisp.method_not_allowed([Get])
+    Put, ["climbing-wall-activities"] ->
+      activities.update_climbing_wall(req, ctx)
+    _, ["climbing-wall-activities"] -> wisp.method_not_allowed([Get, Put])
     Get, ["beach-bus-bookings"] -> booking.get_beach_bus_overview(req, ctx)
     _, ["beach-bus-bookings"] -> wisp.method_not_allowed([Get])
     Get, ["climbing-wall-bookings"] ->
       booking.get_climbing_wall_overview(req, ctx)
     _, ["climbing-wall-bookings"] -> wisp.method_not_allowed([Get])
-    Put, ["recurring-activities", kind] ->
-      activities.update_recurring(req, kind, ctx)
-    _, ["recurring-activities", _] -> wisp.method_not_allowed([Put])
     Get, ["favourited-activities"] -> activities.get_favourited(req, ctx)
     _, ["favourited-activities"] -> wisp.method_not_allowed([Get])
     Get, ["activity-spots"] -> spots.get_all(req, ctx)

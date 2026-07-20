@@ -205,6 +205,60 @@ paths:
         '500':
           $ref: '#/components/responses/ServerError'
 
+    put:
+      tags:
+        - Activities
+      summary: Bulk edit all beach bus slots
+      description: |
+        Apply the shared fields — title, description, and location — to every
+        beach bus (badbuss) slot in one write. The slots duplicate these
+        fields, so this replaces editing each slot individually. Per-slot
+        fields (times, capacity, tags, target groups, booking window) are
+        untouched. Requires the `activities:manage` role. Omitting
+        `location_id` (or sending `null`) clears the location on every slot.
+        Idempotent; `updated: 0` means no slots exist.
+      operationId: updateBeachBusActivities
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+      requestBody:
+        description: The shared fields to apply to every beach bus slot.
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RecurringActivitiesInput'
+            example:
+              title:
+                sv: "Badbuss"
+                en: "Beach bus"
+              description:
+                sv: "Buss till badplatsen. Avgår från huvudentrén."
+                en: "Bus to the beach. Departs from the main entrance."
+              location_id: "b7a3559f-8f1a-4a3e-9d8e-2f6c1f1a2b3c"
+      responses:
+        '200':
+          description: Shared fields applied to every beach bus slot
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - updated
+                properties:
+                  updated:
+                    type: integer
+                    description: How many slots were updated.
+                    example: 42
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '500':
+          $ref: '#/components/responses/ServerError'
+
   /climbing-wall-activities:
     get:
       tags:
@@ -263,36 +317,24 @@ paths:
         '500':
           $ref: '#/components/responses/ServerError'
 
-  /recurring-activities/{kind}:
     put:
       tags:
         - Activities
-      summary: Bulk edit a recurring activity kind
+      summary: Bulk edit all climbing wall slots
       description: |
         Apply the shared fields — title, description, and location — to every
-        slot of a recurring activity kind (beach bus / climbing wall) in one
-        write. The slots duplicate these fields, so this replaces editing each
-        slot individually. Per-slot fields (times, capacity, tags, target
-        groups, booking window) are untouched. Requires the
-        `activities:manage` role. Omitting `location_id` (or sending `null`)
-        clears the location on every slot. Idempotent; `updated: 0` means no
-        slots of the kind exist.
-      operationId: updateRecurringActivities
+        climbing wall (klättervägg) slot in one write. The slots duplicate
+        these fields, so this replaces editing each slot individually.
+        Per-slot fields (times, capacity, tags, target groups, booking
+        window) are untouched. Requires the `activities:manage` role.
+        Omitting `location_id` (or sending `null`) clears the location on
+        every slot. Idempotent; `updated: 0` means no slots exist.
+      operationId: updateClimbingWallActivities
       security:
         - bearerAuth: []
         - cookieAuth: []
-      parameters:
-        - name: kind
-          in: path
-          required: true
-          description: The recurring activity kind to bulk edit.
-          schema:
-            type: string
-            enum:
-              - beach-bus
-              - climbing-wall
       requestBody:
-        description: The shared fields to apply to every slot of the kind.
+        description: The shared fields to apply to every climbing wall slot.
         required: true
         content:
           application/json:
@@ -300,15 +342,15 @@ paths:
               $ref: '#/components/schemas/RecurringActivitiesInput'
             example:
               title:
-                sv: "Badbuss"
-                en: "Beach bus"
+                sv: "Klättervägg"
+                en: "Climbing wall"
               description:
-                sv: "Buss till badplatsen. Avgår från huvudentrén."
-                en: "Bus to the beach. Departs from the main entrance."
+                sv: "Prova på klättring med instruktör."
+                en: "Try climbing with an instructor."
               location_id: "b7a3559f-8f1a-4a3e-9d8e-2f6c1f1a2b3c"
       responses:
         '200':
-          description: Shared fields applied to every slot of the kind
+          description: Shared fields applied to every climbing wall slot
           content:
             application/json:
               schema:
@@ -326,8 +368,6 @@ paths:
           $ref: '#/components/responses/Unauthorized'
         '403':
           $ref: '#/components/responses/Forbidden'
-        '404':
-          $ref: '#/components/responses/NotFound'
         '500':
           $ref: '#/components/responses/ServerError'
 

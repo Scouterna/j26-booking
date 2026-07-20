@@ -3,6 +3,17 @@
 > **Status: ✅ Done 2026-07-20** (commit `47eafea`; implemented as planned;
 > verified end-to-end — API set/clear/403/404 paths curl-tested, UI flow
 > driven in the browser)
+>
+> **Reworked 2026-07-20** (the commit carrying this note): the bulk edit no
+> longer has its own `PUT /api/recurring-activities/:kind` path — it moved to
+> `PUT` on the existing per-kind list endpoints (`/api/beach-bus-activities`,
+> `/api/climbing-wall-activities`). Each kind is now a single resource path
+> (GET lists it, PUT bulk-edits it), the kind arrives typed from the router
+> (no string parsing, no unknown-kind 404), and the client reuses
+> `list_source_path` for both operations. Request/response shapes are
+> unchanged. Trade-off accepted: PUT-on-a-collection is PATCH-like (the body
+> is a shared-fields patch, not a collection replacement), and once plan 23
+> lands these paths mix an anonymous GET with a manager-only PUT.
 
 ## Context
 

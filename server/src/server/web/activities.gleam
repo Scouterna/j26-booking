@@ -856,22 +856,14 @@ pub fn update(req: Request, id: String, ctx: web.Context) -> Response {
 // --- Bulk edit of recurring activities ---------------------------------------
 
 /// A recurring activity kind — the two special multi-slot activities (badbuss
-/// and klättervägg) whose slots share title/description/location. Parsed from
-/// the `:kind` path segment of `PUT /api/recurring-activities/:kind`; the
-/// strings match the `activity.recurring_activity_kind` column values.
-pub type RecurringActivityKind {
+/// and klättervägg) whose slots share title/description/location. Each kind
+/// has its own list route (`/api/beach-bus-activities`,
+/// `/api/climbing-wall-activities`), which also accepts the bulk-edit PUT, so
+/// the kind arrives typed from the router; the strings match the
+/// `activity.recurring_activity_kind` column values.
+type RecurringActivityKind {
   BeachBus
   ClimbingWall
-}
-
-fn parse_recurring_activity_kind(
-  segment: String,
-) -> Result(RecurringActivityKind, Nil) {
-  case segment {
-    "beach-bus" -> Ok(BeachBus)
-    "climbing-wall" -> Ok(ClimbingWall)
-    _ -> Error(Nil)
-  }
 }
 
 fn recurring_activity_kind_to_sql(kind: RecurringActivityKind) -> String {
@@ -924,22 +916,29 @@ fn write_recurring_activities_location(
   }
 }
 
+/// `PUT /api/beach-bus-activities` — bulk edit every beach bus slot.
+pub fn update_beach_bus(req: Request, ctx: web.Context) -> Response {
+  update_recurring(req, BeachBus, ctx)
+}
+
+/// `PUT /api/climbing-wall-activities` — bulk edit every climbing wall slot.
+pub fn update_climbing_wall(req: Request, ctx: web.Context) -> Response {
+  update_recurring(req, ClimbingWall, ctx)
+}
+
 /// Bulk-applies the shared fields (title, description, location) to every
 /// slot of a recurring activity kind — editing them one slot at a time is
 /// error-prone with dozens of slots (issue #31). Manager-only. Responds with
 /// how many slots were updated; 0 simply means no slots of the kind exist,
 /// which is not an error (the write is idempotent).
-pub fn update_recurring(
+fn update_recurring(
   req: Request,
-  kind_segment: String,
+  kind: RecurringActivityKind,
   ctx: web.Context,
 ) -> Response {
   use <- wisp.require_method(req, Put)
   use user <- web.with_authenticated_user(ctx)
   use <- web.require_role(user, web.ActivitiesManage)
-  use kind <- given.ok(parse_recurring_activity_kind(kind_segment), fn(_) {
-    wisp.not_found()
-  })
   use json_body <- wisp.require_json(req)
   use input <- given.ok(
     decode.run(json_body, recurring_activities_input_decoder()),

@@ -4217,17 +4217,14 @@ fn update_activity(
 }
 
 /// Applies the shared fields (title, description, location) to every slot of
-/// a recurring kind in one request. The response carries how many slots were
-/// written.
+/// a recurring kind in one request — a PUT to the same path the kind's slots
+/// are listed from. The response carries how many slots were written.
 fn bulk_update_recurring(
   kind: RecurringKind,
   bulk_form: BulkEditForm,
   location_id: Option(Uuid),
 ) -> Effect(Msg) {
-  let path = case kind {
-    BeachBus -> "/api/recurring-activities/beach-bus"
-    ClimbingWall -> "/api/recurring-activities/climbing-wall"
-  }
+  let path = list_source_path(recurring_kind_source(kind))
   let body =
     json.object([
       #(
