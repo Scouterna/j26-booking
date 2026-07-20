@@ -1,6 +1,6 @@
 # 23. Anonymous browsing: activities load without login (issue #20)
 
-> **Status: ✅ Done 2026-07-20** (commit `TBD`; shipped as planned with small
+> **Status: ✅ Done 2026-07-20** (commit `8fda88d`; shipped as planned with small
 > deviations: `fetch_me` kept `rsvp.expect_json` — the 401 is matched on
 > `rsvp.HttpError(response)` in the `ApiReturnedMe` update arm instead of a
 > new status-aware handler; the card corner got a `NoAction` variant in
