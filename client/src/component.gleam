@@ -482,9 +482,12 @@ pub type CardStatus {
 /// interactive favourite heart (browse list); `EditAction` (manage list) carries
 /// the message fired when the card is activated — the pen itself is decorative,
 /// so a click anywhere on the card (pen included) opens the edit form drawer.
+/// `NoAction` renders no corner affordance at all — the browse card of an
+/// anonymous visitor, who cannot favourite (issue #20).
 pub type CardAction(msg) {
   FavouriteAction(favourited: Bool, on_toggle: msg)
   EditAction(on_edit: msg)
+  NoAction
 }
 
 /// Favourite toggle rendered as an outlined, icon-only round button.
@@ -572,6 +575,7 @@ pub fn activity_card(
       heart_button(favourited, heart_locked, on_toggle, True)
     }
     EditAction(_) -> pen_button()
+    NoAction -> element.none()
   }
   // Browse cards navigate via the anchor's href; manage cards intercept the click
   // (keyboard Enter included) to open the edit drawer instead, keeping the list —
@@ -579,7 +583,7 @@ pub fn activity_card(
   // modem's global anchor handler (which would otherwise SPA-navigate); the href
   // stays a valid fallback for new-tab clicks.
   let activate = case action {
-    FavouriteAction(..) -> []
+    FavouriteAction(..) | NoAction -> []
     EditAction(on_edit) -> [
       event.on("click", decode.success(on_edit))
       |> event.stop_propagation

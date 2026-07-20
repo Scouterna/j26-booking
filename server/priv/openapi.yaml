@@ -33,14 +33,17 @@ paths:
       description: |
         Retrieve ordinary activities as slim summaries (without `description`),
         with optional sorting. Excludes recurring-kind slots (beach bus, climbing
-        wall), which have their own endpoints. Not paginated. Requires
-        authentication. Called-off activities are excluded by default, so the
-        response is identical for every user; managers can pass
-        `include_call_offs=true` to see them (used by the manage-activities
-        view). Responses carry a strong `ETag`; send it as `If-None-Match` to
-        get a `304 Not Modified` when nothing changed.
+        wall), which have their own endpoints. Not paginated. No authentication
+        required: anonymous visitors may browse. Called-off activities are
+        excluded by default, so the response is identical for every caller;
+        managers can pass `include_call_offs=true` to see them (used by the
+        manage-activities view) — that view requires authentication (`401`
+        otherwise) and the `activities:manage` role (`403` otherwise).
+        Responses carry a strong `ETag`; send it as `If-None-Match` to get a
+        `304 Not Modified` when nothing changed.
       operationId: listActivities
       security:
+        - {}
         - bearerAuth: []
         - cookieAuth: []
       parameters:
@@ -152,13 +155,16 @@ paths:
       description: |
         Retrieve all beach bus (badbuss) slots as slim summaries (without
         `description`), ordered by start time. These are bookable slots of the
-        recurring "beach-bus" kind. Not paginated. Requires authentication.
-        Called-off slots are excluded by default (response identical for every
-        user); managers can pass `include_call_offs=true` to see them. Responses
-        carry a strong `ETag`; send it as `If-None-Match` to get a `304` when
-        nothing changed.
+        recurring "beach-bus" kind. Not paginated. No authentication required:
+        anonymous visitors may browse. Called-off slots are excluded by default
+        (response identical for every caller); managers can pass
+        `include_call_offs=true` to see them — that view requires
+        authentication (`401` otherwise) and the `activities:manage` role
+        (`403` otherwise). Responses carry a strong `ETag`; send it as
+        `If-None-Match` to get a `304` when nothing changed.
       operationId: listBeachBusActivities
       security:
+        - {}
         - bearerAuth: []
         - cookieAuth: []
       parameters:
@@ -207,13 +213,16 @@ paths:
       description: |
         Retrieve all climbing wall (klättervägg) slots as slim summaries
         (without `description`), ordered by start time. These are bookable slots
-        of the recurring "climbing-wall" kind. Not paginated. Requires
-        authentication. Called-off slots are excluded by default (response
-        identical for every user); managers can pass `include_call_offs=true` to
-        see them. Responses carry a strong `ETag`; send it as `If-None-Match` to
-        get a `304` when nothing changed.
+        of the recurring "climbing-wall" kind. Not paginated. No authentication
+        required: anonymous visitors may browse. Called-off slots are excluded
+        by default (response identical for every caller); managers can pass
+        `include_call_offs=true` to see them — that view requires
+        authentication (`401` otherwise) and the `activities:manage` role
+        (`403` otherwise). Responses carry a strong `ETag`; send it as
+        `If-None-Match` to get a `304` when nothing changed.
       operationId: listClimbingWallActivities
       security:
+        - {}
         - bearerAuth: []
         - cookieAuth: []
       parameters:
@@ -2866,9 +2875,10 @@ components:
       required: false
       description: |
         Include called-off activities in the list. Manager-only: requesting
-        `true` without the `activities:manage` role returns `403`. Defaults to
-        `false`, which excludes called-off activities so the response is
-        identical for every user (used by the manage-activities view). The
+        `true` without authentication returns `401`, and without the
+        `activities:manage` role `403`. Defaults to `false`, which excludes
+        called-off activities so the response is identical for every caller —
+        anonymous visitors included (used by the manage-activities view). The
         favourited-activities endpoint always includes call-offs and ignores
         this parameter.
       schema:

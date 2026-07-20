@@ -1,6 +1,7 @@
 import client
 import formal/form
 import gleam/dict
+import gleam/http/response
 import gleam/json
 import gleam/list
 import gleam/option.{type Option, None, Some}
@@ -166,6 +167,7 @@ fn base_model() -> client.Model {
     activity_tags: dict.new(),
     locations: dict.new(),
     roles: [client.ManageActivities],
+    session: client.SessionUnknown,
     booker: client.IdentityUnknown,
     edit_ui: client.default_edit_ui(),
     booking_ui: client.default_booking_ui(),
@@ -243,12 +245,15 @@ pub fn toggle_member_removes_when_present_test() {
 // PURE HELPERS: tab index round-trip -------------------------------------------
 
 pub fn tab_index_round_trips_test() {
-  assert client.tab_from_index(client.tab_index(client.TabFavourites))
+  assert client.tab_from_index(
+      client.LoggedIn,
+      client.tab_index(client.LoggedIn, client.TabFavourites),
+    )
     == client.TabFavourites
 }
 
 pub fn tab_from_index_out_of_range_falls_back_to_activities_test() {
-  assert client.tab_from_index(99) == client.TabActivities
+  assert client.tab_from_index(client.LoggedIn, 99) == client.TabActivities
 }
 
 pub fn tab_source_maps_each_tab_test() {
@@ -261,11 +266,82 @@ pub fn tab_source_maps_each_tab_test() {
 pub fn both_lists_show_the_same_tabs_including_favourites_test() {
   // Browse and manage share one tab set; the management list shows Favourites
   // too (issue #42).
-  let tabs = client.list_tabs()
+  let tabs = client.list_tabs(client.LoggedIn)
   assert list.contains(tabs, client.TabActivities)
   assert list.contains(tabs, client.TabBeachBus)
   assert list.contains(tabs, client.TabClimbingWall)
   assert list.contains(tabs, client.TabFavourites)
+}
+
+pub fn unknown_session_shows_the_favourites_tab_test() {
+  // Before /api/me answers (or after a non-401 failure) the UI stays
+  // optimistic, so the tab set matches the logged-in one.
+  assert client.list_tabs(client.SessionUnknown)
+    == client.list_tabs(client.LoggedIn)
+}
+
+pub fn anonymous_session_hides_the_favourites_tab_test() {
+  // Anonymous visitors cannot favourite (hearts hidden, issue #20), so the
+  // Favourites tab is dropped rather than shown forever empty.
+  let tabs = client.list_tabs(client.Anonymous)
+  assert list.contains(tabs, client.TabActivities)
+  assert list.contains(tabs, client.TabBeachBus)
+  assert list.contains(tabs, client.TabClimbingWall)
+  assert !list.contains(tabs, client.TabFavourites)
+}
+
+pub fn anonymous_tab_index_round_trips_without_favourites_test() {
+  // The segmented control indexes into the anonymous (three-tab) set, so the
+  // index round-trip must hold there too.
+  assert client.tab_from_index(
+      client.Anonymous,
+      client.tab_index(client.Anonymous, client.TabClimbingWall),
+    )
+    == client.TabClimbingWall
+}
+
+// UPDATE: session from /api/me --------------------------------------------------
+
+fn me_unauthorized() -> client.Msg {
+  client.ApiReturnedMe(
+    Error(rsvp.HttpError(response.Response(status: 401, headers: [], body: ""))),
+  )
+}
+
+pub fn me_401_marks_the_session_anonymous_test() {
+  // A 401 from /api/me is a definite "not logged in" (issue #20): the session
+  // flips to Anonymous and the identity/roles clear.
+  let #(next, _) = client.update(base_model(), me_unauthorized())
+  assert next.session == client.Anonymous
+  assert next.roles == []
+  assert next.booker == client.IdentityUnknown
+}
+
+pub fn me_401_falls_back_from_the_favourites_tab_test() {
+  // The Favourites tab doesn't exist for anonymous visitors; if they opened
+  // it before /api/me answered, the list falls back to browse.
+  let filters =
+    client.ListFilters(..client.default_filters(), tab: client.TabFavourites)
+  let model_ =
+    client.Model(..base_model(), page: client.ActivitiesListPage(filters))
+  let #(next, _) = client.update(model_, me_unauthorized())
+  let assert client.ActivitiesListPage(next_filters) = next.page
+  assert next_filters.tab == client.TabActivities
+}
+
+pub fn me_network_error_keeps_the_session_unknown_test() {
+  // Anything but a 401 is not proof of anonymity: the UI stays optimistic so
+  // a flaky /api/me never strips hearts and Boka for a logged-in user.
+  let #(next, _) =
+    client.update(base_model(), client.ApiReturnedMe(Error(rsvp.BadBody)))
+  assert next.session == client.SessionUnknown
+}
+
+pub fn me_success_marks_the_session_logged_in_test() {
+  let me = client.Me(name: "Ada", group_name: None, roles: [])
+  let #(next, _) = client.update(base_model(), client.ApiReturnedMe(Ok(me)))
+  assert next.session == client.LoggedIn
+  assert next.booker == client.Identity(name: "Ada", group_name: None)
 }
 
 // PURE HELPERS: status accessors -----------------------------------------------

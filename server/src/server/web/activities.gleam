@@ -47,13 +47,15 @@ fn parse_bool(value: String) -> Result(Bool, Nil) {
 
 /// Resolves the manager-only `include_call_offs` query param. Absent or `false`
 /// yields the cacheable default (`False` — called-off activities excluded, so
-/// the response is identical for every user). `true` requires the
-/// `ActivitiesManage` role: a non-manager asking for call-offs gets a 403 so a
-/// cached default response can never be mistaken for a manager view. A
+/// the response is identical for every caller, logged in or not — anonymous
+/// callers included, which is what lets the list endpoints skip authentication
+/// entirely for the default view; issue #20). `true` requires an authenticated
+/// caller (401 otherwise) holding the `ActivitiesManage` role (403 otherwise),
+/// so a cached default response can never be mistaken for a manager view. A
 /// malformed value is a 400.
 fn with_include_call_offs(
   req: Request,
-  user: web.User,
+  ctx: web.Context,
   next: fn(Bool) -> Response,
 ) -> Response {
   use requested <- web.ensure_valid_query_param(
@@ -65,11 +67,13 @@ fn with_include_call_offs(
   )
   case requested {
     False -> next(False)
-    True ->
+    True -> {
+      use user <- web.with_authenticated_user(ctx)
       case web.has_role(user, web.ActivitiesManage) {
         True -> next(True)
         False -> wisp.response(403)
       }
+    }
   }
 }
 
@@ -305,11 +309,10 @@ fn list_audience(include_call_offs: Bool) -> web.CacheAudience {
 /// endpoints. Unpaginated; `sort` is honoured.
 pub fn get_page(req: Request, ctx: web.Context) -> Response {
   use <- wisp.require_method(req, Get)
-  // Authenticated because the whole API requires auth; the list itself no longer
-  // varies by user unless `include_call_offs` is requested (managers only), so
-  // the default response is byte-identical for everyone and shares one ETag.
-  use user <- web.with_authenticated_user(ctx)
-
+  // No authentication: anonymous visitors may browse (issue #20). The default
+  // response doesn't vary by user — only the manager-only `include_call_offs`
+  // view does, and `with_include_call_offs` guards that itself — so the
+  // default response is byte-identical for everyone and shares one ETag.
   use sort <- web.ensure_valid_query_param(
     in: wisp.get_query(req),
     with_name: "sort",
@@ -317,7 +320,7 @@ pub fn get_page(req: Request, ctx: web.Context) -> Response {
     using: parse_sort,
     else_respond_with: "Invalid sort parameter. Allowed values: title, start_time",
   )
-  use include_call_offs <- with_include_call_offs(req, user)
+  use include_call_offs <- with_include_call_offs(req, ctx)
   use day <- web.with_day(req)
   use embeds <- with_embeds(ctx)
   let #(day_start, day_end) = web.day_bounds(day)
@@ -359,10 +362,10 @@ pub fn get_page(req: Request, ctx: web.Context) -> Response {
 }
 
 /// Returns all beach bus slots as slim summaries, ordered by start time.
+/// Anonymous-accessible like `get_page` (issue #20).
 pub fn get_beach_bus(req: Request, ctx: web.Context) -> Response {
   use <- wisp.require_method(req, Get)
-  use user <- web.with_authenticated_user(ctx)
-  use include_call_offs <- with_include_call_offs(req, user)
+  use include_call_offs <- with_include_call_offs(req, ctx)
   use day <- web.with_day(req)
   use embeds <- with_embeds(ctx)
   let #(day_start, day_end) = web.day_bounds(day)
@@ -380,10 +383,10 @@ pub fn get_beach_bus(req: Request, ctx: web.Context) -> Response {
 }
 
 /// Returns all climbing wall slots as slim summaries, ordered by start time.
+/// Anonymous-accessible like `get_page` (issue #20).
 pub fn get_climbing_wall(req: Request, ctx: web.Context) -> Response {
   use <- wisp.require_method(req, Get)
-  use user <- web.with_authenticated_user(ctx)
-  use include_call_offs <- with_include_call_offs(req, user)
+  use include_call_offs <- with_include_call_offs(req, ctx)
   use day <- web.with_day(req)
   use embeds <- with_embeds(ctx)
   let #(day_start, day_end) = web.day_bounds(day)

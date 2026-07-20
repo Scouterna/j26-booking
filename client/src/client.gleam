@@ -153,6 +153,7 @@ fn english_translations() -> g18n.Translations {
   |> g18n.add_translation("booking.cancel", "Cancel")
   |> g18n.add_translation("booking.submitting", "Saving booking...")
   |> g18n.add_translation("booking.change", "Change booking")
+  |> g18n.add_translation("booking.login_to_book", "Log in to book")
   |> g18n.add_translation("booking.unbook", "Cancel booking")
   |> g18n.add_translation("booking.confirm_unbook", "Yes, cancel")
   |> g18n.add_translation("booking.cancelled_badge", "Cancelled")
@@ -353,6 +354,7 @@ fn swedish_translations() -> g18n.Translations {
   |> g18n.add_translation("booking.cancel", "Avbryt")
   |> g18n.add_translation("booking.submitting", "Sparar bokning...")
   |> g18n.add_translation("booking.change", "Ändra bokning")
+  |> g18n.add_translation("booking.login_to_book", "Logga in för att boka")
   |> g18n.add_translation("booking.unbook", "Avboka")
   |> g18n.add_translation("booking.confirm_unbook", "Ja, avboka")
   |> g18n.add_translation("booking.cancelled_badge", "Avbokad")
@@ -909,21 +911,32 @@ pub fn default_filters() -> ListFilters {
 }
 
 /// Tabs in display order; index is used for the segmented control. Both the
-/// browse and manage lists show the same set (Favourites included).
-pub fn list_tabs() -> List(ActivitiesFilterTab) {
-  [TabActivities, TabBeachBus, TabClimbingWall, TabFavourites]
+/// browse and manage lists show the same set. Anonymous visitors get no
+/// Favourites tab: with the hearts hidden it could never gain a member, and
+/// its backing fetch would just 401 into an error (issue #20; issue #21 may
+/// later bring client-side favourites for them).
+pub fn list_tabs(session: Session) -> List(ActivitiesFilterTab) {
+  case session {
+    Anonymous -> [TabActivities, TabBeachBus, TabClimbingWall]
+    SessionUnknown | LoggedIn -> [
+      TabActivities,
+      TabBeachBus,
+      TabClimbingWall,
+      TabFavourites,
+    ]
+  }
 }
 
-pub fn tab_index(tab: ActivitiesFilterTab) -> Int {
-  let indexed = list.index_map(list_tabs(), fn(t, i) { #(t, i) })
+pub fn tab_index(session: Session, tab: ActivitiesFilterTab) -> Int {
+  let indexed = list.index_map(list_tabs(session), fn(t, i) { #(t, i) })
   case list.find(indexed, fn(pair) { pair.0 == tab }) {
     Ok(#(_, i)) -> i
     Error(_) -> 0
   }
 }
 
-pub fn tab_from_index(index: Int) -> ActivitiesFilterTab {
-  case list.drop(list_tabs(), index) {
+pub fn tab_from_index(session: Session, index: Int) -> ActivitiesFilterTab {
+  case list.drop(list_tabs(session), index) {
     [tab, ..] -> tab
     [] -> TabActivities
   }
@@ -1106,6 +1119,9 @@ pub type Model {
     locations: Dict(Uuid, Location),
     // The current user's roles, gating manage-only UI (edit, view bookings).
     roles: List(Role),
+    // Whether the visitor is logged in at all, from /api/me (401 = Anonymous).
+    // Gates the favourite hearts, the Boka button, and the Favourites tab.
+    session: Session,
     // The booker identity (name + scout group) from the login token, fetched
     // with the roles from `/api/me`. Shown read-only in the booking form so the
     // user sees what gets stored on their booking. `IdentityUnknown` until it
@@ -1243,6 +1259,20 @@ fn role_from_string(raw: String) -> Result(Role, Nil) {
 /// server's `web.require_role`.
 fn has_role(model: Model, role: Role) -> Bool {
   list.contains(model.roles, role) || list.contains(model.roles, Admin)
+}
+
+/// Whether the visitor is logged in at all, derived from `/api/me`: a 401
+/// means the request carried no (valid) token — a genuinely anonymous
+/// visitor — while success means logged in. Anything else (not yet answered,
+/// network failure, server error) stays `SessionUnknown`, which renders like
+/// `LoggedIn` so a flaky `/api/me` never strips the interface for a
+/// logged-in user. Only a definite `Anonymous` hides the logged-in-only
+/// affordances: the favourite hearts, the Boka button, and the Favourites
+/// tab (issue #20).
+pub type Session {
+  SessionUnknown
+  Anonymous
+  LoggedIn
 }
 
 /// The booker identity taken from the access token, which the server stores on
@@ -2078,6 +2108,7 @@ fn init(_flags) -> #(Model, Effect(Msg)) {
       locations: dict.new(),
       // Empty until /api/me returns; the role-gated UI reveals once loaded.
       roles: [],
+      session: SessionUnknown,
       // Unknown until /api/me returns; the booking form's read-only identity
       // fields fill in then.
       booker: IdentityUnknown,
@@ -2354,6 +2385,7 @@ pub fn update(model: Model, msg: Msg) -> #(Model, Effect(Msg)) {
           ..model,
           roles: me.roles,
           booker: Identity(name: me.name, group_name: me.group_name),
+          session: LoggedIn,
         )
       // Prefetch the kår list the book-for-other picker needs, once, iff the
       // roles allow booking for others.
@@ -2374,7 +2406,31 @@ pub fn update(model: Model, msg: Msg) -> #(Model, Effect(Msg)) {
       #(model, effect.batch([revalidate_effect, scout_groups_effect]))
     }
 
-    // 401 / network error -> no roles, no identity -> restricted view.
+    // A 401 is a definite "not logged in" (issue #20): mark the session
+    // Anonymous so the logged-in-only affordances (favourite hearts, Boka,
+    // the Favourites tab) disappear.
+    ApiReturnedMe(Error(rsvp.HttpError(response))) if response.status == 401 -> {
+      let model =
+        Model(..model, roles: [], booker: IdentityUnknown, session: Anonymous)
+      // The Favourites tab no longer exists for this visitor; if they sit on
+      // it (they opened it before /api/me answered), fall back to browse.
+      let model = case list_filters(model.page) {
+        Ok(ListFilters(tab: TabFavourites, ..) as filters) ->
+          Model(
+            ..model,
+            page: set_list_filters(
+              model.page,
+              ListFilters(..filters, tab: TabActivities),
+            ),
+          )
+        _ -> model
+      }
+      #(model, effect.none())
+    }
+
+    // Any other error (network, server) -> no roles, no identity -> restricted
+    // view, but the session stays SessionUnknown: a flaky /api/me must not
+    // strip the hearts and Boka button for a logged-in user.
     ApiReturnedMe(Error(_)) -> #(
       Model(..model, roles: [], booker: IdentityUnknown),
       effect.none(),
@@ -2813,7 +2869,7 @@ pub fn update(model: Model, msg: Msg) -> #(Model, Effect(Msg)) {
     UserSelectedTab(index) ->
       case list_filters(model.page) {
         Ok(filters) -> {
-          let tab = tab_from_index(index)
+          let tab = tab_from_index(model.session, index)
           // Each tab reads its own persistent day (browse tabs share
           // `browse_day_filter`, Favourites its own), so switching tabs just
           // changes the tab and revalidates that tab's resolved windows.
@@ -4383,6 +4439,7 @@ fn view(model: Model) -> Element(Msg) {
         model.list_warning_dismissed,
         model.edit_ui,
         model.locations,
+        model.session,
       )
     ActivityDetailPage(id, booking) ->
       view_activity_detail(
@@ -4397,6 +4454,7 @@ fn view(model: Model) -> Element(Msg) {
         can_book_others(model),
         model.booking_ui,
         model.scout_groups,
+        model.session,
       )
     ActivityBookingsPage(id, bookings, booking_form) ->
       view_activity_bookings(
@@ -4434,6 +4492,7 @@ fn view_activities_list(
   warning_dismissed: Bool,
   edit_ui: EditUi,
   locations: Dict(Uuid, Location),
+  session: Session,
 ) -> Element(Msg) {
   let t = fn(key) { g18n.translate(translator, key) }
   // Favourites spans all days server-side; its optional day pick narrows the
@@ -4459,7 +4518,14 @@ fn view_activities_list(
       activity_tags,
       locations,
     ),
-    view_list_top_bar(translator, filters, page, browse_day, favourites_day),
+    view_list_top_bar(
+      translator,
+      filters,
+      page,
+      browse_day,
+      favourites_day,
+      session,
+    ),
     // `more_open` survives tab switches so the panel reappears when returning
     // to a tab that has filter controls; the recurring tabs never show it.
     case filters.more_open && tab_has_search_and_filters(filters.tab) {
@@ -4514,6 +4580,7 @@ fn view_activities_list(
               filters,
               page,
               client_day,
+              session,
             ),
           ])
       },
@@ -4548,6 +4615,7 @@ fn view_list_top_bar(
   page: Page,
   browse_day: Option(calendar.Date),
   favourites_day: Option(calendar.Date),
+  session: Session,
 ) -> Element(Msg) {
   let t = fn(key) { g18n.translate(translator, key) }
   // The day dropdown is a static list of the event dates, plus "Alla dagar"
@@ -4564,7 +4632,8 @@ fn view_list_top_bar(
     TabFavourites -> favourites_day
     _ -> browse_day
   }
-  let tab_labels = list.map(list_tabs(), fn(tab) { tab_label(translator, tab) })
+  let tab_labels =
+    list.map(list_tabs(session), fn(tab) { tab_label(translator, tab) })
   html.div(
     [
       attribute.class(
@@ -4579,7 +4648,7 @@ fn view_list_top_bar(
         _ -> element.none()
       },
       component.scout_segmented_control(
-        tab_index(filters.tab),
+        tab_index(session, filters.tab),
         tab_labels,
         UserSelectedTab,
         [attribute.class("w-full")],
@@ -4925,6 +4994,7 @@ fn view_grouped_activities(
   filters: ListFilters,
   page: Page,
   client_day: Option(calendar.Date),
+  session: Session,
 ) -> Element(Msg) {
   let t = fn(key) { g18n.translate(translator, key) }
   let filtered =
@@ -4959,7 +5029,15 @@ fn view_grouped_activities(
         list.map(groups, fn(group) {
           let #(#(date, bucket), items) = group
           let is_current = date == today && bucket == now_bucket
-          view_section(translator, date, bucket, items, is_current, page)
+          view_section(
+            translator,
+            date,
+            bucket,
+            items,
+            is_current,
+            page,
+            session,
+          )
         }),
       )
     }
@@ -5007,6 +5085,7 @@ fn view_section(
   items: List(CardItem),
   is_current: Bool,
   page: Page,
+  session: Session,
 ) -> Element(Msg) {
   let t = fn(key) { g18n.translate(translator, key) }
   let bucket_label = t(bucket_translation_key(bucket))
@@ -5040,7 +5119,7 @@ fn view_section(
     html.div(
       [attribute.class("flex flex-col gap-2")],
       list.map(items, fn(item) {
-        view_activity_card(translator, date, item, page)
+        view_activity_card(translator, date, item, page, session)
       }),
     ),
   ])
@@ -5051,6 +5130,7 @@ fn view_activity_card(
   section_date: calendar.Date,
   item: CardItem,
   page: Page,
+  session: Session,
 ) -> Element(Msg) {
   let summary = item.summary
   let id = uuid.to_string(summary.id)
@@ -5084,19 +5164,21 @@ fn view_activity_card(
   // cards open the edit form drawer (keeping the list mounted) and carry an edit
   // pen. Everything else about the card is identical, so the two lists share the
   // whole view. The manage `href` is a valid fallback for new-tab clicks only —
-  // an in-page click is intercepted to open the drawer.
+  // an in-page click is intercepted to open the drawer. An anonymous visitor's
+  // browse card carries no heart at all — they cannot favourite (issue #20).
   let #(href, action) = case page {
     ManageActivitiesPage(..) -> #(
       api_prefix <> "/activities/" <> id,
       component.EditAction(UserClickedEditActivity(summary.id)),
     )
-    _ -> #(
-      api_prefix <> "/activities/" <> id,
-      component.FavouriteAction(
-        favourited: is_favourited(item.status),
-        on_toggle: UserToggledFavourite(summary.id),
-      ),
-    )
+    _ -> #(api_prefix <> "/activities/" <> id, case session {
+      Anonymous -> component.NoAction
+      SessionUnknown | LoggedIn ->
+        component.FavouriteAction(
+          favourited: is_favourited(item.status),
+          on_toggle: UserToggledFavourite(summary.id),
+        )
+    })
   }
   component.activity_card(
     href,
@@ -5606,6 +5688,7 @@ fn view_activity_detail(
   can_book_others: Bool,
   booking_ui: BookingUi,
   scout_groups: RemoteData(List(ScoutGroup)),
+  session: Session,
 ) -> Element(Msg) {
   case state {
     NotAsked | Loading ->
@@ -5654,6 +5737,7 @@ fn view_activity_detail(
         can_book_others,
         booking_ui,
         scout_groups,
+        session,
       )
   }
 }
@@ -5687,16 +5771,22 @@ fn view_activity_detail_loaded(
   can_book_others: Bool,
   booking_ui: BookingUi,
   scout_groups: RemoteData(List(ScoutGroup)),
+  session: Session,
 ) -> Element(Msg) {
-  let heart_btn =
-    component.heart_button(
-      is_favourited(status),
-      // Only an *active* booking locks the heart — a user whose booking was
-      // cancelled may still unfavourite the activity.
-      has_active_booking(status),
-      UserToggledFavourite(activity.id),
-      False,
-    )
+  // Anonymous visitors cannot favourite, so no heart shows at all (issue #20)
+  // — matching the browse cards.
+  let heart_btn = case session {
+    Anonymous -> element.none()
+    SessionUnknown | LoggedIn ->
+      component.heart_button(
+        is_favourited(status),
+        // Only an *active* booking locks the heart — a user whose booking was
+        // cancelled may still unfavourite the activity.
+        has_active_booking(status),
+        UserToggledFavourite(activity.id),
+        False,
+      )
+  }
   html.div([attribute.class("flex flex-col")], [
     component.scout_drawer(
       booking_drawer_open(booking),
@@ -5788,6 +5878,7 @@ fn view_activity_detail_loaded(
                   booking,
                   spots_booked,
                   can_book_others,
+                  session,
                 )
               [
                 primary,
@@ -6019,6 +6110,7 @@ fn view_detail_actions(
   booking: BookingFormState,
   spots_booked: Option(Int),
   can_book_others: Bool,
+  session: Session,
 ) -> #(Element(Msg), Element(Msg)) {
   case self_booked, booking {
     // Booked activity: ask the user to confirm before deleting their booking.
@@ -6052,7 +6144,7 @@ fn view_detail_actions(
         None ->
           element.fragment([
             case can_book_others {
-              True -> book_action(translator, activity, spots_booked)
+              True -> book_action(translator, activity, spots_booked, session)
               False -> element.none()
             },
             component.scout_button_action(
@@ -6076,7 +6168,7 @@ fn view_detail_actions(
       case activity.cancellation, has_cancelled {
         Some(_), _ | None, True -> #(element.none(), element.none())
         None, False -> #(
-          book_action(translator, activity, spots_booked),
+          book_action(translator, activity, spots_booked, session),
           element.none(),
         )
       }
@@ -6088,11 +6180,14 @@ fn view_detail_actions(
 /// only), a disabled "Bokningen öppnar …" one before booking opens (issue
 /// #36), and nothing once the activity has passed (issue #35 — mirrors the
 /// server's booking-window check) or for uncapped activities (they are not
-/// booked via the UI).
+/// booked via the UI). An anonymous visitor gets a plain "Logga in för att
+/// boka" hint where the active button would be (issue #20) — the
+/// informational disabled states show unchanged.
 fn book_action(
   translator: Translator,
   activity: Activity,
   spots_booked: Option(Int),
+  session: Session,
 ) -> Element(Msg) {
   case activity.max_attendees {
     None -> element.none()
@@ -6119,14 +6214,28 @@ fn book_action(
                 component.ButtonPrimary,
               )
             _ ->
-              component.scout_button_action(
-                g18n.translate(translator, "activity.book"),
-                component.ButtonPrimary,
-                UserClickedBook,
-              )
+              case session {
+                Anonymous -> view_login_to_book_hint(translator)
+                SessionUnknown | LoggedIn ->
+                  component.scout_button_action(
+                    g18n.translate(translator, "activity.book"),
+                    component.ButtonPrimary,
+                    UserClickedBook,
+                  )
+              }
           }
       }
   }
+}
+
+/// Plain-text stand-in for the "Boka" button shown to anonymous visitors
+/// (issue #20): booking needs the identity from the login token, and the
+/// login flow lives in the surrounding app shell — outside this iframe — so
+/// plain text (no link) is all the page can offer.
+fn view_login_to_book_hint(translator: Translator) -> Element(Msg) {
+  html.p([attribute.class("text-body-sm text-gray-500")], [
+    element.text(g18n.translate(translator, "booking.login_to_book")),
+  ])
 }
 
 /// "Bokningen öppnar {date}" with the opens-at rendered in local time, in the
