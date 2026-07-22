@@ -4329,6 +4329,8 @@ RETURNING id
 /// > [squirrel package](https://github.com/giacomocavalieri/squirrel).
 ///
 pub type TargetGroup {
+  Funktionar
+  Ledare
   Rover
   Utmanare
   Aventyrare
@@ -4339,17 +4341,21 @@ pub type TargetGroup {
 fn target_group_decoder() -> decode.Decoder(TargetGroup) {
   use target_group <- decode.then(decode.string)
   case target_group {
+    "funktionar" -> decode.success(Funktionar)
+    "ledare" -> decode.success(Ledare)
     "rover" -> decode.success(Rover)
     "utmanare" -> decode.success(Utmanare)
     "aventyrare" -> decode.success(Aventyrare)
     "upptackare" -> decode.success(Upptackare)
     "sparare" -> decode.success(Sparare)
-    _ -> decode.failure(Rover, "TargetGroup")
+    _ -> decode.failure(Funktionar, "TargetGroup")
   }
 }
 
 fn target_group_encoder(target_group) -> pog.Value {
   case target_group {
+    Funktionar -> "funktionar"
+    Ledare -> "ledare"
     Rover -> "rover"
     Utmanare -> "utmanare"
     Aventyrare -> "aventyrare"

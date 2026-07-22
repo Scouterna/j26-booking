@@ -2139,13 +2139,15 @@ components:
 
     TargetGroup:
       type: string
-      description: A scout age section an activity can target ("målgrupp"). A fixed, closed set.
+      description: A scout age section or adult role an activity can target ("målgrupp"). A fixed, closed set.
       enum:
         - sparare
         - upptackare
         - aventyrare
         - utmanare
         - rover
+        - ledare
+        - funktionar
       example: "sparare"
 
     ActivityTag:
