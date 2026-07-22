@@ -158,22 +158,25 @@ pub fn bilingual_string_to_json(value: BilingualString) -> Json {
   json.object([#("sv", json.string(value.sv)), #("en", json.string(value.en))])
 }
 
-/// The scout age sections an activity can target ("målgrupp"). A fixed, closed
-/// set — the server persists it as a Postgres enum and Squirrel generates its
-/// own matching type; this shared type is the identity used across the API and
-/// client. Bilingual display labels live in the client's translations.
+/// The scout age sections plus adult roles an activity can target
+/// ("målgrupp"). A fixed, closed set — the server persists it as a Postgres
+/// enum and Squirrel generates its own matching type; this shared type is the
+/// identity used across the API and client. Bilingual display labels live in
+/// the client's translations.
 pub type TargetGroup {
   Sparare
   Upptackare
   Aventyrare
   Utmanare
   Rover
+  Ledare
+  Funktionar
 }
 
-/// Every target group in age order — drives client filter chips and gives a
-/// stable display order the database cannot guarantee.
+/// Every target group in age order (adult roles last) — drives client filter
+/// chips and gives a stable display order the database cannot guarantee.
 pub fn target_groups_all() -> List(TargetGroup) {
-  [Sparare, Upptackare, Aventyrare, Utmanare, Rover]
+  [Sparare, Upptackare, Aventyrare, Utmanare, Rover, Ledare, Funktionar]
 }
 
 /// The wire/DB string for a target group (matches the Postgres enum values).
@@ -184,6 +187,8 @@ pub fn target_group_to_string(target_group: TargetGroup) -> String {
     Aventyrare -> "aventyrare"
     Utmanare -> "utmanare"
     Rover -> "rover"
+    Ledare -> "ledare"
+    Funktionar -> "funktionar"
   }
 }
 
@@ -195,6 +200,8 @@ pub fn target_group_from_string(raw: String) -> Result(TargetGroup, Nil) {
     "aventyrare" -> Ok(Aventyrare)
     "utmanare" -> Ok(Utmanare)
     "rover" -> Ok(Rover)
+    "ledare" -> Ok(Ledare)
+    "funktionar" -> Ok(Funktionar)
     _ -> Error(Nil)
   }
 }

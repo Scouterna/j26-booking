@@ -73,6 +73,8 @@ pub fn sql_target_group_to_model(target_group: sql.TargetGroup) -> TargetGroup {
     sql.Aventyrare -> model.Aventyrare
     sql.Utmanare -> model.Utmanare
     sql.Rover -> model.Rover
+    sql.Ledare -> model.Ledare
+    sql.Funktionar -> model.Funktionar
   }
 }
 
@@ -85,6 +87,8 @@ pub fn model_target_group_to_sql(target_group: TargetGroup) -> sql.TargetGroup {
     model.Aventyrare -> sql.Aventyrare
     model.Utmanare -> sql.Utmanare
     model.Rover -> sql.Rover
+    model.Ledare -> sql.Ledare
+    model.Funktionar -> sql.Funktionar
   }
 }
 

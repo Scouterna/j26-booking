@@ -7346,6 +7346,8 @@ fn target_group_label(target_group: TargetGroup) -> String {
     model.Aventyrare -> "Äventyrare"
     model.Utmanare -> "Utmanare"
     model.Rover -> "Rover"
+    model.Ledare -> "Ledare"
+    model.Funktionar -> "Funktionär"
   }
 }
 
