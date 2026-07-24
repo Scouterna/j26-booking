@@ -5261,6 +5261,28 @@ pub type ActivityFormMode {
   EditActivity
 }
 
+/// Wraps drawer content in a scrollable region filling below the drawer header.
+/// scout-drawer's container is a fixed-height box with `overflow: hidden` and
+/// gives slotted content no scroll of its own, so a tall form is otherwise
+/// clipped — its action row, the primary submit button included, can end up
+/// off-screen on short viewports with no way to reach it. Fill the region below
+/// the header (its exact `--spacing-20` height) and scroll there; positioned
+/// against the drawer container, it works for both the mobile (90%) and desktop
+/// (100%) drawer heights without a breakpoint. Shared by the activity form
+/// drawer and the booking drawer.
+fn drawer_scroll_body(content: List(Element(msg))) -> List(Element(msg)) {
+  [
+    html.div(
+      [
+        attribute.class(
+          "absolute inset-x-0 bottom-0 top-[var(--spacing-20)] overflow-y-auto",
+        ),
+      ],
+      content,
+    ),
+  ]
+}
+
 /// The create/edit form drawer, overlaid on the management list. Open whenever
 /// the form state isn't `Closed`; the exit button / backdrop discards and closes
 /// it (`UserClickedCancelEdit`), matching the booking drawer. It's a *single*
@@ -5341,24 +5363,9 @@ fn view_activity_form_drawer(
       view_bulk_edit_form(translator, form, submit_error, edit_ui, locations),
     ]
   }
-  // scout-drawer's container is a fixed-height box with `overflow: hidden` and
-  // gives slotted content no scroll of its own, so a tall form is otherwise
-  // clipped. Fill the region below the header (its exact `--spacing-20` height)
-  // and scroll there — this is positioned against the drawer container, so it
-  // works for both the mobile (90%) and desktop (100%) drawer heights without a
-  // breakpoint.
   let body = case open {
     False -> []
-    True -> [
-      html.div(
-        [
-          attribute.class(
-            "absolute inset-x-0 bottom-0 top-[var(--spacing-20)] overflow-y-auto",
-          ),
-        ],
-        content,
-      ),
-    ]
+    True -> drawer_scroll_body(content)
   }
   component.scout_drawer(open, heading, UserClickedCancelEdit, body)
 }
@@ -5789,7 +5796,7 @@ fn view_activity_detail_loaded(
       booking_drawer_open(booking),
       booking_drawer_heading(translator, booking),
       UserClickedCancelBooking,
-      [
+      drawer_scroll_body([
         view_booking_form_section(
           translator,
           booking,
@@ -5803,7 +5810,7 @@ fn view_activity_detail_loaded(
           booking_ui,
           scout_groups,
         ),
-      ],
+      ]),
     ),
     // The map preview only renders when the location has coordinates; a
     // name-only location shows no map (issue #26).
@@ -6773,7 +6780,7 @@ fn view_activity_bookings(
       booking_drawer_open(booking_form),
       booking_drawer_heading(translator, booking_form),
       UserClickedCancelBooking,
-      [
+      drawer_scroll_body([
         view_booking_form_section(
           translator,
           booking_form,
@@ -6787,7 +6794,7 @@ fn view_activity_bookings(
           booking_ui,
           scout_groups,
         ),
-      ],
+      ]),
     ),
     view_bookings_header(translator, activity_state, spots_booked),
     html.div([attribute.class("flex flex-col gap-3")], [
