@@ -37,7 +37,7 @@ INSERT INTO location (
     )
 VALUES
     (
-        '42dc3805-1c4c-4acb-8aa3-5d6e869b9e27',
+        'faac411c-0e9d-43ee-809a-b3646eea3c0a',
         'Accenture',
         'Accenture',
         'Kom till Accenture-tältet för att lära er att äta smartare, minska svinn och skapa något eget. Kul, kreativt och hållbart!',
@@ -57,7 +57,7 @@ VALUES
         }'::jsonb
     ),
     (
-        '4f0e49b0-1983-48ef-9e62-4d968a5b528e',
+        '3eeb424f-c40b-41bc-aa43-ab645ee94244',
         'Aktivitetsbanken',
         'Aktivitetsbanken',
         'Aktiviteter man aldrig tröttnar på! Här finns kubb, bollar, jätteplockepinn och mer! Man kan slå sig ner i en solstol här. Alla spel går att låna för att ta med sig till sin by, kom bara ihåg att lämna tillbaka spelet inom kort. Häng här eller låna ett spel, i sammarbete med Lidl!',
@@ -98,7 +98,7 @@ VALUES
         }'::jsonb
     ),
     (
-        'ec2a9892-954f-48bf-8e1b-7a88fdad45d6',
+        '79c1c300-85dd-4860-90fc-6accf9054c48',
         'Andrummet',
         'Andrummet',
         'Här finns plats för ro och samtal. Kom och häng, andas ut en sväng. Vi erbjuder samtal, pyssel och sällskap till de som behöver.',
@@ -111,7 +111,7 @@ VALUES
         '{}'::jsonb
     ),
     (
-        '247d61f2-d57c-4a8d-9c95-0797882043aa',
+        '6f44607c-24a1-4afd-8e14-0fd4fe33a23f',
         'Badbusstationen',
         'Badbusstationen',
         'Badbussar till stranden avgår här - se till att förboka er plats i appen eller vid Infotältet! Kom ihåg att ta med dig vattenflaska till stranden, och solskydd!',
@@ -124,7 +124,7 @@ VALUES
         '{}'::jsonb
     ),
     (
-        '4293b033-625a-4342-ab42-e92c3f4e7da6',
+        'f2de9c57-488d-4a49-af94-773202ed52e3',
         'Biblioteket',
         'Biblioteket',
         'Läs böcker, rita eller bara njut av tystnaden. I bibloteket håller vi en lägre ljudnivå och här kan du som behöver få njuta av lugnare aktiviteter.',
@@ -165,7 +165,7 @@ VALUES
         }'::jsonb
     ),
     (
-        '1be9a34d-ef83-4fa9-bd5e-0d5fd76ad1b4',
+        '3ace3443-4f20-440a-ade8-0a16fd4711d7',
         'Bönetorget',
         'Bönetorget',
         'Stadsdelstorg i Himalaya.',
@@ -178,7 +178,7 @@ VALUES
         '{}'::jsonb
     ),
     (
-        'b127cecb-c982-4d23-918d-1dbd9b4ca894',
+        '801217b7-0c0a-44d5-8ac7-a153aa3fbba4',
         'Drömfångaren',
         'Drömfångaren',
         '',
@@ -210,7 +210,7 @@ VALUES
         }'::jsonb
     ),
     (
-        'fda67ff2-74d6-405f-a8b9-d3f477d8f5b8',
+        '45757f10-6383-4b72-b011-03868f5803e2',
         'Fairtrade',
         'Fairtrade',
         'Besök Fairtrades banantält och lär er mer om hållbarhet och rättvisa! 🍌 I vårt tält är alla välkomna! Här kan scouterna lära sig mer om Fairtrade och få en inblick i hur flera av våra mest handlade varor produceras – och hur villkoren ser ut för många odlare världen över.',
@@ -233,7 +233,7 @@ VALUES
         }'::jsonb
     ),
     (
-        '89199cdc-5aba-40bc-a1c7-4cc9a9520c4d',
+        'c0dd822f-ca76-43fe-90be-b69647b37551',
         'Folkhögskolan',
         'Folkhögskolan',
         'Kom och prata om allt som rör utbildning i Scouterna med oss. Vilken är din nästa kurs?',
@@ -265,7 +265,7 @@ VALUES
         }'::jsonb
     ),
     (
-        'fd05ef78-d6d2-4184-9792-cf80f20b1598',
+        'c2200e22-bce5-44c6-9dba-aad6d099a375',
         'Glaciärtorget',
         'Glaciärtorget',
         'Stadsdelstorg i Himalaya.',
@@ -278,7 +278,7 @@ VALUES
         '{}'::jsonb
     ),
     (
-        '8457d5f0-bcae-424b-91d6-69cc47259e48',
+        '5ef6c219-43f8-43d4-ad73-55afcf6a44ae',
         'Gnistan',
         'Gnistan',
         'I demokratitältet Gnistan får det som glöder inom dig tid och utrymme. Delta i vårt program med scoutidoler och makthavare, och få en exklusiv pin. Eller kika förbi när som helst mellan 9:30-23 för att hälla T-röd på det du brinner för!',
@@ -313,7 +313,7 @@ VALUES
         }'::jsonb
     ),
     (
-        '7bc794bb-f34c-44c0-b7b8-6d7c7563f139',
+        '3b3a8adb-eb4d-4387-8218-5a7342f6b521',
         'Gunget',
         'Gunget',
         'Gungor att gunga på.',
@@ -326,7 +326,7 @@ VALUES
         '{}'::jsonb
     ),
     (
-        '1e8dba9c-246b-4a02-8cc9-f47d89ea51f6',
+        '0561021d-0a24-4fd9-89a8-96b23abf2776',
         'Halmbalspyramiden',
         'Halmbalspyramiden',
         'Pyramid av halmbalar att klättra på och hänga på.',
@@ -339,7 +339,7 @@ VALUES
         '{}'::jsonb
     ),
     (
-        '77321f50-8b75-46a4-8ab3-c1c75c42ba99',
+        '5a7d0577-0de1-4949-af8b-3f370d38a136',
         'Hantverket med Do-Redo',
         'Hantverket med Do-Redo',
         'Sy, sticka, skapa och var kreativ med Do-Redo! Med återbruk i fokus finns det många kunniga i Hantverket som hjälper dig med att göra kreativa kreationer. Du kan även laga din cykel i Cykelverkstaden.',
@@ -380,7 +380,7 @@ VALUES
         }'::jsonb
     ),
     (
-        '572671ce-7f67-4e16-8f32-5bda9bb2e5e7',
+        '10952f43-79b5-436d-bb7f-c7337f4ab7e6',
         'Heartbeat café',
         'Heartbeat café',
         '',
@@ -418,7 +418,7 @@ VALUES
         }'::jsonb
     ),
     (
-        '4c7b7935-d991-4e9f-b4e9-6f8a30543524',
+        '099c83ea-b1f3-43fd-9a3a-013bc1c024a5',
         'Hinderbanan',
         'Hinderbanan',
         '',
@@ -456,7 +456,7 @@ VALUES
         }'::jsonb
     ),
     (
-        '2e99d84f-5332-4e3c-9abd-669d44550c12',
+        'd75df430-57a8-4593-9611-ed1dd6d0c20c',
         'Hjärtat',
         'Hjärtat',
         'Hjärtat av lägret. Här hittar du våra partners, Pulsen du kan dansa i, Drömfångaren som bjuder på föreläsningar, Själen som är för alla olika livsåskådningsområden och du kan kika in hos Jamboree-Radion! Kom förbi och häng, prova på olika spontana aktiviteter eller kolla på uppträdanden. Läs mer om vad som finns att göra hos varje induiduell plats på kartan.',
@@ -469,7 +469,7 @@ VALUES
         '{}'::jsonb
     ),
     (
-        'b221ca10-9585-4c07-998b-12efc138a361',
+        '75c9056e-92f9-41a5-99fa-147a3290b811',
         'Hjärteträden',
         'Hjärteträden',
         'Träd dekorerade med hjärtan gjorda av deltagare från daglig verksamhet i Kristianstad.',
@@ -482,7 +482,7 @@ VALUES
         '{}'::jsonb
     ),
     (
-        'b1133d5a-5029-4a4d-8cec-20097a48cee3',
+        'da923a02-239d-4d0d-aa6e-13fc229f7e30',
         'Hundrastgård (kanske ej blir av - vi återkommer innan 23/7)',
         'Hundrastgård (kanske ej blir av - vi återkommer innan 23/7)',
         'Hundrastgård för din fyrbenta lägerkompis! Vänligen respektera reglerna du kan läsa om på plats.',
@@ -495,7 +495,7 @@ VALUES
         '{}'::jsonb
     ),
     (
-        '3203e60b-6b50-44eb-98b1-d0a7ef85cb53',
+        'e98a9c13-b36b-4acf-b74a-ce1025ccc5a8',
         'Hägringen',
         'Hägringen',
         'Stadsdelstorg i Sahara.',
@@ -508,7 +508,7 @@ VALUES
         '{}'::jsonb
     ),
     (
-        '75f3aa76-09da-4923-bac0-70f3965bdaa4',
+        '7b57afb9-788d-40b6-a6be-925b1ea84c17',
         'Hänget',
         'Hänget',
         'Hängmattor att hänga i.',
@@ -521,7 +521,7 @@ VALUES
         '{}'::jsonb
     ),
     (
-        'fc31a4d0-ee4b-4341-88b3-91aeb9c37f1c',
+        'c34a5cb6-7421-4087-8726-c7cc98dbcce3',
         'Iglootorget',
         'Iglootorget',
         'Stadsdelstorg i Himalaya.',
@@ -534,7 +534,7 @@ VALUES
         '{}'::jsonb
     ),
     (
-        'c2cad0ea-7788-4069-933d-4c2e26dc0459',
+        '9733a72a-c03c-4a3d-80fc-62fbe410da87',
         'Infotält',
         'Infotält',
         '',
@@ -572,7 +572,7 @@ VALUES
         }'::jsonb
     ),
     (
-        'f497257c-f672-4cdf-93af-86f46ab4a6e1',
+        '5065fba5-2fe5-48e1-bae2-85cd9fe05046',
         'Jamboreeradio',
         'Jamboreeradio',
         'I Jamboreeradion blir det nedslag från hela lägerområdet, spännande gäster i studion, gött snack och musik som höjer stämningen - hela dagen. Upplev mer av Jamboree26 tillsammans med oss.',
@@ -610,7 +610,7 @@ VALUES
         }'::jsonb
     ),
     (
-        '2c5b2b83-b40f-4799-a038-1b78fbb4910e',
+        '0fa91886-b98e-4234-821c-16c2569758ff',
         'Jamboreeshoppen',
         'Jamboreeshoppen',
         'Kom till shoppen och kika på Jamboreekollektionen, roliga pins och massa mer! Här finns smått och gott att komplettera lägerpackningen med och en och en annan souvernir att ta med hem.',
@@ -645,7 +645,7 @@ VALUES
         }'::jsonb
     ),
     (
-        'fbdee590-3dbc-4449-b772-39a5ec2da362',
+        'da896cf7-3afd-441a-ab4a-2fb7f57dfd56',
         'Josbaren',
         'Josbaren',
         '',
@@ -683,7 +683,7 @@ VALUES
         }'::jsonb
     ),
     (
-        '5094c36d-3f40-4d41-8070-1046bc015799',
+        'dc8255e8-e563-4d09-b073-e0ecd24e8423',
         'Klättertornet',
         'Klättertornet',
         '',
@@ -721,7 +721,7 @@ VALUES
         }'::jsonb
     ),
     (
-        'ddab0387-fa82-450b-85ef-6de1d2783e54',
+        '7a3415ac-e8e2-4f79-942e-bbf8eb7d457c',
         'Kontignentstält - Canada',
         'Kontignentstält - Canada',
         'Väntar svar från Canada',
@@ -734,7 +734,7 @@ VALUES
         '{}'::jsonb
     ),
     (
-        '5216ccb6-aaa6-4fed-8ffe-c0c69946d2a1',
+        'aaf96336-4ef4-4f96-94a3-81a58313f152',
         'Koralltorget',
         'Koralltorget',
         'Stadsdelstorg i Stora Barriärrevet.',
@@ -747,7 +747,7 @@ VALUES
         '{}'::jsonb
     ),
     (
-        '2641071b-c7bc-4eb5-8022-307e25b0507c',
+        '58ddff08-1b6e-4758-88be-1fa0d2ad7921',
         'Ledarhänget',
         'Ledarhänget',
         '',
@@ -760,7 +760,7 @@ VALUES
         '{}'::jsonb
     ),
     (
-        '468da411-311a-43b0-806a-9897f6e76e28',
+        '41dfbcf5-8541-4e21-8cc6-954331f21d1c',
         'Light My Fire',
         'Light My Fire',
         'Kom och gravera dina nya Light My Fire-produkter från shoppen med deras gravyrpenna! Här hålls även demos av bland annat tändstål och tävlingar i diverse scouttekniker.. Kom och testa!',
@@ -773,7 +773,7 @@ VALUES
         '{}'::jsonb
     ),
     (
-        '28a6e1da-ee52-4eda-82db-798a4cfceea8',
+        '79ecc8f6-9975-4ecb-8d41-95cd65a3f39f',
         'Listening Ears',
         'Listening Ears',
         'Se info på tältet för aktuella öppettider.',
@@ -819,7 +819,7 @@ VALUES
         }'::jsonb
     ),
     (
-        '5eb0c54b-63c0-4331-8b60-1c4c5754b0c4',
+        '59ec49f9-ffcd-44ca-9ece-defa8b503fa0',
         'Lägerbålsscenen',
         'Lägerbålsscenen',
         '',
@@ -836,7 +836,7 @@ VALUES
         }'::jsonb
     ),
     (
-        '5aed35fd-33e6-487e-bb9a-97837fa684c2',
+        '8b25d03e-6290-43f2-bb9d-766ce22ec957',
         'Morakniv',
         'Morakniv',
         '',
@@ -849,7 +849,7 @@ VALUES
         '{}'::jsonb
     ),
     (
-        '6491fa9b-418a-4d26-b8ff-f92267fb5b7d',
+        '9d1275be-7f8b-4567-8616-8c3d0a319a52',
         'NSF Klartänk & Drogfri',
         'NSF Klartänk & Drogfri',
         'Klartänkt & Drogfri är det 100 kvadratmeter stora tältet fyllt med de senaste trenderna inom arbetet mot ANDTS (Alkohol, narkotika, doping, tobak och spel). Här samlar NSF, (Nykterhetsrörelsens Scoutförbund), aktuella aktörer och TILLSAMMANS erbjuder vi en uppsjö av olika både roliga och lärorika aktiviteter. I tältet kommer det finnas allt från spelhörna, reflektionskortlekar, VR-glasögon, aktivitetstombola till en mega stor transferpress där en kan trycka sin egen medhavda tröja! Det här är platsen för dig som bara vill chilla och hänga en stund, ha roliga spel och aktiviteter att göra eller för dig som vill ta del av bra programmaterial inom ANDTS att använda hemma på kåren. Det är coolt att vara Klartänkt & Drogfri!',
@@ -887,7 +887,7 @@ VALUES
         }'::jsonb
     ),
     (
-        'b1cb4be3-e1f4-44cb-b60a-ca74e1bf4c3b',
+        '26d0177b-c6d5-449b-8dc9-50990d0a2ce2',
         'Oasen',
         'Oasen',
         '',
@@ -922,7 +922,7 @@ VALUES
         }'::jsonb
     ),
     (
-        'eb304d4b-3ef9-400c-b216-d94927081760',
+        'f50f4431-4e79-4d3c-a52e-4e556e8be09f',
         'Programtältet',
         'Programtältet',
         '',
@@ -967,7 +967,7 @@ VALUES
         }'::jsonb
     ),
     (
-        'b1298fd2-c01a-4469-a1f2-bbd25bb9d908',
+        'accfffb4-5ccc-4ed3-bb28-a82f88440b92',
         'Pulsen',
         'Pulsen',
         'Funky och lika rött som hjärtat själv! Kom och dansa, lyssna på föreläsningar eller lär dig nya steg. Bidra till våra interaktiva tavlor, ta bilder med en kompis och behöver du en ny vän - kan du träffa en här!',
@@ -1014,7 +1014,7 @@ VALUES
         }'::jsonb
     ),
     (
-        '8963d2ad-d1dc-4b2a-9d31-f97b8c69d25d',
+        '6d7a7845-4ade-4e51-963e-c7faf2063e5e',
         'Pyramidtorget',
         'Pyramidtorget',
         'Stadsdelstorg i Sahara.',
@@ -1027,7 +1027,7 @@ VALUES
         '{}'::jsonb
     ),
     (
-        '7e964708-498e-42df-8b55-cc463597cb9b',
+        'b0bb663f-175f-42c3-9b6d-d1919d11d9ef',
         'Regnbågstorget',
         'Regnbågstorget',
         'Stadsdelstorg i Amazonas.',
@@ -1040,7 +1040,7 @@ VALUES
         '{}'::jsonb
     ),
     (
-        'da34b79e-33b9-4c38-ad07-622d089ebfe5',
+        '1816d3bf-2191-48b6-b4e3-0693ba6eb665',
         'Regntorget',
         'Regntorget',
         'Stadsdelstorg i Amazonas.',
@@ -1053,7 +1053,7 @@ VALUES
         '{}'::jsonb
     ),
     (
-        '11d64ace-771c-4290-a9cc-45acccde3685',
+        'b36b6a47-01dd-4b96-a5cd-f666ac51ed2a',
         'Roverhubben',
         'Roverhubben',
         'Roverhubben är en mötesplats för gemenskap, aktiviteter och nya upplevelser för roverscouter, alltså ledare och funktionärer i åldrarna 18-25 år. Här kan du träffa nya och gamla vänner, spela spel, pyssla, fika, lyssna på musik eller bara ta det lugnt en stund. Under dagarna och kvällarna finns något för både den som söker fart och gemenskap och den som behöver en lugn paus.',
@@ -1092,7 +1092,7 @@ VALUES
         }'::jsonb
     ),
     (
-        'b649c195-a785-41f1-996b-ae4524844bf0',
+        'fefad95f-4bb0-45c7-bb2e-4950c95d24f2',
         'Roverhubben - Bistron',
         'Roverhubben - Bistron',
         'Bistron är tältet i Roverhubben där du kan sitta och ta en fika vid roverscouterna egna Scoutbyrån-kafé eller sitta och jobba lite.',
@@ -1131,7 +1131,7 @@ VALUES
         }'::jsonb
     ),
     (
-        'f96bb333-7390-40d1-92a3-29b7b3fbeb16',
+        '2b32a9d9-da57-40f4-ba95-6e6de28ed846',
         'Roverhubben - Klubben',
         'Roverhubben - Klubben',
         'Klubben är tältet i Roverhubben där samtliga föreläsningar, workshops, quiz, karaoke och andra scenarrangemang sker för roverscouter!',
@@ -1170,7 +1170,7 @@ VALUES
         }'::jsonb
     ),
     (
-        '324ea43b-3f92-4d04-ac1d-593f249d5e4d',
+        'e3c7572e-f76a-4540-b59e-9f4386c81ecc',
         'Roverhubben - Loungen',
         'Roverhubben - Loungen',
         'Loungen är tälten i Roverhubben där du kan ta det lite lugnt, vila, testa lite spaaktiviteter eller prata med små bokstäver med ett par kompisar. Här sker även träningpass under vissa dagar!',
@@ -1209,7 +1209,7 @@ VALUES
         }'::jsonb
     ),
     (
-        'dc143da0-04e2-44fe-b8ab-9dc73b30f392',
+        '9f98d184-0f1b-4fb8-9784-2594c59efe3c',
         'Roverhubben - Pubben',
         'Roverhubben - Pubben',
         'Pubben är hjärtat av Roverhubben och är tältet där du kan testa lite spontana aktiviter, vara social, spela spel, eller prata med en Rover-som-lyssnar!',
@@ -1248,7 +1248,7 @@ VALUES
         }'::jsonb
     ),
     (
-        '279f9b05-e635-4923-9fb9-13d09c23f31c',
+        '0171900f-3f29-4119-8a92-c9e688fa582b',
         'Roverprogram',
         'Roverprogram',
         '',
@@ -1282,7 +1282,7 @@ VALUES
         }'::jsonb
     ),
     (
-        '977ff5e3-127a-469f-b4dd-768356928a5f',
+        '1f3627ba-2d84-4012-aab1-bf3b5b5585b6',
         'Scoutmuseet',
         'Scoutmuseet',
         'Tillsammans har vi ett särskilt scoutmuseum även på denna nationella jamboree som på flera storläger tidigare. Årets scoutmuseum fokuserar på lands-, riks- och förbundsläger och vi presenterar ett antal av dessa med en foto- och minnesutställning av 13 av dem. Det första är Djurgårdslägret 1912 och sedan är det ett urval av storläger fram till Jamboreen i Norra Åsum 2022. Vi kommer att visa en del annat också. Vi erbjuder spontana guidningar och även, om så önskas, guidade visningar gärna med en uppföljande diskussion om storlägerformatet.',
@@ -1314,7 +1314,7 @@ VALUES
         }'::jsonb
     ),
     (
-        '2c230097-2a87-48de-b615-fe50dd6067d9',
+        '42fe5129-8ff0-4dba-8017-132647fef253',
         'Signalen',
         'Signalen',
         'Hälsa på radioscouterna och scouternas e-tjänstgrupp. Prova på amatörradiosändning, walkietalkie och andra roliga utmaningar med radioscouterna. Scouternas e-tjänster: Prova på programmering – för alla!
@@ -1371,7 +1371,7 @@ Du behöver inga förkunskaper – våra funktionärer finns på plats och hjäl
         }'::jsonb
     ),
     (
-        '556a6e3c-62b3-4c9a-8720-4cee10542d9f',
+        '8e335d16-2369-474d-b774-d16f9e44b0fe',
         'Själen',
         'Själen',
         'Behöver din själ få ta plats? Själen bjuder in till något större. Här är alla livsåskådningar välkomna. Vårda din tro här och vidga dina vyer för att på bästa sätt få insyn och respektera andras.',
@@ -1406,7 +1406,7 @@ Du behöver inga förkunskaper – våra funktionärer finns på plats och hjäl
         }'::jsonb
     ),
     (
-        '86416a14-5f2d-47ce-a8c7-8db8fedfe7bd',
+        'bfff1873-7941-40f2-9755-3c3d746cfa11',
         'Soltorget',
         'Soltorget',
         'Stadsdelstorg i Sahara.',
@@ -1419,7 +1419,7 @@ Du behöver inga förkunskaper – våra funktionärer finns på plats och hjäl
         '{}'::jsonb
     ),
     (
-        'dced7084-bbbc-4cef-9cf4-0616097cfcfa',
+        '39eab965-dfb0-4bf3-bf16-c2ac55f67141',
         'Sparbanken',
         'Sparbanken',
         'Kom och häng hos oss på Sparbanken Skåne! Här kan ni sitta och ta det lugnt i våra sköna loungemöbler, tävla mot varandra i steggolf och corne hole samt göra vår budgettavla á la Lyxfällan.',
@@ -1442,7 +1442,7 @@ Du behöver inga förkunskaper – våra funktionärer finns på plats och hjäl
         }'::jsonb
     ),
     (
-        '87c6ce89-af65-4921-97ee-5d456c738035',
+        '27b5ce7a-ea4b-4736-8101-23a111d8062e',
         'Spelarkaden',
         'Spelarkaden',
         'Möt era patrullkompisar, eller helt nya kompisar, i olika egentillverkade arkadspel.',
@@ -1483,7 +1483,7 @@ Du behöver inga förkunskaper – våra funktionärer finns på plats och hjäl
         }'::jsonb
     ),
     (
-        'fbd58243-9585-4729-9904-8a7612efae3d',
+        '89487431-29db-450c-8edb-3fd7e0383563',
         'Stimtorget',
         'Stimtorget',
         'Stadsdelstorg i Östersjön.',
@@ -1496,7 +1496,7 @@ Du behöver inga förkunskaper – våra funktionärer finns på plats och hjäl
         '{}'::jsonb
     ),
     (
-        '34d8032d-d11a-4a2a-8b57-d8e944968bf3',
+        'e5628c6a-0cd4-4b4d-929b-cfeec2872372',
         'Strandtorget',
         'Strandtorget',
         'Stadsdelstorg i Stora Barriärrevet.',
@@ -1509,7 +1509,7 @@ Du behöver inga förkunskaper – våra funktionärer finns på plats och hjäl
         '{}'::jsonb
     ),
     (
-        '5fca0ebc-b407-4f5e-810e-4573f945b6bd',
+        '6955cb7f-38a0-4f47-b16e-6633608b04f0',
         'Swedish Food House',
         'Swedish Food House',
         '',
@@ -1547,7 +1547,7 @@ Du behöver inga förkunskaper – våra funktionärer finns på plats och hjäl
         }'::jsonb
     ),
     (
-        '6a359ef7-71e7-481c-a468-1a5bb7a3d645',
+        'a504bebf-9f26-4a36-a538-9244e0fb5efc',
         'the HERDS',
         'the HERDS',
         'Come and meet The HERDS, a groundbreaking public art project bringing life-sized animal puppets on an epic journey from the Congo Basin to the Arctic Circle, bringing audiences face to face with the climate crisis.',
@@ -1560,7 +1560,7 @@ Du behöver inga förkunskaper – våra funktionärer finns på plats och hjäl
         '{}'::jsonb
     ),
     (
-        '15d4e6e5-9ba1-4b80-aa54-52325c89f91e',
+        'b982148c-ecca-41f2-92a8-a9200836dcdc',
         'Tillsammansträdet',
         'Tillsammansträdet',
         'Träd för kårena att dekorera med något som representerar "tillsammans" för dom.',
@@ -1573,7 +1573,7 @@ Du behöver inga förkunskaper – våra funktionärer finns på plats och hjäl
         '{}'::jsonb
     ),
     (
-        'ed78bddc-fd26-4117-bf4a-bc9318a3366c',
+        '06d9455b-62d8-49a4-8c6e-e734977e6f7e',
         'Trantorget',
         'Trantorget',
         'Stadsdelstorg i Östersjön.',
@@ -1586,7 +1586,7 @@ Du behöver inga förkunskaper – våra funktionärer finns på plats och hjäl
         '{}'::jsonb
     ),
     (
-        '3c88e8e8-62dd-42b8-9137-f45ad970b401',
+        '66acc92f-e36d-483e-a5c6-ba2d9ff61115',
         'Träden',
         'Träden',
         'Bänkar att sitta på under träden.',
@@ -1599,7 +1599,7 @@ Du behöver inga förkunskaper – våra funktionärer finns på plats och hjäl
         '{}'::jsonb
     ),
     (
-        'ece176aa-dcec-42c7-b780-7bbb4391a2cf',
+        '418ac649-ad80-4e2c-aa1b-db3733b97938',
         'Upptäckarhubben',
         'Upptäckarhubben',
         '',
@@ -1634,7 +1634,7 @@ Du behöver inga förkunskaper – våra funktionärer finns på plats och hjäl
         }'::jsonb
     ),
     (
-        'c5a86aaa-c138-4245-8ab4-1e715dfb3779',
+        '9d9689a6-d746-4ed5-8376-5633c13fb6e5',
         'Upptäckarhubben - Bikupan',
         'Upptäckarhubben - Bikupan',
         'Bikupan är platsen för fika och umgänge. Här kan du träffa kompisar och ta med dig den där glassen du köpte på caféet!',
@@ -1669,7 +1669,7 @@ Du behöver inga förkunskaper – våra funktionärer finns på plats och hjäl
         }'::jsonb
     ),
     (
-        '25d22074-0806-4745-9f97-7817a781edc7',
+        '1bf09ebd-bce8-4925-9976-74b403a075ab',
         'Upptäckarhubben - Draknästet',
         'Upptäckarhubben - Draknästet',
         'Draknästet är mystältet för dig som bara vill ta det lugnt med kompisarna.',
@@ -1704,7 +1704,7 @@ Du behöver inga förkunskaper – våra funktionärer finns på plats och hjäl
         }'::jsonb
     ),
     (
-        '1dd5a7d9-f108-443c-b278-cb1fb01b8875',
+        'c4ed319f-9c38-4e8d-bf43-78dede2461cf',
         'Upptäckarhubben - Gräset bakom pysslingen',
         'Upptäckarhubben - Gräset bakom pysslingen',
         '',
@@ -1739,7 +1739,7 @@ Du behöver inga förkunskaper – våra funktionärer finns på plats och hjäl
         }'::jsonb
     ),
     (
-        'c2880eae-3277-43d7-a5b2-ddcfb11f7318',
+        'd617bf4f-1e00-4ab4-b6a7-ae90be48c0a0',
         'Upptäckarhubben - infodisken',
         'Upptäckarhubben - infodisken',
         '',
@@ -1774,7 +1774,7 @@ Du behöver inga förkunskaper – våra funktionärer finns på plats och hjäl
         }'::jsonb
     ),
     (
-        '9151b3ad-e8ab-4019-bbcd-d71d8102dde8',
+        '7fef2277-0728-41e0-947d-c487fae3efde',
         'Upptäckarhubben - Korpboet',
         'Upptäckarhubben - Korpboet',
         'Här finns det spel! Vill du utmana kompisen i brädspel är det här platsen för dig!',
@@ -1809,7 +1809,7 @@ Du behöver inga förkunskaper – våra funktionärer finns på plats och hjäl
         }'::jsonb
     ),
     (
-        '0837db91-6195-424e-8691-3faf23df9a52',
+        '1c0bb210-a253-4b61-96e7-47730cb411a9',
         'Upptäckarhubben - Murmeldjuret',
         'Upptäckarhubben - Murmeldjuret',
         'Här är det låg volym som gäller, om du bara vill komma undan en stund.',
@@ -1844,7 +1844,7 @@ Du behöver inga förkunskaper – våra funktionärer finns på plats och hjäl
         }'::jsonb
     ),
     (
-        '0563ef6a-4f77-458e-9f69-c45d1ef491c5',
+        '87afd904-fe20-4ec8-8a0d-325500b60b63',
         'Upptäckarhubben - Pysslingen',
         'Upptäckarhubben - Pysslingen',
         'Här finns pyssel och hantverk. En lugn plats där du kan sitta och pyssla, rita, och hålla på med hantverk som paracord och läder.',
@@ -1879,7 +1879,7 @@ Du behöver inga förkunskaper – våra funktionärer finns på plats och hjäl
         }'::jsonb
     ),
     (
-        'c1c51512-8ab6-4a2f-81bf-57a889133bde',
+        '9a454352-9051-4cc0-afd3-02143d080451',
         'Upptäckarhubben - Scen',
         'Upptäckarhubben - Scen',
         'Upptäckarhubbens scen! Här kommer det att spelas livemusik, spelas musik och presenteras allmän information för alla på hubben.',
@@ -1914,7 +1914,7 @@ Du behöver inga förkunskaper – våra funktionärer finns på plats och hjäl
         }'::jsonb
     ),
     (
-        '185f5091-1e3f-4ad6-b684-c0a0670efe07',
+        '573d544a-5fd7-4c09-b2d6-99050e4dd6ae',
         'Upptäckarhubben - Skogen',
         'Upptäckarhubben - Skogen',
         '',
@@ -1949,7 +1949,7 @@ Du behöver inga förkunskaper – våra funktionärer finns på plats och hjäl
         }'::jsonb
     ),
     (
-        'f816e988-1bee-486c-82d3-783167d155a6',
+        '74862363-f6ad-4a99-ba24-9ac0e62984b4',
         'Upptäckarhubben - Zvampen',
         'Upptäckarhubben - Zvampen',
         'Zvampen är partytältet för dig som gillar musik och dans, här finns det kul musik och en chans att festa loss.',
@@ -1984,7 +1984,7 @@ Du behöver inga förkunskaper – våra funktionärer finns på plats och hjäl
         }'::jsonb
     ),
     (
-        '4ec12c18-9929-45e2-8196-d0062314ed27',
+        '04b97cfd-b591-4e25-9c73-aeb01fba3d16',
         'Utanför lägerområdet',
         'Utanför lägerområdet',
         '',
@@ -1997,7 +1997,7 @@ Du behöver inga förkunskaper – våra funktionärer finns på plats och hjäl
         '{}'::jsonb
     ),
     (
-        'afdf218d-a0c0-4b60-923d-51894d8eccec',
+        '484c6639-6510-44ce-bbe3-a1a023fc5df3',
         'Utmanarhubben - Brädspelstält',
         'Utmanarhubben - Brädspelstält',
         'I Brädspelstältet kan du utmana kompisarna i brädspel, lägga pussel, pyssla eller prova någon av tältets andra aktiviteter. Här finns något för både små och stora grupper, och du är lika välkommen att komma själv som tillsammans med patrullen.',
@@ -2034,7 +2034,7 @@ Du behöver inga förkunskaper – våra funktionärer finns på plats och hjäl
         }'::jsonb
     ),
     (
-        '6cc24219-fe95-49c1-8328-78783742e6f5',
+        'd63f78ab-39df-4302-b843-1ad6e6dc50a6',
         'Utmanarhubben - Cafetält',
         'Utmanarhubben - Cafetält',
         'I Cafétältet kan du köpa fika, snacks och något gott att dricka. Perfekt när du behöver fylla på med energi inför nästa aktivitet eller vill ta med dig något till en fikastund i Paviljongen.',
@@ -2071,7 +2071,7 @@ Du behöver inga förkunskaper – våra funktionärer finns på plats och hjäl
         }'::jsonb
     ),
     (
-        '28fcd1e3-5e23-40a1-ba50-a5cb7d802866',
+        '695afa5a-c622-467d-b7a7-41d9b5ec88f1',
         'Utmanarhubben- Paviljongen',
         'Utmanarhubben- Paviljongen',
         'Paviljongen är Utmanarhubbens naturliga mötesplats för fika och umgänge. Här kan du slå dig ner vid ett bord, träffa vänner, äta det du köpt i Cafétältet och lyssna på Jamboree Radio i bakgrunden.',
@@ -2108,7 +2108,7 @@ Du behöver inga förkunskaper – våra funktionärer finns på plats och hjäl
         }'::jsonb
     ),
     (
-        '803435f5-8544-4521-8302-3cef29c4b254',
+        '5819fc32-18b1-4f16-9ad9-e58d0bb538e8',
         'Utmanarhubben - Stora tältet',
         'Utmanarhubben - Stora tältet',
         'I Stora tältet arrangeras föreläsningar, samtal och större programpunkter. Under kvällarna höjs energin med musik, gemenskap och livligare aktiviteter. Här finns plats för både inspiration, nya perspektiv och riktigt bra häng.',
@@ -2145,7 +2145,7 @@ Du behöver inga förkunskaper – våra funktionärer finns på plats och hjäl
         }'::jsonb
     ),
     (
-        '5a3e5f3a-f12a-4043-8940-4113486433da',
+        '1beaefca-76a1-4806-8b27-713af48b4cb5',
         'Utmanarhubben',
         'Utmanarhubben',
         'Utmanarhubben är en mötesplats för gemenskap, aktiviteter och nya upplevelser. Här kan du träffa nya och gamla vänner, spela spel, fika, lyssna på musik eller bara ta det lugnt en stund. Under dagarna och kvällarna finns något för både den som söker fart och gemenskap och den som behöver en lugn paus.',
@@ -2182,7 +2182,7 @@ Du behöver inga förkunskaper – våra funktionärer finns på plats och hjäl
         }'::jsonb
     ),
     (
-        'bed2dc35-1e4d-4426-a9d0-f9c1731ae493',
+        '75bec7fd-a4f5-439a-9f1d-8fae424c4118',
         'Utmanarhubben- Lilla scenen',
         'Utmanarhubben- Lilla scenen',
         'På Lilla scenen finns alltid något spännande på gång. Här kan du lyssna på inspirerande föreläsningar, tävla i quiz, sjunga karaoke eller upptäcka andra programpunkter. Samla kompisarna och se vad som händer – kanske blir det du som står på scen nästa gång.',
@@ -2219,7 +2219,7 @@ Du behöver inga förkunskaper – våra funktionärer finns på plats och hjäl
         }'::jsonb
     ),
     (
-        '4706fb60-2a9b-42fc-b649-2c7faa84d0e8',
+        '3a8d1d74-4637-4cb7-8cbd-bfd50c206308',
         'Utmanarhubben- Stora scenen',
         'Utmanarhubben- Stora scenen',
         'På Stora scenen händer det där lite extra. Här arrangeras konsert, livemusik, DJ-set, allsång och andra större programpunkter som fyller hubben med energi. Samla kompisarna, slå dig ner framför scenen eller dansa loss – här väntar några av Utmanarhubbens största upplevelser.',
@@ -2232,7 +2232,7 @@ Du behöver inga förkunskaper – våra funktionärer finns på plats och hjäl
         '{}'::jsonb
     ),
     (
-        '5b964ad9-d02a-413e-98d0-c3b72b92d163',
+        '7bcc3778-67ee-4ff4-8344-58ca11471459',
         'Utmanarhubben samtalstält (flera små)',
         'Utmanarhubben samtalstält (flera små)',
         'Samtalstälten är en plats för lugna samtal, reflektion och återhämtning. Här kan du prata med patrullen, lära känna nya vänner eller komma undan från sorlet en stund. I området finns även Hängamattehörnan, och vid Samtalskortsutlämningen kan du låna samtalskort, filtar och annat som gör stunden extra mysig.',
@@ -2269,7 +2269,7 @@ Du behöver inga förkunskaper – våra funktionärer finns på plats och hjäl
         }'::jsonb
     ),
     (
-        '5b0e3005-3345-4146-b1bc-b8545979ac28',
+        '37000293-9705-4f11-a49c-c141c6700386',
         'Ålgrästorget',
         'Ålgrästorget',
         'Stadsdelstorg i Östersjön.',
@@ -2282,7 +2282,7 @@ Du behöver inga förkunskaper – våra funktionärer finns på plats och hjäl
         '{}'::jsonb
     ),
     (
-        'e56b12f0-7d5e-47f3-aa86-9a832be3e185',
+        '92228c5e-1d0e-415c-a41b-35f5435a0a30',
         'Äventyrarhubben',
         'Äventyrarhubben',
         '',
@@ -2317,7 +2317,7 @@ Du behöver inga förkunskaper – våra funktionärer finns på plats och hjäl
         }'::jsonb
     ),
     (
-        '9d19042d-f08a-46d4-884e-c1a8693f8ddf',
+        'f96c094e-f5af-44a5-a4d7-9abb1f144029',
         'Äventyrarhubben - Bubblan',
         'Äventyrarhubben - Bubblan',
         '',
@@ -2352,7 +2352,7 @@ Du behöver inga förkunskaper – våra funktionärer finns på plats och hjäl
         }'::jsonb
     ),
     (
-        '16bc8872-5e30-416b-a71b-05a56731e44e',
+        'd7cf4654-4614-43bf-92b9-73325c18ddb9',
         'Äventyrarhubben - Forskardalen',
         'Äventyrarhubben - Forskardalen',
         '',
@@ -2387,7 +2387,7 @@ Du behöver inga förkunskaper – våra funktionärer finns på plats och hjäl
         }'::jsonb
     ),
     (
-        '0d34c206-664b-4fdd-9cf6-759653f3bc5c',
+        'd359dd73-1b0d-429b-ae3b-5b18a9fa210e',
         'Äventyrarhubben - Livliga Luckan',
         'Äventyrarhubben - Livliga Luckan',
         '',
@@ -2422,7 +2422,7 @@ Du behöver inga förkunskaper – våra funktionärer finns på plats och hjäl
         }'::jsonb
     ),
     (
-        '57a315ab-1270-49e9-98f2-58fb9780e6ea',
+        '82c7de74-1ed1-4018-b56e-330415bf9935',
         'Äventyrarhubben - Ranchen',
         'Äventyrarhubben - Ranchen',
         '',
@@ -2457,7 +2457,7 @@ Du behöver inga förkunskaper – våra funktionärer finns på plats och hjäl
         }'::jsonb
     ),
     (
-        '55043f4b-a2be-48b3-858d-c11dad88de22',
+        'df5460d7-e435-4434-b63e-4755564087f4',
         'Äventyrarhubben - Saloonen',
         'Äventyrarhubben - Saloonen',
         '',
@@ -2492,7 +2492,7 @@ Du behöver inga förkunskaper – våra funktionärer finns på plats och hjäl
         }'::jsonb
     ),
     (
-        '5dc90851-e7c4-4f75-a7f7-9242dabdbd99',
+        '4ed22b2d-1b91-4b45-bc2b-68a19a9f16db',
         'Äventyrarhubben - Skogsgläntan',
         'Äventyrarhubben - Skogsgläntan',
         '',
@@ -2527,7 +2527,7 @@ Du behöver inga förkunskaper – våra funktionärer finns på plats och hjäl
         }'::jsonb
     ),
     (
-        'ac16114d-5336-4915-a862-041ff634cd1b',
+        'db966c21-9b0b-4c91-91dd-dfde4bde651d',
         'Äventyrarhubben - Soliga sällskapshörnan',
         'Äventyrarhubben - Soliga sällskapshörnan',
         '',
@@ -2562,7 +2562,7 @@ Du behöver inga förkunskaper – våra funktionärer finns på plats och hjäl
         }'::jsonb
     ),
     (
-        'c8bfb801-7e01-454d-9e9e-4a775a53cbaa',
+        'fd6e28fd-4f09-450b-8eec-309ab0d8f6b4',
         'Äventyrarhubben - Tågstationen',
         'Äventyrarhubben - Tågstationen',
         '',
