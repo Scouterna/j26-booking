@@ -15,10 +15,9 @@ activities.sql.
 Imported per activity: title, title_en, description, description_en,
 max_attendees (only when "Kraver bokning" is true), start_time, end_time,
 location_id (Plats), its Kategori as an activity_tag link, and
-activity_target_group rows for the Upptackare/Aventyrare/Utmanare/Rover
-columns. Ledare/Funktionarer have no target_group enum value yet; add them to
-TARGET_GROUP_COLUMNS once the enum supports them. "Dold i appen", "Agare" and
-the "Sektion" column of the Platser sheet have nowhere to go and are dropped.
+activity_target_group rows for the Upptackare/Aventyrare/Utmanare/Rover/
+Ledare/Funktionarer columns. "Dold i appen", "Agare" and the "Sektion"
+column of the Platser sheet have nowhere to go and are dropped.
 
 Times in the sheet are camp-local (Europe/Stockholm, UTC+2 during the camp)
 and are converted to UTC before insert, since the activity table stores naive
@@ -72,13 +71,14 @@ DAY_SHEET_NAMES = [
 ]
 
 # Day-sheet columns (0-indexed) whose True/False marks a target group, and the
-# target_group enum value each maps to. Columns 9 (Ledare) and 10
-# (Funktionarer) have no enum value yet -- add them here once they do.
+# target_group enum value each maps to.
 TARGET_GROUP_COLUMNS = [
     (5, "upptackare"),
     (6, "aventyrare"),
     (7, "utmanare"),
     (8, "rover"),
+    (9, "ledare"),
+    (10, "funktionar"),
 ]
 
 # Plats spellings in the day sheets that don't match the Platser sheet but
@@ -485,9 +485,7 @@ def render_activities_sql(
         "-- end_time below are UTC. max_attendees is only set where the sheet",
         "-- marks the activity as \"Kraver bokning\" AND has a numeric Maxantal;",
         "-- an activity is bookable in the app if and only if max_attendees is",
-        "-- set. The sheet's Ledare/Funktionarer columns have no target_group",
-        "-- enum value yet and are dropped; Dold i appen and Agare are dropped",
-        "-- entirely.",
+        "-- set. Dold i appen and Agare are dropped entirely.",
     ]
     if skipped:
         lines.append("--")
