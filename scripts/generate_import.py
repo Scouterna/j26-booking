@@ -1,16 +1,26 @@
-"""Generate the real-import SQL from the "Platser och aktiviteter" workbook.
+"""Generate the real-import SQL from the "Platser och aktiviteter" workbook
+and the badbuss schedule from the "Ide korschema FL" workbook's Appen tab.
 
-Reads the workbook's three kinds of sheets and emits INSERT statements into
-server/priv/import/ (same style as server/priv/seeding/*.sql):
+Emits INSERT statements into server/priv/import/ (same style as
+server/priv/seeding/*.sql):
 
 - "Platser"            -> location rows (+ opening_hours JSONB per date)
 - "Kategorier"         -> activity_tag rows
 - one sheet per day    -> activity rows (+ tag links and target groups)
+- "Appen" (korschema)  -> one beach-bus activity row per departure and day
 
 locations.sql starts by TRUNCATE-ing every app table (bookings, favourites,
 call-offs and users included -- users are upserted again on login), so running
 the import wipes all existing data. Run locations.sql first, then
-activities.sql.
+activities.sql, then badbuss.sql.
+
+The Appen tab is a dateless daily template; the bus runs 26-31 July. Slots
+have no end time -- end_time is set equal to start_time, which the client
+renders as a single clock time. Deviations: on 28/7 (Tillsammansfesten) the
+17:40-19:20 slots use the funktionar-only description and are tagged with
+target_group 'funktionar'; on 31/7 (Avslutning) slots marked "Ej bokningsbar"
+are skipped and the 14:40 slot switches to its 1-hour description. The sheet
+has no English text, so description_en falls back to Swedish.
 
 Imported per activity: title, title_en, description, description_en,
 max_attendees (only when "Kraver bokning" is true), start_time, end_time,
@@ -33,8 +43,9 @@ we get contain font definitions openpyxl refuses to parse.
 
 Requires: pip install python-calamine
 
-Usage: python3 generate_import.py [workbook.xlsx]
-Output: server/priv/import/locations.sql, server/priv/import/activities.sql
+Usage: python3 generate_import.py [program.xlsx [korschema.xlsx]]
+Output: server/priv/import/{locations,activities,badbuss}.sql
+        (badbuss.sql only when the korschema workbook is given)
 """
 
 from __future__ import annotations
@@ -53,6 +64,7 @@ DEFAULT_WORKBOOK_PATH = SCRIPT_DIR / "platser_och_aktiviteter.xlsx"
 OUTPUT_DIR = SCRIPT_DIR.parent / "server" / "priv" / "import"
 LOCATIONS_OUTPUT_PATH = OUTPUT_DIR / "locations.sql"
 ACTIVITIES_OUTPUT_PATH = OUTPUT_DIR / "activities.sql"
+BADBUSS_OUTPUT_PATH = OUTPUT_DIR / "badbuss.sql"
 
 YEAR = 2026
 # The sheet's times are wall-clock times at the camp; the activity table's
@@ -88,6 +100,16 @@ LOCATION_ALIASES = {
     "utmanarhubb-cafetält": "utmanarhubben-cafetält",
     "utmanarhubb-storatältet": "utmanarhubben-storatältet",
 }
+
+# The badbuss (beach-bus) schedule: the korschema workbook's Appen tab is a
+# daily template without dates; these are the days the bus runs.
+BADBUSS_DAYS = [date(YEAR, 7, day) for day in range(26, 32)]
+BADBUSS_TILLSAMMANS_DAY = date(YEAR, 7, 28)  # column "Avvikelser Tillsammman..."
+BADBUSS_AVSLUTNING_DAY = date(YEAR, 7, 31)  # column "Avvikelse Avslutning..."
+BADBUSS_KIND = "beach-bus"
+BADBUSS_TITLE = "Badbuss"
+BADBUSS_TITLE_EN = "Beach Bus"
+NOT_BOOKABLE_MARKER = "ej bokningsbar"
 
 # Placeholders for location fields the spreadsheet doesn't provide.
 DEFAULT_ICON_NAME = "tabler-map-pin"
@@ -352,6 +374,78 @@ def read_activities(wb: CalamineWorkbook) -> tuple[list[dict], list[str], list[s
     return activities, skipped, warnings
 
 
+def read_badbuss_slots(wb: CalamineWorkbook) -> list[dict]:
+    # The Appen tab: row 0 headers, then one row per daily departure until the
+    # TOTALT summary row. Columns: 0 = Kl, 5 = Bokningsbara platser,
+    # 7 = Beskrivning till app, 8 = deviation on Tillsammansfesten 28/7,
+    # 9 = deviation on Avslutning 31/7. Columns 1-4 (Slot, Turer, Antal
+    # bussar, Platser per slot) are bus logistics and unused.
+    slots = []
+    for row in sheet_rows(wb, "Appen")[1:]:
+        departure = parse_time_cell(row[0])
+        if departure is None:
+            continue
+        max_attendees, unusable_max = parse_max_attendees(row[5])
+        if max_attendees is None:
+            raise ValueError(
+                f"Appen {departure}: Bokningsbara platser is {unusable_max}"
+            )
+        slots.append(
+            {
+                "departure": departure,
+                "max_attendees": max_attendees,
+                "description": cell_str(row[7]) or "",
+                "tillsammans_deviation": cell_str(row[8]),
+                "avslutning_deviation": cell_str(row[9]),
+            }
+        )
+    return slots
+
+
+def expand_badbuss_slots(slots: list[dict]) -> tuple[list[dict], list[str]]:
+    """One activity per departure and bus day, applying the per-day
+    deviation columns."""
+    activities = []
+    warnings = []
+    for day in BADBUSS_DAYS:
+        for slot in slots:
+            description = slot["description"]
+            target_groups = []
+            if day == BADBUSS_TILLSAMMANS_DAY and slot["tillsammans_deviation"]:
+                description = slot["tillsammans_deviation"]
+                target_groups = ["funktionar"]
+            if day == BADBUSS_AVSLUTNING_DAY and slot["avslutning_deviation"]:
+                if (
+                    slot["avslutning_deviation"].casefold()
+                    == NOT_BOOKABLE_MARKER
+                ):
+                    warnings.append(
+                        f"badbuss {day.isoformat()} {slot['departure']}: "
+                        '"Ej bokningsbar" on Avslutning; slot skipped'
+                    )
+                    continue
+                description = slot["avslutning_deviation"]
+            start = to_utc(day, slot["departure"])
+            activities.append(
+                {
+                    "id": new_id(),
+                    "title": BADBUSS_TITLE,
+                    "title_en": BADBUSS_TITLE_EN,
+                    "description": description,
+                    # No English text in the korschema workbook; fall back to
+                    # Swedish like the program import does.
+                    "description_en": description,
+                    "max_attendees": slot["max_attendees"],
+                    "start": start,
+                    # The sheet has no end times; start == end renders as a
+                    # single clock time in the client (SameDaySameTime).
+                    "end": start,
+                    "target_groups": target_groups,
+                }
+            )
+    return activities, warnings
+
+
 def find_duplicates(activities: list[dict]) -> list[str]:
     seen = {}
     for activity in activities:
@@ -572,8 +666,75 @@ def render_activities_sql(
     return "\n".join(lines)
 
 
+def render_badbuss_sql(activities: list[dict], skipped: list[str]) -> str:
+    lines = [
+        "-- Generated by scripts/generate_import.py from the Ide korschema FL",
+        "-- workbook's Appen tab. Do not edit by hand; re-run the generator",
+        "-- instead.",
+        "--",
+        "-- Run after locations.sql (which wipes all data) and activities.sql.",
+        "--",
+        "-- One beach-bus activity per departure and bus day (26-31 July). The",
+        "-- sheet has no end times, so end_time = start_time (rendered as a",
+        "-- single clock time), and no English text, so description_en falls",
+        "-- back to Swedish. max_attendees is the sheet's Bokningsbara platser.",
+        "-- On 28/7 the evening slots are funktionar-only; on 31/7 the slots",
+        "-- marked \"Ej bokningsbar\" are omitted:",
+    ]
+    for entry in skipped:
+        lines.append(f"--   {entry}")
+    lines.append("")
+
+    values = []
+    for activity in activities:
+        values.append(
+            "    (\n"
+            f"        {sql_str(activity['id'])},\n"
+            f"        {sql_str(activity['title'])},\n"
+            f"        {sql_str(activity['title_en'])},\n"
+            f"        {sql_str(activity['description'])},\n"
+            f"        {sql_str(activity['description_en'])},\n"
+            f"        {sql_int(activity['max_attendees'])},\n"
+            f"        {sql_timestamp(activity['start'])},\n"
+            f"        {sql_timestamp(activity['end'])},\n"
+            f"        {sql_str(BADBUSS_KIND)}\n"
+            "    )"
+        )
+    lines.append(
+        "INSERT INTO activity (\n"
+        "        id,\n"
+        "        title,\n"
+        "        title_en,\n"
+        "        description,\n"
+        "        description_en,\n"
+        "        max_attendees,\n"
+        "        start_time,\n"
+        "        end_time,\n"
+        "        recurring_activity_kind\n"
+        "    )\n"
+        "VALUES\n" + ",\n".join(values) + ";"
+    )
+    lines.append("")
+
+    group_values = [
+        f"    ({sql_str(activity['id'])}, {sql_str(group)})"
+        for activity in activities
+        for group in activity["target_groups"]
+    ]
+    if group_values:
+        lines.append(
+            "-- The funktionar-only evening slots on Tillsammansfesten 28/7.\n"
+            "INSERT INTO activity_target_group (activity_id, target_group)\n"
+            "VALUES\n" + ",\n".join(group_values) + ";"
+        )
+        lines.append("")
+
+    return "\n".join(lines)
+
+
 def main() -> None:
     workbook_path = Path(sys.argv[1]) if len(sys.argv) > 1 else DEFAULT_WORKBOOK_PATH
+    korschema_path = Path(sys.argv[2]) if len(sys.argv) > 2 else None
     wb = CalamineWorkbook.from_path(workbook_path)
 
     locations = read_locations(wb)
@@ -601,6 +762,20 @@ def main() -> None:
         f"({tag_link_count} tag links, {group_count} target-group rows) "
         f"-> {ACTIVITIES_OUTPUT_PATH}"
     )
+    if korschema_path is not None:
+        korschema_wb = CalamineWorkbook.from_path(korschema_path)
+        slots = read_badbuss_slots(korschema_wb)
+        badbuss, badbuss_skipped = expand_badbuss_slots(slots)
+        BADBUSS_OUTPUT_PATH.write_text(
+            render_badbuss_sql(badbuss, badbuss_skipped)
+        )
+        funk_count = sum(len(a["target_groups"]) for a in badbuss)
+        print(
+            f"Wrote {len(badbuss)} badbuss slots from {len(slots)} daily "
+            f"departures over {len(BADBUSS_DAYS)} days ({funk_count} "
+            f"funktionar-only, {len(badbuss_skipped)} skipped on Avslutning) "
+            f"-> {BADBUSS_OUTPUT_PATH}"
+        )
     print(f"{len(missing_coords)} locations have no coordinates (left NULL)")
     if skipped:
         print(f"Skipped {len(skipped)} activities missing start/end time:")
