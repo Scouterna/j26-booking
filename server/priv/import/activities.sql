@@ -8,9 +8,7 @@
 -- end_time below are UTC. max_attendees is only set where the sheet
 -- marks the activity as "Kraver bokning" AND has a numeric Maxantal;
 -- an activity is bookable in the app if and only if max_attendees is
--- set. The sheet's Ledare/Funktionarer columns have no target_group
--- enum value yet and are dropped; Dold i appen and Agare are dropped
--- entirely.
+-- set. Dold i appen and Agare are dropped entirely.
 --
 -- Skipped (missing start/end time in the sheet):
 --   25 juli: Reflektera på Bönetorget (missing start/end time)
@@ -68,82 +66,82 @@
 INSERT INTO activity_tag (id, name, name_en)
 VALUES
     (
-        '720d266e-38a6-4686-b68f-09e1512bc96d',
+        'aa9ae11c-ac6a-4d1d-a462-d4087d5236f0',
         'Återträffar',
         'Återträffar'
     ),
     (
-        '169bb890-b034-4c69-81fb-1a20358e83fa',
+        '669610ae-e145-46b2-9f6f-ab964b45e919',
         'Samtal',
         'Samtal'
     ),
     (
-        '459a4902-2100-4b7d-9474-0cbf07c95250',
+        'e72cb193-a1e8-4244-81ea-008e44e272b1',
         'Fysisk aktivitet',
         'Fysisk aktivitet'
     ),
     (
-        '19f116a9-53d6-4804-bf72-96fcc346dbd6',
+        '49b767d1-bf90-4d0c-be9b-abe5f2cb43cf',
         'Workshop',
         'Workshop'
     ),
     (
-        '65b237f1-2acb-457c-99b8-c64024eed172',
+        '5246c5d2-f2d3-4fc1-9232-054105c1fe02',
         'Föreläsning',
         'Föreläsning'
     ),
     (
-        '1a914051-79e1-43bf-998f-96b159b1aa0c',
+        '56241fb6-fd2c-4c88-9b00-42aa1bf66b86',
         'Hantverk',
         'Hantverk'
     ),
     (
-        'a7207eac-2526-4ec1-88b7-a6d3b4e8fd2c',
+        'a84cd579-8020-43d0-a2e3-7970cbfdc1fa',
         'Utbildning',
         'Utbildning'
     ),
     (
-        '0aecf569-9165-4a37-8fd2-a4e897bee7e2',
+        'ca6e7403-02eb-429e-b034-372732d9e010',
         'Underhållning',
         'Underhållning'
     ),
     (
-        '9ec16055-f735-4768-a400-65e6cb388c6f',
+        'ec5b2e78-a977-438f-b33c-2c39039f7903',
         'Programaktivitet',
         'Programaktivitet'
     ),
     (
-        'dc493f30-2e4a-41fb-9375-2ee408043aa8',
+        'fa971a25-50d5-4956-81ae-572a5dbd9c1b',
         'Invigning',
         'Invigning'
     ),
     (
-        'bd01fdd9-6c07-44d1-a0ef-e2b0ef499a1e',
+        'bc81293e-9a2c-4b83-95f5-518144be5d4a',
         'Psykisk hälsa',
         'Psykisk hälsa'
     ),
     (
-        '33d95c9b-83b8-464c-aef8-95bc702adc7e',
+        '2c183c7f-a67f-4811-8c90-af5317825510',
         'Andlig aktivitet',
         'Andlig aktivitet'
     ),
     (
-        'c09a94c0-c244-490b-994f-01fe0b0d919c',
+        'b3990bd3-82a9-452a-ac13-d304cce0e771',
         'Dans',
         'Dans'
     ),
     (
-        'ecd20aba-dd59-4b37-b6ed-71beb9ad95b3',
+        '4b9ebcea-07aa-4d8a-8c0c-f39f1e0ff4fa',
         'Speed date',
         'Speed date'
     ),
     (
-        '97427141-5463-4e5c-a50e-f5cbf7b38086',
+        '59286979-bec5-409d-81a8-570517e0049c',
         'Tema',
         'Tema'
     ),
     (
-        'dea8b5ec-37f8-4a0f-92b7-54952ce0fd60',
+        '62c2167d-4a74-4a17-9543-7fdddaa4596f',
         'Lek',
         'Lek'
     );
@@ -161,7 +159,7 @@ INSERT INTO activity (
     )
 VALUES
     (
-        '004c002e-19c7-4dbd-b726-084601be54ae',
+        '58278fcb-4aec-41ef-8203-e7d58d1a6ca3',
         'Speed date - vad vill du förändra i samhället?',
         'Speed date - what would you like to change in society?',
         'Tre minuter. En person. En fråga: vad vill du förändra?
@@ -173,10 +171,10 @@ You don''t need to have all the answers. A thought is enough.',
         NULL,
         '2026-07-25 14:00:00',
         '2026-07-25 15:00:00',
-        '8457d5f0-bcae-424b-91d6-69cc47259e48'
+        '5ef6c219-43f8-43d4-ad73-55afcf6a44ae'
     ),
     (
-        '34852307-3afe-4fba-91f8-d8a6be8b3fe3',
+        '5faece95-29aa-4644-b2dc-3593f2ef0612',
         'Deeptalk: Nya ideal, gamla mönster - vad händer med jämställdheten 2026?',
         'Deep-talk: New Ideals, Old Patterns: Where Is Gender Equality Headed in 2026?',
         'Hur jämställda är vi egentligen i kåren, i skolan och i samhället? I det här Deep-talket pratar vi om hur nya ideal och gamla mönster krockar, och vad det gör med hur vi ser på kön, val och ansvar.
@@ -191,10 +189,10 @@ An open evening conversation where we speak honestly, listen to each other, and 
         NULL,
         '2026-07-25 19:00:00',
         '2026-07-25 20:00:00',
-        '8457d5f0-bcae-424b-91d6-69cc47259e48'
+        '5ef6c219-43f8-43d4-ad73-55afcf6a44ae'
     ),
     (
-        'f5b7e999-37cb-4a30-b6e2-7220c157cca5',
+        '1ffd28a8-4c42-458b-bc27-648fb6618223',
         'Internationell 5-kamp',
         'International pentathlon',
         'Samla ihop ett lag på 5 personer bestående av minst två olika nationaliteter och tävla mot andra lag i internationella lekar!',
@@ -202,10 +200,10 @@ An open evening conversation where we speak honestly, listen to each other, and 
         NULL,
         '2026-07-25 13:00:00',
         '2026-07-25 13:40:00',
-        '572671ce-7f67-4e16-8f32-5bda9bb2e5e7'
+        '10952f43-79b5-436d-bb7f-c7337f4ab7e6'
     ),
     (
-        'ce6de84a-4ba8-4e0f-b5a6-9e7d8660a7c5',
+        '01a8a1f8-1233-4f9e-8d3e-53c25d78ecf1',
         'Arrivo',
         'Rover opening night',
         'Kickstarta Roverprogrammet med oss! På rovers alldeles egna invigning kommer ni får lära er mer om roverprogrammet, hur veckan kommer fungera, information om roverhubben och massa mer!',
@@ -213,10 +211,10 @@ An open evening conversation where we speak honestly, listen to each other, and 
         NULL,
         '2026-07-25 18:00:00',
         '2026-07-25 19:00:00',
-        '5eb0c54b-63c0-4331-8b60-1c4c5754b0c4'
+        '59ec49f9-ffcd-44ca-9ece-defa8b503fa0'
     ),
     (
-        '4165f541-21a7-407f-abab-55824ece5908',
+        'ca0cd3c2-5da4-45f0-b289-a8f2f6aaa35a',
         'Kartkampen',
         'The Map Battle',
         'Vilken åldersgrupp kan vinna flest kartdelar? På varje torg finns en aktivitet utplacerad. Genomför den för att få sätta upp en pin i åldersgruppens färg på kartområdet. Åldersgruppen som i slutet av dagen kontrollerar flest områden på kartan blir dagens vinnare. Varje ny dag börjar kampen om från början',
@@ -225,10 +223,10 @@ An activity is located at each square. Complete the activity to place a pin in y
         NULL,
         '2026-07-25 12:00:00',
         '2026-07-25 19:00:00',
-        'eb304d4b-3ef9-400c-b216-d94927081760'
+        'f50f4431-4e79-4d3c-a52e-4e556e8be09f'
     ),
     (
-        'd27ce94f-3d06-4ffa-9062-9fc73b406055',
+        '05cc4aaa-5215-4d96-acc4-24a803b076ba',
         'Öppet hus - Känn Pulsen',
         'Open House - Feel the beat',
         'Välkommen förbi att kika in i Pulsen - se veckans aktiviteter och få koll på alla groovy aktiviteter!',
@@ -236,10 +234,10 @@ An activity is located at each square. Complete the activity to place a pin in y
         NULL,
         '2026-07-25 12:00:00',
         '2026-07-25 15:00:00',
-        'b1298fd2-c01a-4469-a1f2-bbd25bb9d908'
+        'accfffb4-5ccc-4ed3-bb28-a82f88440b92'
     ),
     (
-        '6763fee7-496c-444d-9a76-13da3895cb64',
+        'e2c62742-b56d-4461-aadf-d0b217c4cb24',
         'Quiz: Musikquiz, det som varit och det som är',
         'Quiz: Music quiz, what is and shall be',
         '',
@@ -247,10 +245,10 @@ An activity is located at each square. Complete the activity to place a pin in y
         NULL,
         '2026-07-25 20:00:00',
         '2026-07-25 21:00:00',
-        'f96bb333-7390-40d1-92a3-29b7b3fbeb16'
+        '2b32a9d9-da57-40f4-ba95-6e6de28ed846'
     ),
     (
-        '35ec03e5-2280-47c9-994c-ef17e35a2ec0',
+        'cd54dab7-227a-4526-831e-820d42101c8d',
         'Öppet hus - Själen i ditt hjärta',
         'Open House - The Soul in Your Heart',
         'Välkommen förbi att kika in i Själen - se veckans aktiviteter och få koll på alla själavårdande aktiviteter!',
@@ -258,10 +256,10 @@ An activity is located at each square. Complete the activity to place a pin in y
         NULL,
         '2026-07-25 12:00:00',
         '2026-07-25 15:00:00',
-        '556a6e3c-62b3-4c9a-8720-4cee10542d9f'
+        '8e335d16-2369-474d-b774-d16f9e44b0fe'
     ),
     (
-        'a28289a5-9490-4ede-acf0-5a27d13cdfa7',
+        'd333487e-2324-4afa-967e-7a8ab6d4306b',
         'Lekaktiviteter',
         'Lekaktiviteter',
         'Hämta fotboll, rockring, hopprep, gagaboll boll m.m och spela med patrullkompisar eller nya vänner',
@@ -269,10 +267,10 @@ An activity is located at each square. Complete the activity to place a pin in y
         NULL,
         '2026-07-25 12:00:00',
         '2026-07-25 19:00:00',
-        'ece176aa-dcec-42c7-b780-7bbb4391a2cf'
+        '418ac649-ad80-4e2c-aa1b-db3733b97938'
     ),
     (
-        '3df42c5b-66a0-4dcc-b914-950f06fd8dd0',
+        '04fb21ac-be67-4314-b759-714cc57fe1cc',
         'Bubbelballs',
         'Bubbelballs',
         'Studsa runt i stora uppblåsbara bollar! Bokning sker på plats i hubben',
@@ -280,10 +278,10 @@ An activity is located at each square. Complete the activity to place a pin in y
         NULL,
         '2026-07-25 12:00:00',
         '2026-07-25 19:00:00',
-        'ece176aa-dcec-42c7-b780-7bbb4391a2cf'
+        '418ac649-ad80-4e2c-aa1b-db3733b97938'
     ),
     (
-        'fc8edeeb-d4fb-415f-a6ba-83b2587b9609',
+        'e483e13b-6017-4773-897f-0b9bb3396c39',
         'Godnattsaga',
         'Godnattsaga',
         'Avsluta dagen med en mysig godnattsaga i upptäckarhubben',
@@ -291,10 +289,10 @@ An activity is located at each square. Complete the activity to place a pin in y
         NULL,
         '2026-07-25 18:30:00',
         '2026-07-25 19:00:00',
-        '25d22074-0806-4745-9f97-7817a781edc7'
+        '1bf09ebd-bce8-4925-9976-74b403a075ab'
     ),
     (
-        '796c7d6d-d7ea-407c-b02e-74df22241290',
+        '00b282e8-3804-4643-9f40-7d1a19982e0a',
         'Må-bra-kåsan',
         'Må-bra-kåsan',
         'Genom några tankeväckande övningar får du under den här aktiviteten fokusera på hur du kan stärka ditt eget mående. När du är klar med alla aktiviteter får du hämta ut en kåsa i upptäckarhubbens infodisk med självstärkande, peppande budskap från olika organisationer som på olika sätt arbetar med att stärka barn och ungas psykiska hälsa.',
@@ -302,10 +300,10 @@ An activity is located at each square. Complete the activity to place a pin in y
         NULL,
         '2026-07-25 12:00:00',
         '2026-07-25 19:00:00',
-        'c2880eae-3277-43d7-a5b2-ddcfb11f7318'
+        'd617bf4f-1e00-4ab4-b6a7-ae90be48c0a0'
     ),
     (
-        'a0aa7e9b-c4c2-4a8a-9d7b-3cd0b71beaca',
+        'c2d6cdea-13c5-4dd5-91c6-9acac8246f3a',
         'Känslokartan',
         'Känslokartan',
         '',
@@ -313,10 +311,10 @@ An activity is located at each square. Complete the activity to place a pin in y
         NULL,
         '2026-07-25 12:00:00',
         '2026-07-25 19:00:00',
-        '9151b3ad-e8ab-4019-bbcd-d71d8102dde8'
+        '7fef2277-0728-41e0-947d-c487fae3efde'
     ),
     (
-        'a0ac13b6-13a1-492e-be9c-314019ac1b64',
+        'fcf976d0-795d-45b9-8453-1227555b920d',
         'Brädspel',
         'Brädspel',
         'Brädspel',
@@ -324,10 +322,10 @@ An activity is located at each square. Complete the activity to place a pin in y
         NULL,
         '2026-07-25 12:00:00',
         '2026-07-25 19:00:00',
-        '9151b3ad-e8ab-4019-bbcd-d71d8102dde8'
+        '7fef2277-0728-41e0-947d-c487fae3efde'
     ),
     (
-        '8ae19ed6-4f64-4bcc-9a24-478ed28a82e0',
+        '82f42079-2bc4-4e2f-88b9-3dcd378623f4',
         'Cybersäkerhet med Unga forskare',
         'Cybersäkerhet med Unga forskare',
         'Testa på spännande aktiviteter med Unga Forskare!',
@@ -335,10 +333,10 @@ An activity is located at each square. Complete the activity to place a pin in y
         NULL,
         '2026-07-25 07:00:00',
         '2026-07-25 15:00:00',
-        '9151b3ad-e8ab-4019-bbcd-d71d8102dde8'
+        '7fef2277-0728-41e0-947d-c487fae3efde'
     ),
     (
-        '6f3c0f8f-d80f-4e0c-a9e1-0c62e746c624',
+        '1f71e256-e0b9-4f39-bf56-0ccf1c1d8e5d',
         'Knoprep',
         'Knoprep',
         'Knoprep och instruktion finns för att lära sig en ny knop',
@@ -346,10 +344,10 @@ An activity is located at each square. Complete the activity to place a pin in y
         NULL,
         '2026-07-25 12:00:00',
         '2026-07-25 19:00:00',
-        '0563ef6a-4f77-458e-9f69-c45d1ef491c5'
+        '87afd904-fe20-4ec8-8a0d-325500b60b63'
     ),
     (
-        '0c22d135-54e6-424a-9f12-129853251fde',
+        'd9462687-7588-4341-a053-7472570c3222',
         'Tillsammans målning',
         'Tillsammans målning',
         'Hjälp till att skapa en målning tillsammans. Rita något på tavlan som betyder jamboree för dig.',
@@ -357,10 +355,10 @@ An activity is located at each square. Complete the activity to place a pin in y
         NULL,
         '2026-07-25 12:00:00',
         '2026-07-25 19:00:00',
-        '0563ef6a-4f77-458e-9f69-c45d1ef491c5'
+        '87afd904-fe20-4ec8-8a0d-325500b60b63'
     ),
     (
-        '3ad83178-7483-401f-b21e-870936db2376',
+        '2c8158cd-513d-46da-9425-128b2ea1e522',
         'Halmpool',
         'Halmpool',
         'Hoppa ner i halmen, kan du hitta nålen i halmstacken?',
@@ -368,10 +366,10 @@ An activity is located at each square. Complete the activity to place a pin in y
         NULL,
         '2026-07-25 12:00:00',
         '2026-07-25 19:00:00',
-        '185f5091-1e3f-4ad6-b684-c0a0670efe07'
+        '573d544a-5fd7-4c09-b2d6-99050e4dd6ae'
     ),
     (
-        '1160f5d9-c54d-4de3-a58e-64cfb5818cec',
+        '8d0fad3e-2cc2-4784-871e-a47c946e3770',
         'Slankaruseller',
         'Slankaruseller',
         'Åk på en karusell byggd av slanor.',
@@ -379,10 +377,10 @@ An activity is located at each square. Complete the activity to place a pin in y
         NULL,
         '2026-07-25 12:00:00',
         '2026-07-25 19:00:00',
-        '185f5091-1e3f-4ad6-b684-c0a0670efe07'
+        '573d544a-5fd7-4c09-b2d6-99050e4dd6ae'
     ),
     (
-        '29ee2cec-a901-4ff9-b1f3-9265cba92c77',
+        '75a9a95d-360d-4428-8bf4-fd7a8bcf29dd',
         'VR-glasögon',
         'VR-headset',
         'Välkommen till tältet Klartänkt och Drogfri. Prova olika VR-aktiviteter, utmana varandra och dig själv',
@@ -390,10 +388,10 @@ An activity is located at each square. Complete the activity to place a pin in y
         NULL,
         '2026-07-25 13:00:00',
         '2026-07-25 19:00:00',
-        '6491fa9b-418a-4d26-b8ff-f92267fb5b7d'
+        '9d1275be-7f8b-4567-8616-8c3d0a319a52'
     ),
     (
-        '322a000d-6a7c-4d60-89f1-69ae3304ca7c',
+        'b9b5abdd-3cf0-4077-910f-55e2de11968f',
         'Aktivitetstombola',
         'Activity tombola',
         'I aktivitetstombolan finns mängder med roliga aktiviteter. Ni snurrar på tombolan, får en utmaning eller aktivitet och sedan genomför ni den!',
@@ -401,10 +399,10 @@ An activity is located at each square. Complete the activity to place a pin in y
         NULL,
         '2026-07-25 13:00:00',
         '2026-07-25 19:00:00',
-        '6491fa9b-418a-4d26-b8ff-f92267fb5b7d'
+        '9d1275be-7f8b-4567-8616-8c3d0a319a52'
     ),
     (
-        'f55cf1a6-b0ea-4240-8b78-b2e32cd0ffa6',
+        '4014e912-9b13-4145-8fda-a70a9ed12de4',
         'Klartänkt - Spel och aktiviteter',
         'Clear minds - Games and activities',
         'Här kan du prova på vår nya kortlek, spela spel i vår myshörna eller bara ladda powerbankem och sitta och chilla en stund.',
@@ -412,10 +410,10 @@ An activity is located at each square. Complete the activity to place a pin in y
         NULL,
         '2026-07-25 13:00:00',
         '2026-07-25 19:00:00',
-        '6491fa9b-418a-4d26-b8ff-f92267fb5b7d'
+        '9d1275be-7f8b-4567-8616-8c3d0a319a52'
     ),
     (
-        '27690871-a249-4361-a84e-fbd778a5c229',
+        'b8d715b0-2642-42ab-8ab4-1afb32f4adb4',
         'Tryck tröjor',
         'Print shirts',
         'Ta med dig en tröja, köp ett tryck och skapa din egen coola tröja, (eller valfritt plagg) i vår tröjtryck. Kostnad 15 kr.',
@@ -423,10 +421,10 @@ An activity is located at each square. Complete the activity to place a pin in y
         NULL,
         '2026-07-25 13:00:00',
         '2026-07-25 19:00:00',
-        '6491fa9b-418a-4d26-b8ff-f92267fb5b7d'
+        '9d1275be-7f8b-4567-8616-8c3d0a319a52'
     ),
     (
-        'b96c164b-6584-4a75-9c84-dff11e90aec2',
+        '26b7b073-6621-4fea-9099-eff31f926e96',
         'Världsförbättrare & Världens Barn',
         'World improvers and "Världens Barn"',
         'Lär dig mer om IOGT-NTO International och deras arbete/projekt i Uganda med UGGA. Tillsammans förbättrar vi scouter världen!',
@@ -434,10 +432,10 @@ An activity is located at each square. Complete the activity to place a pin in y
         NULL,
         '2026-07-25 13:00:00',
         '2026-07-25 19:00:00',
-        '6491fa9b-418a-4d26-b8ff-f92267fb5b7d'
+        '9d1275be-7f8b-4567-8616-8c3d0a319a52'
     ),
     (
-        '69ea6b66-7d58-4e0d-ba1f-e003f19cca06',
+        '248bf0b3-e2e5-495d-b360-8ca3e8ee4a1b',
         'Gör din egen pin',
         'Make you own pin',
         'Tillverka en egen pin i pinmaskinen, det finns olika motiv att välja på.',
@@ -445,10 +443,10 @@ An activity is located at each square. Complete the activity to place a pin in y
         NULL,
         '2026-07-25 13:00:00',
         '2026-07-25 19:00:00',
-        '6491fa9b-418a-4d26-b8ff-f92267fb5b7d'
+        '9d1275be-7f8b-4567-8616-8c3d0a319a52'
     ),
     (
-        '1366c587-66e0-4f33-b05d-98a980e0264b',
+        '2d41316d-85b5-45ff-ae76-16a6735cd663',
         '15-spel CAN',
         '15 games CAN',
         'CAN, centalförbundet för alkohol och narkotikaupplysning utmanar er i ett 15-spel från deras arbete "ANTDS på Schemat"',
@@ -456,10 +454,10 @@ An activity is located at each square. Complete the activity to place a pin in y
         NULL,
         '2026-07-25 13:00:00',
         '2026-07-25 19:00:00',
-        '6491fa9b-418a-4d26-b8ff-f92267fb5b7d'
+        '9d1275be-7f8b-4567-8616-8c3d0a319a52'
     ),
     (
-        '5c0b00bf-5b7a-42b0-b3cf-657dfb2e4e3b',
+        'b26f486b-e47f-4c8f-9857-666a18381de4',
         'Försäljning av märken och kortlekar',
         'Badges and card games for sale',
         'I tältet kan du köpa Klartänk reflektionskortlekar på både svenska och engelska. Ett begränsat antal märken finns också till försäljning. Kostnad mellan 10 kr och 50 kr.',
@@ -467,10 +465,10 @@ An activity is located at each square. Complete the activity to place a pin in y
         NULL,
         '2026-07-25 13:00:00',
         '2026-07-25 19:00:00',
-        '6491fa9b-418a-4d26-b8ff-f92267fb5b7d'
+        '9d1275be-7f8b-4567-8616-8c3d0a319a52'
     ),
     (
-        'fc13f168-f4a1-4b6b-9be3-044242fb26da',
+        'cceceab0-b39e-41ed-8843-e83a1f6fcfd7',
         'Våga lyssna fördjupning',
         'Dare to listen: In-depth look',
         '​​Våga lyssna fördjupning är en fördjupande workshop för scoutledare som fokuserar på att fördjupa kunskaper och öva på olika verktyg från webbkursen Våga lyssna. Målet är att känna större trygghet i att hålla samtal om mående och känslor med barn och unga.  Workshopen leds av Trygga mötens samtalsledare.',
@@ -478,10 +476,10 @@ An activity is located at each square. Complete the activity to place a pin in y
         NULL,
         '2026-07-26 12:30:00',
         '2026-07-26 14:30:00',
-        'b127cecb-c982-4d23-918d-1dbd9b4ca894'
+        '801217b7-0c0a-44d5-8ac7-a153aa3fbba4'
     ),
     (
-        '84254ff1-db71-4de9-ace1-c3991c9ccf2e',
+        'f1514c55-0c7a-46da-8e50-9673884b1239',
         'Påverka på riktigt: när de vanliga vägarna inte räcker',
         'Real influence: when the traditional ways aren´t enough',
         'Alla partier känns lika kassa. Ingen lyssnar. Vad kan man göra  då?
@@ -497,10 +495,10 @@ You will leave with a better understanding of how political systems work and whe
         NULL,
         '2026-07-26 08:00:00',
         '2026-07-26 09:00:00',
-        '8457d5f0-bcae-424b-91d6-69cc47259e48'
+        '5ef6c219-43f8-43d4-ad73-55afcf6a44ae'
     ),
     (
-        '47d71c34-aebd-4772-96a3-121bf61583f8',
+        'e3b3fe4e-93b8-46d0-8978-146bfefff074',
         'Quiz',
         'Quiz',
         'Kom och var med på quiz! Spela själv eller i lag.',
@@ -508,10 +506,10 @@ You will leave with a better understanding of how political systems work and whe
         NULL,
         '2026-07-26 14:00:00',
         '2026-07-26 14:30:00',
-        '572671ce-7f67-4e16-8f32-5bda9bb2e5e7'
+        '10952f43-79b5-436d-bb7f-c7337f4ab7e6'
     ),
     (
-        '2004235b-7edf-48da-9ef0-003545cbe2c7',
+        '77b4262b-f494-4534-ae0e-bf991570f165',
         'Hinderbanerace upptäckare',
         'Hinderbanerace upptäckare',
         'Spring i hinderbanan på tid, se vem som kommer först fram!',
@@ -519,10 +517,10 @@ You will leave with a better understanding of how political systems work and whe
         NULL,
         '2026-07-26 12:00:00',
         '2026-07-26 14:00:00',
-        '4c7b7935-d991-4e9f-b4e9-6f8a30543524'
+        '099c83ea-b1f3-43fd-9a3a-013bc1c024a5'
     ),
     (
-        'fc362d1b-a5ff-4331-9662-7abada6031d6',
+        '1305466e-0b0c-4d29-a832-24a2c170a027',
         'Klättervägg',
         'Climbing',
         'Välkommen att prova klättring i Hjärtat! Ta dig upp längs utsiktstornets väggar och njut av utsikten över lägerplatsen från ovan. Här finns klätterbanor för både nybörjare och vana klättrare.',
@@ -530,10 +528,10 @@ You will leave with a better understanding of how political systems work and whe
         NULL,
         '2026-07-26 06:30:00',
         '2026-07-26 15:30:00',
-        '5094c36d-3f40-4d41-8070-1046bc015799'
+        'dc8255e8-e563-4d09-b073-e0ecd24e8423'
     ),
     (
-        'ad9d3e04-83a6-48f8-9734-8455a9b97c94',
+        '12b2b52c-cf5c-4919-8e93-6e9d45df32e1',
         'Upptäckarsamtal',
         'Explorer scout leader gathering',
         'Slå dig ner vid lägerelden och möt upptäckarledare från hela landet, dela erfarenheter, hämta inspiration och skapa nya kontakter.',
@@ -541,10 +539,10 @@ You will leave with a better understanding of how political systems work and whe
         NULL,
         '2026-07-26 08:00:00',
         '2026-07-26 09:00:00',
-        'eb304d4b-3ef9-400c-b216-d94927081760'
+        'f50f4431-4e79-4d3c-a52e-4e556e8be09f'
     ),
     (
-        'fc1f4497-a585-4f56-bfcc-8653648c8f49',
+        'bf006af9-0d1f-49cf-a63e-56bd67a8be08',
         'Äventyrararsamtal',
         'Adventurer scout leader gathering',
         'Slå dig ner vid lägerelden och möt Äventyrarledare från hela landet, dela erfarenheter, hämta inspiration och skapa nya kontakter.',
@@ -552,10 +550,10 @@ You will leave with a better understanding of how political systems work and whe
         NULL,
         '2026-07-26 12:00:00',
         '2026-07-26 13:00:00',
-        'eb304d4b-3ef9-400c-b216-d94927081760'
+        'f50f4431-4e79-4d3c-a52e-4e556e8be09f'
     ),
     (
-        'c220e412-6cf1-4dc0-a94f-afd88b1b5d57',
+        '0741e7ef-4a36-4881-a068-04d37d15179e',
         'Leda Scouting - Spork del 1',
         'Leda Scouting - Spork del 1',
         'Leda scouting är kursen för dig som vill förstå vad scouting är och hur du skapar verksamhet där scouter får växa, utmanas och ha roligt tillsammans. Här får du inspiration, konkreta verktyg och nya perspektiv på ledarskap i Scouterna. Anmälan via Scoutnet senast 17 juli.',
@@ -563,10 +561,10 @@ You will leave with a better understanding of how political systems work and whe
         NULL,
         '2026-07-26 07:00:00',
         '2026-07-26 10:00:00',
-        'b1298fd2-c01a-4469-a1f2-bbd25bb9d908'
+        'accfffb4-5ccc-4ed3-bb28-a82f88440b92'
     ),
     (
-        '827276ef-27da-409d-813a-eab2495e8ac6',
+        'c9ff690f-c992-47c1-99df-b0ac7b67a20e',
         'Leda Scouting - Tamoj del 1',
         'Leda Scouting - Tamoj del 1',
         'Leda scouting är kursen för dig som vill förstå vad scouting är och hur du skapar verksamhet där scouter får växa, utmanas och ha roligt tillsammans. Här får du inspiration, konkreta verktyg och nya perspektiv på ledarskap i Scouterna. Anmälan via Scoutnet senast 17 juli.',
@@ -574,10 +572,10 @@ You will leave with a better understanding of how political systems work and whe
         NULL,
         '2026-07-26 12:00:00',
         '2026-07-26 15:00:00',
-        'b1298fd2-c01a-4469-a1f2-bbd25bb9d908'
+        'accfffb4-5ccc-4ed3-bb28-a82f88440b92'
     ),
     (
-        'd8b6e7b6-9c1b-4c8c-85ac-a7d547123b0a',
+        '9c22e37d-4a8f-4197-9ad8-7e64cf61a16c',
         'Klubb BANGERS',
         'Club BANGERS',
         'Klubb BANGERS tar vid och står för stämningen för alla som vill dansa och klubba för starten av en grym lägervecka efter invigningen!',
@@ -585,10 +583,10 @@ You will leave with a better understanding of how political systems work and whe
         NULL,
         '2026-07-26 19:30:00',
         '2026-07-26 20:30:00',
-        'b1298fd2-c01a-4469-a1f2-bbd25bb9d908'
+        'accfffb4-5ccc-4ed3-bb28-a82f88440b92'
     ),
     (
-        'ec9da051-5c27-4acc-8ee7-4c2d1264b786',
+        'b8132bec-aa9f-49dd-95da-2475c6a9baf0',
         'Karaoke!',
         'Karaoke!',
         '',
@@ -596,10 +594,10 @@ You will leave with a better understanding of how political systems work and whe
         NULL,
         '2026-07-26 14:00:00',
         '2026-07-26 17:00:00',
-        'f96bb333-7390-40d1-92a3-29b7b3fbeb16'
+        '2b32a9d9-da57-40f4-ba95-6e6de28ed846'
     ),
     (
-        '904fe23e-01d9-49fd-906b-01e59deea454',
+        'cde307f0-e9ae-4c14-8ada-21b3b1011a60',
         'Masterclass i knoplära',
         'Knotting masterclass',
         'Är du intresserad av att lära dig 100 knopar? Då har du nog kommit till fel ställe. MEN detta är ändå en masterclass i knopning på en högst NÖRDIG och (vågar jag säga det) ROLIG och SPÄNNANDE nivå. Det kommer handla om hur knopar kategoriseras, hur de fungerar, hur de upptäcks, hur du egentligen lär ut knopar pedagogiskt och hur knoplära kopplas samman med biologi, kemi, fysik och matte, och tillochmed universums uppkomst. Men några knopar kommer vi lära oss ändå -- och gratis knoprep utlovas alla deltagare!',
@@ -607,10 +605,10 @@ You will leave with a better understanding of how political systems work and whe
         NULL,
         '2026-07-26 11:00:00',
         '2026-07-26 12:00:00',
-        'f96bb333-7390-40d1-92a3-29b7b3fbeb16'
+        '2b32a9d9-da57-40f4-ba95-6e6de28ed846'
     ),
     (
-        '656237f5-f389-43dc-ba17-cb3e9c5849ec',
+        '8febfe22-9777-4e5b-8a13-f0cb9a85d2b9',
         'Sagostund',
         'Storytime',
         'Inspirerande sagostund öppet för alla',
@@ -618,10 +616,10 @@ You will leave with a better understanding of how political systems work and whe
         NULL,
         '2026-07-26 06:00:00',
         '2026-07-26 07:00:00',
-        '556a6e3c-62b3-4c9a-8720-4cee10542d9f'
+        '8e335d16-2369-474d-b774-d16f9e44b0fe'
     ),
     (
-        '2490f8c2-8f80-4176-b30a-1734386066e4',
+        '3b299632-3e3d-4ee5-86a4-7327c53f0cea',
         'Kvällsbön',
         'Evening prayer',
         '',
@@ -629,10 +627,10 @@ You will leave with a better understanding of how political systems work and whe
         NULL,
         '2026-07-26 19:30:00',
         '2026-07-26 20:00:00',
-        '556a6e3c-62b3-4c9a-8720-4cee10542d9f'
+        '8e335d16-2369-474d-b774-d16f9e44b0fe'
     ),
     (
-        '2d8ceff5-fa57-4881-ac5c-fdc14f3ea60a',
+        'aa4c9b49-c102-49c2-8ee1-a0639ad7d4e7',
         '26/7 – Påsk 🐣',
         '26/7 – Easter 🐣',
         'Vem säger att man bara kan fira påsk på våren? Hos oss blir det påsk mitt i sommaren! Förvänta dig färgglada dekorationer, påskägg, påskharar och massor av härlig påskstämning. Har du något gult, färgglatt eller kanske kaninklänning, höns- eller kycklinginspirerat? Ta gärna på dig det och hjälp oss skapa den perfekta påskkänslan! Håll utkik efter dagens Limited Edition – vi lovar att den inte är gömd lika bra som påskäggen!',
@@ -640,10 +638,10 @@ You will leave with a better understanding of how political systems work and whe
         NULL,
         '2026-07-26 08:00:00',
         '2026-07-26 20:00:00',
-        '5fca0ebc-b407-4f5e-810e-4573f945b6bd'
+        '6955cb7f-38a0-4f47-b16e-6633608b04f0'
     ),
     (
-        'fe928524-4f6b-45a7-9da5-ebdd167d22ee',
+        '32f4114f-2c64-4341-9fcb-79cd3d11bdb4',
         'Dagens lek',
         'Dagens lek',
         'Starttider för lekarna kommer finnas på anslagstavlan i hubben',
@@ -651,10 +649,10 @@ You will leave with a better understanding of how political systems work and whe
         NULL,
         '2026-07-26 07:00:00',
         '2026-07-26 15:00:00',
-        'ece176aa-dcec-42c7-b780-7bbb4391a2cf'
+        '418ac649-ad80-4e2c-aa1b-db3733b97938'
     ),
     (
-        'c106d9ac-831e-4969-9409-2cbccec91c18',
+        'c70f425c-1775-410d-b534-1ad11b72eaf7',
         'Hubb bingo',
         'Hubb bingo',
         'Lär känna nya vänner och utforska området i upptäckarhubben tillsammans med er patrull. Kan ni fylla alla bingobrickor?',
@@ -662,10 +660,10 @@ You will leave with a better understanding of how political systems work and whe
         NULL,
         '2026-07-26 07:30:00',
         '2026-07-26 08:15:00',
-        'ece176aa-dcec-42c7-b780-7bbb4391a2cf'
+        '418ac649-ad80-4e2c-aa1b-db3733b97938'
     ),
     (
-        '31efd74b-2d9c-489a-9c74-fce5ee4a86a6',
+        '2575fa25-5776-49a8-af0e-10581cca9bb6',
         'Hubb bingo',
         'Hubb bingo',
         'Lär känna nya vänner och utforska området i upptäckarhubben tillsammans med er patrull. Kan ni fylla alla bingobrickor?',
@@ -673,10 +671,10 @@ You will leave with a better understanding of how political systems work and whe
         NULL,
         '2026-07-26 08:30:00',
         '2026-07-26 09:15:00',
-        'ece176aa-dcec-42c7-b780-7bbb4391a2cf'
+        '418ac649-ad80-4e2c-aa1b-db3733b97938'
     ),
     (
-        '9db62c89-841d-43c6-9a7d-60c9a8b53158',
+        'fd4bb9bb-9f99-4a8d-bab1-b63fbdef281c',
         'Hubb bingo',
         'Hubb bingo',
         'Lär känna nya vänner och utforska området i upptäckarhubben tillsammans med er patrull. Kan ni fylla alla bingobrickor?',
@@ -684,10 +682,10 @@ You will leave with a better understanding of how political systems work and whe
         NULL,
         '2026-07-26 12:00:00',
         '2026-07-26 12:45:00',
-        'ece176aa-dcec-42c7-b780-7bbb4391a2cf'
+        '418ac649-ad80-4e2c-aa1b-db3733b97938'
     ),
     (
-        '26502954-a6cc-4e2b-ba96-f5bd330953e1',
+        '94427abd-60ba-469c-8dba-504a98cfccef',
         'Hubb bingo',
         'Hubb bingo',
         'Lär känna nya vänner och utforska området i upptäckarhubben tillsammans med er patrull. Kan ni fylla alla bingobrickor?',
@@ -695,10 +693,10 @@ You will leave with a better understanding of how political systems work and whe
         NULL,
         '2026-07-26 14:00:00',
         '2026-07-26 14:45:00',
-        'ece176aa-dcec-42c7-b780-7bbb4391a2cf'
+        '418ac649-ad80-4e2c-aa1b-db3733b97938'
     ),
     (
-        '5d32c8fb-2a94-4926-8361-1c01c87b3d1f',
+        '597fbbbd-509f-45a5-a65f-e42024de36b8',
         'Lekaktiviteter',
         'Lekaktiviteter',
         'Hämta fotboll, rockring, hopprep, gagaboll boll m.m och spela med patrullkompisar eller nya vänner',
@@ -706,10 +704,10 @@ You will leave with a better understanding of how political systems work and whe
         NULL,
         '2026-07-26 07:00:00',
         '2026-07-26 15:00:00',
-        'ece176aa-dcec-42c7-b780-7bbb4391a2cf'
+        '418ac649-ad80-4e2c-aa1b-db3733b97938'
     ),
     (
-        '361b9210-5ea7-4d22-8b3a-396f272a6e65',
+        '72ce1073-0ea5-4098-840b-7489126065ad',
         'Bubbelballs',
         'Bubbelballs',
         'Studsa runt i stora uppblåsbara bollar! Bokning sker på plats i hubben',
@@ -717,10 +715,10 @@ You will leave with a better understanding of how political systems work and whe
         NULL,
         '2026-07-26 12:00:00',
         '2026-07-26 19:00:00',
-        'ece176aa-dcec-42c7-b780-7bbb4391a2cf'
+        '418ac649-ad80-4e2c-aa1b-db3733b97938'
     ),
     (
-        '3fb32311-5d91-44a2-8a81-cfa56211b12e',
+        '9a443f61-9cac-47de-97be-5c7fa9911b91',
         'Må-bra-kåsan',
         'Må-bra-kåsan',
         'Genom några tankeväckande övningar får du under den här aktiviteten fokusera på hur du kan stärka ditt eget mående. När du är klar med alla aktiviteter får du hämta ut en kåsa i upptäckarhubbens infodisk med självstärkande, peppande budskap från olika organisationer som på olika sätt arbetar med att stärka barn och ungas psykiska hälsa.',
@@ -728,10 +726,10 @@ You will leave with a better understanding of how political systems work and whe
         NULL,
         '2026-07-26 12:00:00',
         '2026-07-26 19:00:00',
-        'c2880eae-3277-43d7-a5b2-ddcfb11f7318'
+        'd617bf4f-1e00-4ab4-b6a7-ae90be48c0a0'
     ),
     (
-        '1ec6f9f3-b569-4c00-be6a-e6780db3f95e',
+        'dfd9740c-6a66-4023-9538-1c4378133649',
         'Känslokartan',
         'Känslokartan',
         '',
@@ -739,10 +737,10 @@ You will leave with a better understanding of how political systems work and whe
         NULL,
         '2026-07-26 07:00:00',
         '2026-07-26 15:00:00',
-        '9151b3ad-e8ab-4019-bbcd-d71d8102dde8'
+        '7fef2277-0728-41e0-947d-c487fae3efde'
     ),
     (
-        '493d8750-0408-4c63-968b-57ef60d20ba2',
+        '7130fd92-3bca-43d4-bfba-722229fe3298',
         'Brädspel',
         'Brädspel',
         'Brädspel',
@@ -750,10 +748,10 @@ You will leave with a better understanding of how political systems work and whe
         NULL,
         '2026-07-26 07:00:00',
         '2026-07-26 15:00:00',
-        '9151b3ad-e8ab-4019-bbcd-d71d8102dde8'
+        '7fef2277-0728-41e0-947d-c487fae3efde'
     ),
     (
-        '808e1233-536b-4f00-a28e-9d8972caeca1',
+        '10998d26-c75c-4b25-b866-14f8c1ababb3',
         'Cybersäkerhet med Unga forskare',
         'Cybersäkerhet med Unga forskare',
         'Testa på spännande aktiviteter med Unga Forskare!',
@@ -761,10 +759,10 @@ You will leave with a better understanding of how political systems work and whe
         NULL,
         '2026-07-26 07:00:00',
         '2026-07-26 15:00:00',
-        '9151b3ad-e8ab-4019-bbcd-d71d8102dde8'
+        '7fef2277-0728-41e0-947d-c487fae3efde'
     ),
     (
-        '9a07122f-7ae6-4768-ab2d-daeda77db07c',
+        '9350dee8-f507-4393-97ad-ef4d8140744f',
         'Hantverksfokus: Läder',
         'Hantverksfokus: Läder',
         '',
@@ -772,10 +770,10 @@ You will leave with a better understanding of how political systems work and whe
         NULL,
         '2026-07-26 07:00:00',
         '2026-07-26 15:00:00',
-        '0563ef6a-4f77-458e-9f69-c45d1ef491c5'
+        '87afd904-fe20-4ec8-8a0d-325500b60b63'
     ),
     (
-        '48e16e73-38d4-4e5b-b257-660cb5505f11',
+        '3b076323-bbb3-4d33-ac49-2f08763d006f',
         'Knoprep',
         'Knoprep',
         'Knoprep och instruktion finns för att lära sig en ny knop',
@@ -783,10 +781,10 @@ You will leave with a better understanding of how political systems work and whe
         NULL,
         '2026-07-26 07:00:00',
         '2026-07-26 15:00:00',
-        '0563ef6a-4f77-458e-9f69-c45d1ef491c5'
+        '87afd904-fe20-4ec8-8a0d-325500b60b63'
     ),
     (
-        'ddb56fd4-6597-4dd7-b2bc-c3b814233ba4',
+        'e63c785f-3710-4a3a-8149-9fee48324717',
         'Tillsammans målning',
         'Tillsammans målning',
         'Hjälp till att skapa en målning tillsammans. Rita något på tavlan som betyder jamboree för dig.',
@@ -794,10 +792,10 @@ You will leave with a better understanding of how political systems work and whe
         NULL,
         '2026-07-26 07:00:00',
         '2026-07-26 15:00:00',
-        '0563ef6a-4f77-458e-9f69-c45d1ef491c5'
+        '87afd904-fe20-4ec8-8a0d-325500b60b63'
     ),
     (
-        '13870506-6706-4726-82b0-f84e366fdc7b',
+        '62393742-64ae-42ea-b083-bd8c38b6396a',
         'Halmpool',
         'Halmpool',
         'Hoppa ner i halmen, kan du hitta nålen i halmstacken?',
@@ -805,10 +803,10 @@ You will leave with a better understanding of how political systems work and whe
         NULL,
         '2026-07-26 07:00:00',
         '2026-07-26 15:00:00',
-        '185f5091-1e3f-4ad6-b684-c0a0670efe07'
+        '573d544a-5fd7-4c09-b2d6-99050e4dd6ae'
     ),
     (
-        '4e3555ce-3c28-4766-8a3d-8abef939c7e4',
+        '0d940dcf-1595-4409-bb1a-c353fbb02c69',
         'Slankaruseller',
         'Slankaruseller',
         'Åk på en karusell byggd av slanor.',
@@ -816,10 +814,10 @@ You will leave with a better understanding of how political systems work and whe
         NULL,
         '2026-07-26 07:00:00',
         '2026-07-26 15:00:00',
-        '185f5091-1e3f-4ad6-b684-c0a0670efe07'
+        '573d544a-5fd7-4c09-b2d6-99050e4dd6ae'
     ),
     (
-        '0a5c9dbc-b475-44a8-a439-893032630c85',
+        '8c51476d-6e92-43a3-8f10-947c1f8a35bc',
         'Psykologisk beredskap',
         'Psykologisk beredskap',
         'Ett fartfyllt och interaktivt pass där du får uppleva hur lätt det är att bli påverkad – och hur du kan stå emot. Du får konkreta verktyg för att tänka kritiskt, samarbeta och fatta kloka beslut när det verkligen gäller.',
@@ -827,10 +825,10 @@ You will leave with a better understanding of how political systems work and whe
         NULL,
         '2026-07-26 07:15:00',
         '2026-07-26 08:00:00',
-        'bed2dc35-1e4d-4426-a9d0-f9c1731ae493'
+        '75bec7fd-a4f5-439a-9f1d-8fae424c4118'
     ),
     (
-        'ae01cd6f-7659-4b05-94d7-e6fa014d4118',
+        '14d85681-ba1b-476c-a312-369997bdba37',
         'Psykologisk beredskap',
         'Psykologisk beredskap',
         'Ett fartfyllt och interaktivt pass där du får uppleva hur lätt det är att bli påverkad – och hur du kan stå emot. Du får konkreta verktyg för att tänka kritiskt, samarbeta och fatta kloka beslut när det verkligen gäller.',
@@ -838,10 +836,10 @@ You will leave with a better understanding of how political systems work and whe
         NULL,
         '2026-07-26 11:15:00',
         '2026-07-26 12:00:00',
-        'bed2dc35-1e4d-4426-a9d0-f9c1731ae493'
+        '75bec7fd-a4f5-439a-9f1d-8fae424c4118'
     ),
     (
-        '6e20d53b-d119-477d-bff5-fd221fd5d363',
+        '1ea39ab9-0333-4e53-8c9b-01f89046e4cd',
         'Mekanisk tjur',
         'Mechanical bull',
         'Testa hur länge du kan sitta på tjurens rygg! Kanske är det svårare än du tror?',
@@ -849,10 +847,10 @@ You will leave with a better understanding of how political systems work and whe
         NULL,
         '2026-07-26 07:00:00',
         '2026-07-26 15:00:00',
-        'e56b12f0-7d5e-47f3-aa86-9a832be3e185'
+        '92228c5e-1d0e-415c-a41b-35f5435a0a30'
     ),
     (
-        '4d57474c-4cc0-4d0b-b3fb-67c786a52ed1',
+        '3299c0f9-6b7b-43a1-a0fd-d7ae6fb6c168',
         'Unga forskare',
         'Unga forskare',
         'Testa på spännande aktiviteter med Unga Forskare!',
@@ -860,10 +858,10 @@ You will leave with a better understanding of how political systems work and whe
         NULL,
         '2026-07-26 08:00:00',
         '2026-07-26 15:00:00',
-        '16bc8872-5e30-416b-a71b-05a56731e44e'
+        'd7cf4654-4614-43bf-92b9-73325c18ddb9'
     ),
     (
-        '05238e67-7f2c-43cf-8442-f9c8ca2654c3',
+        '51dc9a7b-c70a-4383-93e0-3f40b0781794',
         'Speedfriending',
         'Speedfriending',
         '',
@@ -871,10 +869,10 @@ You will leave with a better understanding of how political systems work and whe
         NULL,
         '2026-07-26 08:00:00',
         '2026-07-26 15:00:00',
-        '57a315ab-1270-49e9-98f2-58fb9780e6ea'
+        '82c7de74-1ed1-4018-b56e-330415bf9935'
     ),
     (
-        '20fc8ad4-dd67-429d-bcfd-f137a70d1065',
+        'd243e55a-4b6a-40b3-b2f9-c9caf716cfba',
         'Lokal trubadur',
         'Local troubadour',
         'Starta äventyret på äventyrarhubben med härlig stämningsfull livemusik!',
@@ -882,10 +880,10 @@ You will leave with a better understanding of how political systems work and whe
         NULL,
         '2026-07-26 08:30:00',
         '2026-07-26 10:00:00',
-        '55043f4b-a2be-48b3-858d-c11dad88de22'
+        'df5460d7-e435-4434-b63e-4755564087f4'
     ),
     (
-        '19087016-6487-47fd-ba75-3f23d4f05f2f',
+        '5a093e5b-0ddf-47f3-9b39-dcea109b268b',
         'Lokal trubadur',
         'Local troubadour',
         'Starta äventyret på äventyrarhubben med härlig stämningsfull livemusik!',
@@ -893,10 +891,10 @@ You will leave with a better understanding of how political systems work and whe
         NULL,
         '2026-07-26 12:30:00',
         '2026-07-26 14:00:00',
-        '55043f4b-a2be-48b3-858d-c11dad88de22'
+        'df5460d7-e435-4434-b63e-4755564087f4'
     ),
     (
-        '1170a027-31c5-4f24-9024-c8fe682d411f',
+        'de844675-e5f5-4675-adad-9e6d76988b35',
         'Kartkampen',
         'The Map Battle',
         'Vilken åldersgrupp kan vinna flest kartdelar? På varje torg finns en aktivitet utplacerad. Genomför den för att få sätta upp en pin i åldersgruppens färg på kartområdet. Åldersgruppen som i slutet av dagen kontrollerar flest områden på kartan blir dagens vinnare. Varje ny dag börjar kampen om från början',
@@ -905,10 +903,10 @@ An activity is located at each square. Complete the activity to place a pin in y
         NULL,
         '2026-07-26 08:00:00',
         '2026-07-26 16:00:00',
-        'eb304d4b-3ef9-400c-b216-d94927081760'
+        'f50f4431-4e79-4d3c-a52e-4e556e8be09f'
     ),
     (
-        '8455e566-b4a4-4696-8d5d-fafed53dbf62',
+        '365f4cd5-a36d-4ae4-b7cb-87442e560b16',
         'Masterclass i knoplära',
         'Masterclass in Knot Tying',
         'En praktisk och rolig masterclass där vi går igenom användbara knopar, lär oss smarta tekniker och får prova själva. Perfekt för både nybörjare och erfarna — och ett fint sätt att lära sig något nytt tillsammans.',
@@ -916,10 +914,10 @@ An activity is located at each square. Complete the activity to place a pin in y
         NULL,
         '2026-07-26 11:00:00',
         '2026-07-26 12:00:00',
-        '11d64ace-771c-4290-a9cc-45acccde3685'
+        'b36b6a47-01dd-4b96-a5cd-f666ac51ed2a'
     ),
     (
-        'd9e741f0-3c34-4f92-b0c1-81c166b98e81',
+        'a3dbb72d-59dc-44af-a701-bcf717ad2a6e',
         'Escape room',
         'Escape room',
         'Testa patrullens sammarbetsförmåga i upptäkarhubbens escape room. Aktiviteten kan bokas på platts i hubben',
@@ -927,10 +925,10 @@ An activity is located at each square. Complete the activity to place a pin in y
         NULL,
         '2026-07-26 07:00:00',
         '2026-07-26 15:00:00',
-        'ece176aa-dcec-42c7-b780-7bbb4391a2cf'
+        '418ac649-ad80-4e2c-aa1b-db3733b97938'
     ),
     (
-        '125b1215-77be-4f74-8ef9-199327d40b90',
+        '786dc423-eff8-4bb8-8950-38bbad18b083',
         'Internationell 5-kamp',
         'International pentathlon',
         'Samla ihop ett lag på 5 personer bestående av minst två olika nationaliteter och tävla mot andra lag i internationella lekar!',
@@ -938,10 +936,10 @@ An activity is located at each square. Complete the activity to place a pin in y
         NULL,
         '2026-07-26 13:00:00',
         '2026-07-26 13:40:00',
-        '572671ce-7f67-4e16-8f32-5bda9bb2e5e7'
+        '10952f43-79b5-436d-bb7f-c7337f4ab7e6'
     ),
     (
-        'dc19cb20-449c-4803-9455-7213ff6d7a29',
+        '4d60029a-1691-41e1-8418-4aa1f554c409',
         'VR-glasögon',
         'VR-headset',
         'Välkommen till tältet Klartänkt och Drogfri. Prova olika VR-aktiviteter, utmana varandra och dig själv',
@@ -949,10 +947,10 @@ An activity is located at each square. Complete the activity to place a pin in y
         NULL,
         '2026-07-26 07:00:00',
         '2026-07-26 15:00:00',
-        '6491fa9b-418a-4d26-b8ff-f92267fb5b7d'
+        '9d1275be-7f8b-4567-8616-8c3d0a319a52'
     ),
     (
-        '5988927f-6c8c-4c45-a7a5-2efa6ec006a6',
+        'bb0a660b-0cf7-4a5a-aa29-43ceab35eefc',
         'Aktivitetstombola',
         'Activity tombola',
         'I aktivitetstombolan finns mängder med roliga aktiviteter. Ni snurrar på tombolan, får en utmaning eller aktivitet och sedan genomför ni den!',
@@ -960,10 +958,10 @@ An activity is located at each square. Complete the activity to place a pin in y
         NULL,
         '2026-07-26 07:00:00',
         '2026-07-26 15:00:00',
-        '6491fa9b-418a-4d26-b8ff-f92267fb5b7d'
+        '9d1275be-7f8b-4567-8616-8c3d0a319a52'
     ),
     (
-        '44baed8c-465c-4a5e-a19e-e33a1c10bf55',
+        '786b9e05-aebe-445d-b396-9ce1bc110b56',
         'Klartänkt - Spel och aktiviteter',
         'Clear minds - Games and activities',
         'Här kan du prova på vår nya kortlek, spela spel i vår myshörna eller bara ladda powerbankem och sitta och chilla en stund.',
@@ -971,10 +969,10 @@ An activity is located at each square. Complete the activity to place a pin in y
         NULL,
         '2026-07-26 07:00:00',
         '2026-07-26 15:00:00',
-        '6491fa9b-418a-4d26-b8ff-f92267fb5b7d'
+        '9d1275be-7f8b-4567-8616-8c3d0a319a52'
     ),
     (
-        '114c5ba4-773f-4055-8719-a53ce04f0097',
+        '387ca2e5-ab36-4ee2-9570-f54e468aa9ba',
         'Klartänkt material',
         'Clear minds - material',
         'Är du nyfiken på progammaterial och verkty att använda för ANDTS hemma i kåren, sväng förbi oss och ta del av våra kunskaper och få tips att använda.',
@@ -982,10 +980,10 @@ An activity is located at each square. Complete the activity to place a pin in y
         NULL,
         '2026-07-26 07:00:00',
         '2026-07-26 15:00:00',
-        '6491fa9b-418a-4d26-b8ff-f92267fb5b7d'
+        '9d1275be-7f8b-4567-8616-8c3d0a319a52'
     ),
     (
-        '9642b83e-bdd4-4517-a6af-967ff3a0e8db',
+        '29d3c8f4-1b20-4d67-b538-dc1d25259c75',
         'Tryck tröjor',
         'Print shirts',
         'Ta med dig en tröja, köp ett tryck och skapa din egen coola tröja, (eller valfritt plagg) i vår tröjtryck. Kostnad 15 kr.',
@@ -993,10 +991,10 @@ An activity is located at each square. Complete the activity to place a pin in y
         NULL,
         '2026-07-26 07:00:00',
         '2026-07-26 15:00:00',
-        '6491fa9b-418a-4d26-b8ff-f92267fb5b7d'
+        '9d1275be-7f8b-4567-8616-8c3d0a319a52'
     ),
     (
-        '0871419b-fd71-4ffb-8847-d12b2fb1ef86',
+        '24b10184-bad9-4f4c-a3a7-d4a343af2f43',
         'Världsförbättrare & Världens Barn',
         'World improvers and "Världens Barn"',
         'Lär dig mer om IOGT-NTO International och deras arbete/projekt i Uganda med UGGA. Tillsammans förbättrar vi scouter världen!',
@@ -1004,10 +1002,10 @@ An activity is located at each square. Complete the activity to place a pin in y
         NULL,
         '2026-07-26 07:00:00',
         '2026-07-26 15:00:00',
-        '6491fa9b-418a-4d26-b8ff-f92267fb5b7d'
+        '9d1275be-7f8b-4567-8616-8c3d0a319a52'
     ),
     (
-        '09401093-4490-43fe-8943-6aeae6ebf9b1',
+        'f57c2b77-9a75-4d69-a304-0bcb255c7ebe',
         'Märkesglassiosk ta ett intressemärke',
         'Badge ice cream parlour',
         'I hubbarna finns en "glasskiosk" med olika märken, välj efter din smak och gör olika aktivitetspåsar för att ta ett intressemärke. Flera olika finns att välja på och varje märke har olika många uppgifter precis som glasskulor kommer i flera olika smaker!',
@@ -1016,10 +1014,10 @@ There are many different badges to choose from, and each one contains a differen
         NULL,
         '2026-07-26 07:00:00',
         '2026-07-26 19:00:00',
-        'ece176aa-dcec-42c7-b780-7bbb4391a2cf'
+        '418ac649-ad80-4e2c-aa1b-db3733b97938'
     ),
     (
-        '6c60df4a-05d1-4abf-8b5a-5070e291e8d1',
+        '5cdc97f8-0767-4d3a-99a0-787623bdbbf5',
         'Trygga möten fördjupning',
         'Trygga möten fördjupning',
         '',
@@ -1027,10 +1025,10 @@ There are many different badges to choose from, and each one contains a differen
         NULL,
         '2026-07-27 07:30:00',
         '2026-07-27 09:30:00',
-        'b127cecb-c982-4d23-918d-1dbd9b4ca894'
+        '801217b7-0c0a-44d5-8ac7-a153aa3fbba4'
     ),
     (
-        'b60a4cc4-b337-4aca-86da-37dede903edf',
+        '6104cf93-7a78-4522-b5e0-66e63eeeffab',
         'Mind: Delaktighet som friskfaktor',
         'Mind: Delaktighet som friskfaktor',
         'I den här workshopen utforskar du tillsammans med organisationen MIND vad  delaktighet innebär. Tillsammans undersöker ni frågor som: När känner vi att vi faktiskt får påverka? Vem bär ansvar för att delaktighet sker? Och vad händer med vårt mående när vi får känna oss som en verklig del av ett sammanhang?  Workshopen leds av Matilda Holmberg, MIND.',
@@ -1038,10 +1036,10 @@ There are many different badges to choose from, and each one contains a differen
         NULL,
         '2026-07-27 13:30:00',
         '2026-07-27 15:00:00',
-        'b127cecb-c982-4d23-918d-1dbd9b4ca894'
+        '801217b7-0c0a-44d5-8ac7-a153aa3fbba4'
     ),
     (
-        '51a389f2-979d-4860-88a1-b5cba7e74990',
+        '7c59b0f2-c446-4835-ab3a-13bf53155b9d',
         'Treskablinoll: Trygga scouter - nytt material med fokus på integritet',
         'Treskablinoll: Trygga scouter - nytt material med fokus på integritet',
         'Hur kan du som scoutledare prata om kroppslig integritet, samtycke, relationer och gränser tillsammans med dina scouter? Det kan du få tips om på den här föreläsningen när organisationen Treskablinoll presenterar de aktiviteter som de utvecklat tillsammans med Scouterna i projektet Trygga scouter. Föreläsningen hålls av Maria Näslund och Natalia Luczynsk, Treskablinoll.',
@@ -1049,10 +1047,10 @@ There are many different badges to choose from, and each one contains a differen
         NULL,
         '2026-07-27 18:00:00',
         '2026-07-27 19:00:00',
-        'b127cecb-c982-4d23-918d-1dbd9b4ca894'
+        '801217b7-0c0a-44d5-8ac7-a153aa3fbba4'
     ),
     (
-        '9685269e-73f2-4f87-9650-961b94ac3708',
+        '1742c584-80b9-4c11-9d6e-50f90acda5f1',
         'Säker verksamhet',
         'Säker verksamhet',
         '​​En workshop för ledare som vill prova på att arbeta mer strukturerat med riskhantering av våra aktiviteter i Scouterna. Vi testar på något moment från kursen Redo för riskhantering​',
@@ -1063,7 +1061,7 @@ There are many different badges to choose from, and each one contains a differen
         NULL
     ),
     (
-        '013e253b-7209-4a0a-980c-5395919ece34',
+        'd034f855-ae23-482f-b803-13e4cf2c1a8f',
         'Trauma dumping - vilka problem ser du i din scoutkår?',
         'Trauma dumping - what challenges do you have in your local scout group?',
         'Speeddate med ett ovanligt tema: vad är det som inte riktigt fungerar i din kår? Det där som alltid gnager lite i bakhuvudet men som ingen pratar om?
@@ -1076,10 +1074,10 @@ Three minutes per person. No filters.',
         NULL,
         '2026-07-27 08:00:00',
         '2026-07-27 09:00:00',
-        '8457d5f0-bcae-424b-91d6-69cc47259e48'
+        '5ef6c219-43f8-43d4-ad73-55afcf6a44ae'
     ),
     (
-        '95328179-0861-4892-a33e-806ad31ce49c',
+        'e38e6835-5792-4c4f-9141-b081a29665de',
         'Mind & Tim Bergling Foundation: Så jobbar vi med ungdomsinflytande',
         'Mind & Tim Bergling Foundation: Så jobbar vi med ungdomsinflytande',
         'Matilda från Mind och Love från Tim Bergling Foundation jobbar båda som ungdomsambassadörer med samma grundfråga: hur får man unga att inte bara bli lyssnade på, utan faktiskt vara med och driva förändring? I det här passet berättar de om hur de arbetar inifrån sina organisationer för att se till att unga är med på riktigt, inte som dekoration, utan som en kraft som faktiskt påverkar vad organisationerna gör.',
@@ -1087,10 +1085,10 @@ Three minutes per person. No filters.',
         NULL,
         '2026-07-27 09:15:00',
         '2026-07-27 10:00:00',
-        '8457d5f0-bcae-424b-91d6-69cc47259e48'
+        '5ef6c219-43f8-43d4-ad73-55afcf6a44ae'
     ),
     (
-        'ff9653d0-b7a0-4900-89ed-08205c6bf020',
+        '01111fc5-2b1d-41fd-a9e7-ba5dedaef333',
         'Mind & Tim Bergling Foundation: Träffa våra ungdomsambassadörer!',
         'Mind & Tim Bergling Foundation: Meet our youth ambassadors!',
         'Hur är det att vara ung och försöka påverka inifrån en organisation? Kom och prata med Matilda från Mind och Love från Tim Bergling Foundation, ställ frågorna du undrar över och hör hur de gör det på riktigt. Perfekt inspiration inför passet om Scouterna verkligen är en organisation av och för unga som tar vid direkt efter.',
@@ -1102,10 +1100,10 @@ This is the perfect inspiration before the session that follows, where we explor
         NULL,
         '2026-07-27 12:00:00',
         '2026-07-27 13:00:00',
-        '8457d5f0-bcae-424b-91d6-69cc47259e48'
+        '5ef6c219-43f8-43d4-ad73-55afcf6a44ae'
     ),
     (
-        'b8ccbb5e-0199-45f1-aa97-899984131984',
+        '4e3e2e52-cdb3-4473-9616-3abb834f048c',
         'WAGGGS & WOSM på besök – hitta din plats i världsscoutingen!',
         'Meet WAGGGS & WOSM - find your place in world scouting.',
         'Vad händer egentligen i världsorganisationerna och hur kan du som ung scout vara en del av det? Eirini från WAGGGS Europa och José från WOSM Europa berättar om hur världsorganisationerna arbetar och hur de företräder unga i globala sammanhang. Men också om hur du kan använda den internationella scoutarenan som plattform för att engagera dig i frågor som är viktiga för dig.',
@@ -1114,10 +1112,10 @@ In this session, Eirini from WAGGGS Europe and José from WOSM Europe talk about
         NULL,
         '2026-07-27 12:45:00',
         '2026-07-27 13:45:00',
-        '8457d5f0-bcae-424b-91d6-69cc47259e48'
+        '5ef6c219-43f8-43d4-ad73-55afcf6a44ae'
     ),
     (
-        'b90878c6-bd60-4091-9110-522d2bcea2e8',
+        '55d7ed70-73cd-41de-81af-d6e18a6ef323',
         'En organisation av och för unga, med stöd av vuxna. Eller?',
         'An organisation by and for young people, with support from adults. Or is it?',
         'Scouterna säger sig vara en organisation av och för unga. Men stämmer det? Vem bestämmer egentligen vad som händer i din kår? Vems röst väger tyngst när beslut fattas?
@@ -1131,10 +1129,10 @@ No ready-made answers. Just an honest look at how things actually work.',
         NULL,
         '2026-07-27 14:00:00',
         '2026-07-27 15:00:00',
-        '8457d5f0-bcae-424b-91d6-69cc47259e48'
+        '5ef6c219-43f8-43d4-ad73-55afcf6a44ae'
     ),
     (
-        'f1fd8053-09e2-42e0-a5b5-1c7eb8290c3f',
+        '71ee0070-d248-4411-92c6-a730cfaa5e8a',
         'Deep-talk: Borde jag göra slut med min scoutkår?',
         'Deep-talk: Should you break up with your local scout group?',
         'Alla relationer förändras. Kanske har du känslan av att din röst inte riktigt når fram, att besluten fattas utan dig eller att kåren inte rör sig i en riktning du tror på.',
@@ -1144,10 +1142,10 @@ In this Deep Talk, we take time to sit with that feeling, without pressure and w
         NULL,
         '2026-07-27 19:00:00',
         '2026-07-27 20:00:00',
-        '8457d5f0-bcae-424b-91d6-69cc47259e48'
+        '5ef6c219-43f8-43d4-ad73-55afcf6a44ae'
     ),
     (
-        'e9644720-98be-48be-9d71-f41a8d312ec3',
+        '69dabe41-fe67-4b4e-aedb-ff7182ae317a',
         'Återträff Blå hajken',
         'Reunion Blå Hajken',
         'I det här deep talket sätter vi oss ner med den känslan, utan press och utan färdiga svar. Vad är det som skaver? Vad skulle behöva förändras för att det ska kännas rätt igen och vad kan du och personer i din närhet faktiskt göra åt det?',
@@ -1155,10 +1153,10 @@ In this Deep Talk, we take time to sit with that feeling, without pressure and w
         NULL,
         '2026-07-27 17:30:00',
         '2026-07-27 19:30:00',
-        '572671ce-7f67-4e16-8f32-5bda9bb2e5e7'
+        '10952f43-79b5-436d-bb7f-c7337f4ab7e6'
     ),
     (
-        '6c5b4d88-6d66-48a8-ad67-cbc682967df9',
+        'f2f40edb-36d6-41c1-9721-8c5360280ea5',
         'Återträff Go Global',
         'Reunion Go Global',
         'Återträff för alla som deltagit i Go Global oavsett vilket år. Vi samlas alla utanför Heartbeat Café och splittar sedan upp oss i mindre grupper.',
@@ -1166,10 +1164,10 @@ In this Deep Talk, we take time to sit with that feeling, without pressure and w
         NULL,
         '2026-07-27 18:30:00',
         '2026-07-27 20:30:00',
-        '572671ce-7f67-4e16-8f32-5bda9bb2e5e7'
+        '10952f43-79b5-436d-bb7f-c7337f4ab7e6'
     ),
     (
-        'd8dfc4e6-1d4b-4006-b2d4-18171a50ea50',
+        '2d61f979-4364-4429-931b-e79a574de01b',
         'Återträff Ung i Norden',
         'Reunion Ung i Norden',
         'Återträff för alla som deltagit i Ung i Norden oavsett vilket år. Vi samlas alla utanför Heartbeat Café och splittar sedan upp oss i mindre grupper.',
@@ -1177,10 +1175,10 @@ In this Deep Talk, we take time to sit with that feeling, without pressure and w
         NULL,
         '2026-07-27 18:30:00',
         '2026-07-27 20:30:00',
-        '572671ce-7f67-4e16-8f32-5bda9bb2e5e7'
+        '10952f43-79b5-436d-bb7f-c7337f4ab7e6'
     ),
     (
-        '49d4fb8a-1a28-4b06-a40c-98de22ecc09c',
+        '57ebec87-bed5-43ca-902e-8a98b335ca71',
         'Återträff NAR - Nordic Adventure Race',
         'Reunion NAR - Nordic Adventure Race',
         'Återträff för alla som deltagit i NAR oavsett vilket år. Vi samlas alla utanför Heartbeat Café och splittar sedan upp oss i mindre grupper.',
@@ -1188,10 +1186,10 @@ In this Deep Talk, we take time to sit with that feeling, without pressure and w
         NULL,
         '2026-07-27 18:30:00',
         '2026-07-27 20:30:00',
-        '572671ce-7f67-4e16-8f32-5bda9bb2e5e7'
+        '10952f43-79b5-436d-bb7f-c7337f4ab7e6'
     ),
     (
-        '6d5ff716-904f-4628-95e7-e496b7ac6383',
+        '8775144c-8fc1-4d38-a9d8-dd2aeda366a2',
         'Återträff Destination',
         'Reunion Destination',
         'Återträff för alla som deltagit i Destination oavsett vilket år. Vi samlas alla utanför Heartbeat Café och splittar sedan upp oss i mindre grupper.',
@@ -1199,10 +1197,10 @@ In this Deep Talk, we take time to sit with that feeling, without pressure and w
         NULL,
         '2026-07-27 18:30:00',
         '2026-07-27 20:30:00',
-        '572671ce-7f67-4e16-8f32-5bda9bb2e5e7'
+        '10952f43-79b5-436d-bb7f-c7337f4ab7e6'
     ),
     (
-        '1d1f80b9-1098-49b6-bced-ea12dccd24e2',
+        '811fe8c9-60b8-41ef-9c12-6b15b89bf7fc',
         'Återträff Upplev',
         'Reunion Upplev',
         'Återträff för alla som deltagit i Upplev oavsett vilket år. Vi samlas alla utanför Heartbeat Café och splittar sedan upp oss i mindre grupper.',
@@ -1210,10 +1208,10 @@ In this Deep Talk, we take time to sit with that feeling, without pressure and w
         NULL,
         '2026-07-27 18:30:00',
         '2026-07-27 20:30:00',
-        '572671ce-7f67-4e16-8f32-5bda9bb2e5e7'
+        '10952f43-79b5-436d-bb7f-c7337f4ab7e6'
     ),
     (
-        'f3d525cc-b819-4ece-8c82-9d6873928080',
+        '789c9d2e-cdf6-447f-865e-8c010f958095',
         'Quiz',
         'Quiz',
         'Kom och var med på quiz! Spela själv eller i lag.',
@@ -1221,10 +1219,10 @@ In this Deep Talk, we take time to sit with that feeling, without pressure and w
         NULL,
         '2026-07-27 14:00:00',
         '2026-07-27 14:30:00',
-        '572671ce-7f67-4e16-8f32-5bda9bb2e5e7'
+        '10952f43-79b5-436d-bb7f-c7337f4ab7e6'
     ),
     (
-        'f436d7b3-074d-41ce-8fc3-cad2ed8e2087',
+        '49a0051c-cc47-41e1-b5ca-c94c2f8433f0',
         'Karaoke',
         'Karaoke',
         'Kom och sjung till dina favoritlåtar på Heartbeat cafes scen! Skriv upp dig på listan, välj din sång och njut av din stund på scenen!',
@@ -1232,10 +1230,10 @@ In this Deep Talk, we take time to sit with that feeling, without pressure and w
         NULL,
         '2026-07-27 17:30:00',
         '2026-07-27 19:00:00',
-        '572671ce-7f67-4e16-8f32-5bda9bb2e5e7'
+        '10952f43-79b5-436d-bb7f-c7337f4ab7e6'
     ),
     (
-        '5f6161f8-9caf-41c5-ae43-3034af9e4042',
+        'f2f66433-898d-482f-90e0-53b6cef9f2a6',
         'Klättervägg',
         'Climbing',
         'Välkommen att prova klättring i Hjärtat! Ta dig upp längs utsiktstornets väggar och njut av utsikten över lägerplatsen från ovan. Här finns klätterbanor för både nybörjare och vana klättrare.',
@@ -1243,10 +1241,10 @@ In this Deep Talk, we take time to sit with that feeling, without pressure and w
         NULL,
         '2026-07-27 06:30:00',
         '2026-07-27 15:30:00',
-        '5094c36d-3f40-4d41-8070-1046bc015799'
+        'dc8255e8-e563-4d09-b073-e0ecd24e8423'
     ),
     (
-        '52ea5fbf-7f6a-4d32-b366-16d17cbeeb36',
+        'e42f8a04-3a02-4d4a-a265-4312494f0d6a',
         'Spelkväll!',
         'Game night!',
         'Spelledare på plats, kom och testa!',
@@ -1254,10 +1252,10 @@ In this Deep Talk, we take time to sit with that feeling, without pressure and w
         NULL,
         '2026-07-27 17:00:00',
         '2026-07-27 19:00:00',
-        '2641071b-c7bc-4eb5-8022-307e25b0507c'
+        '58ddff08-1b6e-4758-88be-1fa0d2ad7921'
     ),
     (
-        '4533ce20-5a98-49e4-9b87-41e5cdfa7e95',
+        'a01cf86d-8f01-45d7-b239-d91d31da1bb7',
         'Folkhögskolan tar över ledarhänget',
         'Folkhögskolan tar över ledarhänget',
         'Kom och mingla och få inspiration till kårens utbildningsverksamhet!',
@@ -1265,10 +1263,10 @@ In this Deep Talk, we take time to sit with that feeling, without pressure and w
         NULL,
         '2026-07-27 17:00:00',
         '2026-07-27 19:00:00',
-        '2641071b-c7bc-4eb5-8022-307e25b0507c'
+        '58ddff08-1b6e-4758-88be-1fa0d2ad7921'
     ),
     (
-        '1eb4d50a-29e7-450a-860a-724ac05baafd',
+        '1bc2ee88-2847-460d-8d2a-34e43edf1bc4',
         'Gospel Gudtjänst',
         'Gospel Service',
         '',
@@ -1276,10 +1274,10 @@ In this Deep Talk, we take time to sit with that feeling, without pressure and w
         NULL,
         '2026-07-27 18:00:00',
         '2026-07-27 19:00:00',
-        '5eb0c54b-63c0-4331-8b60-1c4c5754b0c4'
+        '59ec49f9-ffcd-44ca-9ece-defa8b503fa0'
     ),
     (
-        '08bd3e6d-07d0-4257-aaae-2092f9801495',
+        'b0afef83-4f3f-49d5-ba4b-af4c7f652059',
         'Gudstjänst',
         'Church Service',
         '',
@@ -1287,10 +1285,10 @@ In this Deep Talk, we take time to sit with that feeling, without pressure and w
         NULL,
         '2026-07-27 19:00:00',
         '2026-07-27 19:30:00',
-        '5eb0c54b-63c0-4331-8b60-1c4c5754b0c4'
+        '59ec49f9-ffcd-44ca-9ece-defa8b503fa0'
     ),
     (
-        '45237a39-ab57-49e8-8328-0fcac848b8e4',
+        '514fd549-c6d8-40c1-90f2-1a3bbe8f6ea5',
         'Familjescoutsamtal',
         'Family scout leader gathering',
         'Slå dig ner vid lägerelden och möt familjescoutledare från hela landet, dela erfarenheter, hämta inspiration och skapa nya kontakter.',
@@ -1298,10 +1296,10 @@ In this Deep Talk, we take time to sit with that feeling, without pressure and w
         NULL,
         '2026-07-27 08:00:00',
         '2026-07-27 09:00:00',
-        'eb304d4b-3ef9-400c-b216-d94927081760'
+        'f50f4431-4e79-4d3c-a52e-4e556e8be09f'
     ),
     (
-        '957c5a3b-d6dc-4d06-b19d-1fedbdcb9184',
+        '52a346e4-a17a-4260-8c60-aa197118a322',
         'Spårarsamtal',
         'Tracker scout leader gathering',
         'Slå dig ner vid lägerelden och möt spårareledare från hela landet, dela erfarenheter, hämta inspiration och skapa nya kontakter.',
@@ -1309,10 +1307,10 @@ In this Deep Talk, we take time to sit with that feeling, without pressure and w
         NULL,
         '2026-07-27 12:00:00',
         '2026-07-27 13:00:00',
-        'eb304d4b-3ef9-400c-b216-d94927081760'
+        'f50f4431-4e79-4d3c-a52e-4e556e8be09f'
     ),
     (
-        '3aafaa68-960a-49c6-a274-18af991ee6ad',
+        'c5f6d48a-2126-49dc-b920-351b8ff5eb2d',
         'Utmanarsamtal',
         'Challenger scout leader gathering',
         'Slå dig ner vid lägerelden och möt utmanareledare från hela landet, dela erfarenheter, hämta inspiration och skapa nya kontakter.',
@@ -1320,10 +1318,10 @@ In this Deep Talk, we take time to sit with that feeling, without pressure and w
         NULL,
         '2026-07-27 17:00:00',
         '2026-07-27 18:00:00',
-        'eb304d4b-3ef9-400c-b216-d94927081760'
+        'f50f4431-4e79-4d3c-a52e-4e556e8be09f'
     ),
     (
-        '6ba0d48d-ff18-41c1-80af-c272c396aecd',
+        '6bdb8df4-5af4-4143-a08d-74827ecf0a81',
         'Leda Scouting - Kåsa del 1',
         'Leda Scouting - Kåsa del 1',
         'Leda scouting är kursen för dig som vill förstå vad scouting är och hur du skapar verksamhet där scouter får växa, utmanas och ha roligt tillsammans. Här får du inspiration, konkreta verktyg och nya perspektiv på ledarskap i Scouterna. Anmälan via Scoutnet senast 17 juli.',
@@ -1331,10 +1329,10 @@ In this Deep Talk, we take time to sit with that feeling, without pressure and w
         NULL,
         '2026-07-27 07:00:00',
         '2026-07-27 10:00:00',
-        'b1298fd2-c01a-4469-a1f2-bbd25bb9d908'
+        'accfffb4-5ccc-4ed3-bb28-a82f88440b92'
     ),
     (
-        'd8ec976e-98ee-465a-8347-61fac169e018',
+        '68e42658-235d-4ca1-841c-4383792ae90b',
         'Speedfriending',
         'Speedfriending',
         '',
@@ -1342,10 +1340,10 @@ In this Deep Talk, we take time to sit with that feeling, without pressure and w
         60,
         '2026-07-27 14:00:00',
         '2026-07-27 15:00:00',
-        'b1298fd2-c01a-4469-a1f2-bbd25bb9d908'
+        'accfffb4-5ccc-4ed3-bb28-a82f88440b92'
     ),
     (
-        '2d80fbdd-e8de-4bb5-9142-2e7b78eb3e71',
+        'd64aca51-7663-428c-be18-0fd551d6acf2',
         'DJ Lingon Groove',
         'DJ Lingon Groove',
         'Helkväll med DJ Lingon Groove - groovy musik att dansa loss till! Släpp loss och dansa hela kvällen lång. En discokväll man inte vill glömma!',
@@ -1353,10 +1351,10 @@ In this Deep Talk, we take time to sit with that feeling, without pressure and w
         NULL,
         '2026-07-27 17:00:00',
         '2026-07-27 20:00:00',
-        'b1298fd2-c01a-4469-a1f2-bbd25bb9d908'
+        'accfffb4-5ccc-4ed3-bb28-a82f88440b92'
     ),
     (
-        'ebb7ee4c-58e3-495b-9615-4338c59f7bad',
+        '6c2ec1b4-a4d2-4671-b86f-796c8f09ac31',
         'Roverpoängjakt med de regionala roverarrangemangsutskotten!',
         'Regional Rover groups'' scavenger hunt!',
         'De regionala roverarrangemangsutskotten i Sverige (bl.a. LUFT, RSCAU, RScK och VILSE) bjuder alla roverscouter på en stor poängjakt över hela Jamboreeområdet för att samla poäng i spontana roverlag! Lär känna någon ny eller ta med någon kompis!',
@@ -1364,10 +1362,10 @@ In this Deep Talk, we take time to sit with that feeling, without pressure and w
         NULL,
         '2026-07-27 17:00:00',
         '2026-07-27 19:00:00',
-        '11d64ace-771c-4290-a9cc-45acccde3685'
+        'b36b6a47-01dd-4b96-a5cd-f666ac51ed2a'
     ),
     (
-        'aacf630e-590c-475f-8104-4c500619fe8e',
+        'd56276e7-ca84-4682-bd94-81991b4de6fc',
         'Projektledning för roverscouter',
         'Project leadership for rovers',
         'Ett inspirerande och praktiskt pass där du får utforska dina egna projektidéer och ta första steget mot att genomföra dem. Genom konkreta exempel och enkla verktyg får du stöd i att förtydliga ditt syfte, sätta riktning och komma igång tillsammans med andra.',
@@ -1375,10 +1373,10 @@ In this Deep Talk, we take time to sit with that feeling, without pressure and w
         NULL,
         '2026-07-27 11:15:00',
         '2026-07-27 12:00:00',
-        'f96bb333-7390-40d1-92a3-29b7b3fbeb16'
+        '2b32a9d9-da57-40f4-ba95-6e6de28ed846'
     ),
     (
-        '6c0e051e-aa37-4d9b-964c-d9eed027a2d3',
+        '6c930c68-5498-4923-aa0b-f4c2ab904af3',
         'Stand-up kväll!',
         'Stand-up night!',
         '',
@@ -1386,10 +1384,10 @@ In this Deep Talk, we take time to sit with that feeling, without pressure and w
         NULL,
         '2026-07-27 19:00:00',
         '2026-07-27 20:00:00',
-        'f96bb333-7390-40d1-92a3-29b7b3fbeb16'
+        '2b32a9d9-da57-40f4-ba95-6e6de28ed846'
     ),
     (
-        '482552df-cdcd-4516-a46c-9dbd4c63ba3a',
+        '8d452e39-9b64-4af9-a376-9fd6d281173f',
         'Quiz: Om scouter, Skåne och lägerskoj',
         'Quiz: About scouting, Scania and camping fun!',
         'Kom och quizza med Johan och Lottie! Tävla ensam eller i lag!',
@@ -1397,10 +1395,10 @@ In this Deep Talk, we take time to sit with that feeling, without pressure and w
         NULL,
         '2026-07-27 20:00:00',
         '2026-07-27 21:30:00',
-        'f96bb333-7390-40d1-92a3-29b7b3fbeb16'
+        '2b32a9d9-da57-40f4-ba95-6e6de28ed846'
     ),
     (
-        '0bd9a9d2-46c1-4f50-90a5-9777da516168',
+        '899054b9-d9f3-41b8-a79e-23fcb47a62a8',
         'Roverhinderbana',
         'The Rover Obstacle Course',
         'Idag blir det hinderbana – men inte vilken hinderbana som helst! Banan kommer ha fem spår, med respektive färdval som inriktning. Hinderbanan blir därför inte nödvändigtvis en fysisk utmaning, utan utmanar även genom problemlösning, konstruktion, kommunikation och mycket mer! Idag är det drop-in som gäller! Räkna med att en hinderbana tar 1 timme att genomföra, du behöver bara göra en.',
@@ -1408,10 +1406,10 @@ In this Deep Talk, we take time to sit with that feeling, without pressure and w
         NULL,
         '2026-07-27 06:30:00',
         '2026-07-27 10:30:00',
-        '279f9b05-e635-4923-9fb9-13d09c23f31c'
+        '0171900f-3f29-4119-8a92-c9e688fa582b'
     ),
     (
-        'fc667e38-dbb6-4b9e-a61f-14c3baf12835',
+        'f3bbe710-573c-45db-908b-bb77b8e5910b',
         'Roverhinderbana',
         'The Rover Obstacle Course',
         'Idag blir det hinderbana – men inte vilken hinderbana som helst! Banan kommer ha fem spår, med respektive färdval som inriktning. Hinderbanan blir därför inte nödvändigtvis en fysisk utmaning, utan utmanar även genom problemlösning, konstruktion, kommunikation och mycket mer! Idag är det drop-in som gäller! Räkna med att en hinderbana tar 1 timme att genomföra, du behöver bara göra en.',
@@ -1419,10 +1417,10 @@ In this Deep Talk, we take time to sit with that feeling, without pressure and w
         NULL,
         '2026-07-27 12:00:00',
         '2026-07-27 16:00:00',
-        '279f9b05-e635-4923-9fb9-13d09c23f31c'
+        '0171900f-3f29-4119-8a92-c9e688fa582b'
     ),
     (
-        '2603048f-0158-4877-9875-f13b5b1f5c8a',
+        'aaa140b5-b2af-414c-b5fc-d459fcae52ec',
         'Sagostund',
         'Storytime',
         'Inspirerande sagostund öppet för alla',
@@ -1430,10 +1428,10 @@ In this Deep Talk, we take time to sit with that feeling, without pressure and w
         NULL,
         '2026-07-27 06:00:00',
         '2026-07-27 07:00:00',
-        '556a6e3c-62b3-4c9a-8720-4cee10542d9f'
+        '8e335d16-2369-474d-b774-d16f9e44b0fe'
     ),
     (
-        'b4cfd222-4cbe-497f-af22-57e81af50ece',
+        'b99d2cde-fedb-491d-810c-50875ad30b1c',
         'Kvällsbön',
         'Evening prayer',
         '',
@@ -1441,10 +1439,10 @@ In this Deep Talk, we take time to sit with that feeling, without pressure and w
         NULL,
         '2026-07-27 19:30:00',
         '2026-07-27 20:00:00',
-        '556a6e3c-62b3-4c9a-8720-4cee10542d9f'
+        '8e335d16-2369-474d-b774-d16f9e44b0fe'
     ),
     (
-        '257d28f4-0601-4bb9-8c84-e8fdc0c6696c',
+        '29c8f8d4-1515-42c5-b1c5-0fa6dd32aa52',
         '27/7 – Midsommar 🌼',
         '27/7 – Midsummer 🌼',
         'Ingen svensk sommar utan midsommar! Vi bjuder på sommarkänsla, musik, dans (ja, kanske blir det Små grodorna...), gott fika och klassiska svenska smaker. Har du en blomsterkrans, en Sverigetröja eller något blått och gult? Ta gärna på dig det och fira midsommar med oss! Missa inte dagens Limited Edition!',
@@ -1452,10 +1450,10 @@ In this Deep Talk, we take time to sit with that feeling, without pressure and w
         NULL,
         '2026-07-27 08:00:00',
         '2026-07-27 20:00:00',
-        '5fca0ebc-b407-4f5e-810e-4573f945b6bd'
+        '6955cb7f-38a0-4f47-b16e-6633608b04f0'
     ),
     (
-        '6946aaf6-1d84-468c-aee5-ab97ac2e652f',
+        '6c20f823-8ea4-4858-bba5-7405d98b598b',
         'Dagens lek',
         'Dagens lek',
         'Starttider för lekarna kommer finnas på anslagstavlan i hubben',
@@ -1463,10 +1461,10 @@ In this Deep Talk, we take time to sit with that feeling, without pressure and w
         NULL,
         '2026-07-27 07:00:00',
         '2026-07-27 15:00:00',
-        'ece176aa-dcec-42c7-b780-7bbb4391a2cf'
+        '418ac649-ad80-4e2c-aa1b-db3733b97938'
     ),
     (
-        'd467c64f-ca17-4acc-915e-28d4dcb16c18',
+        'e8876b36-6167-4cc0-aa54-41e6ee1988f8',
         'Hand the Ball',
         'Hand the Ball',
         'Prova på lekfullt bollkoncept tillsammans med "Hand the Ball" och Svenska Handbollsförbundet. "Hand the Ball" ger barn och unga en trygg och meningsfull fritid – där rörelseglädje, gemenskap och självförtroende står i centrum.',
@@ -1474,10 +1472,10 @@ In this Deep Talk, we take time to sit with that feeling, without pressure and w
         NULL,
         '2026-07-27 07:00:00',
         '2026-07-27 08:00:00',
-        'ece176aa-dcec-42c7-b780-7bbb4391a2cf'
+        '418ac649-ad80-4e2c-aa1b-db3733b97938'
     ),
     (
-        'd8105d31-ad0e-4894-b0b6-bf604b70d65a',
+        '2b5c3faf-338b-4837-ae2f-61e45e43143f',
         'Kubbturnering',
         'Kubbturnering',
         'Kör snabbkubb mot andra lag. Boka i hubben i förväg och ni kommer paras ihop med andra lag!',
@@ -1485,10 +1483,10 @@ In this Deep Talk, we take time to sit with that feeling, without pressure and w
         NULL,
         '2026-07-27 07:30:00',
         '2026-07-27 08:45:00',
-        'ece176aa-dcec-42c7-b780-7bbb4391a2cf'
+        '418ac649-ad80-4e2c-aa1b-db3733b97938'
     ),
     (
-        'b1b32f71-0d3f-43d7-a591-87663f070081',
+        '194f1fec-9ebb-499e-958c-be5c3617f549',
         'Kubbturnering',
         'Kubbturnering',
         'Kör snabbkubb mot andra lag. Boka i hubben i förväg och ni kommer paras ihop med andra lag!',
@@ -1496,10 +1494,10 @@ In this Deep Talk, we take time to sit with that feeling, without pressure and w
         NULL,
         '2026-07-27 12:30:00',
         '2026-07-27 13:45:00',
-        'ece176aa-dcec-42c7-b780-7bbb4391a2cf'
+        '418ac649-ad80-4e2c-aa1b-db3733b97938'
     ),
     (
-        'dde06127-ec78-4110-913f-d502b12fbca7',
+        '473ffae0-6e05-4eca-a612-19bb18ad00cf',
         'Upptäckar disko!',
         'Disco',
         'Kom och dansa loss i hubben till härlig discomusik. Vi har disko lekar utanför Zvampen och  popcorn kan man hämta vid Murmeldjuret. Ta med en kåsa.',
@@ -1507,10 +1505,10 @@ In this Deep Talk, we take time to sit with that feeling, without pressure and w
         NULL,
         '2026-07-27 17:00:00',
         '2026-07-27 19:00:00',
-        'ece176aa-dcec-42c7-b780-7bbb4391a2cf'
+        '418ac649-ad80-4e2c-aa1b-db3733b97938'
     ),
     (
-        'c1c69d4b-9504-45ed-92b4-95101db027af',
+        'a681a84d-25b8-4b68-8339-93e381227d06',
         'Lekaktiviteter',
         'Lekaktiviteter',
         'Hämta fotboll, rockring, hopprep, gagaboll boll m.m och spela med patrullkompisar eller nya vänner',
@@ -1518,10 +1516,10 @@ In this Deep Talk, we take time to sit with that feeling, without pressure and w
         NULL,
         '2026-07-27 07:00:00',
         '2026-07-27 19:00:00',
-        'ece176aa-dcec-42c7-b780-7bbb4391a2cf'
+        '418ac649-ad80-4e2c-aa1b-db3733b97938'
     ),
     (
-        'a2b54e64-1b67-45d3-89e5-0f7c389a6151',
+        'a54eafb5-c533-41a9-ad2d-2f9fd1de44d4',
         'Bubbelballs',
         'Bubbelballs',
         'Studsa runt i stora uppblåsbara bollar! Bokning sker på plats i hubben',
@@ -1529,10 +1527,10 @@ In this Deep Talk, we take time to sit with that feeling, without pressure and w
         NULL,
         '2026-07-27 12:00:00',
         '2026-07-27 19:00:00',
-        'ece176aa-dcec-42c7-b780-7bbb4391a2cf'
+        '418ac649-ad80-4e2c-aa1b-db3733b97938'
     ),
     (
-        '32d13152-f6e9-4f6d-90ad-630c82fcf17b',
+        '48b7ad21-d23d-419f-b744-0bdfbf560c4b',
         'Godnattsaga',
         'Godnattsaga',
         'Avsluta dagen med en mysig godnattsaga i upptäckarhubben',
@@ -1540,10 +1538,10 @@ In this Deep Talk, we take time to sit with that feeling, without pressure and w
         NULL,
         '2026-07-27 18:30:00',
         '2026-07-27 19:00:00',
-        '25d22074-0806-4745-9f97-7817a781edc7'
+        '1bf09ebd-bce8-4925-9976-74b403a075ab'
     ),
     (
-        '523b0701-ceaa-4ef9-bbca-3f7c795a6a21',
+        'a0ed142b-1682-4c92-b7d5-a7809188c797',
         'Må-bra-kåsan',
         'Må-bra-kåsan',
         'Genom några tankeväckande övningar får du under den här aktiviteten fokusera på hur du kan stärka ditt eget mående. När du är klar med alla aktiviteter får du hämta ut en kåsa i upptäckarhubbens infodisk med självstärkande, peppande budskap från olika organisationer som på olika sätt arbetar med att stärka barn och ungas psykiska hälsa.',
@@ -1551,10 +1549,10 @@ In this Deep Talk, we take time to sit with that feeling, without pressure and w
         NULL,
         '2026-07-27 12:00:00',
         '2026-07-27 19:00:00',
-        'c2880eae-3277-43d7-a5b2-ddcfb11f7318'
+        'd617bf4f-1e00-4ab4-b6a7-ae90be48c0a0'
     ),
     (
-        '3395c1b9-0331-4852-a2fa-d4eaa10042aa',
+        '9a04dcdd-6a3a-4a55-bc98-db6200239c71',
         'Känslokartan',
         'Känslokartan',
         '',
@@ -1562,10 +1560,10 @@ In this Deep Talk, we take time to sit with that feeling, without pressure and w
         NULL,
         '2026-07-27 07:00:00',
         '2026-07-27 19:00:00',
-        '9151b3ad-e8ab-4019-bbcd-d71d8102dde8'
+        '7fef2277-0728-41e0-947d-c487fae3efde'
     ),
     (
-        '5c511e61-cea5-41c8-8385-5a80df68be3c',
+        'f29c2e52-48c0-4539-b2a4-f16979fbdbe3',
         'Brädspel',
         'Brädspel',
         'Brädspel',
@@ -1573,10 +1571,10 @@ In this Deep Talk, we take time to sit with that feeling, without pressure and w
         NULL,
         '2026-07-27 07:00:00',
         '2026-07-27 19:00:00',
-        '9151b3ad-e8ab-4019-bbcd-d71d8102dde8'
+        '7fef2277-0728-41e0-947d-c487fae3efde'
     ),
     (
-        'c7733531-af4d-4289-a750-2208e7675d1a',
+        '346f5a07-f65e-45f7-af39-46768544a128',
         'Cybersäkerhet med Unga forskare',
         'Cybersäkerhet med Unga forskare',
         'Testa på spännande aktiviteter med Unga Forskare!',
@@ -1584,10 +1582,10 @@ In this Deep Talk, we take time to sit with that feeling, without pressure and w
         NULL,
         '2026-07-27 07:00:00',
         '2026-07-27 15:00:00',
-        '9151b3ad-e8ab-4019-bbcd-d71d8102dde8'
+        '7fef2277-0728-41e0-947d-c487fae3efde'
     ),
     (
-        'c84eb3d4-c0cc-4a62-96d8-062b0b5c6652',
+        '9d1930c5-8aa7-4007-9649-fd0c8517dbf1',
         'Hantverksfokus: Täljning',
         'Hantverksfokus: Täljning',
         'Scouterna ska denna dagen ha med sig en ledare per patrull på pysslet för att ha översikt på scouterna medans de täljer',
@@ -1595,10 +1593,10 @@ In this Deep Talk, we take time to sit with that feeling, without pressure and w
         NULL,
         '2026-07-27 07:00:00',
         '2026-07-27 19:00:00',
-        '0563ef6a-4f77-458e-9f69-c45d1ef491c5'
+        '87afd904-fe20-4ec8-8a0d-325500b60b63'
     ),
     (
-        '12c76ac7-573c-4def-80b6-879b82542c20',
+        'cc99f64b-2cc9-4799-9049-48b94c005248',
         'Knoprep',
         'Knoprep',
         'Knoprep och instruktion finns för att lära sig en ny knop',
@@ -1606,10 +1604,10 @@ In this Deep Talk, we take time to sit with that feeling, without pressure and w
         NULL,
         '2026-07-27 07:00:00',
         '2026-07-27 19:00:00',
-        '0563ef6a-4f77-458e-9f69-c45d1ef491c5'
+        '87afd904-fe20-4ec8-8a0d-325500b60b63'
     ),
     (
-        '04056659-cd32-4485-a52d-9f52e4539122',
+        '5cc120fe-82a6-40ed-9b52-93d4f7626e95',
         'Tillsammans målning',
         'Tillsammans målning',
         'Hjälp till att skapa en målning tillsammans. Rita något på tavlan som betyder jamboree för dig.',
@@ -1617,10 +1615,10 @@ In this Deep Talk, we take time to sit with that feeling, without pressure and w
         NULL,
         '2026-07-27 07:00:00',
         '2026-07-27 19:00:00',
-        '0563ef6a-4f77-458e-9f69-c45d1ef491c5'
+        '87afd904-fe20-4ec8-8a0d-325500b60b63'
     ),
     (
-        '07e127fe-a5fc-4abe-a64e-d29e7c5f529c',
+        '8df403e1-fdf8-44f7-a94e-c1b5657417ce',
         'Halmpool',
         'Halmpool',
         'Hoppa ner i halmen, kan du hitta nålen i halmstacken?',
@@ -1628,10 +1626,10 @@ In this Deep Talk, we take time to sit with that feeling, without pressure and w
         NULL,
         '2026-07-27 07:00:00',
         '2026-07-27 19:00:00',
-        '185f5091-1e3f-4ad6-b684-c0a0670efe07'
+        '573d544a-5fd7-4c09-b2d6-99050e4dd6ae'
     ),
     (
-        'c2f5a8be-1263-44ff-a8f4-e0237591851f',
+        '793713a0-e218-42f6-8cc9-7fdf2840f031',
         'Slankaruseller',
         'Slankaruseller',
         'Åk på en karusell byggd av slanor.',
@@ -1639,10 +1637,10 @@ In this Deep Talk, we take time to sit with that feeling, without pressure and w
         NULL,
         '2026-07-27 07:00:00',
         '2026-07-27 19:00:00',
-        '185f5091-1e3f-4ad6-b684-c0a0670efe07'
+        '573d544a-5fd7-4c09-b2d6-99050e4dd6ae'
     ),
     (
-        'b1698d70-45db-4d17-a3d5-c4abfaa879b9',
+        '4852796d-c9fb-4256-ac23-9d0dc2f9dc11',
         'Svensk klassiker',
         'Swedish Classic',
         '',
@@ -1650,10 +1648,10 @@ In this Deep Talk, we take time to sit with that feeling, without pressure and w
         NULL,
         '2026-07-27 07:00:00',
         '2026-07-27 10:00:00',
-        '5a3e5f3a-f12a-4043-8940-4113486433da'
+        '1beaefca-76a1-4806-8b27-713af48b4cb5'
     ),
     (
-        'dc9302e3-9b71-4bcd-9a0b-cd449e769f3e',
+        '33a1f2a8-691e-4658-b091-b3f3ee4722e0',
         'Svensk klassiker',
         'Swedish Classic',
         '',
@@ -1661,10 +1659,10 @@ In this Deep Talk, we take time to sit with that feeling, without pressure and w
         NULL,
         '2026-07-27 12:00:00',
         '2026-07-27 15:00:00',
-        '5a3e5f3a-f12a-4043-8940-4113486433da'
+        '1beaefca-76a1-4806-8b27-713af48b4cb5'
     ),
     (
-        'ed09f4b6-747f-415c-bdab-c4be12dab68a',
+        '0d749e44-0658-4878-9350-a3f0b8e84e5d',
         'Våga utmana normerna',
         'Våga utmana normerna',
         '',
@@ -1672,10 +1670,10 @@ In this Deep Talk, we take time to sit with that feeling, without pressure and w
         NULL,
         '2026-07-27 07:15:00',
         '2026-07-27 08:00:00',
-        'bed2dc35-1e4d-4426-a9d0-f9c1731ae493'
+        '75bec7fd-a4f5-439a-9f1d-8fae424c4118'
     ),
     (
-        'e4c83221-8d80-4be7-ab80-72071680f45f',
+        'e8c6b133-0ed0-4381-a391-70926b725bf6',
         'Hand the Ball',
         'Hand the Ball',
         'Hand the Ball – låda med psykiska utmaningar. 
@@ -1685,10 +1683,10 @@ Det är ett lekfullt bollkoncept med enkla övningar och värderingsbaserade akt
         NULL,
         '2026-07-27 09:00:00',
         '2026-07-27 10:00:00',
-        'bed2dc35-1e4d-4426-a9d0-f9c1731ae493'
+        '75bec7fd-a4f5-439a-9f1d-8fae424c4118'
     ),
     (
-        'df67b411-1dd8-4072-8205-235b77b56578',
+        '43d8ada7-0c72-4f9f-b065-511892678971',
         'Våga utmana normerna',
         'Våga utmana normerna',
         '',
@@ -1696,10 +1694,10 @@ Det är ett lekfullt bollkoncept med enkla övningar och värderingsbaserade akt
         NULL,
         '2026-07-27 11:15:00',
         '2026-07-27 12:00:00',
-        'bed2dc35-1e4d-4426-a9d0-f9c1731ae493'
+        '75bec7fd-a4f5-439a-9f1d-8fae424c4118'
     ),
     (
-        'd0324cdb-9a89-4952-8ef9-0974c8b4f1bd',
+        '0ef9513a-bfca-4a06-88df-ae5e10bce560',
         'Trygghetsspelet',
         'The Safety Game',
         'Trygghetsspelet är en interaktiv, spelbaserad aktivitet där scouter tillsammans utforskar frågor om trygghet, gränser, relationer och kroppslig integritet – både i vardagen och digitalt.',
@@ -1707,10 +1705,10 @@ Det är ett lekfullt bollkoncept med enkla övningar och värderingsbaserade akt
         NULL,
         '2026-07-27 16:00:00',
         '2026-07-27 17:00:00',
-        'bed2dc35-1e4d-4426-a9d0-f9c1731ae493'
+        '75bec7fd-a4f5-439a-9f1d-8fae424c4118'
     ),
     (
-        'e60f51a6-ef19-4e35-a5f0-d32c1c185711',
+        '78e0b8b3-465e-433c-b71f-de77d8884979',
         'Musikquiz',
         'Music Quiz',
         '',
@@ -1718,10 +1716,10 @@ Det är ett lekfullt bollkoncept med enkla övningar och värderingsbaserade akt
         NULL,
         '2026-07-27 08:00:00',
         '2026-07-27 09:00:00',
-        'bed2dc35-1e4d-4426-a9d0-f9c1731ae493'
+        '75bec7fd-a4f5-439a-9f1d-8fae424c4118'
     ),
     (
-        'ded32f6f-5f09-47bb-90ef-85af58271769',
+        'c9b3585c-cfef-4562-8765-3c20a999d748',
         'Musikquiz',
         'Music Quiz',
         '',
@@ -1729,10 +1727,10 @@ Det är ett lekfullt bollkoncept med enkla övningar och värderingsbaserade akt
         NULL,
         '2026-07-27 08:00:00',
         '2026-07-27 09:00:00',
-        'bed2dc35-1e4d-4426-a9d0-f9c1731ae493'
+        '75bec7fd-a4f5-439a-9f1d-8fae424c4118'
     ),
     (
-        '1c47fb6b-8983-4b99-ba4c-5e18e80e9e07',
+        '94078c61-9191-448e-91dd-6486fe971806',
         'Mekanisk tjur',
         'Mechanical bull',
         'Testa hur länge du kan sitta på tjurens rygg! Kanske är det svårare än du tror?',
@@ -1740,10 +1738,10 @@ Det är ett lekfullt bollkoncept med enkla övningar och värderingsbaserade akt
         NULL,
         '2026-07-27 07:00:00',
         '2026-07-27 19:00:00',
-        'e56b12f0-7d5e-47f3-aa86-9a832be3e185'
+        '92228c5e-1d0e-415c-a41b-35f5435a0a30'
     ),
     (
-        '831eb197-a2c3-483e-8e25-74530b179dea',
+        '12540a0c-ee6c-402d-9e01-b02829399805',
         'Femkamp',
         'Pentathlon',
         'Utmana dig själv och varandra genom att försöka nå bästa möjliga resultat i Äventyrarhubbens femkamp! Kanske får du och dina vänner chans att skryta om ert rekord på hubbens anslagstavlor?',
@@ -1751,10 +1749,10 @@ Det är ett lekfullt bollkoncept med enkla övningar och värderingsbaserade akt
         NULL,
         '2026-07-27 07:00:00',
         '2026-07-27 15:00:00',
-        'e56b12f0-7d5e-47f3-aa86-9a832be3e185'
+        '92228c5e-1d0e-415c-a41b-35f5435a0a30'
     ),
     (
-        '35ebb711-576d-456a-90c7-e233d8e84dac',
+        'a89f5c31-2797-450d-89e2-73e32e7131f5',
         'Unga forskare',
         'Unga forskare',
         'Testa på spännande aktiviteter med Unga Forskare!',
@@ -1762,10 +1760,10 @@ Det är ett lekfullt bollkoncept med enkla övningar och värderingsbaserade akt
         NULL,
         '2026-07-27 07:00:00',
         '2026-07-27 15:00:00',
-        '16bc8872-5e30-416b-a71b-05a56731e44e'
+        'd7cf4654-4614-43bf-92b9-73325c18ddb9'
     ),
     (
-        'af83d5be-e331-4457-a962-9f3dd456cd3b',
+        '9137c378-24c4-4b46-bb4d-719c9e7fdbdd',
         'Hand the Ball',
         'Hand the Ball',
         'Testa på roliga bollaktiviteter!',
@@ -1773,10 +1771,10 @@ Det är ett lekfullt bollkoncept med enkla övningar och värderingsbaserade akt
         NULL,
         '2026-07-27 08:00:00',
         '2026-07-27 09:00:00',
-        '55043f4b-a2be-48b3-858d-c11dad88de22'
+        'df5460d7-e435-4434-b63e-4755564087f4'
     ),
     (
-        '66035bfa-c651-40f4-aedd-1ec4fa3cfb1a',
+        'e12410dc-bef7-4066-8620-a70a961d592b',
         'Kartkampen',
         'The Map Battle',
         'Vilken åldersgrupp kan vinna flest kartdelar? På varje torg finns en aktivitet utplacerad. Genomför den för att få sätta upp en pin i åldersgruppens färg på kartområdet. Åldersgruppen som i slutet av dagen kontrollerar flest områden på kartan blir dagens vinnare. Varje ny dag börjar kampen om från början',
@@ -1785,10 +1783,10 @@ An activity is located at each square. Complete the activity to place a pin in y
         NULL,
         '2026-07-27 08:00:00',
         '2026-07-27 19:00:00',
-        'eb304d4b-3ef9-400c-b216-d94927081760'
+        'f50f4431-4e79-4d3c-a52e-4e556e8be09f'
     ),
     (
-        '7720600e-802c-481f-82df-290ecf4f7e71',
+        '35f293e7-ff88-4a4f-82aa-4ea439fbf963',
         'Spelkväll med Webberods E-handel',
         'Game night with Webberods E-handel',
         'Kom och spela brädspel med Webberods E-handel!',
@@ -1796,10 +1794,10 @@ An activity is located at each square. Complete the activity to place a pin in y
         NULL,
         '2026-07-27 12:00:00',
         '2026-07-27 19:00:00',
-        '2641071b-c7bc-4eb5-8022-307e25b0507c'
+        '58ddff08-1b6e-4758-88be-1fa0d2ad7921'
     ),
     (
-        '28427a26-f73f-48d3-99a9-8c8d8a9ac1a0',
+        '0fe49224-1843-46bd-9744-b30961255a24',
         'Quiz med Johan och Lottie',
         'Quiz with Johan and Lottie',
         'Kom och quizza med Johan och Lottie!',
@@ -1807,10 +1805,10 @@ An activity is located at each square. Complete the activity to place a pin in y
         NULL,
         '2026-07-27 20:00:00',
         '2026-07-27 21:30:00',
-        'f96bb333-7390-40d1-92a3-29b7b3fbeb16'
+        '2b32a9d9-da57-40f4-ba95-6e6de28ed846'
     ),
     (
-        '5cfe4f51-c6b9-41a9-95e4-813351089f5b',
+        '212ab3dd-93b0-47c3-bea0-74a2d0f74569',
         'Från Frankrike till Korea - på cykel!',
         'From France to Korea - on a bike!',
         '2023 var det världsjamboree i Sydkorea, och tre franska scouter bestämde sig för att ta ekologiskt - på cykel 15 000 km! Nu är de här på Jamboree26 och visar sin film om upplevelsen.',
@@ -1818,10 +1816,10 @@ An activity is located at each square. Complete the activity to place a pin in y
         NULL,
         '2026-07-27 20:00:00',
         '2026-07-27 21:00:00',
-        'f96bb333-7390-40d1-92a3-29b7b3fbeb16'
+        '2b32a9d9-da57-40f4-ba95-6e6de28ed846'
     ),
     (
-        '094d047b-2cc4-4490-810a-f0cdcc790ef5',
+        '875d8123-0a8a-4de2-b9d2-6bf294fd765a',
         'Camping with Confidence',
         'Camping with Confidece',
         '',
@@ -1832,7 +1830,7 @@ An activity is located at each square. Complete the activity to place a pin in y
         NULL
     ),
     (
-        '6f08dfb2-27ed-4da8-a439-35c08b9412db',
+        '578760b2-7789-4a52-a5bd-8daddf538dde',
         'Escape room',
         'Escape room',
         'Testa patrullens sammarbetsförmåga i upptäkarhubbens escape room. Aktiviteten kan bokas på platts i hubben',
@@ -1840,10 +1838,10 @@ An activity is located at each square. Complete the activity to place a pin in y
         NULL,
         '2026-07-27 07:00:00',
         '2026-07-27 19:00:00',
-        'ece176aa-dcec-42c7-b780-7bbb4391a2cf'
+        '418ac649-ad80-4e2c-aa1b-db3733b97938'
     ),
     (
-        'ba8fe444-844a-4cba-959e-fccfab0234fb',
+        '09f11538-638a-444a-b413-44def40926ef',
         'Internationell 5-kamp',
         'International pentathlon',
         'Samla ihop ett lag på 5 personer bestående av minst två olika nationaliteter och tävla mot andra lag i internationella lekar!',
@@ -1851,10 +1849,10 @@ An activity is located at each square. Complete the activity to place a pin in y
         NULL,
         '2026-07-27 13:00:00',
         '2026-07-27 13:40:00',
-        '572671ce-7f67-4e16-8f32-5bda9bb2e5e7'
+        '10952f43-79b5-436d-bb7f-c7337f4ab7e6'
     ),
     (
-        'f27427ce-cf8e-43be-8b23-0de088cb58e3',
+        '056ec3d8-58c3-4fa7-b2c7-58e48cc09056',
         'Mingla med WAGGGS och WOSM',
         'Meet WAGGGS & WOSM mingle',
         'Är du nyfiken på vad våra världsorganisationer håller på med? Kom och mingla med José, vice ordförande i WOSM:s Europaregion, och Eirini, programansvarig i WAGGGS Europaregion, i Heartbeat Cafe.',
@@ -1862,10 +1860,10 @@ An activity is located at each square. Complete the activity to place a pin in y
         NULL,
         '2026-07-27 11:30:00',
         '2026-07-27 12:30:00',
-        '572671ce-7f67-4e16-8f32-5bda9bb2e5e7'
+        '10952f43-79b5-436d-bb7f-c7337f4ab7e6'
     ),
     (
-        '0728dde2-dc50-4bbe-a15b-7bf106af290e',
+        '4c154c4c-7726-43bf-b112-33ba8ae7e92e',
         'Mingla med WAGGGS och WOSM',
         'Meet WAGGGS & WOSM mingle',
         'Är du nyfiken på vad våra världsorganisationer håller på med? Kom och mingla med José, vice ordförande i WOSM:s Europaregion, och Eirini, programansvarig i WAGGGS Europaregion, i Heartbeat Cafe.',
@@ -1873,10 +1871,10 @@ An activity is located at each square. Complete the activity to place a pin in y
         NULL,
         '2026-07-27 14:30:00',
         '2026-07-27 15:30:00',
-        '572671ce-7f67-4e16-8f32-5bda9bb2e5e7'
+        '10952f43-79b5-436d-bb7f-c7337f4ab7e6'
     ),
     (
-        '476adff5-ca9b-4b2b-be0f-460385ae0490',
+        '034767d4-190d-47de-8d70-1802c36249a1',
         'Silent morning disco',
         'Silent moring disco',
         'Varmt välkomna på silent morning disco! Häll i dig kaffet och kom hit, eller varför inte ta det med dig? 9:15 slår vi upp portarna, och discot varar ända till 11:15. Kanske behöver du vila öronen från byn, eller bara känner dig sugen på att njuta av morgonen på et anorlunda vis?',
@@ -1884,10 +1882,10 @@ An activity is located at each square. Complete the activity to place a pin in y
         NULL,
         '2026-07-27 07:15:00',
         '2026-07-27 09:15:00',
-        '6491fa9b-418a-4d26-b8ff-f92267fb5b7d'
+        '9d1275be-7f8b-4567-8616-8c3d0a319a52'
     ),
     (
-        'a6aed46d-6b35-4873-b1d8-d055b26cfe98',
+        'b27b87ab-8929-4432-8732-105ffca4670f',
         'VR-glasögon',
         'VR-headset',
         'Välkommen till tältet Klartänkt och Drogfri. Prova olika VR-aktiviteter, utmana varandra och dig själv',
@@ -1895,10 +1893,10 @@ An activity is located at each square. Complete the activity to place a pin in y
         NULL,
         '2026-07-27 09:15:00',
         '2026-07-27 15:00:00',
-        '6491fa9b-418a-4d26-b8ff-f92267fb5b7d'
+        '9d1275be-7f8b-4567-8616-8c3d0a319a52'
     ),
     (
-        '1f1c5e24-e107-4a77-8dd1-0303a6c3b280',
+        '52020de4-3b13-4d0e-995f-b575901d5f3a',
         'Aktivitetstombola',
         'Activity tombola',
         'I aktivitetstombolan finns mängder med roliga aktiviteter. Ni snurrar på tombolan, får en utmaning eller aktivitet och sedan genomför ni den!',
@@ -1906,10 +1904,10 @@ An activity is located at each square. Complete the activity to place a pin in y
         NULL,
         '2026-07-27 09:15:00',
         '2026-07-27 15:00:00',
-        '6491fa9b-418a-4d26-b8ff-f92267fb5b7d'
+        '9d1275be-7f8b-4567-8616-8c3d0a319a52'
     ),
     (
-        '2e40b863-aa95-4fc0-a501-1997d5768ef4',
+        '6488d054-b05a-4591-863a-a384c6703707',
         'Klartänkt - Spel och aktiviteter',
         'Clear minds - Games and activities',
         'Här kan du prova på vår nya kortlek, spela spel i vår myshörna eller bara ladda powerbankem och sitta och chilla en stund.',
@@ -1917,10 +1915,10 @@ An activity is located at each square. Complete the activity to place a pin in y
         NULL,
         '2026-07-27 09:15:00',
         '2026-07-27 15:00:00',
-        '6491fa9b-418a-4d26-b8ff-f92267fb5b7d'
+        '9d1275be-7f8b-4567-8616-8c3d0a319a52'
     ),
     (
-        'bde5da82-2af8-4087-a72d-e07b86bd897e',
+        '51a3d150-565f-484e-a998-66f482b9d1f2',
         'Klartänkt material',
         'Clear minds - material',
         'Är du nyfiken på progammaterial och verkty att använda för ANDTS hemma i kåren, sväng förbi oss och ta del av våra kunskaper och få tips att använda.',
@@ -1928,10 +1926,10 @@ An activity is located at each square. Complete the activity to place a pin in y
         NULL,
         '2026-07-27 09:15:00',
         '2026-07-27 15:00:00',
-        '6491fa9b-418a-4d26-b8ff-f92267fb5b7d'
+        '9d1275be-7f8b-4567-8616-8c3d0a319a52'
     ),
     (
-        '009806a3-3e10-4e6c-ae52-6abd535ca909',
+        'b3010a94-b865-41fe-bd28-0db3d6ef261b',
         'Tryck tröjor',
         'Print shirts',
         'Ta med dig en tröja, köp ett tryck och skapa din egen coola tröja, (eller valfritt plagg) i vår tröjtryck. Kostnad 15 kr.',
@@ -1939,10 +1937,10 @@ An activity is located at each square. Complete the activity to place a pin in y
         NULL,
         '2026-07-27 09:15:00',
         '2026-07-27 15:00:00',
-        '6491fa9b-418a-4d26-b8ff-f92267fb5b7d'
+        '9d1275be-7f8b-4567-8616-8c3d0a319a52'
     ),
     (
-        '1225b69c-0349-439e-9cec-9eaf5a77ace5',
+        '009d6907-c48b-47ce-a5ff-6471306544cf',
         'Världsförbättrare & Världens Barn',
         'World improvers and "Världens Barn"',
         'Lär dig mer om IOGT-NTO International och deras arbete/projekt i Uganda med UGGA. Tillsammans förbättrar vi scouter världen!',
@@ -1950,10 +1948,10 @@ An activity is located at each square. Complete the activity to place a pin in y
         NULL,
         '2026-07-27 09:15:00',
         '2026-07-27 15:00:00',
-        '6491fa9b-418a-4d26-b8ff-f92267fb5b7d'
+        '9d1275be-7f8b-4567-8616-8c3d0a319a52'
     ),
     (
-        'f065584d-c777-42e3-b1c7-950eaaf209fd',
+        '44cbdbce-ba15-466c-a331-a189761e0126',
         'Gör din egen pin',
         'Make you own pin',
         'Tillverka en egen pin i pinmaskinen, det finns olika motiv att välja på.',
@@ -1961,10 +1959,10 @@ An activity is located at each square. Complete the activity to place a pin in y
         NULL,
         '2026-07-27 09:15:00',
         '2026-07-27 15:00:00',
-        '6491fa9b-418a-4d26-b8ff-f92267fb5b7d'
+        '9d1275be-7f8b-4567-8616-8c3d0a319a52'
     ),
     (
-        '51148b5c-c888-480e-98eb-3bae8b226e71',
+        '7e2b8974-5bf4-45d8-b5ca-7eae0cddf4e1',
         '15-spel CAN',
         '15 games CAN',
         'CAN, centalförbundet för alkohol och narkotikaupplysning utmanar er i ett 15-spel från deras arbete "ANTDS på Schemat"',
@@ -1972,10 +1970,10 @@ An activity is located at each square. Complete the activity to place a pin in y
         NULL,
         '2026-07-27 09:15:00',
         '2026-07-27 15:00:00',
-        '6491fa9b-418a-4d26-b8ff-f92267fb5b7d'
+        '9d1275be-7f8b-4567-8616-8c3d0a319a52'
     ),
     (
-        '9591458d-8ab9-464d-9899-91e2f405bd36',
+        '859d4d0c-9787-4ca2-b5c5-ea5c68579790',
         'Försäljning av märken och kortlekar',
         'Badges and card games for sale',
         'I tältet kan du köpa Klartänk reflektionskortlekar på både svenska och engelska. Ett begränsat antal märken finns också till försäljning. Kostnad mellan 10 kr och 50 kr.',
@@ -1983,10 +1981,10 @@ An activity is located at each square. Complete the activity to place a pin in y
         NULL,
         '2026-07-27 09:15:00',
         '2026-07-27 15:00:00',
-        '6491fa9b-418a-4d26-b8ff-f92267fb5b7d'
+        '9d1275be-7f8b-4567-8616-8c3d0a319a52'
     ),
     (
-        '45ad3b09-87ea-48a8-83ca-2a1a7ad9912b',
+        '04bfbb73-e3b1-47bb-a325-e1e20ab46c46',
         'NSF Mingelkväll - Live musik',
         'NSF mingle evening - Live music',
         'Kom och mys med tillsammans me oss, mingla, träffa nya människor, sitt och chilla, lyssna på livemusik av vår hemliga trubadur',
@@ -1994,10 +1992,10 @@ An activity is located at each square. Complete the activity to place a pin in y
         NULL,
         '2026-07-27 17:45:00',
         '2026-07-27 19:30:00',
-        '6491fa9b-418a-4d26-b8ff-f92267fb5b7d'
+        '9d1275be-7f8b-4567-8616-8c3d0a319a52'
     ),
     (
-        '8d7886b9-4229-4b4b-baa8-d765417d093b',
+        'bb50c7be-1d3d-4fa5-9309-6fe0c30bd224',
         'Att välkomna internationella gäster',
         'Welcoming international guests',
         'Ska du ha internationella scouter på besök, eller vill bjuda in internationella scouter till kåren? Här får du får du lära dig hur det kan gå till: vad ni kan hitta på, hur ni kan organisera besöket, och hur ni kan bjuda in internationella, och varför det är så himla kul till att börja med!',
@@ -2005,10 +2003,10 @@ An activity is located at each square. Complete the activity to place a pin in y
         NULL,
         '2026-07-27 12:00:00',
         '2026-07-27 13:00:00',
-        'b127cecb-c982-4d23-918d-1dbd9b4ca894'
+        '801217b7-0c0a-44d5-8ac7-a153aa3fbba4'
     ),
     (
-        '25810b17-f8b6-4299-8efc-f09fff010e54',
+        '88c23972-8434-4be2-b545-deb136495f45',
         'The Great Migration of Birds with THE HERDS',
         'The Great Migration of Birds with THE HERDS',
         'THE HERDS är ett banbrytande offentligt konstprojekt som låter djurnaturtrogna dockor i naturlig storlek ge sig ut på en episk resa från Kongobäckenet till Norra polcirkeln och låter publiken komma nära klimatkrisens verklighet. Projektet har skapats av The Walk Productions, teamet bakom Little Amal. THE HERDS har rest genom städer och landskap världen över och samlat konstnärer, unga människor och lokalsamhällen för att tillsammans föreställa sig en bättre framtid för vår planet. På Jamboree26 bjuds du in att bli en del av berättelsen. Tillsammans med THE HERDS-teamet får du skapa din egen flyttfågeldocka och upptäcka de fantastiska resor som fåglar gör genom länder, klimat och livsmiljöer. Genom dockteater, rörelse och berättande får du lära dig hur fåglar varje år färdas tusentals kilometer och vilka utmaningar de möter längs vägen. Tillsammans kommer deltagarna att skapa flockar av fåglar som växer under veckan och som så småningom kommer att vandra genom jamboreeområdet för att möta THE HERDS gorilla, som har rest hela vägen från Kinshasa i Kongobäckenet. Denna roliga och praktiska workshop kombinerar kreativitet, klimatmedvetenhet och gemensamt engagemang. Den ger unga människor möjlighet att bli en del av ett storskaligt konstnärligt projekt och bidra till en minnesvärd avslutande samling på Jamboree26. Inga förkunskaper behövs – bara fantasi, nyfikenhet och en vilja att följa med på flytten. OBS! Workshopen är på engelska.',
@@ -2016,10 +2014,10 @@ An activity is located at each square. Complete the activity to place a pin in y
         45,
         '2026-07-28 14:00:00',
         '2026-07-28 15:00:00',
-        'b127cecb-c982-4d23-918d-1dbd9b4ca894'
+        '801217b7-0c0a-44d5-8ac7-a153aa3fbba4'
     ),
     (
-        'c0d97ff7-69a5-4972-8073-c825fdc9104e',
+        '4c3c3cbf-c862-4105-adb1-453006cd38f5',
         'Henrik Wahlström – Uppochner: Att leva med och tala om psykisk ohälsa',
         'Henrik Wahlström – Uppochner: Att leva med och tala om psykisk ohälsa',
         'Psykisk ohälsa berör oss alla – direkt eller indirekt. Men hur pratar vi om det på ett sätt som gör skillnad? I den här föreläsningen delar Henrik Wahlström med sig av sin egen resa med bipolär sjukdom och vikten av att bryta stigman kring diagnoser och psykisk ohälsa. Med värme, insikt och en stor dos igenkänning ger han perspektiv på hur vi kan skapa en mer öppen och inkluderande dialog kring psykisk hälsa – både i arbetslivet och privat.  Föreläsningen hålls av Henrik Wahlström.',
@@ -2027,10 +2025,10 @@ An activity is located at each square. Complete the activity to place a pin in y
         NULL,
         '2026-07-28 11:30:00',
         '2026-07-28 13:00:00',
-        'b127cecb-c982-4d23-918d-1dbd9b4ca894'
+        '801217b7-0c0a-44d5-8ac7-a153aa3fbba4'
     ),
     (
-        '236dfbb3-fc37-49cd-a383-05c065263d3d',
+        '4f7e0bc5-deec-4a4f-aec2-ca348bc36603',
         'Lead the Change: A Climate Action Workshop',
         'Lead the Change: A Climate Action Workshop',
         'Brinner du för klimatet? Kom då på vår interaktiva workshop om programmaterialet "Youth-Led Action on Climate Change (YLACC)" från WAGGGS, där du får utforska klimatutmaningar, jobba med andra för att utveckla lösningar och idéer som du kan ta med dig hem och omsätta i handling. OBS! Workshopen hålls på engelska.',
@@ -2038,10 +2036,10 @@ An activity is located at each square. Complete the activity to place a pin in y
         NULL,
         '2026-07-28 09:00:00',
         '2026-07-28 10:00:00',
-        'b127cecb-c982-4d23-918d-1dbd9b4ca894'
+        '801217b7-0c0a-44d5-8ac7-a153aa3fbba4'
     ),
     (
-        '94900f81-7507-47e4-b204-aa1c98f85197',
+        '0793979d-ad75-4f6f-8160-76fae508c6fc',
         'En organsation av och för unga, med stöd av vuxna. Eller?',
         'An organisation by and for young people, with support from adults. Or is it?',
         'Scouterna säger sig vara en organisation av och för unga. Men vad innebär det egentligen i praktiken och vilket ansvar lägger det på dig som vuxen ledare?
@@ -2053,10 +2051,10 @@ No ready-made answers. Just an honest conversation about what it actually takes 
         NULL,
         '2026-07-28 08:00:00',
         '2026-07-28 09:00:00',
-        '8457d5f0-bcae-424b-91d6-69cc47259e48'
+        '5ef6c219-43f8-43d4-ad73-55afcf6a44ae'
     ),
     (
-        '89a6822d-454b-44c1-bc50-9ff0e37df30f',
+        '9650b6ce-2710-4ff7-964d-d1388a0547a5',
         'Vad tycker makten om dig som ung? KFUM har svaret!',
         'Vad tycker makten om dig som ung? KFUM har svaret!',
         'Spoiler: Demokrati är mycket mer än valdagen. Kom förbi upptäck vad KFUMs nya rapport säger om maktens syn på unga och hur vi kan förändra den tillsammans.',
@@ -2064,10 +2062,10 @@ No ready-made answers. Just an honest conversation about what it actually takes 
         NULL,
         '2026-07-28 09:00:00',
         '2026-07-28 10:00:00',
-        '8457d5f0-bcae-424b-91d6-69cc47259e48'
+        '5ef6c219-43f8-43d4-ad73-55afcf6a44ae'
     ),
     (
-        '9108fd6a-cf4c-4f95-91d9-7e13ed1e1c56',
+        'ec8a02f2-98a8-4faf-acf6-d39058180b5e',
         'Desinformation, demokrati och sköldpaddor',
         'Desinformation, demokrati och sköldpaddor',
         'På vilket sätt hotar desinformation vår demokrati och yttrandefriheten? Vilka är de fula tricken, vilka är riskerna för var och en av oss och hur kan en sköldpaddas kamp för berömmelse hjälpa oss att genomskåda och stå emot dem?
@@ -2077,10 +2075,10 @@ Sara Ahnborg jobbar till vardags i Bryssel med EU:s strategier mot desinformatio
         NULL,
         '2026-07-28 12:00:00',
         '2026-07-28 13:00:00',
-        '8457d5f0-bcae-424b-91d6-69cc47259e48'
+        '5ef6c219-43f8-43d4-ad73-55afcf6a44ae'
     ),
     (
-        'aa217f2d-8aaa-4183-b5e6-950d918cf10e',
+        'c43ec0a9-7448-4b8a-a029-2f5a98c45b2f',
         'Treskablinoll: Små beteenden, stor skillnad – om normer och att skapa ett tryggare klimat',
         'Treskablinoll: Små beteenden, stor skillnad – om normer och att skapa ett tryggare klimat',
         'Vem bestämmer egentligen hur killar och tjejer "ska" vara? Hur är det att vara ung idag när sexualiserat innehåll finns överallt och gränsen mellan det digitala och irl blir allt suddigare? Hur påverkar det våra förväntningar på relationer, sex och vad som känns okej?
@@ -2090,10 +2088,10 @@ Kom och lyssna på Natalia och Maria från Treskablinoll! De börjar med en kort
         NULL,
         '2026-07-28 14:00:00',
         '2026-07-28 15:00:00',
-        '8457d5f0-bcae-424b-91d6-69cc47259e48'
+        '5ef6c219-43f8-43d4-ad73-55afcf6a44ae'
     ),
     (
-        'b676bc82-0055-4b0c-9a15-808703ffb948',
+        '94a81ce5-36b3-420c-aed8-72bc118c1a8a',
         'Quiz',
         'Quiz',
         'Kom och var med på quiz! Spela själv eller i lag.',
@@ -2101,10 +2099,10 @@ Kom och lyssna på Natalia och Maria från Treskablinoll! De börjar med en kort
         NULL,
         '2026-07-28 14:00:00',
         '2026-07-28 14:30:00',
-        '572671ce-7f67-4e16-8f32-5bda9bb2e5e7'
+        '10952f43-79b5-436d-bb7f-c7337f4ab7e6'
     ),
     (
-        'db7e043b-2ce9-4dc6-b6a9-4ff8a99e42ae',
+        '4764a8d2-f046-419a-a304-2cee2f458d6f',
         'Internationell 5-kamp',
         'International pentathlon',
         'Samla ihop ett lag på 5 personer bestående av minst två olika nationaliteter och tävla mot andra lag i internationella lekar!',
@@ -2112,10 +2110,10 @@ Kom och lyssna på Natalia och Maria från Treskablinoll! De börjar med en kort
         NULL,
         '2026-07-28 13:00:00',
         '2026-07-28 13:40:00',
-        '572671ce-7f67-4e16-8f32-5bda9bb2e5e7'
+        '10952f43-79b5-436d-bb7f-c7337f4ab7e6'
     ),
     (
-        '09623077-3b8b-4deb-87d0-7ae6a9ac6636',
+        'ef014fa6-941d-4da3-9b9f-26f72651c1b0',
         'VM i Scoutscarf',
         'Scarf World Cup',
         'Rösta fram världens snyggaste scoutscarf! Kvartsfinal',
@@ -2123,10 +2121,10 @@ Kom och lyssna på Natalia och Maria från Treskablinoll! De börjar med en kort
         NULL,
         '2026-07-28 07:00:00',
         '2026-07-28 16:00:00',
-        '572671ce-7f67-4e16-8f32-5bda9bb2e5e7'
+        '10952f43-79b5-436d-bb7f-c7337f4ab7e6'
     ),
     (
-        'fb3e8f51-12dc-47a0-966a-1f499a58f54b',
+        '1fe33eba-6faf-4a74-8eda-76a60e87136a',
         'Workshop Morakniv - knivvård',
         'Workshop Morakniv - knife maintenance',
         'Experter från Morakniv lär ut tips och trix för att ta hand om dina knivar.',
@@ -2134,10 +2132,10 @@ Kom och lyssna på Natalia och Maria från Treskablinoll! De börjar med en kort
         NULL,
         '2026-07-28 08:00:00',
         '2026-07-28 09:00:00',
-        '2e99d84f-5332-4e3c-9abd-669d44550c12'
+        'd75df430-57a8-4593-9611-ed1dd6d0c20c'
     ),
     (
-        'bf25893c-1c54-49ce-876d-7763f09a309a',
+        '9408beb7-68ff-49fb-bee1-eff7c1c61e84',
         'Workshop Morakniv - täljning',
         'Workshop Morakniv - wood carving',
         'Experter från Morakniv lär ut täljningstekniker och mycket mer!',
@@ -2145,10 +2143,10 @@ Kom och lyssna på Natalia och Maria från Treskablinoll! De börjar med en kort
         NULL,
         '2026-07-28 11:00:00',
         '2026-07-28 12:00:00',
-        '2e99d84f-5332-4e3c-9abd-669d44550c12'
+        'd75df430-57a8-4593-9611-ed1dd6d0c20c'
     ),
     (
-        'ac654d2d-140b-4a46-9de0-d489668a9f50',
+        '2134139f-c63a-4fc6-af29-283e3de947a5',
         'Klättervägg',
         'Climbing',
         'Välkommen att prova klättring i Hjärtat! Ta dig upp längs utsiktstornets väggar och njut av utsikten över lägerplatsen från ovan. Här finns klätterbanor för både nybörjare och vana klättrare.',
@@ -2156,10 +2154,10 @@ Kom och lyssna på Natalia och Maria från Treskablinoll! De börjar med en kort
         NULL,
         '2026-07-28 06:30:00',
         '2026-07-28 15:30:00',
-        '5094c36d-3f40-4d41-8070-1046bc015799'
+        'dc8255e8-e563-4d09-b073-e0ecd24e8423'
     ),
     (
-        'd633d55b-fe8d-46d1-ad0c-b5b495a10b98',
+        '14f82806-421c-467a-a662-8970b4561bee',
         'Aktivitetstombola',
         'Activity tombola',
         'I aktivitetstombolan finns mängder med roliga aktiviteter. Ni snurrar på tombolan, får en utmaning eller aktivitet och sedan genomför ni den!',
@@ -2167,10 +2165,10 @@ Kom och lyssna på Natalia och Maria från Treskablinoll! De börjar med en kort
         NULL,
         '2026-07-28 07:00:00',
         '2026-07-28 15:00:00',
-        '6491fa9b-418a-4d26-b8ff-f92267fb5b7d'
+        '9d1275be-7f8b-4567-8616-8c3d0a319a52'
     ),
     (
-        '2bf21b4b-c9b6-4832-9e2d-24c1ce0ced12',
+        '6d96c115-9642-47a2-afa8-62d145bdef8a',
         'Klartänkt - Spel och aktiviteter',
         'Clear minds - Games and activities',
         'Här kan du prova på vår nya kortlek, spela spel i vår myshörna eller bara ladda powerbankem och sitta och chilla en stund.',
@@ -2178,10 +2176,10 @@ Kom och lyssna på Natalia och Maria från Treskablinoll! De börjar med en kort
         NULL,
         '2026-07-28 07:00:00',
         '2026-07-28 15:00:00',
-        '6491fa9b-418a-4d26-b8ff-f92267fb5b7d'
+        '9d1275be-7f8b-4567-8616-8c3d0a319a52'
     ),
     (
-        '00d99e6b-77ea-4f99-9894-164931892486',
+        '03a6ea28-1d81-4da6-bcc4-936a97e2ac66',
         'Klartänkt material',
         'Clear minds - material',
         'Är du nyfiken på progammaterial och verkty att använda för ANDTS hemma i kåren, sväng förbi oss och ta del av våra kunskaper och få tips att använda.',
@@ -2189,10 +2187,10 @@ Kom och lyssna på Natalia och Maria från Treskablinoll! De börjar med en kort
         NULL,
         '2026-07-28 07:00:00',
         '2026-07-28 15:00:00',
-        '6491fa9b-418a-4d26-b8ff-f92267fb5b7d'
+        '9d1275be-7f8b-4567-8616-8c3d0a319a52'
     ),
     (
-        'e4fb877c-477c-461c-b70d-577acb0eaec1',
+        'cabccabc-2dcc-4559-8f58-588089bf46e3',
         'Tryck tröjor',
         'Print shirts',
         'Ta med dig en tröja, köp ett tryck och skapa din egen coola tröja, (eller valfritt plagg) i vår tröjtryck. Kostnad 15 kr.',
@@ -2200,10 +2198,10 @@ Kom och lyssna på Natalia och Maria från Treskablinoll! De börjar med en kort
         NULL,
         '2026-07-28 07:00:00',
         '2026-07-28 15:00:00',
-        '6491fa9b-418a-4d26-b8ff-f92267fb5b7d'
+        '9d1275be-7f8b-4567-8616-8c3d0a319a52'
     ),
     (
-        '2ad6b4d8-46ba-43d3-afa5-ac981c521f1c',
+        '019e2f99-ef7b-4673-972f-a5d2d8020fbd',
         'Världsförbättrare & Världens Barn',
         'World improvers and "Världens Barn"',
         'Lär dig mer om IOGT-NTO International och deras arbete/projekt i Uganda med UGGA. Tillsammans förbättrar vi scouter världen!',
@@ -2211,10 +2209,10 @@ Kom och lyssna på Natalia och Maria från Treskablinoll! De börjar med en kort
         NULL,
         '2026-07-28 07:00:00',
         '2026-07-28 15:00:00',
-        '6491fa9b-418a-4d26-b8ff-f92267fb5b7d'
+        '9d1275be-7f8b-4567-8616-8c3d0a319a52'
     ),
     (
-        '90908a34-0b2e-4997-b9d8-cb4a361aff13',
+        'a6943d80-186e-4f7e-a69e-00be95b90d68',
         'Gör din egen pin',
         'Make you own pin',
         'Tillverka en egen pin i pinmaskinen, det finns olika motiv att välja på.',
@@ -2222,10 +2220,10 @@ Kom och lyssna på Natalia och Maria från Treskablinoll! De börjar med en kort
         NULL,
         '2026-07-28 07:00:00',
         '2026-07-28 15:00:00',
-        '6491fa9b-418a-4d26-b8ff-f92267fb5b7d'
+        '9d1275be-7f8b-4567-8616-8c3d0a319a52'
     ),
     (
-        '92b13f23-822e-46d2-bb55-123505112027',
+        '0f8093d6-655e-418e-9408-162ebc6646d1',
         '15-spel CAN',
         '15 games CAN',
         'CAN, centalförbundet för alkohol och narkotikaupplysning utmanar er i ett 15-spel från deras arbete "ANTDS på Schemat"',
@@ -2233,10 +2231,10 @@ Kom och lyssna på Natalia och Maria från Treskablinoll! De börjar med en kort
         NULL,
         '2026-07-28 07:00:00',
         '2026-07-28 15:00:00',
-        '6491fa9b-418a-4d26-b8ff-f92267fb5b7d'
+        '9d1275be-7f8b-4567-8616-8c3d0a319a52'
     ),
     (
-        '03ea20cf-cbc9-4065-86ef-3d878b0e6808',
+        'd0e2eaad-36ea-484c-a848-4888fc23e824',
         'Försäljning av märken och kortlekar',
         'Badges and card games for sale',
         'I tältet kan du köpa Klartänk reflektionskortlekar på både svenska och engelska. Ett begränsat antal märken finns också till försäljning. Kostnad mellan 10 kr och 50 kr.',
@@ -2244,10 +2242,10 @@ Kom och lyssna på Natalia och Maria från Treskablinoll! De börjar med en kort
         NULL,
         '2026-07-28 07:00:00',
         '2026-07-28 15:00:00',
-        '6491fa9b-418a-4d26-b8ff-f92267fb5b7d'
+        '9d1275be-7f8b-4567-8616-8c3d0a319a52'
     ),
     (
-        'caa876bb-50de-41d5-8261-3cab7ded737e',
+        '00645e6f-efc1-4a17-86ec-c43602cacc50',
         'Äventyrararsamtal',
         'Adventurer scout leader gathering',
         'Slå dig ner vid lägerelden och möt Äventyrarledare från hela landet, dela erfarenheter, hämta inspiration och skapa nya kontakter.',
@@ -2255,10 +2253,10 @@ Kom och lyssna på Natalia och Maria från Treskablinoll! De börjar med en kort
         NULL,
         '2026-07-28 08:00:00',
         '2026-07-28 09:00:00',
-        'eb304d4b-3ef9-400c-b216-d94927081760'
+        'f50f4431-4e79-4d3c-a52e-4e556e8be09f'
     ),
     (
-        'daad249f-1524-43e4-a692-74ce43d99cc5',
+        '0a33b254-528c-4489-aac0-3aacd291ef4b',
         'Upptäckarsamtal',
         'Explorer scout leader gathering',
         'Slå dig ner vid lägerelden och möt upptäckarledare från hela landet, dela erfarenheter, hämta inspiration och skapa nya kontakter.',
@@ -2266,10 +2264,10 @@ Kom och lyssna på Natalia och Maria från Treskablinoll! De börjar med en kort
         NULL,
         '2026-07-28 12:00:00',
         '2026-07-28 13:00:00',
-        'eb304d4b-3ef9-400c-b216-d94927081760'
+        'f50f4431-4e79-4d3c-a52e-4e556e8be09f'
     ),
     (
-        '74808953-07c8-4a21-8451-ac526a339ec2',
+        'f9286a48-999f-4e8e-bcd7-2edb3c817fe5',
         'Kartkampen',
         'The Map Battle',
         'Vilken åldersgrupp kan vinna flest kartdelar? På varje torg finns en aktivitet utplacerad. Genomför den för att få sätta upp en pin i åldersgruppens färg på kartområdet. Åldersgruppen som i slutet av dagen kontrollerar flest områden på kartan blir dagens vinnare. Varje ny dag börjar kampen om från början',
@@ -2278,10 +2276,10 @@ An activity is located at each square. Complete the activity to place a pin in y
         NULL,
         '2026-07-28 08:00:00',
         '2026-07-28 15:30:00',
-        'eb304d4b-3ef9-400c-b216-d94927081760'
+        'f50f4431-4e79-4d3c-a52e-4e556e8be09f'
     ),
     (
-        'a387031b-4874-45e3-893a-ed46ab7c0f56',
+        '1c3d1ae8-ad2c-43cf-8620-50078d564eca',
         'Leda Scouting - Kåsa del 2',
         'Leda Scouting - Kåsa del 2',
         'Leda scouting är kursen för dig som vill förstå vad scouting är och hur du skapar verksamhet där scouter får växa, utmanas och ha roligt tillsammans. Här får du inspiration, konkreta verktyg och nya perspektiv på ledarskap i Scouterna. Anmälan via Scoutnet senast 17 juli.',
@@ -2289,10 +2287,10 @@ An activity is located at each square. Complete the activity to place a pin in y
         NULL,
         '2026-07-28 07:00:00',
         '2026-07-28 10:00:00',
-        'b1298fd2-c01a-4469-a1f2-bbd25bb9d908'
+        'accfffb4-5ccc-4ed3-bb28-a82f88440b92'
     ),
     (
-        '1c8c0c7c-52b3-449e-85d0-8fff41188284',
+        'e186a112-e29d-4ad2-82b9-b099e9409ec8',
         'Svenska Freds',
         'Swedish Peace',
         '',
@@ -2300,10 +2298,10 @@ An activity is located at each square. Complete the activity to place a pin in y
         NULL,
         '2026-07-28 12:00:00',
         '2026-07-28 14:00:00',
-        'b1298fd2-c01a-4469-a1f2-bbd25bb9d908'
+        'accfffb4-5ccc-4ed3-bb28-a82f88440b92'
     ),
     (
-        '01541136-b030-4ce7-8556-0da16169f483',
+        'c15f7c24-f049-44b8-868a-f2ffa6fa5043',
         'Bris',
         'Bris',
         '​​BRIS delar med sig om vad som kan vara viktigt att tänka på när man möter barn i kris, om faktorer som stärker motståndskraft och underlättar återhämtning. ​Tillsammans med andra ledare får du reflektera och dela erfarenheter och tankar kring hur man kan vara ett stöd för barn i kris. ​Föreläsningen hålls av Anneli Öhrling, BRIS. ​',
@@ -2311,10 +2309,10 @@ An activity is located at each square. Complete the activity to place a pin in y
         NULL,
         '2026-07-28 14:00:00',
         '2026-07-28 15:00:00',
-        'b1298fd2-c01a-4469-a1f2-bbd25bb9d908'
+        'accfffb4-5ccc-4ed3-bb28-a82f88440b92'
     ),
     (
-        'a80bdb5f-eb40-4c5d-926c-c58a9d6ae2a8',
+        '8326ca21-6991-4048-bb01-620f6aa073b9',
         'Kan vi vara scouter och aktivister samtidigt?',
         'Can we be scouts and activists at the same time?',
         'Ett tankeväckande pass där du får utforska relationen mellan scouting, engagemang och samhällsförändring. Genom reflektion och samtal får du diskutera vad det innebär att ta ställning, göra din röst hörd och hur scoutings värderingar kan ta sig uttryck i frågor som engagerar.',
@@ -2322,10 +2320,10 @@ An activity is located at each square. Complete the activity to place a pin in y
         NULL,
         '2026-07-28 11:15:00',
         '2026-07-28 12:00:00',
-        'f96bb333-7390-40d1-92a3-29b7b3fbeb16'
+        '2b32a9d9-da57-40f4-ba95-6e6de28ed846'
     ),
     (
-        '43c6df0c-04be-49ea-b250-405cbcfd1780',
+        '8b9e6a6d-f316-4442-83a1-54159b48aa15',
         'Certifierad kurs i kramande',
         'Become a certified hugger',
         '',
@@ -2333,10 +2331,10 @@ An activity is located at each square. Complete the activity to place a pin in y
         NULL,
         '2026-07-28 16:00:00',
         '2026-07-28 17:00:00',
-        'f96bb333-7390-40d1-92a3-29b7b3fbeb16'
+        '2b32a9d9-da57-40f4-ba95-6e6de28ed846'
     ),
     (
-        '3dd49c66-e853-48ea-b19a-016a724dbdf8',
+        'b3917552-911c-479f-86e4-98a33f4f5193',
         'Speedfriending',
         'Speed-friending',
         '',
@@ -2344,10 +2342,10 @@ An activity is located at each square. Complete the activity to place a pin in y
         NULL,
         '2026-07-28 17:00:00',
         '2026-07-28 19:00:00',
-        'f96bb333-7390-40d1-92a3-29b7b3fbeb16'
+        '2b32a9d9-da57-40f4-ba95-6e6de28ed846'
     ),
     (
-        '357fbc9a-1aa2-4492-94ec-2b5ceb8c1064',
+        '31cfb400-0333-4a86-83f7-df0004e61e63',
         'Speeddejting',
         'Speed-dating',
         '',
@@ -2355,10 +2353,10 @@ An activity is located at each square. Complete the activity to place a pin in y
         NULL,
         '2026-07-28 19:00:00',
         '2026-07-28 21:59:00',
-        'f96bb333-7390-40d1-92a3-29b7b3fbeb16'
+        '2b32a9d9-da57-40f4-ba95-6e6de28ed846'
     ),
     (
-        '56b55b61-716d-453f-b31c-1b70efe9a337',
+        '281972b8-b1e3-4e52-8c89-97ef91775914',
         'Spelkväll med Webberods E-handel',
         'Game night with Webberods E-handel',
         'Kom och spela brädspel med Webberods E-handel!',
@@ -2366,10 +2364,10 @@ An activity is located at each square. Complete the activity to place a pin in y
         NULL,
         '2026-07-28 13:00:00',
         '2026-07-28 20:30:00',
-        'dc143da0-04e2-44fe-b8ab-9dc73b30f392'
+        '9f98d184-0f1b-4fb8-9784-2594c59efe3c'
     ),
     (
-        '07ae0ce7-224d-4b96-98f1-41117ab184f0',
+        'e4535f74-9f42-4b56-acac-e770bb71fcc5',
         'Tillsammans bygger vi Sverige',
         'Let´s build sweden togethe',
         'Idag ska vi pussla ihop hela vårt land! Genom att tillsammans, med gott samarbete och klokt ledarskap, genomföra olika uppgifter och utmaningar kommer ni tillsammans bidra till att bokstavligen bygga ihop hela Sverige! Idag är det fasta starttider som gäller, Kom i Tid!',
@@ -2377,10 +2375,10 @@ An activity is located at each square. Complete the activity to place a pin in y
         NULL,
         '2026-07-28 06:30:00',
         '2026-07-28 08:30:00',
-        '279f9b05-e635-4923-9fb9-13d09c23f31c'
+        '0171900f-3f29-4119-8a92-c9e688fa582b'
     ),
     (
-        'ee1d4e99-3aa0-4a22-a07e-11545940091e',
+        'cf4c8448-ccb3-4a64-83ea-8e96482fca98',
         'Tillsammans bygger vi Sverige',
         'Let´s build sweden togethe',
         'Idag ska vi pussla ihop hela vårt land! Genom att tillsammans, med gott samarbete och klokt ledarskap, genomföra olika uppgifter och utmaningar kommer ni tillsammans bidra till att bokstavligen bygga ihop hela Sverige! Idag är det fasta starttider som gäller, Kom i Tid!',
@@ -2388,10 +2386,10 @@ An activity is located at each square. Complete the activity to place a pin in y
         NULL,
         '2026-07-28 08:30:00',
         '2026-07-28 10:30:00',
-        '279f9b05-e635-4923-9fb9-13d09c23f31c'
+        '0171900f-3f29-4119-8a92-c9e688fa582b'
     ),
     (
-        '3c2b50f9-5d8e-4f7b-8273-490cf2a81c43',
+        '32f9c69a-d135-480b-81e6-7a06b48b98b4',
         'Tillsammans bygger vi Sverige',
         'Let´s build sweden togethe',
         'Idag ska vi pussla ihop hela vårt land! Genom att tillsammans, med gott samarbete och klokt ledarskap, genomföra olika uppgifter och utmaningar kommer ni tillsammans bidra till att bokstavligen bygga ihop hela Sverige! Idag är det fasta starttider som gäller, Kom i Tid!',
@@ -2399,10 +2397,10 @@ An activity is located at each square. Complete the activity to place a pin in y
         NULL,
         '2026-07-28 12:00:00',
         '2026-07-28 14:00:00',
-        '279f9b05-e635-4923-9fb9-13d09c23f31c'
+        '0171900f-3f29-4119-8a92-c9e688fa582b'
     ),
     (
-        '65202891-1714-468f-b9b8-711c96e8d3de',
+        '37ed0401-ee00-4a19-92fd-529ff40364d0',
         'Tillsammans bygger vi Sverige',
         'Let´s build sweden togethe',
         'Idag ska vi pussla ihop hela vårt land! Genom att tillsammans, med gott samarbete och klokt ledarskap, genomföra olika uppgifter och utmaningar kommer ni tillsammans bidra till att bokstavligen bygga ihop hela Sverige! Idag är det fasta starttider som gäller, Kom i Tid!',
@@ -2410,10 +2408,10 @@ An activity is located at each square. Complete the activity to place a pin in y
         NULL,
         '2026-07-28 14:00:00',
         '2026-07-28 16:00:00',
-        '279f9b05-e635-4923-9fb9-13d09c23f31c'
+        '0171900f-3f29-4119-8a92-c9e688fa582b'
     ),
     (
-        'f206be43-1765-4b65-b505-f90247f0d789',
+        'b9738c36-3172-44a7-a3c7-8bc9c0b7adb1',
         'Sagostund',
         'Storytime',
         'Inspirerande sagostund öppet för alla',
@@ -2421,10 +2419,10 @@ An activity is located at each square. Complete the activity to place a pin in y
         NULL,
         '2026-07-28 06:00:00',
         '2026-07-28 07:00:00',
-        '556a6e3c-62b3-4c9a-8720-4cee10542d9f'
+        '8e335d16-2369-474d-b774-d16f9e44b0fe'
     ),
     (
-        '52ba5f5f-95f4-4980-953e-7f3a3aef9ab9',
+        '1f088112-e57a-4a9f-b209-38a215e0ffc7',
         'Kvällsbön',
         'Evening prayer',
         '',
@@ -2432,10 +2430,10 @@ An activity is located at each square. Complete the activity to place a pin in y
         NULL,
         '2026-07-28 20:00:00',
         '2026-07-28 20:30:00',
-        '556a6e3c-62b3-4c9a-8720-4cee10542d9f'
+        '8e335d16-2369-474d-b774-d16f9e44b0fe'
     ),
     (
-        '5a3572d3-1b10-4a5a-aa13-3c2d8e6ec460',
+        'be7c5544-b9e3-4470-9f97-a3f662b21f3a',
         '28/7 – Kräftskiva 🦞',
         '28/7 – Crayfish Party 🦞',
         'Kräftor till alla? Nja... det hade sprängt budgeten snabbare än du hinner säga "västerbottenost". Istället serverar vi en smak av den svenska kräftskivan med vår egen specialitet. Har du något rött, en rolig hatt eller något festligt? Då passar du perfekt in på vår kräftskiva! Kom för maten, stanna för stämningen – och dagens Limited Edition!',
@@ -2443,10 +2441,10 @@ An activity is located at each square. Complete the activity to place a pin in y
         NULL,
         '2026-07-28 08:00:00',
         '2026-07-28 20:00:00',
-        '5fca0ebc-b407-4f5e-810e-4573f945b6bd'
+        '6955cb7f-38a0-4f47-b16e-6633608b04f0'
     ),
     (
-        'bb0026d6-153f-4d1b-8a34-e525033c10d1',
+        'df43e1d7-3f5d-453c-84a7-54e1d98cd416',
         'Parad till lägerbål',
         'Campfire parade',
         'Parad tillsammans till lägerbålet.',
@@ -2454,10 +2452,10 @@ An activity is located at each square. Complete the activity to place a pin in y
         NULL,
         '2026-07-28 16:30:00',
         '2026-07-28 17:00:00',
-        'ece176aa-dcec-42c7-b780-7bbb4391a2cf'
+        '418ac649-ad80-4e2c-aa1b-db3733b97938'
     ),
     (
-        'a7fc581a-7e86-458a-b3ed-14c64f63261e',
+        'fd42f21b-77ee-468b-9425-23ecb25e72f4',
         'Dagens lek',
         'Dagens lek',
         'Starttider för lekarna kommer finnas på anslagstavlan i hubben',
@@ -2465,10 +2463,10 @@ An activity is located at each square. Complete the activity to place a pin in y
         NULL,
         '2026-07-28 07:00:00',
         '2026-07-28 15:00:00',
-        'ece176aa-dcec-42c7-b780-7bbb4391a2cf'
+        '418ac649-ad80-4e2c-aa1b-db3733b97938'
     ),
     (
-        '90945caf-70bd-41c0-83ee-39be750c661b',
+        '15a12ec3-8171-476d-b29b-f3e7fe6d7c56',
         'Brottning',
         'Brottning',
         'Kom och testa på brottning tillsammans med vinslövs brottningsklubb. Vi rekomenderar kläder du kan röra dig i',
@@ -2476,10 +2474,10 @@ An activity is located at each square. Complete the activity to place a pin in y
         30,
         '2026-07-28 07:00:00',
         '2026-07-28 07:45:00',
-        'ece176aa-dcec-42c7-b780-7bbb4391a2cf'
+        '418ac649-ad80-4e2c-aa1b-db3733b97938'
     ),
     (
-        '98ad3a38-5afb-48c7-9c8b-4cc237ba1f63',
+        '5cc8feb5-0dae-46e8-908b-07d77929d193',
         'Brottning',
         'Brottning',
         'Kom och testa på brottning tillsammans med vinslövs brottningsklubb. Vi rekomenderar kläder du kan röra dig i',
@@ -2487,10 +2485,10 @@ An activity is located at each square. Complete the activity to place a pin in y
         30,
         '2026-07-28 08:00:00',
         '2026-07-28 08:45:00',
-        'ece176aa-dcec-42c7-b780-7bbb4391a2cf'
+        '418ac649-ad80-4e2c-aa1b-db3733b97938'
     ),
     (
-        'add52958-deb1-4b35-98c3-fc5339b7026d',
+        '58a2df20-60d3-4500-8e8a-3d5a3576f355',
         'Brottning',
         'Brottning',
         'Kom och testa på brottning tillsammans med vinslövs brottningsklubb. Vi rekomenderar kläder du kan röra dig i',
@@ -2498,10 +2496,10 @@ An activity is located at each square. Complete the activity to place a pin in y
         30,
         '2026-07-28 09:00:00',
         '2026-07-28 09:45:00',
-        'ece176aa-dcec-42c7-b780-7bbb4391a2cf'
+        '418ac649-ad80-4e2c-aa1b-db3733b97938'
     ),
     (
-        '4dacd42f-02fd-4dcd-baa1-396fe4cb08c5',
+        '92ddcb49-62cd-48ce-85ac-73b25bf140cb',
         'Brottning',
         'Brottning',
         'Kom och testa på brottning tillsammans med vinslövs brottningsklubb. Vi rekomenderar kläder du kan röra dig i',
@@ -2509,10 +2507,10 @@ An activity is located at each square. Complete the activity to place a pin in y
         30,
         '2026-07-28 12:00:00',
         '2026-07-28 12:45:00',
-        'ece176aa-dcec-42c7-b780-7bbb4391a2cf'
+        '418ac649-ad80-4e2c-aa1b-db3733b97938'
     ),
     (
-        'b06035fd-b7b0-431f-a2cd-0742590ad6f1',
+        'd333aaea-5dfe-4c1f-997c-546d766fdea2',
         'Brottning',
         'Brottning',
         'Kom och testa på brottning tillsammans med vinslövs brottningsklubb. Vi rekomenderar kläder du kan röra dig i',
@@ -2520,10 +2518,10 @@ An activity is located at each square. Complete the activity to place a pin in y
         30,
         '2026-07-28 13:00:00',
         '2026-07-28 13:45:00',
-        'ece176aa-dcec-42c7-b780-7bbb4391a2cf'
+        '418ac649-ad80-4e2c-aa1b-db3733b97938'
     ),
     (
-        '41da0677-d3d8-41bb-af3f-7c1ab3b74d02',
+        '596cef8f-fc7e-402e-8810-c6986f1d4206',
         'Brottning',
         'Brottning',
         'Kom och testa på brottning tillsammans med vinslövs brottningsklubb. Vi rekomenderar kläder du kan röra dig i',
@@ -2531,10 +2529,10 @@ An activity is located at each square. Complete the activity to place a pin in y
         30,
         '2026-07-28 14:00:00',
         '2026-07-28 14:45:00',
-        'ece176aa-dcec-42c7-b780-7bbb4391a2cf'
+        '418ac649-ad80-4e2c-aa1b-db3733b97938'
     ),
     (
-        '2624e3a5-9eae-41b9-9cd5-524e8c0cb7a0',
+        '5fdbfc65-f34d-44b4-ac00-8e73f6070b1c',
         'Lekaktiviteter',
         'Lekaktiviteter',
         'Hämta fotboll, rockring, hopprep, gagaboll boll m.m och spela med patrullkompisar eller nya vänner',
@@ -2542,10 +2540,10 @@ An activity is located at each square. Complete the activity to place a pin in y
         NULL,
         '2026-07-28 07:00:00',
         '2026-07-28 15:00:00',
-        'ece176aa-dcec-42c7-b780-7bbb4391a2cf'
+        '418ac649-ad80-4e2c-aa1b-db3733b97938'
     ),
     (
-        '79ea459c-d0e5-4e84-ac32-927c0c4f9a9a',
+        '031f22d5-c73a-442f-996f-6ad1db69c629',
         'Bubbelballs',
         'Bubbelballs',
         'Studsa runt i stora uppblåsbara bollar! Bokning sker på plats i hubben',
@@ -2553,10 +2551,10 @@ An activity is located at each square. Complete the activity to place a pin in y
         NULL,
         '2026-07-28 12:00:00',
         '2026-07-28 19:00:00',
-        'ece176aa-dcec-42c7-b780-7bbb4391a2cf'
+        '418ac649-ad80-4e2c-aa1b-db3733b97938'
     ),
     (
-        '60ab3f91-0876-4844-86fa-d63f701a84bd',
+        '14c4c378-94f4-462d-af93-31bdcdf38469',
         'Escape room',
         'Escape room',
         'Testa patrullens sammarbetsförmåga i upptäkarhubbens escape room. Aktiviteten kan bokas på platts i hubben',
@@ -2564,10 +2562,10 @@ An activity is located at each square. Complete the activity to place a pin in y
         NULL,
         '2026-07-28 07:00:00',
         '2026-07-28 15:00:00',
-        'ece176aa-dcec-42c7-b780-7bbb4391a2cf'
+        '418ac649-ad80-4e2c-aa1b-db3733b97938'
     ),
     (
-        'f6336931-4a79-403e-b2a4-dbc4dffc0c4e',
+        'b60370e5-d0f5-4ae3-a1ba-9b76e2f5633f',
         'Må-bra-kåsan',
         'Må-bra-kåsan',
         'Genom några tankeväckande övningar får du under den här aktiviteten fokusera på hur du kan stärka ditt eget mående. När du är klar med alla aktiviteter får du hämta ut en kåsa i upptäckarhubbens infodisk med självstärkande, peppande budskap från olika organisationer som på olika sätt arbetar med att stärka barn och ungas psykiska hälsa.',
@@ -2575,10 +2573,10 @@ An activity is located at each square. Complete the activity to place a pin in y
         NULL,
         '2026-07-28 12:00:00',
         '2026-07-28 19:00:00',
-        'c2880eae-3277-43d7-a5b2-ddcfb11f7318'
+        'd617bf4f-1e00-4ab4-b6a7-ae90be48c0a0'
     ),
     (
-        'fc0034ea-7648-472c-bafb-5daf8805ce59',
+        '06045bc6-046a-4b14-a9d4-ec54e1a5d545',
         'Känslokartan',
         'Känslokartan',
         '',
@@ -2586,10 +2584,10 @@ An activity is located at each square. Complete the activity to place a pin in y
         NULL,
         '2026-07-28 07:00:00',
         '2026-07-28 15:00:00',
-        '9151b3ad-e8ab-4019-bbcd-d71d8102dde8'
+        '7fef2277-0728-41e0-947d-c487fae3efde'
     ),
     (
-        'a6dab0ac-4269-4c5a-97b1-6e6a20fa4b24',
+        '8804198b-88c2-4d22-9cf7-002915cb0d82',
         'Brädspel',
         'Brädspel',
         'Brädspel',
@@ -2597,10 +2595,10 @@ An activity is located at each square. Complete the activity to place a pin in y
         NULL,
         '2026-07-28 07:00:00',
         '2026-07-28 15:00:00',
-        '9151b3ad-e8ab-4019-bbcd-d71d8102dde8'
+        '7fef2277-0728-41e0-947d-c487fae3efde'
     ),
     (
-        '9e0f5e78-0595-48a6-bd57-8ba6120eeaa9',
+        'e610c3ab-2a5b-4377-a763-bf368fd5bf13',
         'Cybersäkerhet med Unga forskare',
         'Cybersäkerhet med Unga forskare',
         'Testa på spännande aktiviteter med Unga Forskare!',
@@ -2608,10 +2606,10 @@ An activity is located at each square. Complete the activity to place a pin in y
         NULL,
         '2026-07-28 07:00:00',
         '2026-07-28 15:00:00',
-        '9151b3ad-e8ab-4019-bbcd-d71d8102dde8'
+        '7fef2277-0728-41e0-947d-c487fae3efde'
     ),
     (
-        'a7afc834-fde2-4ca1-8241-c4cbcb1492ec',
+        'ba6bf12e-b11a-4505-99b0-27b4f9c7c0a4',
         'Pyssla med BRIS',
         'Pyssla med BRIS',
         'Pyssla en “första-hjälpen-låda” med idéer om vad du behöver när du inte mår bra, pärla, pyssla eller prata om barns rättigheter tillsammans med volontärer från Bris!',
@@ -2619,10 +2617,10 @@ An activity is located at each square. Complete the activity to place a pin in y
         NULL,
         '2026-07-28 07:00:00',
         '2026-07-28 15:00:00',
-        '0563ef6a-4f77-458e-9f69-c45d1ef491c5'
+        '87afd904-fe20-4ec8-8a0d-325500b60b63'
     ),
     (
-        '020cb0dc-6b5a-416a-9a5d-fff8f4c7d3fb',
+        '8fa45844-175e-4c54-b0e6-47e2b8586280',
         'Hantverksfokus: Paracord',
         'Hantverksfokus: Paracord',
         '',
@@ -2630,10 +2628,10 @@ An activity is located at each square. Complete the activity to place a pin in y
         NULL,
         '2026-07-28 07:00:00',
         '2026-07-28 15:00:00',
-        '0563ef6a-4f77-458e-9f69-c45d1ef491c5'
+        '87afd904-fe20-4ec8-8a0d-325500b60b63'
     ),
     (
-        'daeaca85-b208-4ab1-a9df-4c630317460f',
+        '19f03ccd-74a5-416b-8f26-996261a6a050',
         'Knoprep',
         'Knoprep',
         'Knoprep och instruktion finns för att lära sig en ny knop',
@@ -2641,10 +2639,10 @@ An activity is located at each square. Complete the activity to place a pin in y
         NULL,
         '2026-07-28 07:00:00',
         '2026-07-28 15:00:00',
-        '0563ef6a-4f77-458e-9f69-c45d1ef491c5'
+        '87afd904-fe20-4ec8-8a0d-325500b60b63'
     ),
     (
-        'f3e59171-5490-4e0c-aaef-f89aba0eef16',
+        '4aa5c09c-4fa4-4aba-bab8-4443af50cd0e',
         'Tillsammans målning',
         'Tillsammans målning',
         'Hjälp till att skapa en målning tillsammans. Rita något på tavlan som betyder jamboree för dig.',
@@ -2652,10 +2650,10 @@ An activity is located at each square. Complete the activity to place a pin in y
         NULL,
         '2026-07-28 07:00:00',
         '2026-07-28 15:00:00',
-        '0563ef6a-4f77-458e-9f69-c45d1ef491c5'
+        '87afd904-fe20-4ec8-8a0d-325500b60b63'
     ),
     (
-        '844c13eb-7b92-4539-937d-4edf2ad04eca',
+        '51e246d5-c984-4872-a5a2-2ad33a69b915',
         'Live musik på hubben',
         'Live musik på hubben',
         '',
@@ -2663,10 +2661,10 @@ An activity is located at each square. Complete the activity to place a pin in y
         NULL,
         '2026-07-28 08:00:00',
         '2026-07-28 09:30:00',
-        'c1c51512-8ab6-4a2f-81bf-57a889133bde'
+        '9a454352-9051-4cc0-afd3-02143d080451'
     ),
     (
-        '8ab73d23-771e-4145-8cea-add12374e7a9',
+        'f659dce6-bec8-4170-863e-7190d2ade0e5',
         'Live musik på hubben',
         'Live musik på hubben',
         '',
@@ -2674,10 +2672,10 @@ An activity is located at each square. Complete the activity to place a pin in y
         NULL,
         '2026-07-28 13:00:00',
         '2026-07-28 14:30:00',
-        'c1c51512-8ab6-4a2f-81bf-57a889133bde'
+        '9a454352-9051-4cc0-afd3-02143d080451'
     ),
     (
-        '0952a123-318d-407e-b5a9-616960e74b98',
+        'd4c3688f-98ff-4b47-8880-ece11ecdc9e9',
         'Bubbligt pyssel',
         'Bubbligt pyssel',
         'Pyssla egna såbubbel verktyg och testa att blåsa både stora och små bubblor',
@@ -2685,10 +2683,10 @@ An activity is located at each square. Complete the activity to place a pin in y
         NULL,
         '2026-07-28 08:00:00',
         '2026-07-28 09:30:00',
-        'c1c51512-8ab6-4a2f-81bf-57a889133bde'
+        '9a454352-9051-4cc0-afd3-02143d080451'
     ),
     (
-        'cf3f8e28-8e8f-4355-8f58-f7b214d354cf',
+        'd5cba28b-2cd5-4650-a5ef-fd7cf9852d50',
         'Bubbligt pyssel',
         'Bubbligt pyssel',
         'Pyssla egna såbubbel verktyg och testa blåsa både stora och små bubblor',
@@ -2696,10 +2694,10 @@ An activity is located at each square. Complete the activity to place a pin in y
         NULL,
         '2026-07-28 13:00:00',
         '2026-07-28 14:30:00',
-        'c1c51512-8ab6-4a2f-81bf-57a889133bde'
+        '9a454352-9051-4cc0-afd3-02143d080451'
     ),
     (
-        '342f0972-034c-4857-8e66-8aad3ca40bbd',
+        'ba6dda5e-0898-4df8-a932-7bce3086fbfc',
         'Halmpool',
         'Halmpool',
         'Hoppa ner i halmen, kan du hitta nålen i halmstacken?',
@@ -2707,10 +2705,10 @@ An activity is located at each square. Complete the activity to place a pin in y
         NULL,
         '2026-07-28 07:00:00',
         '2026-07-28 15:00:00',
-        '185f5091-1e3f-4ad6-b684-c0a0670efe07'
+        '573d544a-5fd7-4c09-b2d6-99050e4dd6ae'
     ),
     (
-        'c8420b8f-9d30-4a2f-aeb2-ce294753a79e',
+        'bc37788c-4c7e-4462-96f6-87b406efb988',
         'Slankaruseller',
         'Slankaruseller',
         'Åk på en karusell byggd av slanor.',
@@ -2718,10 +2716,10 @@ An activity is located at each square. Complete the activity to place a pin in y
         NULL,
         '2026-07-28 07:00:00',
         '2026-07-28 15:00:00',
-        '185f5091-1e3f-4ad6-b684-c0a0670efe07'
+        '573d544a-5fd7-4c09-b2d6-99050e4dd6ae'
     ),
     (
-        '74a0e44a-27b4-49bb-9a3f-4e1de93ac008',
+        '99feb579-efc2-4658-a509-7479628f7347',
         'Tim Bergling foundation',
         'Tim Bergling foundation',
         'Exakt tid för dessa övningar kommer att finnas på hubbens anslagstavla dagen innan. Testa på övningar från Välmåendearenan tillsammans med Love Runesson från Tim Bergling Foundations ungdomsråd. Genom korta övningar kopplade till välmående kan barn och unga reflektera, bygga självkänsla och utveckla sin förmåga att prata om hur de mår.',
@@ -2729,10 +2727,10 @@ An activity is located at each square. Complete the activity to place a pin in y
         NULL,
         '2026-07-28 07:00:00',
         '2026-07-28 15:00:00',
-        '185f5091-1e3f-4ad6-b684-c0a0670efe07'
+        '573d544a-5fd7-4c09-b2d6-99050e4dd6ae'
     ),
     (
-        '1a6a0de4-be0a-4379-9529-519d32a7ef3b',
+        'bc44bf22-3f8b-4ae1-8021-14bdac938b40',
         'Hand the Ball',
         'Hand the Ball',
         'Hand the Ball – låda med psykiska utmaningar. 
@@ -2742,10 +2740,10 @@ Det är ett lekfullt bollkoncept med enkla övningar och värderingsbaserade akt
         NULL,
         '2026-07-28 09:00:00',
         '2026-07-28 10:00:00',
-        '6cc24219-fe95-49c1-8328-78783742e6f5'
+        'd63f78ab-39df-4302-b843-1ad6e6dc50a6'
     ),
     (
-        'ca5bb8f0-14e4-4338-9644-ab5f12fcf95a',
+        'ba6d55b6-c6d8-4fb9-aadc-a066ba68d041',
         'Knopmästerskap',
         'Knopmästerskap',
         '',
@@ -2753,10 +2751,10 @@ Det är ett lekfullt bollkoncept med enkla övningar och värderingsbaserade akt
         NULL,
         '2026-07-28 08:00:00',
         '2026-07-28 09:00:00',
-        '803435f5-8544-4521-8302-3cef29c4b254'
+        '5819fc32-18b1-4f16-9ad9-e58d0bb538e8'
     ),
     (
-        'a443f713-3e4e-41ec-ac24-7f392a572735',
+        'd25d866a-b564-4b35-ba3d-4e0562eed67c',
         'Knopmästerskap',
         'Knopmästerskap',
         '',
@@ -2764,10 +2762,10 @@ Det är ett lekfullt bollkoncept med enkla övningar och värderingsbaserade akt
         NULL,
         '2026-07-28 13:00:00',
         '2026-07-28 14:00:00',
-        '803435f5-8544-4521-8302-3cef29c4b254'
+        '5819fc32-18b1-4f16-9ad9-e58d0bb538e8'
     ),
     (
-        'c9017306-5fad-4af3-be68-5e7a37e1573c',
+        '62b185fb-0e89-49f2-9ae1-61650c3ef918',
         'Mekanisk tjur',
         'Mechanical bull',
         'Testa hur länge du kan sitta på tjurens rygg! Kanske är det svårare än du tror?',
@@ -2775,10 +2773,10 @@ Det är ett lekfullt bollkoncept med enkla övningar och värderingsbaserade akt
         NULL,
         '2026-07-28 07:00:00',
         '2026-07-28 15:00:00',
-        'e56b12f0-7d5e-47f3-aa86-9a832be3e185'
+        '92228c5e-1d0e-415c-a41b-35f5435a0a30'
     ),
     (
-        '665685c3-c5a5-421d-a00a-516f9bead8b9',
+        '1660a351-737f-4d16-a97a-182d0af79943',
         'Femkamp',
         'Pentathlon',
         'Utmana dig själv och varandra genom att försöka nå bästa möjliga resultat i Äventyrarhubbens femkamp! Kanske får du och dina vänner chans att skryta om ert rekord på hubbens anslagstavlor?',
@@ -2786,10 +2784,10 @@ Det är ett lekfullt bollkoncept med enkla övningar och värderingsbaserade akt
         NULL,
         '2026-07-28 07:00:00',
         '2026-07-28 15:00:00',
-        'e56b12f0-7d5e-47f3-aa86-9a832be3e185'
+        '92228c5e-1d0e-415c-a41b-35f5435a0a30'
     ),
     (
-        '53c264bf-f38e-4043-9e6a-92d0cd63094c',
+        'cc151db7-f5ee-40bd-bea1-f9b9daea2256',
         'Unga forskare',
         'Unga forskare',
         'Testa på spännande aktiviteter med Unga Forskare!',
@@ -2797,10 +2795,10 @@ Det är ett lekfullt bollkoncept med enkla övningar och värderingsbaserade akt
         NULL,
         '2026-07-28 07:00:00',
         '2026-07-28 15:00:00',
-        '16bc8872-5e30-416b-a71b-05a56731e44e'
+        'd7cf4654-4614-43bf-92b9-73325c18ddb9'
     ),
     (
-        '5bbacdbc-9579-41a0-b74f-0fdabb681908',
+        '8d4ccf16-7e0d-4427-b2f2-a431ec8f48f5',
         'Trygghetsspelet med Treskablinoll',
         'Trygghetsspelet med Treskablinoll',
         '',
@@ -2808,10 +2806,10 @@ Det är ett lekfullt bollkoncept med enkla övningar och värderingsbaserade akt
         NULL,
         '2026-07-28 08:00:00',
         '2026-07-28 08:45:00',
-        '0d34c206-664b-4fdd-9cf6-759653f3bc5c'
+        'd359dd73-1b0d-429b-ae3b-5b18a9fa210e'
     ),
     (
-        '56e67f45-d552-419e-a181-0370f31b6bc8',
+        'f940ffbc-4923-4219-8572-1a65b5d2b060',
         'Trygghetsspelet med Treskablinoll',
         'Trygghetsspelet med Treskablinoll',
         '',
@@ -2819,10 +2817,10 @@ Det är ett lekfullt bollkoncept med enkla övningar och värderingsbaserade akt
         NULL,
         '2026-07-28 12:00:00',
         '2026-07-28 12:45:00',
-        '0d34c206-664b-4fdd-9cf6-759653f3bc5c'
+        'd359dd73-1b0d-429b-ae3b-5b18a9fa210e'
     ),
     (
-        '3e693a09-ed42-493c-b27a-5bf9e13eedbb',
+        '6f5541a9-7bea-4739-974e-b927f2338c24',
         'Hand the Ball',
         'Hand the Ball',
         'Testa på roliga bollaktiviteter!',
@@ -2830,10 +2828,10 @@ Det är ett lekfullt bollkoncept med enkla övningar och värderingsbaserade akt
         NULL,
         '2026-07-28 07:00:00',
         '2026-07-28 07:45:00',
-        '55043f4b-a2be-48b3-858d-c11dad88de22'
+        'df5460d7-e435-4434-b63e-4755564087f4'
     ),
     (
-        'a0934f61-a5cd-41bf-afaa-0eea3cd390e0',
+        '7f6c75f3-bf3b-465b-9e21-86fe973e56ad',
         'Uppdrag Självkänsla',
         'Uppdrag Självkänsla',
         '',
@@ -2841,10 +2839,10 @@ Det är ett lekfullt bollkoncept med enkla övningar och värderingsbaserade akt
         NULL,
         '2026-07-28 09:00:00',
         '2026-07-28 10:00:00',
-        '55043f4b-a2be-48b3-858d-c11dad88de22'
+        'df5460d7-e435-4434-b63e-4755564087f4'
     ),
     (
-        'a00e9b00-71f9-4f7c-b9d7-198ad53fd942',
+        '7942051f-2ab3-497d-80c4-da11464da94a',
         'Uppdrag Självkänsla',
         'Uppdrag Självkänsla',
         '',
@@ -2852,10 +2850,10 @@ Det är ett lekfullt bollkoncept med enkla övningar och värderingsbaserade akt
         NULL,
         '2026-07-28 13:00:00',
         '2026-07-28 14:00:00',
-        '55043f4b-a2be-48b3-858d-c11dad88de22'
+        'df5460d7-e435-4434-b63e-4755564087f4'
     ),
     (
-        'ce637af3-f48f-4615-9ff7-9114781a7c37',
+        '118a0abe-7289-44d1-a083-0b1cd93d3d58',
         'Äventyrare berättar: Henrik Wahlström',
         'The adventurer shares: Henrik Wahlström',
         'Lyssna på när äventyraren Henrik Wahlström berättar om de inre äventyren med fokus på psykisk hälsa. Han kommer även berätta om uppochned-märket och om hur du kan ta det!',
@@ -2863,10 +2861,10 @@ Det är ett lekfullt bollkoncept med enkla övningar och värderingsbaserade akt
         NULL,
         '2026-07-28 14:00:00',
         '2026-07-28 15:00:00',
-        '55043f4b-a2be-48b3-858d-c11dad88de22'
+        'df5460d7-e435-4434-b63e-4755564087f4'
     ),
     (
-        '8d9cbe1d-4dcb-4926-bdcc-535b6c8265a1',
+        'c9dd9e80-c9bc-4be4-bff7-97aca0d80a1f',
         'Disco',
         'Disco',
         'Kom och dansa med dina vänner på hubbens episka disco med både DJ och snack!',
@@ -2874,10 +2872,10 @@ Det är ett lekfullt bollkoncept med enkla övningar och värderingsbaserade akt
         NULL,
         '2026-07-29 17:00:00',
         '2026-07-29 19:00:00',
-        '55043f4b-a2be-48b3-858d-c11dad88de22'
+        'df5460d7-e435-4434-b63e-4755564087f4'
     ),
     (
-        'd767758f-7c19-4e19-acaa-12674bcfdd8f',
+        '5aa2f963-4ce7-4583-a9ce-b3e73c73c079',
         'Återträff Explorer Belt',
         'Reunion Explorer Belt',
         'Återträff för alla som deltagit i Explorer Belt oavsett vilket år och vilken land du gick. Vi samlas alla utanför Heatbeat Café och splittar sedan upp oss i mindre grupper.',
@@ -2885,10 +2883,10 @@ Det är ett lekfullt bollkoncept med enkla övningar och värderingsbaserade akt
         NULL,
         '2026-07-29 17:30:00',
         '2026-07-29 19:30:00',
-        '572671ce-7f67-4e16-8f32-5bda9bb2e5e7'
+        '10952f43-79b5-436d-bb7f-c7337f4ab7e6'
     ),
     (
-        '69e357a4-88eb-4cfb-bb28-d143403f452b',
+        'ba2f3a75-63cc-4d11-8b10-b09b3d8cb77f',
         'Återträff för Världscenter (volontär & funktionär)',
         'Reunion World Scout or Guide Center (IST and staff)',
         'Återträff för alla som varit på Världsscoutcenter som volontär eller anställd funk. Oavsett vilken center. Vi samlas alla  utanför Heatbeat Café och splittar sedan upp oss i mindre grupper.',
@@ -2896,10 +2894,10 @@ Det är ett lekfullt bollkoncept med enkla övningar och värderingsbaserade akt
         NULL,
         '2026-07-29 18:30:00',
         '2026-07-29 20:30:00',
-        '572671ce-7f67-4e16-8f32-5bda9bb2e5e7'
+        '10952f43-79b5-436d-bb7f-c7337f4ab7e6'
     ),
     (
-        'fe37ba95-5add-43dd-807f-efea16f3064c',
+        'f3f6b1d8-e4ff-43d7-85dc-6547f72325f0',
         'Återträff Världskonferenser',
         'Reunion World Scout and Guide Conferenses (WOSM & WAGGS)',
         'Återträff för alla som deltagit på Världskonferenser, oavsett WAGGS eller WOSM. Samling  utanför Heatbeat Café.',
@@ -2907,10 +2905,10 @@ Det är ett lekfullt bollkoncept med enkla övningar och värderingsbaserade akt
         NULL,
         '2026-07-29 18:30:00',
         '2026-07-29 20:30:00',
-        '572671ce-7f67-4e16-8f32-5bda9bb2e5e7'
+        '10952f43-79b5-436d-bb7f-c7337f4ab7e6'
     ),
     (
-        'de1d6c30-63d6-4380-95e7-532faaf8675b',
+        '68ca88e3-f228-4a3c-b155-08a5560c5679',
         'Återträff Europakonferenser',
         'Reunion European Scout and Guide Conferenses (WOSM & WAGGS)',
         'Återträff för alla som deltagit på Europakonferenser, oavsett WAGGS eller WOSM. Samling  utanför Heatbeat Café',
@@ -2918,10 +2916,10 @@ Det är ett lekfullt bollkoncept med enkla övningar och värderingsbaserade akt
         NULL,
         '2026-07-29 18:30:00',
         '2026-07-29 20:30:00',
-        '572671ce-7f67-4e16-8f32-5bda9bb2e5e7'
+        '10952f43-79b5-436d-bb7f-c7337f4ab7e6'
     ),
     (
-        '8efc0644-ae00-4438-add2-c4238d416f8b',
+        'a93a5ba3-b962-4cf7-baa2-77eb5e0608eb',
         'Äventyrararsamtal',
         'Adventurer scout leader gathering',
         'Slå dig ner vid lägerelden och möt Äventyrarledare från hela landet, dela erfarenheter, hämta inspiration och skapa nya kontakter.',
@@ -2929,10 +2927,10 @@ Det är ett lekfullt bollkoncept med enkla övningar och värderingsbaserade akt
         NULL,
         '2026-07-29 17:00:00',
         '2026-07-29 18:00:00',
-        'eb304d4b-3ef9-400c-b216-d94927081760'
+        'f50f4431-4e79-4d3c-a52e-4e556e8be09f'
     ),
     (
-        '217f2377-41d4-48a9-9189-27edcbaf54b0',
+        'ad0ab1fb-a534-4316-9079-3913bff81a71',
         'Utmanarsamtal',
         'Challenger scout leader gathering',
         'Slå dig ner vid lägerelden och möt utmanareledare från hela landet, dela erfarenheter, hämta inspiration och skapa nya kontakter.',
@@ -2940,10 +2938,10 @@ Det är ett lekfullt bollkoncept med enkla övningar och värderingsbaserade akt
         NULL,
         '2026-07-29 08:00:00',
         '2026-07-29 09:00:00',
-        'eb304d4b-3ef9-400c-b216-d94927081760'
+        'f50f4431-4e79-4d3c-a52e-4e556e8be09f'
     ),
     (
-        'f295f281-e713-4447-86ec-5d501c859abd',
+        '7a233311-1ff2-4960-ac5b-5c8038fbc4f4',
         'Ledarsamtal',
         'Scout leader gathering',
         'Slå dig ner vid lägerelden och möt Scoutledare från hela landet, dela erfarenheter, hämta inspiration och skapa nya kontakter.',
@@ -2951,10 +2949,10 @@ Det är ett lekfullt bollkoncept med enkla övningar och värderingsbaserade akt
         NULL,
         '2026-07-29 12:00:00',
         '2026-07-29 13:00:00',
-        'eb304d4b-3ef9-400c-b216-d94927081760'
+        'f50f4431-4e79-4d3c-a52e-4e556e8be09f'
     ),
     (
-        '9cca49f3-89d9-442a-aad5-e26b9db0f636',
+        'b3e4332b-0ff0-4fe7-96fb-3172bb87b1ab',
         'Klättervägg',
         'Climbing',
         'Välkommen att prova klättring i Hjärtat! Ta dig upp längs utsiktstornets väggar och njut av utsikten över lägerplatsen från ovan. Här finns klätterbanor för både nybörjare och vana klättrare.',
@@ -2962,10 +2960,10 @@ Det är ett lekfullt bollkoncept med enkla övningar och värderingsbaserade akt
         NULL,
         '2026-07-29 06:30:00',
         '2026-07-29 15:30:00',
-        '5094c36d-3f40-4d41-8070-1046bc015799'
+        'dc8255e8-e563-4d09-b073-e0ecd24e8423'
     ),
     (
-        'a2a01294-734f-442b-9be6-e879cfb62326',
+        'b4203be6-a301-4f92-b80b-4ca2aa7ade97',
         'Utbildarträff',
         'Utbildarträff',
         'Välkommen till utbildarträff/mingel. Här får du både nyaste nytt från folkhögskolan, info om nya handledningen för Leda scouting, möjlighet att mingla och utbyta erfarenheter med andra utbildare samt även bubblig dryck med tilltugg .
@@ -2978,7 +2976,7 @@ Det är ett lekfullt bollkoncept med enkla övningar och värderingsbaserade akt
         NULL
     ),
     (
-        '9e175482-1e71-4476-85c2-5ebe9d6d5b74',
+        '199035eb-4ad4-440b-b16a-b16c6c1c5682',
         'Nyfiken på Treklöver Gilwell',
         'Nyfiken på Treklöver Gilwell',
         '​​Välkommen på en workshop om Scouternas folkhögskolas fördjupande ledarskapsutbildning Treklöver Gilwell. Du får testa ett kort kurspass och vi går också igenom vad det utvecklingsarbete som ingår i utbildningen innebär i praktiken. ​',
@@ -2986,10 +2984,10 @@ Det är ett lekfullt bollkoncept med enkla övningar och värderingsbaserade akt
         NULL,
         '2026-07-29 13:00:00',
         '2026-07-29 14:00:00',
-        '89199cdc-5aba-40bc-a1c7-4cc9a9520c4d'
+        'c0dd822f-ca76-43fe-90be-b69647b37551'
     ),
     (
-        '3906cb0a-e01f-4f42-b8e2-5522f1ef7ec2',
+        '0bdaae55-1001-4b2c-9738-75a9585e3a7c',
         'Treklöver Gilwell Reunion',
         'Reunion Woodbadger',
         'Återträff för alla som gått Treklöver Gillwell. Meddela att du kommer på listan i Scouternas Folkhögskolas tält.',
@@ -2997,10 +2995,10 @@ Det är ett lekfullt bollkoncept med enkla övningar och värderingsbaserade akt
         NULL,
         '2026-07-29 18:30:00',
         '2026-07-29 20:00:00',
-        '89199cdc-5aba-40bc-a1c7-4cc9a9520c4d'
+        'c0dd822f-ca76-43fe-90be-b69647b37551'
     ),
     (
-        'a18dca7e-e100-42af-bfd2-f0cd329590ea',
+        '07f6cedf-7131-468d-b112-51b8e0f70ea4',
         'Mingelträff för avdelningsledare till WSJ',
         'Networking for Swedish WSJ unit leaders',
         'Träffa andra avdelningsledare som också ska till WSJ i Polen. Delar av CMT kommer finnas på plats för att svara på frågor.',
@@ -3008,10 +3006,10 @@ Det är ett lekfullt bollkoncept med enkla övningar och värderingsbaserade akt
         NULL,
         '2026-07-29 18:00:00',
         '2026-07-29 19:00:00',
-        'eb304d4b-3ef9-400c-b216-d94927081760'
+        'f50f4431-4e79-4d3c-a52e-4e556e8be09f'
     ),
     (
-        'e3a54ec8-9d75-4988-9891-059067c1d2d7',
+        '092d4d58-721e-4f61-8e02-ffe0b7b202bd',
         'Upptäck dina värderingar: Testa på Värdebaserat ledarskap',
         'Try out Value-based Leadership',
         'Ett reflekterande och interaktivt pass där du får utforska vad värderingar är, hur de formas och hur de påverkar våra val, relationer och beslut. Genom ett praktiskt verktyg och gemensamma övningar får du syn på dina egna värderingar och nya perspektiv på hur vi möter och samarbetar med andra.',
@@ -3019,10 +3017,10 @@ Det är ett lekfullt bollkoncept med enkla övningar och värderingsbaserade akt
         NULL,
         '2026-07-29 11:15:00',
         '2026-07-29 12:00:00',
-        'f96bb333-7390-40d1-92a3-29b7b3fbeb16'
+        '2b32a9d9-da57-40f4-ba95-6e6de28ed846'
     ),
     (
-        '594c0f84-f3b4-4625-b200-3a38fb8e9280',
+        '8e7bb827-623e-4874-9b0d-8a071dd472f2',
         'Frisk och fri',
         'Healthy and free',
         'Fråga Psykisk hälsa?',
@@ -3030,10 +3028,10 @@ Det är ett lekfullt bollkoncept med enkla övningar och värderingsbaserade akt
         NULL,
         '2026-07-29 14:00:00',
         '2026-07-29 15:00:00',
-        'f96bb333-7390-40d1-92a3-29b7b3fbeb16'
+        '2b32a9d9-da57-40f4-ba95-6e6de28ed846'
     ),
     (
-        'b6b479b6-73af-4f8e-8aa0-060c5142ea33',
+        'f0187d5a-ec01-4146-9c33-36f8caf14845',
         'Upp-och-ner med Henrik Wahlström',
         'The Ups-and-Downs with Henrik Wahlström',
         'Fråga Psykisk hälsa?',
@@ -3041,10 +3039,10 @@ Det är ett lekfullt bollkoncept med enkla övningar och värderingsbaserade akt
         NULL,
         '2026-07-29 15:00:00',
         '2026-07-29 16:00:00',
-        'f96bb333-7390-40d1-92a3-29b7b3fbeb16'
+        '2b32a9d9-da57-40f4-ba95-6e6de28ed846'
     ),
     (
-        'bb1bb4b9-5ccd-4940-b062-4d1dde27b0de',
+        '6b240a4e-97bf-4651-99b4-626816971296',
         'Karaoke',
         'Karaoke night',
         '',
@@ -3052,10 +3050,10 @@ Det är ett lekfullt bollkoncept med enkla övningar och värderingsbaserade akt
         NULL,
         '2026-07-29 17:00:00',
         '2026-07-29 19:00:00',
-        'f96bb333-7390-40d1-92a3-29b7b3fbeb16'
+        '2b32a9d9-da57-40f4-ba95-6e6de28ed846'
     ),
     (
-        'e8602b0a-ec58-4079-b6f0-350dd5e62741',
+        'f43e187c-c9e7-4f50-a815-8839819423f3',
         'Volleybollturnering',
         'Volleyball tournament',
         '',
@@ -3063,10 +3061,10 @@ Det är ett lekfullt bollkoncept med enkla övningar och värderingsbaserade akt
         NULL,
         '2026-07-29 17:00:00',
         '2026-07-29 19:00:00',
-        '11d64ace-771c-4290-a9cc-45acccde3685'
+        'b36b6a47-01dd-4b96-a5cd-f666ac51ed2a'
     ),
     (
-        '59991769-3fae-497c-b247-f024264fe091',
+        'd3c3ed22-1ec4-489a-ac02-37f7910578e7',
         'The HERDS',
         'The HERDS',
         'THE HERDS är ett banbrytande offentligt konstprojekt som låter djurnaturtrogna dockor i naturlig storlek ge sig ut på en episk resa från Kongobäckenet till Norra polcirkeln och låter publiken komma nära klimatkrisens verklighet. Projektet har skapats av The Walk Productions, teamet bakom Little Amal. THE HERDS har rest genom städer och landskap världen över och samlat konstnärer, unga människor och lokalsamhällen för att tillsammans föreställa sig en bättre framtid för vår planet. På Jamboree26 bjuds du in att bli en del av berättelsen. Tillsammans med THE HERDS-teamet får du skapa din egen flyttfågeldocka och upptäcka de fantastiska resor som fåglar gör genom länder, klimat och livsmiljöer. Genom dockteater, rörelse och berättande får du lära dig hur fåglar varje år färdas tusentals kilometer och vilka utmaningar de möter längs vägen. Tillsammans kommer deltagarna att skapa flockar av fåglar som växer under veckan och som så småningom kommer att vandra genom jamboreeområdet för att möta THE HERDS gorilla, som har rest hela vägen från Kinshasa i Kongobäckenet. Denna roliga och praktiska workshop kombinerar kreativitet, klimatmedvetenhet och gemensamt engagemang. Den ger unga människor möjlighet att bli en del av ett storskaligt konstnärligt projekt och bidra till en minnesvärd avslutande samling på Jamboree26. Inga förkunskaper behövs – bara fantasi, nyfikenhet och en vilja att följa med på flytten. OBS! Workshopen är på engelska.',
@@ -3074,10 +3072,10 @@ Det är ett lekfullt bollkoncept med enkla övningar och värderingsbaserade akt
         45,
         '2026-07-29 07:00:00',
         '2026-07-29 08:00:00',
-        'b127cecb-c982-4d23-918d-1dbd9b4ca894'
+        '801217b7-0c0a-44d5-8ac7-a153aa3fbba4'
     ),
     (
-        '9d7d71b7-3f3c-4519-bbca-c84eb94aad07',
+        '2d6d8ce5-4880-4924-81f5-d63210bdad55',
         'The HERDS',
         'The HERDS',
         'THE HERDS är ett banbrytande offentligt konstprojekt som låter djurnaturtrogna dockor i naturlig storlek ge sig ut på en episk resa från Kongobäckenet till Norra polcirkeln och låter publiken komma nära klimatkrisens verklighet. Projektet har skapats av The Walk Productions, teamet bakom Little Amal. THE HERDS har rest genom städer och landskap världen över och samlat konstnärer, unga människor och lokalsamhällen för att tillsammans föreställa sig en bättre framtid för vår planet. På Jamboree26 bjuds du in att bli en del av berättelsen. Tillsammans med THE HERDS-teamet får du skapa din egen flyttfågeldocka och upptäcka de fantastiska resor som fåglar gör genom länder, klimat och livsmiljöer. Genom dockteater, rörelse och berättande får du lära dig hur fåglar varje år färdas tusentals kilometer och vilka utmaningar de möter längs vägen. Tillsammans kommer deltagarna att skapa flockar av fåglar som växer under veckan och som så småningom kommer att vandra genom jamboreeområdet för att möta THE HERDS gorilla, som har rest hela vägen från Kinshasa i Kongobäckenet. Denna roliga och praktiska workshop kombinerar kreativitet, klimatmedvetenhet och gemensamt engagemang. Den ger unga människor möjlighet att bli en del av ett storskaligt konstnärligt projekt och bidra till en minnesvärd avslutande samling på Jamboree26. Inga förkunskaper behövs – bara fantasi, nyfikenhet och en vilja att följa med på flytten. OBS! Workshopen är på engelska.',
@@ -3085,10 +3083,10 @@ Det är ett lekfullt bollkoncept med enkla övningar och värderingsbaserade akt
         45,
         '2026-07-29 09:00:00',
         '2026-07-29 10:00:00',
-        '803435f5-8544-4521-8302-3cef29c4b254'
+        '5819fc32-18b1-4f16-9ad9-e58d0bb538e8'
     ),
     (
-        'edf6cb8a-4bd2-4607-b466-3860f5da2024',
+        'ad0637af-13bd-4354-9a83-155cd5755b39',
         'The HERDS',
         'The HERDS',
         'THE HERDS är ett banbrytande offentligt konstprojekt som låter djurnaturtrogna dockor i naturlig storlek ge sig ut på en episk resa från Kongobäckenet till Norra polcirkeln och låter publiken komma nära klimatkrisens verklighet. Projektet har skapats av The Walk Productions, teamet bakom Little Amal. THE HERDS har rest genom städer och landskap världen över och samlat konstnärer, unga människor och lokalsamhällen för att tillsammans föreställa sig en bättre framtid för vår planet. På Jamboree26 bjuds du in att bli en del av berättelsen. Tillsammans med THE HERDS-teamet får du skapa din egen flyttfågeldocka och upptäcka de fantastiska resor som fåglar gör genom länder, klimat och livsmiljöer. Genom dockteater, rörelse och berättande får du lära dig hur fåglar varje år färdas tusentals kilometer och vilka utmaningar de möter längs vägen. Tillsammans kommer deltagarna att skapa flockar av fåglar som växer under veckan och som så småningom kommer att vandra genom jamboreeområdet för att möta THE HERDS gorilla, som har rest hela vägen från Kinshasa i Kongobäckenet. Denna roliga och praktiska workshop kombinerar kreativitet, klimatmedvetenhet och gemensamt engagemang. Den ger unga människor möjlighet att bli en del av ett storskaligt konstnärligt projekt och bidra till en minnesvärd avslutande samling på Jamboree26. Inga förkunskaper behövs – bara fantasi, nyfikenhet och en vilja att följa med på flytten. OBS! Workshopen är på engelska.',
@@ -3096,10 +3094,10 @@ Det är ett lekfullt bollkoncept med enkla övningar och värderingsbaserade akt
         45,
         '2026-07-29 12:00:00',
         '2026-07-29 13:00:00',
-        'b127cecb-c982-4d23-918d-1dbd9b4ca894'
+        '801217b7-0c0a-44d5-8ac7-a153aa3fbba4'
     ),
     (
-        '6738bb07-5a12-4c3f-811a-d39faee4ba31',
+        '1d9e6314-92c7-4a60-82f6-26e1ad0f5b0e',
         'The HERDS',
         'The HERDS',
         'THE HERDS är ett banbrytande offentligt konstprojekt som låter djurnaturtrogna dockor i naturlig storlek ge sig ut på en episk resa från Kongobäckenet till Norra polcirkeln och låter publiken komma nära klimatkrisens verklighet. Projektet har skapats av The Walk Productions, teamet bakom Little Amal. THE HERDS har rest genom städer och landskap världen över och samlat konstnärer, unga människor och lokalsamhällen för att tillsammans föreställa sig en bättre framtid för vår planet. På Jamboree26 bjuds du in att bli en del av berättelsen. Tillsammans med THE HERDS-teamet får du skapa din egen flyttfågeldocka och upptäcka de fantastiska resor som fåglar gör genom länder, klimat och livsmiljöer. Genom dockteater, rörelse och berättande får du lära dig hur fåglar varje år färdas tusentals kilometer och vilka utmaningar de möter längs vägen. Tillsammans kommer deltagarna att skapa flockar av fåglar som växer under veckan och som så småningom kommer att vandra genom jamboreeområdet för att möta THE HERDS gorilla, som har rest hela vägen från Kinshasa i Kongobäckenet. Denna roliga och praktiska workshop kombinerar kreativitet, klimatmedvetenhet och gemensamt engagemang. Den ger unga människor möjlighet att bli en del av ett storskaligt konstnärligt projekt och bidra till en minnesvärd avslutande samling på Jamboree26. Inga förkunskaper behövs – bara fantasi, nyfikenhet och en vilja att följa med på flytten. OBS! Workshopen är på engelska.',
@@ -3107,10 +3105,10 @@ Det är ett lekfullt bollkoncept med enkla övningar och värderingsbaserade akt
         45,
         '2026-07-29 14:00:00',
         '2026-07-29 15:00:00',
-        '803435f5-8544-4521-8302-3cef29c4b254'
+        '5819fc32-18b1-4f16-9ad9-e58d0bb538e8'
     ),
     (
-        '05824292-8c0f-4288-a626-57f554023e60',
+        '67b39f3a-689b-4aa1-875d-5e9a80d51889',
         'Slappna av som Linné',
         'A relaxing walk in Linneaus Fotsteps',
         'Ta bussen in till Kristianstad och gå en avslappnande runda i Linnés fotspår! Som patrull tillsammans eller en och en får ni reflektera över livsfrågor, men också slappna av, vara i naturen, bada och kanske käka glass, vem vet? OBS! Glöm ej hämta buss biljett i roverhubben från 8:30, om du inte har en! Första bussen ni kan ta går från wendesgymnasiet 08:47. Förväntad tid för att genomföra programmet, inklusive buss är ca 3 timmar.',
@@ -3118,10 +3116,10 @@ Det är ett lekfullt bollkoncept med enkla övningar och värderingsbaserade akt
         NULL,
         '2026-07-29 06:47:00',
         '2026-07-29 18:13:00',
-        '4ec12c18-9929-45e2-8196-d0062314ed27'
+        '04b97cfd-b591-4e25-9c73-aeb01fba3d16'
     ),
     (
-        '6a3df992-0e63-4eaa-80e8-b006a9767c62',
+        '143b7c9b-7e06-4f99-bdb0-1b3188241420',
         'Lägerbålspepp',
         'Lägerbålspepp',
         'Hela dagen har finns möjlighet att pyssla instrument, banderoller, flaggor och annat kul inför kvällens lägerbål. Ta med ansiktsfärg om ni har så firar vi hela dagen!!',
@@ -3129,10 +3127,10 @@ Det är ett lekfullt bollkoncept med enkla övningar och värderingsbaserade akt
         NULL,
         '2026-07-29 07:00:00',
         '2026-07-29 16:30:00',
-        'ece176aa-dcec-42c7-b780-7bbb4391a2cf'
+        '418ac649-ad80-4e2c-aa1b-db3733b97938'
     ),
     (
-        '66b82a9b-b8a9-4c90-9f26-e8742de5340f',
+        '667bcd75-f0be-47f8-b039-a4b5d6a9507e',
         'Pyssla med BRIS',
         'Pyssla med BRIS',
         'Pyssla en “första-hjälpen-låda” med idéer om vad du behöver när du inte mår bra, pärla, pyssla eller prata om barns rättigheter tillsammans med volontärer från Bris!',
@@ -3140,10 +3138,10 @@ Det är ett lekfullt bollkoncept med enkla övningar och värderingsbaserade akt
         NULL,
         '2026-07-29 07:00:00',
         '2026-07-29 15:00:00',
-        '0563ef6a-4f77-458e-9f69-c45d1ef491c5'
+        '87afd904-fe20-4ec8-8a0d-325500b60b63'
     ),
     (
-        '85eb3b79-32a8-4b43-800a-3ec65946ad53',
+        'a004b010-b46c-4657-9dab-2801f3ec1c47',
         'Hantverksfokus: Banderoller/vimplar',
         'Hantverksfokus: Banderoller/vimplar',
         '',
@@ -3151,10 +3149,10 @@ Det är ett lekfullt bollkoncept med enkla övningar och värderingsbaserade akt
         NULL,
         '2026-07-29 07:00:00',
         '2026-07-29 16:30:00',
-        '0563ef6a-4f77-458e-9f69-c45d1ef491c5'
+        '87afd904-fe20-4ec8-8a0d-325500b60b63'
     ),
     (
-        '4cb627d9-99c1-4be6-9fb5-851acb3d2ae2',
+        '221752e6-e007-4004-be66-82cfc8f357e4',
         'Lägerbålsparad',
         'Lägerbålsparad',
         'Alla som vill är välkomna att tillsamans gå i parad från Upptäckarhubben till Upptäckarnas lägerbål',
@@ -3162,10 +3160,10 @@ Det är ett lekfullt bollkoncept med enkla övningar och värderingsbaserade akt
         NULL,
         '2026-07-29 16:30:00',
         '2026-07-29 17:00:00',
-        'c1c51512-8ab6-4a2f-81bf-57a889133bde'
+        '9a454352-9051-4cc0-afd3-02143d080451'
     ),
     (
-        '00849d0c-4f3f-40af-9dc9-c8a41fe2a306',
+        '20ae0f07-5ed9-4249-b4b5-7b84c1d402b8',
         'Dagens lek',
         'Dagens lek',
         'Starttider för lekarna kommer finnas på anslagstavlan i hubben',
@@ -3173,10 +3171,10 @@ Det är ett lekfullt bollkoncept med enkla övningar och värderingsbaserade akt
         NULL,
         '2026-07-29 07:00:00',
         '2026-07-29 15:00:00',
-        'ece176aa-dcec-42c7-b780-7bbb4391a2cf'
+        '418ac649-ad80-4e2c-aa1b-db3733b97938'
     ),
     (
-        '76c90650-3394-4857-8935-b8d758960dd5',
+        'cee2ef15-1613-4982-96ae-7e04215c6d49',
         'Mekanisk tjur',
         'Mechanical bull',
         'Testa hur länge du kan sitta på tjurens rygg! Kanske är det svårare än du tror?',
@@ -3184,10 +3182,10 @@ Det är ett lekfullt bollkoncept med enkla övningar och värderingsbaserade akt
         NULL,
         '2026-07-29 07:00:00',
         '2026-07-29 19:00:00',
-        'e56b12f0-7d5e-47f3-aa86-9a832be3e185'
+        '92228c5e-1d0e-415c-a41b-35f5435a0a30'
     ),
     (
-        '2ba41480-8cdf-492c-8600-60ec38c4b86a',
+        '64459137-360b-4067-a1f2-1cd37c1cc9a7',
         'Brottning',
         'Brottning',
         'Kom och testa på brottning tillsammans med vinslövs brottningsklubb. Vi rekomenderar kläder du kan röra dig i',
@@ -3195,10 +3193,10 @@ Det är ett lekfullt bollkoncept med enkla övningar och värderingsbaserade akt
         40,
         '2026-07-29 07:00:00',
         '2026-07-29 07:45:00',
-        'ece176aa-dcec-42c7-b780-7bbb4391a2cf'
+        '418ac649-ad80-4e2c-aa1b-db3733b97938'
     ),
     (
-        'eb006201-d5f0-4907-8c26-366ef5a5e436',
+        '1b68f980-7857-46f3-9b8d-67bd24b48a17',
         'Brottning',
         'Brottning',
         'Kom och testa på brottning tillsammans med vinslövs brottningsklubb. Vi rekomenderar kläder du kan röra dig i',
@@ -3206,10 +3204,10 @@ Det är ett lekfullt bollkoncept med enkla övningar och värderingsbaserade akt
         40,
         '2026-07-29 08:00:00',
         '2026-07-29 08:45:00',
-        'ece176aa-dcec-42c7-b780-7bbb4391a2cf'
+        '418ac649-ad80-4e2c-aa1b-db3733b97938'
     ),
     (
-        'bbe258ff-f353-4d7b-8e6d-f670f73c1c6b',
+        '3085277e-0bc7-487e-afa1-3cc54f62db75',
         'Brottning',
         'Brottning',
         'Kom och testa på brottning tillsammans med vinslövs brottningsklubb. Vi rekomenderar kläder du kan röra dig i',
@@ -3217,10 +3215,10 @@ Det är ett lekfullt bollkoncept med enkla övningar och värderingsbaserade akt
         40,
         '2026-07-29 09:00:00',
         '2026-07-29 09:45:00',
-        'ece176aa-dcec-42c7-b780-7bbb4391a2cf'
+        '418ac649-ad80-4e2c-aa1b-db3733b97938'
     ),
     (
-        '7630deb2-f5d1-47bb-a23c-d058002103db',
+        'e0c8bbf4-57d2-4924-bd51-27fa81318e0e',
         'Brottning',
         'Brottning',
         'Kom och testa på brottning tillsammans med vinslövs brottningsklubb. Vi rekomenderar kläder du kan röra dig i',
@@ -3228,10 +3226,10 @@ Det är ett lekfullt bollkoncept med enkla övningar och värderingsbaserade akt
         40,
         '2026-07-29 12:00:00',
         '2026-07-29 12:45:00',
-        'ece176aa-dcec-42c7-b780-7bbb4391a2cf'
+        '418ac649-ad80-4e2c-aa1b-db3733b97938'
     ),
     (
-        'c47d26d8-1ac0-4397-912d-37fc0b62377d',
+        '00ad8bfe-14dc-4301-a7e6-50efeb190efb',
         'Brottning',
         'Brottning',
         'Kom och testa på brottning tillsammans med vinslövs brottningsklubb. Vi rekomenderar kläder du kan röra dig i',
@@ -3239,10 +3237,10 @@ Det är ett lekfullt bollkoncept med enkla övningar och värderingsbaserade akt
         40,
         '2026-07-29 13:00:00',
         '2026-07-29 13:45:00',
-        'ece176aa-dcec-42c7-b780-7bbb4391a2cf'
+        '418ac649-ad80-4e2c-aa1b-db3733b97938'
     ),
     (
-        'c7e81a7e-823d-4bb3-a59d-f16389c8475e',
+        'cd28fcef-0d5f-426d-951d-ccabbf1c6bef',
         'Brottning',
         'Brottning',
         'Kom och testa på brottning tillsammans med vinslövs brottningsklubb. Vi rekomenderar kläder du kan röra dig i',
@@ -3250,10 +3248,10 @@ Det är ett lekfullt bollkoncept med enkla övningar och värderingsbaserade akt
         40,
         '2026-07-29 14:00:00',
         '2026-07-29 14:45:00',
-        'ece176aa-dcec-42c7-b780-7bbb4391a2cf'
+        '418ac649-ad80-4e2c-aa1b-db3733b97938'
     ),
     (
-        '54f76f3f-a429-4a4b-9759-6d5fbdc72e09',
+        'fac5e258-d674-45df-ad43-f8a40a27a200',
         'Brottning',
         'Brottning',
         'Kom och testa på brottning tillsammans med vinslövs brottningsklubb. Vi rekomenderar kläder du kan röra dig i',
@@ -3261,10 +3259,10 @@ Det är ett lekfullt bollkoncept med enkla övningar och värderingsbaserade akt
         40,
         '2026-07-29 15:00:00',
         '2026-07-29 15:45:00',
-        'ece176aa-dcec-42c7-b780-7bbb4391a2cf'
+        '418ac649-ad80-4e2c-aa1b-db3733b97938'
     ),
     (
-        '4173f0cc-744d-4f5c-94b9-9fc620470e75',
+        'e8ddd901-0743-4499-80e0-aada4c455f33',
         'Brottning',
         'Brottning',
         'Kom och testa på brottning tillsammans med vinslövs brottningsklubb. Vi rekomenderar kläder du kan röra dig i',
@@ -3272,10 +3270,10 @@ Det är ett lekfullt bollkoncept med enkla övningar och värderingsbaserade akt
         40,
         '2026-07-29 16:00:00',
         '2026-07-29 16:45:00',
-        'ece176aa-dcec-42c7-b780-7bbb4391a2cf'
+        '418ac649-ad80-4e2c-aa1b-db3733b97938'
     ),
     (
-        'cd2a85d0-a37b-40a2-9bfc-a19ff2b9f64d',
+        '4b144211-f3f2-47bb-bab0-e8b128b4324e',
         'Godnattsaga',
         'Godnattsaga',
         'Avsluta dagen med en mysig godnattsaga i upptäckarhubben',
@@ -3283,10 +3281,10 @@ Det är ett lekfullt bollkoncept med enkla övningar och värderingsbaserade akt
         NULL,
         '2026-07-29 18:30:00',
         '2026-07-29 19:00:00',
-        '25d22074-0806-4745-9f97-7817a781edc7'
+        '1bf09ebd-bce8-4925-9976-74b403a075ab'
     ),
     (
-        'f95a34f2-187e-4ac5-9426-959e46c01442',
+        '68f4dbd7-ff66-45a0-abf7-9076ef4abe6e',
         'Sagostund',
         'Storytime',
         'Inspirerande sagostund öppet för alla',
@@ -3294,10 +3292,10 @@ Det är ett lekfullt bollkoncept med enkla övningar och värderingsbaserade akt
         NULL,
         '2026-07-29 06:00:00',
         '2026-07-29 07:00:00',
-        '556a6e3c-62b3-4c9a-8720-4cee10542d9f'
+        '8e335d16-2369-474d-b774-d16f9e44b0fe'
     ),
     (
-        'ab437c31-d001-412e-a751-22954265d36e',
+        '8c1513c9-7345-4595-b3d0-538fba63fae1',
         'Kvällsbön',
         'Evening prayer',
         '',
@@ -3305,10 +3303,10 @@ Det är ett lekfullt bollkoncept med enkla övningar och värderingsbaserade akt
         NULL,
         '2026-07-29 19:30:00',
         '2026-07-29 20:00:00',
-        '556a6e3c-62b3-4c9a-8720-4cee10542d9f'
+        '8e335d16-2369-474d-b774-d16f9e44b0fe'
     ),
     (
-        '6979ff6f-baec-404c-b2e0-f2286ac9d7ae',
+        'b36e6339-0a77-4a7c-829f-48df1684478e',
         'Existens - Maria Hammar',
         'Existence - Maria Hammar',
         '',
@@ -3316,10 +3314,10 @@ Det är ett lekfullt bollkoncept med enkla övningar och värderingsbaserade akt
         40,
         '2026-07-29 08:00:00',
         '2026-07-29 09:00:00',
-        '556a6e3c-62b3-4c9a-8720-4cee10542d9f'
+        '8e335d16-2369-474d-b774-d16f9e44b0fe'
     ),
     (
-        '1a19fccb-b791-4bca-a49e-16753a1a050d',
+        '20960d62-9f35-4714-ae6e-bda4ec40cb0b',
         'Bröllop - Vigsel',
         'Wedding - Ceremony',
         '',
@@ -3327,10 +3325,10 @@ Det är ett lekfullt bollkoncept med enkla övningar och värderingsbaserade akt
         NULL,
         '2026-07-29 14:00:00',
         '2026-07-29 16:00:00',
-        '556a6e3c-62b3-4c9a-8720-4cee10542d9f'
+        '8e335d16-2369-474d-b774-d16f9e44b0fe'
     ),
     (
-        '184ad7f0-ba86-4259-ba3a-039d7417d792',
+        '152fb4f0-3cbf-4939-aeb9-0c40c658cf26',
         'Poetry Slam',
         'Poetry Slam',
         'Öppen scen för alla poeter. Delta med ditt egna material eller högläs dina personliga favoriter. Vi välkomnar allt från modernt material som belyser viktiga samhällsaspekter till simpel själavårdande vacker poesi. För scentid anmäler du dig senast 1 h innan. Först till kvarn!',
@@ -3338,10 +3336,10 @@ Det är ett lekfullt bollkoncept med enkla övningar och värderingsbaserade akt
         NULL,
         '2026-07-29 17:00:00',
         '2026-07-29 18:00:00',
-        '556a6e3c-62b3-4c9a-8720-4cee10542d9f'
+        '8e335d16-2369-474d-b774-d16f9e44b0fe'
     ),
     (
-        '582edfd5-975f-46e0-9f04-8e3097f7cbd9',
+        '701c590b-41b9-425f-8b78-48084c519a4b',
         'RUNCLUB',
         'RUNCLUB',
         'Välkommen att springa eller jogga med vår sponsor! Vi bjbuder på goodiebags till dom 20 första som ansluter! Vi springer i två olika takter och med musik runt lägerområdet för alla som vill kickstarta dagen.',
@@ -3349,10 +3347,10 @@ Det är ett lekfullt bollkoncept med enkla övningar och värderingsbaserade akt
         NULL,
         '2026-07-29 04:00:00',
         '2026-07-29 05:00:00',
-        'b1298fd2-c01a-4469-a1f2-bbd25bb9d908'
+        'accfffb4-5ccc-4ed3-bb28-a82f88440b92'
     ),
     (
-        '7ad32a53-43aa-4c4f-b12e-045102fc6520',
+        '58952e81-e341-4e06-83d7-5ed66e188830',
         'Frisk och Fri – Riksföreningen mot ätstörningar',
         'Frisk och Fri – Riksföreningen mot ätstörningar',
         'Känner du dig osäker på hur du ska bemöta en person du misstänker har en ätstörning eller känner du att du inte har tillräckligt med kunskap vad det faktiskt innebär att vara drabbad? Då är föreläsningen Uppdrag: Frisk något för dig! Utöver kunskap om varningssignaler och bemötande får du råd om hur du kan skapa förutsättningar för att färre ska drabbas. Föreläsningen hålls av Olle Forsén, Frisk och Fri - riksföreningen mot ätstörningar.',
@@ -3360,10 +3358,10 @@ Det är ett lekfullt bollkoncept med enkla övningar och värderingsbaserade akt
         NULL,
         '2026-07-29 07:00:00',
         '2026-07-29 08:00:00',
-        'b1298fd2-c01a-4469-a1f2-bbd25bb9d908'
+        'accfffb4-5ccc-4ed3-bb28-a82f88440b92'
     ),
     (
-        'e0e680df-d3d2-49ad-be03-f537678c8444',
+        '69e972c2-8738-429f-8d1a-7214274b222c',
         'Välkomna internationella scoutgäster!',
         'Welcome international scout guests!',
         '',
@@ -3371,10 +3369,10 @@ Det är ett lekfullt bollkoncept med enkla övningar och värderingsbaserade akt
         NULL,
         '2026-07-29 08:00:00',
         '2026-07-29 09:00:00',
-        'b1298fd2-c01a-4469-a1f2-bbd25bb9d908'
+        'accfffb4-5ccc-4ed3-bb28-a82f88440b92'
     ),
     (
-        '75ae17fc-7d55-43d9-a407-a3c482ddfe05',
+        'f339a2bd-a7c5-4a02-a4ca-29685c981811',
         'Lasse Berg',
         'Lasse Berg',
         '',
@@ -3382,10 +3380,10 @@ Det är ett lekfullt bollkoncept med enkla övningar och värderingsbaserade akt
         NULL,
         '2026-07-29 09:00:00',
         '2026-07-29 10:00:00',
-        'b1298fd2-c01a-4469-a1f2-bbd25bb9d908'
+        'accfffb4-5ccc-4ed3-bb28-a82f88440b92'
     ),
     (
-        'c3f10cb7-fd1f-4877-a07f-01663d9f0105',
+        '5ff58965-7c12-49a4-a045-2fbede692487',
         'Bildstödspinne - anpassat ledarskap',
         'Image support stick - customized leadership',
         '​​Vad kan du göra för att bidra till en mer kommunikativ scoutmiljö som främjar barnens delaktighet? Att använda bildstöd är hjälpsamt för de allra flesta då det stödjer inlärning och koncentration och kan bidra till en förståelse för vad som ska hända. Kom och pyssla din egen bildstödspinne som du sedan kan använda på scoutmöten. Passa på att samtala med andra ledare och sakkunniga i Anpassat ledarskap om utmaningar och lösningar kopplade till att leda barn och unga med neuropsykiatriska funktionsnedsättningar.',
@@ -3393,10 +3391,10 @@ Det är ett lekfullt bollkoncept med enkla övningar och värderingsbaserade akt
         NULL,
         '2026-07-29 12:00:00',
         '2026-07-29 13:00:00',
-        'b1298fd2-c01a-4469-a1f2-bbd25bb9d908'
+        'accfffb4-5ccc-4ed3-bb28-a82f88440b92'
     ),
     (
-        '848c7d38-4ad7-457c-b08d-5e9a81ecc493',
+        'e7096e16-669c-45a9-8040-c189929a29af',
         'MOOT',
         'MOOT',
         '​',
@@ -3404,10 +3402,10 @@ Det är ett lekfullt bollkoncept med enkla övningar och värderingsbaserade akt
         NULL,
         '2026-07-29 13:00:00',
         '2026-07-29 14:00:00',
-        'b1298fd2-c01a-4469-a1f2-bbd25bb9d908'
+        'accfffb4-5ccc-4ed3-bb28-a82f88440b92'
     ),
     (
-        '383ebd2a-64f0-4563-9718-9320833b759b',
+        '70079a17-eb70-4c7a-bba7-26593f058c76',
         'Linedance',
         'Linedance',
         '',
@@ -3415,10 +3413,10 @@ Det är ett lekfullt bollkoncept med enkla övningar och värderingsbaserade akt
         NULL,
         '2026-07-29 14:00:00',
         '2026-07-29 15:30:00',
-        'b1298fd2-c01a-4469-a1f2-bbd25bb9d908'
+        'accfffb4-5ccc-4ed3-bb28-a82f88440b92'
     ),
     (
-        '885bffb3-7d55-4f1e-a86b-24a0ca4b2e73',
+        '24f4a2a7-1838-404d-9d47-fa080a806f19',
         'Bugg',
         'Bug dance',
         '',
@@ -3426,10 +3424,10 @@ Det är ett lekfullt bollkoncept med enkla övningar och värderingsbaserade akt
         NULL,
         '2026-07-29 17:00:00',
         '2026-07-29 20:00:00',
-        'b1298fd2-c01a-4469-a1f2-bbd25bb9d908'
+        'accfffb4-5ccc-4ed3-bb28-a82f88440b92'
     ),
     (
-        '23d95a4a-b7c5-4da4-8fa7-e2afde0d89dd',
+        '75a090a5-e657-4e25-a808-c426ae225aa6',
         'Treskablinoll: Trygga scouter - nytt materiaö med fokus på inegritet',
         'Treskablinoll: Trygga scouter - nytt materiaö med fokus på inegritet',
         '',
@@ -3437,10 +3435,10 @@ Det är ett lekfullt bollkoncept med enkla övningar och värderingsbaserade akt
         NULL,
         '2026-07-29 08:00:00',
         '2026-07-29 09:00:00',
-        'b127cecb-c982-4d23-918d-1dbd9b4ca894'
+        '801217b7-0c0a-44d5-8ac7-a153aa3fbba4'
     ),
     (
-        'e66cefbc-35f4-49a8-a752-1fa27fe3ce0f',
+        'a4c6ba1b-801a-4cc9-943d-8c1aa5f74ad3',
         'Internationella Strategin',
         'Internationella Strategin',
         '',
@@ -3448,10 +3446,10 @@ Det är ett lekfullt bollkoncept med enkla övningar och värderingsbaserade akt
         NULL,
         '2026-07-29 09:00:00',
         '2026-07-29 10:00:00',
-        'b127cecb-c982-4d23-918d-1dbd9b4ca894'
+        '801217b7-0c0a-44d5-8ac7-a153aa3fbba4'
     ),
     (
-        '65e0bd41-d7ed-44e9-8ede-39c6a2c0839b',
+        'f3e1096e-a0cd-407b-a36c-9c7a74cda61f',
         'Samtal mellan partiföreträdare och scouter om frågor som rör ungas framtid',
         'Samtal mellan partiföreträdare och scouter om frågor som rör ungas framtid',
         'På jamboreen kommer företrädare för en bredd av riksdagspartierna möta scouter i ett samtal om frågor som påverkar ungas framtid. Scouter ges möjlighet att ställa frågor till beslutsfattare, och beslutsfattare får ställa frågor till unga om vad de själva vill och förväntar sig av politiken. Ambitionen är att skapa en öppen, respektfull och konstruktiv dialog som präglas av förståelse och nyfikenhet för varandras olikheter.',
@@ -3459,10 +3457,10 @@ Det är ett lekfullt bollkoncept med enkla övningar och värderingsbaserade akt
         NULL,
         '2026-07-29 14:00:00',
         '2026-07-29 15:00:00',
-        'b127cecb-c982-4d23-918d-1dbd9b4ca894'
+        '801217b7-0c0a-44d5-8ac7-a153aa3fbba4'
     ),
     (
-        '4242fe83-a9c4-4c9a-b4eb-b4b57e28ff5b',
+        'bed4e36a-c1ce-439e-88c4-2ed83bf24e6e',
         'Folkhögskolan workshop',
         'Folkhögskolan workshop',
         '',
@@ -3470,10 +3468,10 @@ Det är ett lekfullt bollkoncept med enkla övningar och värderingsbaserade akt
         NULL,
         '2026-07-29 17:00:00',
         '2026-07-29 18:30:00',
-        'b127cecb-c982-4d23-918d-1dbd9b4ca894'
+        '801217b7-0c0a-44d5-8ac7-a153aa3fbba4'
     ),
     (
-        '2aae7423-2055-4b66-b683-dc0d7c0402ed',
+        '280528d1-efee-4bf0-b0c4-5e36dd15048b',
         'Äventyrare berättar: Henrik Wahlström',
         'The adventurer shares: Henrik Wahlström',
         'Lyssna på när äventyraren Henrik Wahlström berättar om de inre äventyren med fokus på psykisk hälsa. Han kommer även berätta om uppochned-märket och om hur du kan ta det!',
@@ -3481,10 +3479,10 @@ Det är ett lekfullt bollkoncept med enkla övningar och värderingsbaserade akt
         NULL,
         '2026-07-29 07:00:00',
         '2026-07-29 08:00:00',
-        '55043f4b-a2be-48b3-858d-c11dad88de22'
+        'df5460d7-e435-4434-b63e-4755564087f4'
     ),
     (
-        '1bf0fa05-9a83-4593-bd82-096e6644be3b',
+        'd8e0a495-1f71-4664-91e6-cc58a87ab5b2',
         'Äventyrare berättar: Idun och Nikita',
         'The adventurer shares: Idun and Nikita',
         'Lyssna på när de unga äventyrarna Idun och Nikita berättar om när de cyklade tandemcykel från Stockholm till Jamboree 26! Om de kommit fram än det vill säga.',
@@ -3492,10 +3490,10 @@ Det är ett lekfullt bollkoncept med enkla övningar och värderingsbaserade akt
         NULL,
         '2026-07-29 14:00:00',
         '2026-07-29 15:00:00',
-        '55043f4b-a2be-48b3-858d-c11dad88de22'
+        'df5460d7-e435-4434-b63e-4755564087f4'
     ),
     (
-        '4611282b-056d-499a-ad4f-eb7e74e534b1',
+        '818357ce-0808-4012-9afa-fc8266fcaf3e',
         'Unga forskare',
         'Unga forskare',
         'Testa på spännande aktiviteter med Unga Forskare!',
@@ -3503,10 +3501,10 @@ Det är ett lekfullt bollkoncept med enkla övningar och värderingsbaserade akt
         NULL,
         '2026-07-29 07:00:00',
         '2026-07-29 15:00:00',
-        '16bc8872-5e30-416b-a71b-05a56731e44e'
+        'd7cf4654-4614-43bf-92b9-73325c18ddb9'
     ),
     (
-        '7524ecf9-8715-476a-be68-c875f13478df',
+        'b787e054-ca8a-4b60-a45c-a9d47c4d608a',
         'Tillsammans i ledarteamet',
         'Together in the leader team',
         'Ett engagerande pass om hur vi får ledarteam att fungera och kännas bra att vara i. Vi utforskar vad som ger energi, vad som skaver och hur det hänger ihop med kommunikation, tydlighet och psykologisk trygghet. Du får enkla verktyg för att ta små samtal i vardagen som stärker samarbetet - och gör det lättare att vara kvar och bidra',
@@ -3514,10 +3512,10 @@ Det är ett lekfullt bollkoncept med enkla övningar och värderingsbaserade akt
         NULL,
         '2026-07-29 18:15:00',
         '2026-07-29 19:15:00',
-        '556a6e3c-62b3-4c9a-8720-4cee10542d9f'
+        '8e335d16-2369-474d-b774-d16f9e44b0fe'
     ),
     (
-        '8cbf058d-9a40-4a08-b419-987bdc639a72',
+        'f7544371-06ed-4e2d-85a9-11be1d5d48d2',
         'Tim Bergling Foundation',
         'Tim Berling Foundation',
         'Tanken med välmåendearenan är att ge ledare konkreta verktyg som enkelt kan användas före, under eller efter mötet – för att skapa en tryggare miljö där både kropp och själ får utrymme. 
@@ -3529,10 +3527,10 @@ Genom korta övningar kopplade till välmående kan barn och unga reflektera, by
         NULL,
         '2026-07-29 07:00:00',
         '2026-07-29 10:00:00',
-        'afdf218d-a0c0-4b60-923d-51894d8eccec'
+        '484c6639-6510-44ce-bbe3-a1a023fc5df3'
     ),
     (
-        'be6aac64-0d39-4249-b45b-8f71cc2fbfad',
+        '196b36eb-250b-450f-b221-6eeabc0d5226',
         'Upp- och nedmärket',
         'Upp- och nedmärket',
         'Ett fartfyllt och interaktivt pass där du får uppleva hur lätt det är att bli påverkad – och hur du kan stå emot. Du får konkreta verktyg för att tänka kritiskt, samarbeta och fatta kloka beslut när det verkligen gäller.',
@@ -3540,10 +3538,10 @@ Genom korta övningar kopplade till välmående kan barn och unga reflektera, by
         NULL,
         '2026-07-29 09:00:00',
         '2026-07-29 10:00:00',
-        'bed2dc35-1e4d-4426-a9d0-f9c1731ae493'
+        '75bec7fd-a4f5-439a-9f1d-8fae424c4118'
     ),
     (
-        '4081f071-1809-4ae3-aecb-dd79ec59e0c3',
+        '21662608-7405-494d-8b93-fbb813a5934d',
         'Upp- och nedmärket',
         'Upp- och nedmärket',
         'Ett fartfyllt och interaktivt pass där du får uppleva hur lätt det är att bli påverkad – och hur du kan stå emot. Du får konkreta verktyg för att tänka kritiskt, samarbeta och fatta kloka beslut när det verkligen gäller.',
@@ -3551,10 +3549,10 @@ Genom korta övningar kopplade till välmående kan barn och unga reflektera, by
         NULL,
         '2026-07-29 12:00:00',
         '2026-07-29 13:00:00',
-        'bed2dc35-1e4d-4426-a9d0-f9c1731ae493'
+        '75bec7fd-a4f5-439a-9f1d-8fae424c4118'
     ),
     (
-        '3e536048-e3dd-4563-9988-4e5c2e172b98',
+        '8880b1dd-5c9c-4097-8c90-077f62c9c40f',
         'Tim Bergling Foundation',
         'Tim Bergling Foundation',
         'Tanken med välmåendearenan är att ge ledare konkreta verktyg som enkelt kan användas före, under eller efter mötet – för att skapa en tryggare miljö där både kropp och själ får utrymme. 
@@ -3566,10 +3564,10 @@ Genom korta övningar kopplade till välmående kan barn och unga reflektera, by
         NULL,
         '2026-07-29 12:00:00',
         '2026-07-29 15:00:00',
-        'afdf218d-a0c0-4b60-923d-51894d8eccec'
+        '484c6639-6510-44ce-bbe3-a1a023fc5df3'
     ),
     (
-        '2f126d3a-4704-4369-af15-1161cac161b9',
+        'af766f77-5794-4068-8726-046b86905429',
         'Fladdermussafari',
         'Bat-safari',
         'Fladdermusvandring
@@ -3594,10 +3592,10 @@ Meeting point: Information Desk, Pavilion, Challenger Hub.',
         30,
         '2026-07-29 19:00:00',
         '2026-07-29 21:00:00',
-        '5a3e5f3a-f12a-4043-8940-4113486433da'
+        '1beaefca-76a1-4806-8b27-713af48b4cb5'
     ),
     (
-        'e9205b27-88e4-4785-bc2d-b8f9348824bf',
+        '8530f868-ef6a-4ce0-bae9-528990e615bc',
         'Frisk & Fri: Stärk din självkänsla - få mod att förändra',
         'Frisk & Fri: Stärk din självkänsla - få mod att förändra',
         'Det är svårt att förändra världen om man inte riktigt tror på sig själv. Den goda nyheten? Självkänsla är ingen medfödd egenskap, det är något man faktiskt kan träna upp.
@@ -3613,10 +3611,10 @@ Nästa steg mot förändring kanske börjar med en blick inåt.',
         NULL,
         '2026-07-29 09:00:00',
         '2026-07-29 10:00:00',
-        '8457d5f0-bcae-424b-91d6-69cc47259e48'
+        '5ef6c219-43f8-43d4-ad73-55afcf6a44ae'
     ),
     (
-        '239fd174-cf9c-4f49-b642-a0316437862f',
+        'c9ecc253-7ec5-4deb-919a-f996e8bff302',
         'Frisk & Fri: Hur förändrar vi snacket om kropp och utseende?',
         'Frisk & Fri: Hur förändrar vi snacket om kropp och utseende?',
         'Är du frustrerad över samtalsklimatet kring kropp och utseende i din närhet, och en vuxenvärld som tittar bort? 
@@ -3632,10 +3630,10 @@ Du behöver inte ha alla svar. Men du kan vara en del av lösningen - välkommen
         NULL,
         '2026-07-29 14:00:00',
         '2026-07-29 15:00:00',
-        '8457d5f0-bcae-424b-91d6-69cc47259e48'
+        '5ef6c219-43f8-43d4-ad73-55afcf6a44ae'
     ),
     (
-        'bdb0b116-500f-4b88-bc29-2b948ad8f751',
+        'b3071d7b-b34b-40a0-a3d8-9cc741d5b801',
         'Influencern Henrik Wahlström: Från frustration till förändring',
         'Influencern Henrik Wahlström: Från frustration till förändring',
         'Hur tar man en känsla, en frustration eller en personlig erfarenhet och förvandlar den till något som faktiskt förändrar samhället runtomkring? Henrik Wahlström vet. Det började med ett Instagraminlägg, fortsatte med en symbol ritad av en fyraåring och har vuxit till en rörelse som idag engagerar hundratusentals människor. Allt startade med att han vågade sätta ord på något han burit på i tolv år.
@@ -3647,10 +3645,10 @@ Första halvtimmen berättar Henrik om resan från den där känslan av att "nå
         NULL,
         '2026-07-29 17:30:00',
         '2026-07-29 18:30:00',
-        '8457d5f0-bcae-424b-91d6-69cc47259e48'
+        '5ef6c219-43f8-43d4-ad73-55afcf6a44ae'
     ),
     (
-        '289fbaf8-95d7-4a44-b922-23c4437f0705',
+        '7a559089-e0be-4077-9fe9-912cdcb55545',
         'Deep talk: Har AI gått för långt?',
         'Deep talk: Has AI gone to far?',
         'Vad händer när AI gör jobbet åt dig, när texten inte låter som du, kunskapen aldrig fastnar och du inte ens behöver tänka själv? När konsten den skapar är byggd på stulet material från riktiga konstnärer?
@@ -3660,10 +3658,10 @@ There are no easy answers here. But there''s plenty to talk about.',
         NULL,
         '2026-07-29 19:00:00',
         '2026-07-29 20:00:00',
-        '8457d5f0-bcae-424b-91d6-69cc47259e48'
+        '5ef6c219-43f8-43d4-ad73-55afcf6a44ae'
     ),
     (
-        '1c16d352-11a7-4b33-878c-f8b22737fa7c',
+        '1b9184a3-4a8f-4522-b267-3ed723140085',
         'Ledarskap som lyfter unga',
         'Leadership that empowers young people',
         'Vad innebär det egentligen att släppa fram unga på riktigt? När håller vi kvar kontrollen utan att märka det? Vad behöver förändras? 
@@ -3675,10 +3673,10 @@ For two evenings, Gnistan opens its doors to you as a leader. There are no ready
         NULL,
         '2026-07-29 19:00:00',
         '2026-07-29 20:00:00',
-        '8457d5f0-bcae-424b-91d6-69cc47259e48'
+        '5ef6c219-43f8-43d4-ad73-55afcf6a44ae'
     ),
     (
-        'b6675467-cc25-4975-a2a7-ab705ca26b65',
+        '128b213b-c87d-42b4-b3a7-749f9a3974cf',
         'Quiz',
         'Quiz',
         'Kom och var med på quiz! Spela själv eller i lag.',
@@ -3686,10 +3684,10 @@ For two evenings, Gnistan opens its doors to you as a leader. There are no ready
         NULL,
         '2026-07-29 14:00:00',
         '2026-07-29 14:30:00',
-        '572671ce-7f67-4e16-8f32-5bda9bb2e5e7'
+        '10952f43-79b5-436d-bb7f-c7337f4ab7e6'
     ),
     (
-        '09f91c94-269f-452d-8fca-751f5a9da850',
+        'e193f63b-d3c4-486a-b796-17e241d649aa',
         'Stand up',
         'Stand up',
         '',
@@ -3697,10 +3695,10 @@ For two evenings, Gnistan opens its doors to you as a leader. There are no ready
         NULL,
         '2026-07-29 17:30:00',
         '2026-07-29 18:30:00',
-        '572671ce-7f67-4e16-8f32-5bda9bb2e5e7'
+        '10952f43-79b5-436d-bb7f-c7337f4ab7e6'
     ),
     (
-        'b41c4874-9c91-48f0-9643-00c08036a28b',
+        '3298e437-e099-4b39-935d-425170e4bbf4',
         'Quiz: Disney',
         'Quiz: Disney',
         '',
@@ -3708,10 +3706,10 @@ For two evenings, Gnistan opens its doors to you as a leader. There are no ready
         NULL,
         '2026-07-29 07:45:00',
         '2026-07-29 08:45:00',
-        'bed2dc35-1e4d-4426-a9d0-f9c1731ae493'
+        '75bec7fd-a4f5-439a-9f1d-8fae424c4118'
     ),
     (
-        '056162e6-ae26-438d-b69e-a80bfbee5722',
+        '6c6af510-ea32-46bf-be5d-b152bc6d2beb',
         'Quiz: Disney',
         'Quiz: Disney',
         '',
@@ -3719,10 +3717,10 @@ For two evenings, Gnistan opens its doors to you as a leader. There are no ready
         NULL,
         '2026-07-29 13:15:00',
         '2026-07-29 14:15:00',
-        'bed2dc35-1e4d-4426-a9d0-f9c1731ae493'
+        '75bec7fd-a4f5-439a-9f1d-8fae424c4118'
     ),
     (
-        '4de6d7a7-58a6-490c-812c-74b8dae9ec6b',
+        '8ee307bb-737e-4297-8958-dfcdfbcbe592',
         'Turnering: Settlers of Catan',
         'Tournament: Settlers of Catan',
         '',
@@ -3730,10 +3728,10 @@ For two evenings, Gnistan opens its doors to you as a leader. There are no ready
         NULL,
         '2026-07-29 19:00:00',
         '2026-07-29 21:59:00',
-        'afdf218d-a0c0-4b60-923d-51894d8eccec'
+        '484c6639-6510-44ce-bbe3-a1a023fc5df3'
     ),
     (
-        'eeae401e-4e73-4780-8700-5ea31c7a8215',
+        '1a579b2e-f81e-4759-ad44-c1d88f8da3c7',
         'Quiz: The Price is Right - Internationell scouting edition!',
         'Quiz: The Price is Right - International scouting edition!',
         '',
@@ -3741,10 +3739,10 @@ For two evenings, Gnistan opens its doors to you as a leader. There are no ready
         NULL,
         '2026-07-29 20:00:00',
         '2026-07-29 21:00:00',
-        'f96bb333-7390-40d1-92a3-29b7b3fbeb16'
+        '2b32a9d9-da57-40f4-ba95-6e6de28ed846'
     ),
     (
-        'b8f54bd5-9899-4b87-9b93-ad47280da3f4',
+        '006503f9-8638-46e9-86be-a71a812111f7',
         'Pyssla bildstödspinne och prata om Anpassat ledarskap',
         'Pyssla bildstödspinne och prata om Anpassat ledarskap',
         '​​Pyssla bildstödspinne och prata om Anpassat ledarskap​',
@@ -3752,10 +3750,10 @@ For two evenings, Gnistan opens its doors to you as a leader. There are no ready
         NULL,
         '2026-07-29 12:00:00',
         '2026-07-29 13:00:00',
-        'b1298fd2-c01a-4469-a1f2-bbd25bb9d908'
+        'accfffb4-5ccc-4ed3-bb28-a82f88440b92'
     ),
     (
-        '8f5a8e46-61a2-4d69-99b5-659801840fdd',
+        'ba86b43a-9d35-4b5f-8286-f8f5eb0bba95',
         '29/7 – Lucia 🕯️',
         '29/7 – Lucia 🕯️',
         'Lucia i juli? Självklart! December var upptagen, så vi flyttade firandet till sommaren istället. Upplev en av Sveriges mysigaste traditioner med sång, pepparkakor och massor av ljus. Har du något vitt att ha på dig, eller kanske ett ljusband eller glitter? Då blir du en del av vårt eget luciatåg! Missa dagens Limited Edition!',
@@ -3763,10 +3761,10 @@ For two evenings, Gnistan opens its doors to you as a leader. There are no ready
         NULL,
         '2026-07-29 08:00:00',
         '2026-07-29 20:00:00',
-        '5fca0ebc-b407-4f5e-810e-4573f945b6bd'
+        '6955cb7f-38a0-4f47-b16e-6633608b04f0'
     ),
     (
-        'c8703347-661c-4134-a2ec-cf683dc04e19',
+        '70dfd9ff-9ac8-4813-b1ae-8c307c296309',
         'Lekaktiviteter',
         'Lekaktiviteter',
         'Hämta fotboll, rockring, hopprep, gagaboll boll m.m och spela med patrullkompisar eller nya vänner',
@@ -3774,10 +3772,10 @@ For two evenings, Gnistan opens its doors to you as a leader. There are no ready
         NULL,
         '2026-07-29 07:00:00',
         '2026-07-29 19:00:00',
-        'ece176aa-dcec-42c7-b780-7bbb4391a2cf'
+        '418ac649-ad80-4e2c-aa1b-db3733b97938'
     ),
     (
-        '245b3c84-24e4-416e-8de2-b1290705ee15',
+        '958a18dc-80bc-4d7d-a22c-40e0b3606b56',
         'Bubbelballs',
         'Bubbelballs',
         'Studsa runt i stora uppblåsbara bollar! Bokning sker på plats i hubben',
@@ -3785,10 +3783,10 @@ For two evenings, Gnistan opens its doors to you as a leader. There are no ready
         NULL,
         '2026-07-29 12:00:00',
         '2026-07-29 19:00:00',
-        'ece176aa-dcec-42c7-b780-7bbb4391a2cf'
+        '418ac649-ad80-4e2c-aa1b-db3733b97938'
     ),
     (
-        'e4eab0e5-8a51-436e-9605-98c6565d945f',
+        '686eb54a-6dd3-4b99-bcc7-3ded099bfa26',
         'Må-bra-kåsan',
         'Må-bra-kåsan',
         'Genom några tankeväckande övningar får du under den här aktiviteten fokusera på hur du kan stärka ditt eget mående. När du är klar med alla aktiviteter får du hämta ut en kåsa i upptäckarhubbens infodisk med självstärkande, peppande budskap från olika organisationer som på olika sätt arbetar med att stärka barn och ungas psykiska hälsa.',
@@ -3796,10 +3794,10 @@ For two evenings, Gnistan opens its doors to you as a leader. There are no ready
         NULL,
         '2026-07-29 12:00:00',
         '2026-07-29 19:00:00',
-        'c2880eae-3277-43d7-a5b2-ddcfb11f7318'
+        'd617bf4f-1e00-4ab4-b6a7-ae90be48c0a0'
     ),
     (
-        '97bea2c9-0c63-460e-8943-0bfc57ddc55f',
+        'b8132e38-6e99-4007-a5a5-912fbba478c0',
         'Känslokartan',
         'Känslokartan',
         '',
@@ -3807,10 +3805,10 @@ For two evenings, Gnistan opens its doors to you as a leader. There are no ready
         NULL,
         '2026-07-29 07:00:00',
         '2026-07-29 19:00:00',
-        '9151b3ad-e8ab-4019-bbcd-d71d8102dde8'
+        '7fef2277-0728-41e0-947d-c487fae3efde'
     ),
     (
-        '11f99f28-aee7-4f69-a0ce-f5cdd480c041',
+        '008d008d-5347-4428-84c2-c4a560c521ab',
         'Brädspel',
         'Brädspel',
         'Brädspel',
@@ -3818,10 +3816,10 @@ For two evenings, Gnistan opens its doors to you as a leader. There are no ready
         NULL,
         '2026-07-29 07:00:00',
         '2026-07-29 19:00:00',
-        '9151b3ad-e8ab-4019-bbcd-d71d8102dde8'
+        '7fef2277-0728-41e0-947d-c487fae3efde'
     ),
     (
-        'f944966d-7a81-462b-8cae-41b6d864415b',
+        '2f4fc74b-844e-4dd3-9a48-66286aa5c1cc',
         'Cybersäkerhet med Unga forskare',
         'Cybersäkerhet med Unga forskare',
         'Testa på spännande aktiviteter med Unga Forskare!',
@@ -3829,10 +3827,10 @@ For two evenings, Gnistan opens its doors to you as a leader. There are no ready
         NULL,
         '2026-07-29 07:00:00',
         '2026-07-29 15:00:00',
-        '9151b3ad-e8ab-4019-bbcd-d71d8102dde8'
+        '7fef2277-0728-41e0-947d-c487fae3efde'
     ),
     (
-        '9d14232b-dad0-473f-ad87-96be7c26056c',
+        'a5ec1a04-8a68-4586-b1ea-768118d1293d',
         'Knoprep',
         'Knoprep',
         'Knoprep och instruktion finns för att lära sig en ny knop',
@@ -3840,10 +3838,10 @@ For two evenings, Gnistan opens its doors to you as a leader. There are no ready
         NULL,
         '2026-07-29 07:00:00',
         '2026-07-29 19:00:00',
-        '0563ef6a-4f77-458e-9f69-c45d1ef491c5'
+        '87afd904-fe20-4ec8-8a0d-325500b60b63'
     ),
     (
-        'b9718054-1be0-4e9f-9a61-d751c6e21905',
+        'c659dec6-df19-4564-b968-2e405ea5551e',
         'Tillsammans målning',
         'Tillsammans målning',
         'Hjälp till att skapa en målning tillsammans. Rita något på tavlan som betyder jamboree för dig.',
@@ -3851,10 +3849,10 @@ For two evenings, Gnistan opens its doors to you as a leader. There are no ready
         NULL,
         '2026-07-29 07:00:00',
         '2026-07-29 19:00:00',
-        '0563ef6a-4f77-458e-9f69-c45d1ef491c5'
+        '87afd904-fe20-4ec8-8a0d-325500b60b63'
     ),
     (
-        'e3158eee-ba36-4fcd-a152-c69525acf3e6',
+        '8e64f0f1-99fd-4288-b504-36b226fedf9f',
         'Halmpool',
         'Halmpool',
         'Hoppa ner i halmen, kan du hitta nålen i halmstacken?',
@@ -3862,10 +3860,10 @@ For two evenings, Gnistan opens its doors to you as a leader. There are no ready
         NULL,
         '2026-07-29 07:00:00',
         '2026-07-29 19:00:00',
-        '185f5091-1e3f-4ad6-b684-c0a0670efe07'
+        '573d544a-5fd7-4c09-b2d6-99050e4dd6ae'
     ),
     (
-        '1181d489-a9f5-413c-9324-6440936ee4b8',
+        'c6e6bacf-3316-49a6-a4b5-72c10672b565',
         'Slankaruseller',
         'Slankaruseller',
         'Åk på en karusell byggd av slanor.',
@@ -3873,10 +3871,10 @@ For two evenings, Gnistan opens its doors to you as a leader. There are no ready
         NULL,
         '2026-07-29 07:00:00',
         '2026-07-29 19:00:00',
-        '185f5091-1e3f-4ad6-b684-c0a0670efe07'
+        '573d544a-5fd7-4c09-b2d6-99050e4dd6ae'
     ),
     (
-        '7c44c059-6798-44c3-a246-d5b25ab404b8',
+        'cbd2ad67-8872-40fe-9017-a0fa1c5d8f7a',
         'Kartkampen',
         'The Map Battle',
         'Vilken åldersgrupp kan vinna flest kartdelar? På varje torg finns en aktivitet utplacerad. Genomför den för att få sätta upp en pin i åldersgruppens färg på kartområdet. Åldersgruppen som i slutet av dagen kontrollerar flest områden på kartan blir dagens vinnare. Varje ny dag börjar kampen om från början',
@@ -3885,10 +3883,10 @@ An activity is located at each square. Complete the activity to place a pin in y
         NULL,
         '2026-07-29 08:00:00',
         '2026-07-29 19:00:00',
-        'eb304d4b-3ef9-400c-b216-d94927081760'
+        'f50f4431-4e79-4d3c-a52e-4e556e8be09f'
     ),
     (
-        '8f95d425-c0db-4e56-b91b-5fc989c349fd',
+        'ce3820f0-aa75-4b05-a01d-b01ac1ad324b',
         'Escape room',
         'Escape room',
         'Testa patrullens sammarbetsförmåga i upptäkarhubbens escape room. Aktiviteten kan bokas på platts i hubben',
@@ -3896,10 +3894,10 @@ An activity is located at each square. Complete the activity to place a pin in y
         NULL,
         '2026-07-29 07:00:00',
         '2026-07-29 19:00:00',
-        'ece176aa-dcec-42c7-b780-7bbb4391a2cf'
+        '418ac649-ad80-4e2c-aa1b-db3733b97938'
     ),
     (
-        'ca2777aa-4471-4ab3-b9a6-3399937e1656',
+        '98c85397-679b-47e6-9e9f-0a8cc3ca485c',
         'Internationell 5-kamp',
         'International pentathlon',
         'Samla ihop ett lag på 5 personer bestående av minst två olika nationaliteter och tävla mot andra lag i internationella lekar!',
@@ -3907,10 +3905,10 @@ An activity is located at each square. Complete the activity to place a pin in y
         NULL,
         '2026-07-29 13:00:00',
         '2026-07-29 13:40:00',
-        '572671ce-7f67-4e16-8f32-5bda9bb2e5e7'
+        '10952f43-79b5-436d-bb7f-c7337f4ab7e6'
     ),
     (
-        'ae66a177-4386-48f3-9170-dfe04c7f04b8',
+        '2bf0d388-d046-4a87-b3d3-dafb316a6bb0',
         'Leda Patrull Ditt stora Äventyr',
         'Leda Patrull Ditt stora Äventyr',
         'Återträff för de som gått Leda Patrull Ditt stora Äventyr. Plats: Bästis bulevarden  i skogen norr om by 246.',
@@ -3921,7 +3919,7 @@ An activity is located at each square. Complete the activity to place a pin in y
         NULL
     ),
     (
-        'ffa6cc32-3927-41f9-8b18-3ab7771c1829',
+        'e43dc241-bfa8-4386-9112-4d31cbc26e1c',
         'Aktivitetstombola',
         'Activity tombola',
         'I aktivitetstombolan finns mängder med roliga aktiviteter. Ni snurrar på tombolan, får en utmaning eller aktivitet och sedan genomför ni den!',
@@ -3929,10 +3927,10 @@ An activity is located at each square. Complete the activity to place a pin in y
         NULL,
         '2026-07-29 07:00:00',
         '2026-07-29 19:30:00',
-        '6491fa9b-418a-4d26-b8ff-f92267fb5b7d'
+        '9d1275be-7f8b-4567-8616-8c3d0a319a52'
     ),
     (
-        'f772c02c-5601-41d0-a4d2-b722e4add062',
+        'aa98977b-adae-4094-b7f2-e255595691b6',
         'Klartänkt - Spel och aktiviteter',
         'Clear minds - Games and activities',
         'Här kan du prova på vår nya kortlek, spela spel i vår myshörna eller bara ladda powerbankem och sitta och chilla en stund.',
@@ -3940,10 +3938,10 @@ An activity is located at each square. Complete the activity to place a pin in y
         NULL,
         '2026-07-29 07:00:00',
         '2026-07-29 19:30:00',
-        '6491fa9b-418a-4d26-b8ff-f92267fb5b7d'
+        '9d1275be-7f8b-4567-8616-8c3d0a319a52'
     ),
     (
-        '1694fb0a-fd18-49a9-85b7-f4a8804e5fb2',
+        '79371432-fa0d-495c-825b-fd49b8bdadf0',
         'Klartänkt material',
         'Clear minds - material',
         'Är du nyfiken på progammaterial och verkty att använda för ANDTS hemma i kåren, sväng förbi oss och ta del av våra kunskaper och få tips att använda.',
@@ -3951,10 +3949,10 @@ An activity is located at each square. Complete the activity to place a pin in y
         NULL,
         '2026-07-29 07:00:00',
         '2026-07-29 19:30:00',
-        '6491fa9b-418a-4d26-b8ff-f92267fb5b7d'
+        '9d1275be-7f8b-4567-8616-8c3d0a319a52'
     ),
     (
-        'f64de19c-5eb4-48c5-ae60-236b0dc5cf21',
+        '90cb7a52-6568-4f70-9ded-17a0975fb448',
         'Tryck tröjor',
         'Print shirts',
         'Ta med dig en tröja, köp ett tryck och skapa din egen coola tröja, (eller valfritt plagg) i vår tröjtryck. Kostnad 15 kr.',
@@ -3962,10 +3960,10 @@ An activity is located at each square. Complete the activity to place a pin in y
         NULL,
         '2026-07-29 07:00:00',
         '2026-07-29 19:30:00',
-        '6491fa9b-418a-4d26-b8ff-f92267fb5b7d'
+        '9d1275be-7f8b-4567-8616-8c3d0a319a52'
     ),
     (
-        '9c9c2b2b-d8b8-499d-940d-d11eeaafcb6b',
+        'c5073efb-b4e4-4637-861f-9942b3d00c3e',
         'Världsförbättrare & Världens Barn',
         'World improvers and "Världens Barn"',
         'Lär dig mer om IOGT-NTO International och deras arbete/projekt i Uganda med UGGA. Tillsammans förbättrar vi scouter världen!',
@@ -3973,10 +3971,10 @@ An activity is located at each square. Complete the activity to place a pin in y
         NULL,
         '2026-07-29 07:00:00',
         '2026-07-29 19:30:00',
-        '6491fa9b-418a-4d26-b8ff-f92267fb5b7d'
+        '9d1275be-7f8b-4567-8616-8c3d0a319a52'
     ),
     (
-        'dad3472d-688c-4031-a9ec-e359bf444434',
+        '74c5c963-952a-43b9-9e40-79bb34856eab',
         'Gör din egen pin',
         'Make you own pin',
         'Tillverka en egen pin i pinmaskinen, det finns olika motiv att välja på.',
@@ -3984,10 +3982,10 @@ An activity is located at each square. Complete the activity to place a pin in y
         NULL,
         '2026-07-29 07:00:00',
         '2026-07-29 19:30:00',
-        '6491fa9b-418a-4d26-b8ff-f92267fb5b7d'
+        '9d1275be-7f8b-4567-8616-8c3d0a319a52'
     ),
     (
-        'd6f9b9cd-7238-4469-a4c8-10302f567125',
+        'b09c15c1-c3f5-4eb8-b01f-73856f31b321',
         '15-spel CAN',
         '15 games CAN',
         'CAN, centalförbundet för alkohol och narkotikaupplysning utmanar er i ett 15-spel från deras arbete "ANTDS på Schemat"',
@@ -3995,10 +3993,10 @@ An activity is located at each square. Complete the activity to place a pin in y
         NULL,
         '2026-07-29 07:00:00',
         '2026-07-29 19:30:00',
-        '6491fa9b-418a-4d26-b8ff-f92267fb5b7d'
+        '9d1275be-7f8b-4567-8616-8c3d0a319a52'
     ),
     (
-        '681bc57f-b919-4137-8d85-2d100f761898',
+        '458ecd6d-d5f8-4d6c-9519-e5c6e7eb6c69',
         'Försäljning av märken och kortlekar',
         'Badges and card games for sale',
         'I tältet kan du köpa Klartänk reflektionskortlekar på både svenska och engelska. Ett begränsat antal märken finns också till försäljning. Kostnad mellan 10 kr och 50 kr.',
@@ -4006,10 +4004,10 @@ An activity is located at each square. Complete the activity to place a pin in y
         NULL,
         '2026-07-29 07:00:00',
         '2026-07-29 19:30:00',
-        '6491fa9b-418a-4d26-b8ff-f92267fb5b7d'
+        '9d1275be-7f8b-4567-8616-8c3d0a319a52'
     ),
     (
-        'e4ae3724-5b2a-44fd-af40-fc4008e8a667',
+        '88dafed7-5451-4b8d-a822-a6a10953da84',
         'Workshop Morakniv - täljning',
         'Workshop Morakniv - wood carving',
         'Experter från Morakniv lär ut täljningstekniker och mycket mer!',
@@ -4017,10 +4015,10 @@ An activity is located at each square. Complete the activity to place a pin in y
         NULL,
         '2026-07-29 08:00:00',
         '2026-07-29 09:00:00',
-        '2e99d84f-5332-4e3c-9abd-669d44550c12'
+        'd75df430-57a8-4593-9611-ed1dd6d0c20c'
     ),
     (
-        '04e06a5d-dddb-46bd-9d4c-2700593f1e72',
+        'f6de8395-2378-45a1-a9b9-31962d542ec8',
         'Workshop Morakniv - knivvård',
         'Workshop Morakniv - knife maintenance',
         'Experter från Morakniv lär ut tips och trix för att ta hand om dina knivar.',
@@ -4028,10 +4026,10 @@ An activity is located at each square. Complete the activity to place a pin in y
         NULL,
         '2026-07-29 11:00:00',
         '2026-07-29 12:00:00',
-        '2e99d84f-5332-4e3c-9abd-669d44550c12'
+        'd75df430-57a8-4593-9611-ed1dd6d0c20c'
     ),
     (
-        'a74e2d81-f9a9-420f-984a-518f310da914',
+        'bf4efcfb-b627-4028-8967-4717119c0292',
         'VM i Scoutscarf',
         'Scarf World Cup',
         'Rösta fram världens snyggaste scoutscarf! Kvartsfinal',
@@ -4039,10 +4037,10 @@ An activity is located at each square. Complete the activity to place a pin in y
         NULL,
         '2026-07-29 07:00:00',
         '2026-07-29 16:00:00',
-        '572671ce-7f67-4e16-8f32-5bda9bb2e5e7'
+        '10952f43-79b5-436d-bb7f-c7337f4ab7e6'
     ),
     (
-        '267fd75d-3511-40b0-a3d7-0b017b153986',
+        'c997c4ad-5f8b-46a5-8cd0-577534a1d91f',
         'Leading through uncertainty - A WAGGGS leadership model workshop',
         'Leading through uncertainty - A WAGGGS leadership model workshop',
         'Vill du stärka ditt ledarskap, och utforska hur du kan leda i en oförutsägbar värld? I den här interaktiva workshopen kommer deltagarna att få delta i en dynamisk simulering av hur man som team navigerar genom en föränderlig omgivning. Utifrån detta kommer deltagarna få fatta beslut, samarbeta, och reflektera över hur ledarskap utvecklas genom relationer, flexibilitet och ansvar. Workshopen avslutas med att koppla deltagarnas upplevelser till WAGGGS ledarskapsmodell, och ge dem verktygen att utveckla och stärka sitt eget ledarskap. OBS! Denna workshop ges på engelska.',
@@ -4050,10 +4048,10 @@ An activity is located at each square. Complete the activity to place a pin in y
         NULL,
         '2026-07-29 08:00:00',
         '2026-07-29 09:00:00',
-        'b1298fd2-c01a-4469-a1f2-bbd25bb9d908'
+        'accfffb4-5ccc-4ed3-bb28-a82f88440b92'
     ),
     (
-        '25018ad7-f84e-4aec-9c36-97709800cddd',
+        '07496c81-cc44-4eb9-ae39-8ab7cb13635f',
         'Trygga möten fördjupning',
         'Trygga möten fördjupning',
         '',
@@ -4061,10 +4059,10 @@ An activity is located at each square. Complete the activity to place a pin in y
         NULL,
         '2026-07-30 07:00:00',
         '2026-07-30 09:00:00',
-        'b127cecb-c982-4d23-918d-1dbd9b4ca894'
+        '801217b7-0c0a-44d5-8ac7-a153aa3fbba4'
     ),
     (
-        'efb8cd6d-1876-4858-89a1-df315974587c',
+        '61a50eb2-2d1a-4253-971e-3949394717a6',
         'Bris',
         'Bris',
         '',
@@ -4072,10 +4070,10 @@ An activity is located at each square. Complete the activity to place a pin in y
         NULL,
         '2026-07-30 09:00:00',
         '2026-07-30 10:00:00',
-        'b127cecb-c982-4d23-918d-1dbd9b4ca894'
+        '801217b7-0c0a-44d5-8ac7-a153aa3fbba4'
     ),
     (
-        '9016ab6f-598d-45eb-8393-ccfb6e5bfa16',
+        'dac00514-1887-411a-b84a-9937cb9a2cfe',
         'Inspiration för kårer som vill åka utomlands',
         'Inspiration för kårer som vill åka utomlands',
         '',
@@ -4083,10 +4081,10 @@ An activity is located at each square. Complete the activity to place a pin in y
         NULL,
         '2026-07-30 12:00:00',
         '2026-07-30 13:00:00',
-        'b127cecb-c982-4d23-918d-1dbd9b4ca894'
+        '801217b7-0c0a-44d5-8ac7-a153aa3fbba4'
     ),
     (
-        'd2822e69-2cc6-49c5-82a9-3d92ad46e0b2',
+        '696ae8ab-c252-48a8-96c8-13894428453d',
         'Folkhögskolan workshop',
         'Folkhögskolan workshop',
         '',
@@ -4094,10 +4092,10 @@ An activity is located at each square. Complete the activity to place a pin in y
         NULL,
         '2026-07-30 17:00:00',
         '2026-07-30 18:30:00',
-        'b127cecb-c982-4d23-918d-1dbd9b4ca894'
+        '801217b7-0c0a-44d5-8ac7-a153aa3fbba4'
     ),
     (
-        'f4220686-c52d-4581-a0b2-18d42e84734a',
+        '5834a215-066c-40f1-9813-7e0f9026d8db',
         '​​Nyfiken på Leda Avdelning',
         '​​Nyfiken på Leda Avdelning',
         '​Utbildningen Leda avdelning fokuserar på ledarteamet och allt som de gör tillsammans i avdelningen. Under denna workshop får du prova på en del av utbildningen och ta med dig lite ny kunskap hem. ​',
@@ -4108,7 +4106,7 @@ An activity is located at each square. Complete the activity to place a pin in y
         NULL
     ),
     (
-        'b7b8bef4-9bac-4fa5-83e7-6d704b5c8eb4',
+        '6ed78062-f1e2-4436-9788-d572be278680',
         'Så jobbar en EU-korrespondent',
         'Så jobbar en EU-korrespondent',
         'Livet som Europakorrespondent är väldigt omväxlande. Ena dagen rapporterar man från kriget i Ukraina, andra från en fotbollsmatch i Paris, en värmebölja i Spanien eller ett EU-toppmöte i Aten.
@@ -4120,10 +4118,10 @@ Teresa Küchler är journalist och jobbar sen 21 år i Bryssel. Hör om hennes a
         NULL,
         '2026-07-30 07:45:00',
         '2026-07-30 08:45:00',
-        '8457d5f0-bcae-424b-91d6-69cc47259e48'
+        '5ef6c219-43f8-43d4-ad73-55afcf6a44ae'
     ),
     (
-        'b78a067b-1fc3-432a-9ae1-fb5c1f235801',
+        'cfaf69b8-eac8-4b8e-beaf-f26e6f6f014a',
         'Nedmontera skiten - hur skapar vi den sämsta möjliga skolan?',
         'Tear it all down – how do we create the worst possible school?',
         'Vad skulle göra din skola helt outhärdlig? Det är precis där vi börjar.
@@ -4135,10 +4133,10 @@ We wrap up by talking student democracy: what it is, what it takes to make it wo
         NULL,
         '2026-07-30 09:00:00',
         '2026-07-30 10:00:00',
-        '8457d5f0-bcae-424b-91d6-69cc47259e48'
+        '5ef6c219-43f8-43d4-ad73-55afcf6a44ae'
     ),
     (
-        'b51e6e5f-52f9-4254-8630-8b471944e5d9',
+        '6a9d9ffd-9e3c-4953-8dbe-d044ba867fed',
         'Bris: Att aldrig riktigt räcka till',
         'Bris: Att aldrig riktigt räcka till',
         'Känner du igen känslan av att alltid behöva räcka till? Många barn och unga lever med höga krav från skolan, sociala medier, omgivningen och sig själva. Samtidigt säger de att det som hjälper mest inte är fler råd, utan vuxna som lyssnar, förstår och finns kvar när det blir svårt.
@@ -4150,10 +4148,10 @@ Du lämnar kanske inte workshoppen med alla svar, men förhoppningsvis med nya p
         NULL,
         '2026-07-30 13:00:00',
         '2026-07-30 14:00:00',
-        '8457d5f0-bcae-424b-91d6-69cc47259e48'
+        '5ef6c219-43f8-43d4-ad73-55afcf6a44ae'
     ),
     (
-        'e71d5ece-f14f-45bc-a1e9-7cf19cc8e918',
+        'fcbff6f2-7d53-48d5-baef-cce935123b44',
         'Rektorn på besök: Hur mycket kan du egentligen påverka?',
         'Meet the Principal: How Much Can You Really Influence?',
         'Vad händer när elevernas rätt till delaktighet möter skolans vardag, och vad kan du egentligen påverka i skolan?
@@ -4164,10 +4162,10 @@ Du lämnar kanske inte workshoppen med alla svar, men förhoppningsvis med nya p
         NULL,
         '2026-07-30 17:30:00',
         '2026-07-30 18:30:00',
-        '8457d5f0-bcae-424b-91d6-69cc47259e48'
+        '5ef6c219-43f8-43d4-ad73-55afcf6a44ae'
     ),
     (
-        'b53407f9-31ac-44db-9091-ed9f0dbc542e',
+        'a874b267-1976-4a05-945a-183dfbf789bc',
         'Deep talk - Rösta i Gnistan på tema!',
         'Deep talk - vote in Gnistan!',
         'Deep talk som bestäms av deltagarna under veckan. Kom med dina förslag och rösta i Gnistan!',
@@ -4175,10 +4173,10 @@ Du lämnar kanske inte workshoppen med alla svar, men förhoppningsvis med nya p
         NULL,
         '2026-07-30 19:00:00',
         '2026-07-30 20:00:00',
-        '8457d5f0-bcae-424b-91d6-69cc47259e48'
+        '5ef6c219-43f8-43d4-ad73-55afcf6a44ae'
     ),
     (
-        '5499007b-f55b-4d0e-8649-a6a155a94fc3',
+        '92475b9d-7360-480d-946e-fd8e8c5c1737',
         'Ledarskap som lyfter unga',
         'Leadership that empowers young people',
         'Vad innebär det egentligen att släppa fram unga på riktigt? När håller vi kvar kontrollen utan att märka det? Vad behöver förändras? 
@@ -4190,10 +4188,10 @@ For two evenings, Gnistan opens its doors to you as a leader. There are no ready
         NULL,
         '2026-07-30 19:00:00',
         '2026-07-30 20:00:00',
-        '8457d5f0-bcae-424b-91d6-69cc47259e48'
+        '5ef6c219-43f8-43d4-ad73-55afcf6a44ae'
     ),
     (
-        '986889ee-3fd0-4602-8235-08cd1a281441',
+        'e06a48f6-c190-4f24-84fe-0d0038e5847a',
         'Återträff WSJ - World Scout Jamboree',
         'Reunion WSJ - World Scout Jamboree',
         'Återträff för alla som deltagit på en världscoutjamboree, oavsett vilket år eller vilken funktion. Vi samlas alla  utanför Heatbeat Café och splittar sedan upp oss i mindre grupper.',
@@ -4201,10 +4199,10 @@ For two evenings, Gnistan opens its doors to you as a leader. There are no ready
         NULL,
         '2026-07-30 17:30:00',
         '2026-07-30 19:30:00',
-        '572671ce-7f67-4e16-8f32-5bda9bb2e5e7'
+        '10952f43-79b5-436d-bb7f-c7337f4ab7e6'
     ),
     (
-        '76018974-0e46-4e7a-acd3-a32052aacc4d',
+        '569c9050-252c-4c20-9f37-1fcb48a81b62',
         'Återträff World Scout Moot',
         'Reunion WSM - World Scout Moot',
         'Återträff för alla som deltagit på WSM, oavsett vilket år eller vilken funktion. Vi samlas alla  utanför Heatbeat Café och splittar sedan upp oss i mindre grupper.',
@@ -4212,10 +4210,10 @@ For two evenings, Gnistan opens its doors to you as a leader. There are no ready
         NULL,
         '2026-07-30 18:30:00',
         '2026-07-30 20:30:00',
-        '572671ce-7f67-4e16-8f32-5bda9bb2e5e7'
+        '10952f43-79b5-436d-bb7f-c7337f4ab7e6'
     ),
     (
-        '9c90434e-a75e-45dc-9903-a69a2ed397a1',
+        '1cd039de-0dcd-4b84-85fe-f8300154c903',
         'Återträff Roverway',
         'Reunion Roverway',
         'Återträff för alla som deltagit på RW, oavsett vilket år eller vilken funktion. Vi samlas alla  utanför Heatbeat Café och splittar sedan upp oss i mindre grupper.',
@@ -4223,10 +4221,10 @@ For two evenings, Gnistan opens its doors to you as a leader. There are no ready
         NULL,
         '2026-07-30 18:30:00',
         '2026-07-30 20:30:00',
-        '572671ce-7f67-4e16-8f32-5bda9bb2e5e7'
+        '10952f43-79b5-436d-bb7f-c7337f4ab7e6'
     ),
     (
-        '3d97f91b-d054-4ac0-ae08-49a0a3ccc5bd',
+        'b1e54368-b5a9-4c26-b368-f279c0462bab',
         'Quiz',
         'Quiz',
         'Kom och var med på quiz! Spela själv eller i lag.',
@@ -4234,10 +4232,10 @@ For two evenings, Gnistan opens its doors to you as a leader. There are no ready
         NULL,
         '2026-07-30 14:00:00',
         '2026-07-30 14:30:00',
-        '572671ce-7f67-4e16-8f32-5bda9bb2e5e7'
+        '10952f43-79b5-436d-bb7f-c7337f4ab7e6'
     ),
     (
-        'b23eada2-b4c2-4c40-8d3e-608e40214769',
+        '630dd325-8c88-40eb-b535-6235563a4edd',
         'Open mic night',
         'Open mic night',
         'Scenen är din! Har du en talang du vill visa upp, kanske spela på ett instrument som du har med till lägret, trolleritrick, stand-up, poesi, sång eller något annat? Ta chansen att visa upp vad just du kan på Heartbeat cafes scen! Kom till cafeet under dagen och berätta för oss vad du vill framföra. Och har du inte en talang du vill visa upp, kom som publik och njut av lägerdeltagarnas framföranden!',
@@ -4245,10 +4243,10 @@ For two evenings, Gnistan opens its doors to you as a leader. There are no ready
         NULL,
         '2026-07-30 17:30:00',
         '2026-07-30 19:00:00',
-        '572671ce-7f67-4e16-8f32-5bda9bb2e5e7'
+        '10952f43-79b5-436d-bb7f-c7337f4ab7e6'
     ),
     (
-        'b7faa410-9a7d-4a0a-bb15-3343316c5ea0',
+        'e2e8443a-6666-42ff-bbc0-94f01daa9b3b',
         'Klättervägg',
         'Climbing',
         'Välkommen att prova klättring i Hjärtat! Ta dig upp längs utsiktstornets väggar och njut av utsikten över lägerplatsen från ovan. Här finns klätterbanor för både nybörjare och vana klättrare.',
@@ -4256,10 +4254,10 @@ For two evenings, Gnistan opens its doors to you as a leader. There are no ready
         NULL,
         '2026-07-30 06:30:00',
         '2026-07-30 15:30:00',
-        '5094c36d-3f40-4d41-8070-1046bc015799'
+        'dc8255e8-e563-4d09-b073-e0ecd24e8423'
     ),
     (
-        '9c82d98a-f615-44b4-b50f-298c62a5438b',
+        '0fd99969-ac1a-433c-be79-5e66221f9c63',
         'Internationella gruppen tar över ledarhänget',
         'Internationella gruppen tar över ledarhänget',
         'Kom och mingla och få inspiration till kåren!',
@@ -4267,10 +4265,10 @@ For two evenings, Gnistan opens its doors to you as a leader. There are no ready
         NULL,
         '2026-07-30 17:00:00',
         '2026-07-30 19:00:00',
-        '2641071b-c7bc-4eb5-8022-307e25b0507c'
+        '58ddff08-1b6e-4758-88be-1fa0d2ad7921'
     ),
     (
-        'c6bb3b34-7e19-4dd1-a00d-86b880e8b703',
+        '354fc4c2-2572-4a5f-95b7-32a49e693db6',
         'Upptäckarsamtal',
         'Explorer scout leader gathering',
         'Slå dig ner vid lägerelden och möt upptäckarledare från hela landet, dela erfarenheter, hämta inspiration och skapa nya kontakter.',
@@ -4278,10 +4276,10 @@ For two evenings, Gnistan opens its doors to you as a leader. There are no ready
         NULL,
         '2026-07-30 17:00:00',
         '2026-07-30 18:00:00',
-        'eb304d4b-3ef9-400c-b216-d94927081760'
+        'f50f4431-4e79-4d3c-a52e-4e556e8be09f'
     ),
     (
-        'b95a4705-bb5f-496a-b855-1a2bd27b3337',
+        '1e6e1722-3036-45f0-b690-b15efa64954d',
         'Familjescoutsamtal',
         'Family scout leader gathering',
         'Slå dig ner vid lägerelden och möt familjescoutledare från hela landet, dela erfarenheter, hämta inspiration och skapa nya kontakter.',
@@ -4289,10 +4287,10 @@ For two evenings, Gnistan opens its doors to you as a leader. There are no ready
         NULL,
         '2026-07-30 12:00:00',
         '2026-07-30 13:00:00',
-        'eb304d4b-3ef9-400c-b216-d94927081760'
+        'f50f4431-4e79-4d3c-a52e-4e556e8be09f'
     ),
     (
-        'd92d9861-86f6-42b8-a8c8-758ecd7d71c7',
+        'd07cba18-9cf4-4f1e-80fa-928531c2841b',
         'Spårarsamtal',
         'Tracker scout leader gathering',
         'Slå dig ner vid lägerelden och möt spårareledare från hela landet, dela erfarenheter, hämta inspiration och skapa nya kontakter.',
@@ -4300,10 +4298,10 @@ For two evenings, Gnistan opens its doors to you as a leader. There are no ready
         NULL,
         '2026-07-30 08:00:00',
         '2026-07-30 09:00:00',
-        'eb304d4b-3ef9-400c-b216-d94927081760'
+        'f50f4431-4e79-4d3c-a52e-4e556e8be09f'
     ),
     (
-        '7aa012e1-129a-4722-b32f-806e42e57b97',
+        'e4f1737c-b110-4245-ae6e-52d02d0d207e',
         'NSF',
         'NSF',
         '',
@@ -4311,10 +4309,10 @@ For two evenings, Gnistan opens its doors to you as a leader. There are no ready
         NULL,
         '2026-07-30 08:00:00',
         '2026-07-30 09:00:00',
-        'b1298fd2-c01a-4469-a1f2-bbd25bb9d908'
+        'accfffb4-5ccc-4ed3-bb28-a82f88440b92'
     ),
     (
-        'f39ee405-2dcd-4b9a-9088-7d9e992cd110',
+        'c4dada3e-6912-45c0-82ff-4b5ee75770f4',
         'Speedfriending',
         'Speedfriending',
         '',
@@ -4322,10 +4320,10 @@ For two evenings, Gnistan opens its doors to you as a leader. There are no ready
         60,
         '2026-07-30 09:00:00',
         '2026-07-30 10:00:00',
-        'b1298fd2-c01a-4469-a1f2-bbd25bb9d908'
+        'accfffb4-5ccc-4ed3-bb28-a82f88440b92'
     ),
     (
-        'eac70653-90a5-4e95-bcfd-6f1e00f2f5dd',
+        'e36935e8-0c96-4639-b7ca-91f5ddd325d3',
         'Bildstödspinne - anpassat ledarskap',
         'Image support stick - customized leadership',
         '',
@@ -4333,10 +4331,10 @@ For two evenings, Gnistan opens its doors to you as a leader. There are no ready
         NULL,
         '2026-07-30 12:00:00',
         '2026-07-30 13:00:00',
-        'b1298fd2-c01a-4469-a1f2-bbd25bb9d908'
+        'accfffb4-5ccc-4ed3-bb28-a82f88440b92'
     ),
     (
-        '9f9cb624-c3c4-44b5-8f93-be03b1339ca4',
+        'd705582c-12f5-4322-89e4-76318aea60e2',
         'Bachata',
         'Bachata',
         'Lär dig dansa den latinamerikanska dansen Bachata! Detta är tillfälle 1. Efter avslutade kurser kan ni använda era nylärda danssteg när kvällens klubb öppnar vid 20:00!',
@@ -4344,10 +4342,10 @@ For two evenings, Gnistan opens its doors to you as a leader. There are no ready
         60,
         '2026-07-30 13:00:00',
         '2026-07-30 14:00:00',
-        'b1298fd2-c01a-4469-a1f2-bbd25bb9d908'
+        'accfffb4-5ccc-4ed3-bb28-a82f88440b92'
     ),
     (
-        '460d84e0-277d-40ed-9f88-f19da9d7263b',
+        'cad5d92a-781d-4eed-adac-78f176a1959f',
         'Bachata',
         'Bachata',
         'Lär dig dansa den latinamerikanska dansen Bachata! Detta är tillfälle 2. Efter avslutade kurser kan ni använda era nylärda danssteg när kvällens klubb öppnar vid 20:00!',
@@ -4355,10 +4353,10 @@ For two evenings, Gnistan opens its doors to you as a leader. There are no ready
         60,
         '2026-07-30 14:00:00',
         '2026-07-30 15:00:00',
-        'b1298fd2-c01a-4469-a1f2-bbd25bb9d908'
+        'accfffb4-5ccc-4ed3-bb28-a82f88440b92'
     ),
     (
-        '790c6f5b-4282-44f0-b496-0fc803bdac7d',
+        '95f6cc23-5c72-4b55-a769-25c4df4d7a98',
         'Bachata',
         'Bachata',
         'Lär dig dansa den latinamerikanska dansen Bachata! Detta är tillfälle 3. Efter avslutade kurser kan ni använda era nylärda danssteg när kvällens klubb öppnar vid 20:00!',
@@ -4366,10 +4364,10 @@ For two evenings, Gnistan opens its doors to you as a leader. There are no ready
         60,
         '2026-07-30 17:00:00',
         '2026-07-30 18:00:00',
-        'b1298fd2-c01a-4469-a1f2-bbd25bb9d908'
+        'accfffb4-5ccc-4ed3-bb28-a82f88440b92'
     ),
     (
-        'a5fe9d3e-67d3-4a6f-ae20-901c78ae7e64',
+        '2c4c6fa6-3319-4786-ba6e-3bf7788047b9',
         'Klubb Fiesta med DJ Måns',
         'Club Fiesta with DJ Måns',
         'Här dansar vi, firar och lever livet tillsammans under rytmerna av passion och gemenskap. Oavsett om du är här för att dansa, lära dig nya steg (kanske efter en härlig Bachata-kurs?) eller bara suga in den härliga stämningen – du är en del av familjen.',
@@ -4377,10 +4375,10 @@ For two evenings, Gnistan opens its doors to you as a leader. There are no ready
         NULL,
         '2026-07-30 18:00:00',
         '2026-07-30 21:00:00',
-        'b1298fd2-c01a-4469-a1f2-bbd25bb9d908'
+        'accfffb4-5ccc-4ed3-bb28-a82f88440b92'
     ),
     (
-        'd7964c5f-0dee-4aa7-8aa5-72ae09c8f426',
+        '644e4d62-57a8-4066-bb89-3ef8ec28ee8e',
         'Volleybollturnering',
         'Volleyball tournament',
         '',
@@ -4388,10 +4386,10 @@ For two evenings, Gnistan opens its doors to you as a leader. There are no ready
         NULL,
         '2026-07-30 17:00:00',
         '2026-07-30 19:00:00',
-        '11d64ace-771c-4290-a9cc-45acccde3685'
+        'b36b6a47-01dd-4b96-a5cd-f666ac51ed2a'
     ),
     (
-        '159b1877-e514-4841-9996-16b0b4388c80',
+        '6528dfff-eba9-4aee-8fe8-1126ee095151',
         'Hur bygger vi fred lokalt när det pågår krig globalt?',
         'How do we build peace locally when there is war globally?',
         'Ett engagerande pass där du får utforska hur fred kan byggas i vardagen, även när världen präglas av konflikter. Genom reflektion, samtal och konkreta exempel får du nya perspektiv på hur vi som scouter kan bidra till trygghet, tillit och förändring på lokal nivå som i längden bygger fred globalt.',
@@ -4399,10 +4397,10 @@ For two evenings, Gnistan opens its doors to you as a leader. There are no ready
         NULL,
         '2026-07-30 11:15:00',
         '2026-07-30 12:00:00',
-        'f96bb333-7390-40d1-92a3-29b7b3fbeb16'
+        '2b32a9d9-da57-40f4-ba95-6e6de28ed846'
     ),
     (
-        'be04e029-2f9a-461c-b9dc-2e6ba41ef783',
+        '5d0c4f87-f936-4b90-95b3-d309c37bd4fd',
         'På Spåret: Internationell scouting edition!',
         'On a rail: International scout edition',
         'Samla ett gäng vänner och be ger er ut på en resa runt om i världen! Vi kör en rolig take på det klassiska TV-programmet På Spåret men vi kör en internationells scouting edition. Tre resor, lite frågor och ett gott pris. Välkommen att vara med på ett roligt quiz!',
@@ -4410,10 +4408,10 @@ For two evenings, Gnistan opens its doors to you as a leader. There are no ready
         NULL,
         '2026-07-30 16:00:00',
         '2026-07-30 17:00:00',
-        'f96bb333-7390-40d1-92a3-29b7b3fbeb16'
+        '2b32a9d9-da57-40f4-ba95-6e6de28ed846'
     ),
     (
-        '96168b74-1c00-4f76-ac44-1312cf796e50',
+        '94831226-348d-4dd9-a619-2123eeaebbf9',
         'Karaoke',
         'Karaoke night',
         '',
@@ -4421,10 +4419,10 @@ For two evenings, Gnistan opens its doors to you as a leader. There are no ready
         NULL,
         '2026-07-30 17:00:00',
         '2026-07-30 19:00:00',
-        'f96bb333-7390-40d1-92a3-29b7b3fbeb16'
+        '2b32a9d9-da57-40f4-ba95-6e6de28ed846'
     ),
     (
-        'f4b1ab48-aa49-4e2a-9ba0-8e0a1be1190d',
+        '6600556f-22f8-4a6c-ad28-c940bbe97b7a',
         'Tänk Till',
         'Think Twice',
         'Idag blir det klurigheter och problemlösning! Det blir bollhav, språkförvirring och knäppa tankevurpor, tillsammans med en patrull. Se dessutom till att kamma till dig lite extra och ta fram ditt bäste leende till avslutningsstationen. Säg Apelsin! Idag är det fasta starttider som gäller, Kom i Tid!',
@@ -4432,10 +4430,10 @@ For two evenings, Gnistan opens its doors to you as a leader. There are no ready
         NULL,
         '2026-07-30 06:30:00',
         '2026-07-30 08:30:00',
-        '279f9b05-e635-4923-9fb9-13d09c23f31c'
+        '0171900f-3f29-4119-8a92-c9e688fa582b'
     ),
     (
-        '4e092f97-ae54-48d8-bef3-11ed67da026e',
+        'df635123-451b-40b6-b376-6ff8284d11e4',
         'Tänk Till',
         'Think Twice',
         'Idag blir det klurigheter och problemlösning! Det blir bollhav, språkförvirring och knäppa tankevurpor, tillsammans med en patrull. Se dessutom till att kamma till dig lite extra och ta fram ditt bäste leende till avslutningsstationen. Säg Apelsin! Idag är det fasta starttider som gäller, Kom i Tid!',
@@ -4443,10 +4441,10 @@ For two evenings, Gnistan opens its doors to you as a leader. There are no ready
         NULL,
         '2026-07-30 08:30:00',
         '2026-07-30 10:30:00',
-        '279f9b05-e635-4923-9fb9-13d09c23f31c'
+        '0171900f-3f29-4119-8a92-c9e688fa582b'
     ),
     (
-        'c89ef12e-fbf4-4f1b-87e9-f308dddfb8a8',
+        'feb013ab-10fe-4771-9861-bc7656e647a5',
         'Tänk Till',
         'Think Twice',
         'Idag blir det klurigheter och problemlösning! Det blir bollhav, språkförvirring och knäppa tankevurpor, tillsammans med en patrull. Se dessutom till att kamma till dig lite extra och ta fram ditt bäste leende till avslutningsstationen. Säg Apelsin! Idag är det fasta starttider som gäller, Kom i Tid!',
@@ -4454,10 +4452,10 @@ For two evenings, Gnistan opens its doors to you as a leader. There are no ready
         NULL,
         '2026-07-30 12:00:00',
         '2026-07-30 14:00:00',
-        '279f9b05-e635-4923-9fb9-13d09c23f31c'
+        '0171900f-3f29-4119-8a92-c9e688fa582b'
     ),
     (
-        '53e52a6f-b7c2-49cc-8bc3-eef238d165ae',
+        'dec562d5-a3ea-4b67-9efe-3e56ad6827b1',
         'Tänk Till',
         'Think Twice',
         'Idag blir det klurigheter och problemlösning! Det blir bollhav, språkförvirring och knäppa tankevurpor, tillsammans med en patrull. Se dessutom till att kamma till dig lite extra och ta fram ditt bäste leende till avslutningsstationen. Säg Apelsin! Idag är det fasta starttider som gäller, Kom i Tid!',
@@ -4465,10 +4463,10 @@ For two evenings, Gnistan opens its doors to you as a leader. There are no ready
         NULL,
         '2026-07-30 14:00:00',
         '2026-07-30 16:00:00',
-        '279f9b05-e635-4923-9fb9-13d09c23f31c'
+        '0171900f-3f29-4119-8a92-c9e688fa582b'
     ),
     (
-        'acedfa1e-d516-48e5-a5ce-4a7114485d23',
+        'b01f0309-fab4-4e8e-b750-03a385835da4',
         'Sagostund',
         'Storytime',
         'Inspirerande sagostund öppet för alla',
@@ -4476,10 +4474,10 @@ For two evenings, Gnistan opens its doors to you as a leader. There are no ready
         NULL,
         '2026-07-30 06:00:00',
         '2026-07-30 07:00:00',
-        '556a6e3c-62b3-4c9a-8720-4cee10542d9f'
+        '8e335d16-2369-474d-b774-d16f9e44b0fe'
     ),
     (
-        '0c5620b0-39f3-4f4c-bf6b-aa2a89730584',
+        '90d7fc9b-f613-4651-b9cf-35e4b00921ca',
         'Kvällsbön',
         'Evening prayer',
         '',
@@ -4487,10 +4485,10 @@ For two evenings, Gnistan opens its doors to you as a leader. There are no ready
         NULL,
         '2026-07-30 19:30:00',
         '2026-07-30 20:00:00',
-        '556a6e3c-62b3-4c9a-8720-4cee10542d9f'
+        '8e335d16-2369-474d-b774-d16f9e44b0fe'
     ),
     (
-        '16503653-e0f6-4e52-acbb-7f296d82498f',
+        'bf88162b-09e3-4aaf-884f-482624afdb76',
         'Meningen med mig',
         'The meaning of me',
         '',
@@ -4498,10 +4496,10 @@ For two evenings, Gnistan opens its doors to you as a leader. There are no ready
         40,
         '2026-07-30 07:00:00',
         '2026-07-30 10:00:00',
-        '556a6e3c-62b3-4c9a-8720-4cee10542d9f'
+        '8e335d16-2369-474d-b774-d16f9e44b0fe'
     ),
     (
-        '1a2561ce-5179-4caa-99a9-bd13da9844c6',
+        '1f68d280-73e4-40c0-a5f0-e4d74c9c61d1',
         'Meningen med mig',
         'The meaning of me',
         '',
@@ -4509,10 +4507,10 @@ For two evenings, Gnistan opens its doors to you as a leader. There are no ready
         40,
         '2026-07-30 12:00:00',
         '2026-07-30 15:00:00',
-        '556a6e3c-62b3-4c9a-8720-4cee10542d9f'
+        '8e335d16-2369-474d-b774-d16f9e44b0fe'
     ),
     (
-        'a30d78a9-a079-419a-a643-12fc0a7abd9b',
+        'a2f1d2aa-7add-41f2-925b-d5569b4fc586',
         'Nattvard',
         'Communion',
         '',
@@ -4520,10 +4518,10 @@ For two evenings, Gnistan opens its doors to you as a leader. There are no ready
         NULL,
         '2026-07-30 18:00:00',
         '2026-07-30 19:30:00',
-        '556a6e3c-62b3-4c9a-8720-4cee10542d9f'
+        '8e335d16-2369-474d-b774-d16f9e44b0fe'
     ),
     (
-        '511655cf-c27b-4084-8f14-ead8a2e7134b',
+        'ec180877-6bc7-4150-b024-95597e34fe12',
         '30/7 – Julafton 🎄',
         '30/7 – Christmas Eve 🎄',
         'Har du också tyckt att det är alldeles för långt till jul? Då har vi löst problemet! Idag firar vi julafton mitt i sommaren med julkänsla, klassiska smaker och massor av gemenskap. Har du en tomteluva, en jultröja eller något rött och grönt? Ta gärna på dig det – ju mer julstämning, desto bättre! Snö kan vi inte lova, men dagens Limited Edition vill du inte missa!',
@@ -4531,10 +4529,10 @@ For two evenings, Gnistan opens its doors to you as a leader. There are no ready
         NULL,
         '2026-07-30 08:00:00',
         '2026-07-30 18:00:00',
-        '5fca0ebc-b407-4f5e-810e-4573f945b6bd'
+        '6955cb7f-38a0-4f47-b16e-6633608b04f0'
     ),
     (
-        '017bab66-bce1-46ff-a428-bd137f07907e',
+        '40ad1dc7-5df0-4319-8b86-75c32a53a669',
         'The HERDS',
         'The HERDS',
         'THE HERDS är ett banbrytande offentligt konstprojekt som låter djurnaturtrogna dockor i naturlig storlek ge sig ut på en episk resa från Kongobäckenet till Norra polcirkeln och låter publiken komma nära klimatkrisens verklighet. Projektet har skapats av The Walk Productions, teamet bakom Little Amal. THE HERDS har rest genom städer och landskap världen över och samlat konstnärer, unga människor och lokalsamhällen för att tillsammans föreställa sig en bättre framtid för vår planet. På Jamboree26 bjuds du in att bli en del av berättelsen. Tillsammans med THE HERDS-teamet får du skapa din egen flyttfågeldocka och upptäcka de fantastiska resor som fåglar gör genom länder, klimat och livsmiljöer. Genom dockteater, rörelse och berättande får du lära dig hur fåglar varje år färdas tusentals kilometer och vilka utmaningar de möter längs vägen. Tillsammans kommer deltagarna att skapa flockar av fåglar som växer under veckan och som så småningom kommer att vandra genom jamboreeområdet för att möta THE HERDS gorilla, som har rest hela vägen från Kinshasa i Kongobäckenet. Denna roliga och praktiska workshop kombinerar kreativitet, klimatmedvetenhet och gemensamt engagemang. Den ger unga människor möjlighet att bli en del av ett storskaligt konstnärligt projekt och bidra till en minnesvärd avslutande samling på Jamboree26. Inga förkunskaper behövs – bara fantasi, nyfikenhet och en vilja att följa med på flytten. OBS! Workshopen är på engelska.',
@@ -4542,10 +4540,10 @@ For two evenings, Gnistan opens its doors to you as a leader. There are no ready
         45,
         '2026-07-30 07:00:00',
         '2026-07-30 08:00:00',
-        '6a359ef7-71e7-481c-a468-1a5bb7a3d645'
+        'a504bebf-9f26-4a36-a538-9244e0fb5efc'
     ),
     (
-        'ab701dfe-e702-4ee3-a4a8-a43b9fe76af8',
+        'c69cb7ea-4e94-443d-8e3d-7d1e7b4f83e4',
         'The HERDS',
         'The HERDS',
         'THE HERDS är ett banbrytande offentligt konstprojekt som låter djurnaturtrogna dockor i naturlig storlek ge sig ut på en episk resa från Kongobäckenet till Norra polcirkeln och låter publiken komma nära klimatkrisens verklighet. Projektet har skapats av The Walk Productions, teamet bakom Little Amal. THE HERDS har rest genom städer och landskap världen över och samlat konstnärer, unga människor och lokalsamhällen för att tillsammans föreställa sig en bättre framtid för vår planet. På Jamboree26 bjuds du in att bli en del av berättelsen. Tillsammans med THE HERDS-teamet får du skapa din egen flyttfågeldocka och upptäcka de fantastiska resor som fåglar gör genom länder, klimat och livsmiljöer. Genom dockteater, rörelse och berättande får du lära dig hur fåglar varje år färdas tusentals kilometer och vilka utmaningar de möter längs vägen. Tillsammans kommer deltagarna att skapa flockar av fåglar som växer under veckan och som så småningom kommer att vandra genom jamboreeområdet för att möta THE HERDS gorilla, som har rest hela vägen från Kinshasa i Kongobäckenet. Denna roliga och praktiska workshop kombinerar kreativitet, klimatmedvetenhet och gemensamt engagemang. Den ger unga människor möjlighet att bli en del av ett storskaligt konstnärligt projekt och bidra till en minnesvärd avslutande samling på Jamboree26. Inga förkunskaper behövs – bara fantasi, nyfikenhet och en vilja att följa med på flytten. OBS! Workshopen är på engelska.',
@@ -4553,10 +4551,10 @@ For two evenings, Gnistan opens its doors to you as a leader. There are no ready
         45,
         '2026-07-30 09:00:00',
         '2026-07-30 10:00:00',
-        '6a359ef7-71e7-481c-a468-1a5bb7a3d645'
+        'a504bebf-9f26-4a36-a538-9244e0fb5efc'
     ),
     (
-        '4c6da152-5142-4c2f-a633-76a26e611f86',
+        'a9aa2bcd-4b6c-442b-b15f-821d04c57f26',
         'The HERDS',
         'The HERDS',
         'THE HERDS är ett banbrytande offentligt konstprojekt som låter djurnaturtrogna dockor i naturlig storlek ge sig ut på en episk resa från Kongobäckenet till Norra polcirkeln och låter publiken komma nära klimatkrisens verklighet. Projektet har skapats av The Walk Productions, teamet bakom Little Amal. THE HERDS har rest genom städer och landskap världen över och samlat konstnärer, unga människor och lokalsamhällen för att tillsammans föreställa sig en bättre framtid för vår planet. På Jamboree26 bjuds du in att bli en del av berättelsen. Tillsammans med THE HERDS-teamet får du skapa din egen flyttfågeldocka och upptäcka de fantastiska resor som fåglar gör genom länder, klimat och livsmiljöer. Genom dockteater, rörelse och berättande får du lära dig hur fåglar varje år färdas tusentals kilometer och vilka utmaningar de möter längs vägen. Tillsammans kommer deltagarna att skapa flockar av fåglar som växer under veckan och som så småningom kommer att vandra genom jamboreeområdet för att möta THE HERDS gorilla, som har rest hela vägen från Kinshasa i Kongobäckenet. Denna roliga och praktiska workshop kombinerar kreativitet, klimatmedvetenhet och gemensamt engagemang. Den ger unga människor möjlighet att bli en del av ett storskaligt konstnärligt projekt och bidra till en minnesvärd avslutande samling på Jamboree26. Inga förkunskaper behövs – bara fantasi, nyfikenhet och en vilja att följa med på flytten. OBS! Workshopen är på engelska.',
@@ -4564,10 +4562,10 @@ For two evenings, Gnistan opens its doors to you as a leader. There are no ready
         45,
         '2026-07-30 12:00:00',
         '2026-07-30 13:00:00',
-        '6a359ef7-71e7-481c-a468-1a5bb7a3d645'
+        'a504bebf-9f26-4a36-a538-9244e0fb5efc'
     ),
     (
-        'acd519bc-2762-4a69-befd-d22370d7060e',
+        '93e91f06-a2d8-49d6-a4e4-1761e35ed479',
         'The HERDS',
         'The HERDS',
         'THE HERDS är ett banbrytande offentligt konstprojekt som låter djurnaturtrogna dockor i naturlig storlek ge sig ut på en episk resa från Kongobäckenet till Norra polcirkeln och låter publiken komma nära klimatkrisens verklighet. Projektet har skapats av The Walk Productions, teamet bakom Little Amal. THE HERDS har rest genom städer och landskap världen över och samlat konstnärer, unga människor och lokalsamhällen för att tillsammans föreställa sig en bättre framtid för vår planet. På Jamboree26 bjuds du in att bli en del av berättelsen. Tillsammans med THE HERDS-teamet får du skapa din egen flyttfågeldocka och upptäcka de fantastiska resor som fåglar gör genom länder, klimat och livsmiljöer. Genom dockteater, rörelse och berättande får du lära dig hur fåglar varje år färdas tusentals kilometer och vilka utmaningar de möter längs vägen. Tillsammans kommer deltagarna att skapa flockar av fåglar som växer under veckan och som så småningom kommer att vandra genom jamboreeområdet för att möta THE HERDS gorilla, som har rest hela vägen från Kinshasa i Kongobäckenet. Denna roliga och praktiska workshop kombinerar kreativitet, klimatmedvetenhet och gemensamt engagemang. Den ger unga människor möjlighet att bli en del av ett storskaligt konstnärligt projekt och bidra till en minnesvärd avslutande samling på Jamboree26. Inga förkunskaper behövs – bara fantasi, nyfikenhet och en vilja att följa med på flytten. OBS! Workshopen är på engelska.',
@@ -4575,10 +4573,10 @@ For two evenings, Gnistan opens its doors to you as a leader. There are no ready
         45,
         '2026-07-30 14:00:00',
         '2026-07-30 15:00:00',
-        '6a359ef7-71e7-481c-a468-1a5bb7a3d645'
+        'a504bebf-9f26-4a36-a538-9244e0fb5efc'
     ),
     (
-        'c0b31f00-2c9f-4f5e-abab-d9d2783840b8',
+        '2d6cca53-5b3f-42f1-85be-a42220ac0793',
         'Dagens lek',
         'Dagens lek',
         'Starttider för lekarna kommer finnas på anslagstavlan i hubben',
@@ -4586,10 +4584,10 @@ For two evenings, Gnistan opens its doors to you as a leader. There are no ready
         NULL,
         '2026-07-30 07:00:00',
         '2026-07-30 15:00:00',
-        'ece176aa-dcec-42c7-b780-7bbb4391a2cf'
+        '418ac649-ad80-4e2c-aa1b-db3733b97938'
     ),
     (
-        '04ca052a-9f9e-4c43-bf45-f5c38f8da639',
+        '485dd83b-fec5-48b6-a887-7c7fc861309d',
         'Fotbollstunering Scouter vs. Ledare',
         'Fotbollstunering Scouter vs. Ledare',
         'Lägrets kanske största evenemang. Det ska äntligen avgöras vem som är bäst på fottboll: upptäckarscouterna eller deras ledare? Så ta med dina vänner och dina ledare och gör er redo på en kaosartad tävling. Må det bästa laget vinna',
@@ -4597,10 +4595,10 @@ For two evenings, Gnistan opens its doors to you as a leader. There are no ready
         NULL,
         '2026-07-30 08:00:00',
         '2026-07-30 09:00:00',
-        'ece176aa-dcec-42c7-b780-7bbb4391a2cf'
+        '418ac649-ad80-4e2c-aa1b-db3733b97938'
     ),
     (
-        'd8e103a0-b35d-4e1b-b96a-6cd1dee502f4',
+        '114f33ec-e104-4ef9-a282-c8251f39072f',
         'Fotbollstunering Scouter vs. Ledare',
         'Fotbollstunering Scouter vs. Ledare',
         'Lägrets kanske största evenemang. Det ska äntligen avgöras vem som är bäst på fottboll: upptäckarscouterna eller deras ledare? Så ta med dina vänner och dina ledare och gör er redo på en kaosartad tävling. Må det bästa laget vinna',
@@ -4608,10 +4606,10 @@ For two evenings, Gnistan opens its doors to you as a leader. There are no ready
         NULL,
         '2026-07-30 13:00:00',
         '2026-07-30 14:00:00',
-        'ece176aa-dcec-42c7-b780-7bbb4391a2cf'
+        '418ac649-ad80-4e2c-aa1b-db3733b97938'
     ),
     (
-        '04a9a96e-e746-41ae-9757-66d568343a83',
+        '94c86cb6-fd1d-4e58-83c0-026d6892dd3e',
         'Pyjamasparty med talangshow',
         'Pyjamasparty med talangshow',
         'Lägret börjar röra sig mot sitt slut och vi vill fira med ett pyjamasparty! Under kvällen finns möjlighet att framföra en uppvisning på scen (ex sång, pjäs, trolleritrick, läsa poesi m.m). För att uppträda på scen krävs föranmälan av uppträdandet. Det kan göras vid infodisken i upptäckarhubben',
@@ -4619,10 +4617,10 @@ For two evenings, Gnistan opens its doors to you as a leader. There are no ready
         NULL,
         '2026-07-30 17:00:00',
         '2026-07-30 19:00:00',
-        'ece176aa-dcec-42c7-b780-7bbb4391a2cf'
+        '418ac649-ad80-4e2c-aa1b-db3733b97938'
     ),
     (
-        '1a87ed67-08a3-4698-bf85-2440cea4ff3f',
+        '4e6b1072-a431-4cbe-857d-14cb470c5017',
         'Lekaktiviteter',
         'Lekaktiviteter',
         'Hämta fotboll, rockring, hopprep, gagaboll boll m.m och spela med patrullkompisar eller nya vänner',
@@ -4630,10 +4628,10 @@ For two evenings, Gnistan opens its doors to you as a leader. There are no ready
         NULL,
         '2026-07-30 07:00:00',
         '2026-07-30 19:00:00',
-        'ece176aa-dcec-42c7-b780-7bbb4391a2cf'
+        '418ac649-ad80-4e2c-aa1b-db3733b97938'
     ),
     (
-        '2c98d711-5f8c-4d65-af48-9a29627b2483',
+        '93927737-f647-4e60-ab4a-0bc9f8309d79',
         'Bubbelballs',
         'Bubbelballs',
         'Studsa runt i stora uppblåsbara bollar! Bokning sker på plats i hubben',
@@ -4641,10 +4639,10 @@ For two evenings, Gnistan opens its doors to you as a leader. There are no ready
         NULL,
         '2026-07-30 12:00:00',
         '2026-07-30 19:00:00',
-        'ece176aa-dcec-42c7-b780-7bbb4391a2cf'
+        '418ac649-ad80-4e2c-aa1b-db3733b97938'
     ),
     (
-        'd92c742d-f79c-4d41-ba1c-ab76805ece72',
+        '0392b5f0-d984-47fc-a269-fb8e7f44d340',
         'Godnattsaga',
         'Godnattsaga',
         'Avsluta dagen med en mysig godnattsaga i upptäckarhubben',
@@ -4652,10 +4650,10 @@ For two evenings, Gnistan opens its doors to you as a leader. There are no ready
         NULL,
         '2026-07-30 18:30:00',
         '2026-07-30 19:30:00',
-        '25d22074-0806-4745-9f97-7817a781edc7'
+        '1bf09ebd-bce8-4925-9976-74b403a075ab'
     ),
     (
-        '3d5daa00-bf60-45b5-9cb8-7234614e81b4',
+        '2f3557e4-93f2-4583-9e32-8e4b375daf85',
         'Må-bra-kåsan',
         'Må-bra-kåsan',
         'Genom några tankeväckande övningar får du under den här aktiviteten fokusera på hur du kan stärka ditt eget mående. När du är klar med alla aktiviteter får du hämta ut en kåsa i upptäckarhubbens infodisk med självstärkande, peppande budskap från olika organisationer som på olika sätt arbetar med att stärka barn och ungas psykiska hälsa.',
@@ -4663,10 +4661,10 @@ For two evenings, Gnistan opens its doors to you as a leader. There are no ready
         NULL,
         '2026-07-30 12:00:00',
         '2026-07-30 19:00:00',
-        'c2880eae-3277-43d7-a5b2-ddcfb11f7318'
+        'd617bf4f-1e00-4ab4-b6a7-ae90be48c0a0'
     ),
     (
-        'db4e5ed2-3c64-4ec1-b24e-5333e53960f4',
+        '7f07552c-1609-49dc-bb35-83eb323cf138',
         'Känslokartan',
         'Känslokartan',
         '',
@@ -4674,10 +4672,10 @@ For two evenings, Gnistan opens its doors to you as a leader. There are no ready
         NULL,
         '2026-07-30 07:00:00',
         '2026-07-30 19:00:00',
-        '9151b3ad-e8ab-4019-bbcd-d71d8102dde8'
+        '7fef2277-0728-41e0-947d-c487fae3efde'
     ),
     (
-        'd935eb52-2b1e-4d8f-861f-0657a8069f4b',
+        'ca62a353-7daf-41dd-96dd-7d8d08b78454',
         'Brädspel',
         'Brädspel',
         'Brädspel',
@@ -4685,10 +4683,10 @@ For two evenings, Gnistan opens its doors to you as a leader. There are no ready
         NULL,
         '2026-07-30 07:00:00',
         '2026-07-30 19:00:00',
-        '9151b3ad-e8ab-4019-bbcd-d71d8102dde8'
+        '7fef2277-0728-41e0-947d-c487fae3efde'
     ),
     (
-        'c542ba53-e0bc-46bb-9f0e-9adbf9f8a25e',
+        '107d6f60-d1ec-4244-b983-dc3d2d104255',
         'Cybersäkerhet med Unga forskare',
         'Cybersäkerhet med Unga forskare',
         'Testa på spännande aktiviteter med Unga Forskare!',
@@ -4696,10 +4694,10 @@ For two evenings, Gnistan opens its doors to you as a leader. There are no ready
         NULL,
         '2026-07-30 07:00:00',
         '2026-07-30 15:00:00',
-        '9151b3ad-e8ab-4019-bbcd-d71d8102dde8'
+        '7fef2277-0728-41e0-947d-c487fae3efde'
     ),
     (
-        'f2e6ba41-0705-4509-89fa-99aa567355dd',
+        '4fa20a23-68e5-407a-9929-d6fd3c840b1c',
         'Hantverk fokus: Pärldjur',
         'Hantverk fokus: Pärldjur',
         '',
@@ -4707,10 +4705,10 @@ For two evenings, Gnistan opens its doors to you as a leader. There are no ready
         NULL,
         '2026-07-30 07:00:00',
         '2026-07-30 19:00:00',
-        '0563ef6a-4f77-458e-9f69-c45d1ef491c5'
+        '87afd904-fe20-4ec8-8a0d-325500b60b63'
     ),
     (
-        'be4eec0e-37c2-44fb-b994-f69cb85492d9',
+        'f9249978-c55c-47e9-aceb-1546f4d49fd4',
         'The HERDS',
         'The HERDS',
         'THE HERDS är ett banbrytande offentligt konstprojekt som låter djurnaturtrogna dockor i naturlig storlek ge sig ut på en episk resa från Kongobäckenet till Norra polcirkeln och låter publiken komma nära klimatkrisens verklighet. Projektet har skapats av The Walk Productions, teamet bakom Little Amal. THE HERDS har rest genom städer och landskap världen över och samlat konstnärer, unga människor och lokalsamhällen för att tillsammans föreställa sig en bättre framtid för vår planet. På Jamboree26 bjuds du in att bli en del av berättelsen. Tillsammans med THE HERDS-teamet får du skapa din egen flyttfågeldocka och upptäcka de fantastiska resor som fåglar gör genom länder, klimat och livsmiljöer. Genom dockteater, rörelse och berättande får du lära dig hur fåglar varje år färdas tusentals kilometer och vilka utmaningar de möter längs vägen. Tillsammans kommer deltagarna att skapa flockar av fåglar som växer under veckan och som så småningom kommer att vandra genom jamboreeområdet för att möta THE HERDS gorilla, som har rest hela vägen från Kinshasa i Kongobäckenet. Denna roliga och praktiska workshop kombinerar kreativitet, klimatmedvetenhet och gemensamt engagemang. Den ger unga människor möjlighet att bli en del av ett storskaligt konstnärligt projekt och bidra till en minnesvärd avslutande samling på Jamboree26. Inga förkunskaper behövs – bara fantasi, nyfikenhet och en vilja att följa med på flytten. OBS! Workshopen är på engelska.',
@@ -4718,10 +4716,10 @@ For two evenings, Gnistan opens its doors to you as a leader. There are no ready
         45,
         '2026-07-30 12:00:00',
         '2026-07-30 13:00:00',
-        '0563ef6a-4f77-458e-9f69-c45d1ef491c5'
+        '87afd904-fe20-4ec8-8a0d-325500b60b63'
     ),
     (
-        '1e707069-cfe5-454d-97b1-2f8265de1568',
+        '7002d383-a8ce-4393-b55a-d74ae8a04fd4',
         'The HERDS',
         'The HERDS',
         'THE HERDS är ett banbrytande offentligt konstprojekt som låter djurnaturtrogna dockor i naturlig storlek ge sig ut på en episk resa från Kongobäckenet till Norra polcirkeln och låter publiken komma nära klimatkrisens verklighet. Projektet har skapats av The Walk Productions, teamet bakom Little Amal. THE HERDS har rest genom städer och landskap världen över och samlat konstnärer, unga människor och lokalsamhällen för att tillsammans föreställa sig en bättre framtid för vår planet. På Jamboree26 bjuds du in att bli en del av berättelsen. Tillsammans med THE HERDS-teamet får du skapa din egen flyttfågeldocka och upptäcka de fantastiska resor som fåglar gör genom länder, klimat och livsmiljöer. Genom dockteater, rörelse och berättande får du lära dig hur fåglar varje år färdas tusentals kilometer och vilka utmaningar de möter längs vägen. Tillsammans kommer deltagarna att skapa flockar av fåglar som växer under veckan och som så småningom kommer att vandra genom jamboreeområdet för att möta THE HERDS gorilla, som har rest hela vägen från Kinshasa i Kongobäckenet. Denna roliga och praktiska workshop kombinerar kreativitet, klimatmedvetenhet och gemensamt engagemang. Den ger unga människor möjlighet att bli en del av ett storskaligt konstnärligt projekt och bidra till en minnesvärd avslutande samling på Jamboree26. Inga förkunskaper behövs – bara fantasi, nyfikenhet och en vilja att följa med på flytten. OBS! Workshopen är på engelska.',
@@ -4729,10 +4727,10 @@ For two evenings, Gnistan opens its doors to you as a leader. There are no ready
         45,
         '2026-07-30 09:00:00',
         '2026-07-30 10:00:00',
-        '0563ef6a-4f77-458e-9f69-c45d1ef491c5'
+        '87afd904-fe20-4ec8-8a0d-325500b60b63'
     ),
     (
-        '5e2dedba-4a63-4eaa-a5b0-f455fe9adc01',
+        '0c969ef8-ca71-4e77-9422-b70ec1e7c8e9',
         'Knoprep',
         'Knoprep',
         'Knoprep och instruktion finns för att lära sig en ny knop',
@@ -4740,10 +4738,10 @@ For two evenings, Gnistan opens its doors to you as a leader. There are no ready
         NULL,
         '2026-07-30 07:00:00',
         '2026-07-30 19:00:00',
-        '0563ef6a-4f77-458e-9f69-c45d1ef491c5'
+        '87afd904-fe20-4ec8-8a0d-325500b60b63'
     ),
     (
-        '092b3682-c944-4403-bc25-71386ff6fb3e',
+        '3abf076c-520f-497f-8650-aec7e6cc4f22',
         'Tillsammans målning',
         'Tillsammans målning',
         'Hjälp till att skapa en målning tillsammans. Rita något på tavlan som betyder jamboree för dig.',
@@ -4751,10 +4749,10 @@ For two evenings, Gnistan opens its doors to you as a leader. There are no ready
         NULL,
         '2026-07-30 07:00:00',
         '2026-07-30 19:00:00',
-        '0563ef6a-4f77-458e-9f69-c45d1ef491c5'
+        '87afd904-fe20-4ec8-8a0d-325500b60b63'
     ),
     (
-        '31507c4e-3b8f-4a86-9360-777e70d0b116',
+        'c63e4360-0582-4d6e-8a95-81c3f39be2e9',
         'Halmpool',
         'Halmpool',
         'Hoppa ner i halmen, kan du hitta nålen i halmstacken?',
@@ -4762,10 +4760,10 @@ For two evenings, Gnistan opens its doors to you as a leader. There are no ready
         NULL,
         '2026-07-30 07:00:00',
         '2026-07-30 19:00:00',
-        '185f5091-1e3f-4ad6-b684-c0a0670efe07'
+        '573d544a-5fd7-4c09-b2d6-99050e4dd6ae'
     ),
     (
-        '99f85e07-c700-47ee-b8dd-dab559b66b92',
+        'e314140c-4ea8-4cbb-a005-81dd5dd72b28',
         'Slankaruseller',
         'Slankaruseller',
         'Åk på en karusell byggd av slanor.',
@@ -4773,10 +4771,10 @@ For two evenings, Gnistan opens its doors to you as a leader. There are no ready
         NULL,
         '2026-07-30 07:00:00',
         '2026-07-30 19:00:00',
-        '185f5091-1e3f-4ad6-b684-c0a0670efe07'
+        '573d544a-5fd7-4c09-b2d6-99050e4dd6ae'
     ),
     (
-        'bbcf8f78-e83f-498c-ac13-9f9eb638130c',
+        '43da840e-b0b5-48b7-8aa4-81e5989ce12a',
         'Bris',
         'Bris',
         'Pyssel och aktiviteter',
@@ -4784,10 +4782,10 @@ For two evenings, Gnistan opens its doors to you as a leader. There are no ready
         NULL,
         '2026-07-30 07:00:00',
         '2026-07-30 10:00:00',
-        'afdf218d-a0c0-4b60-923d-51894d8eccec'
+        '484c6639-6510-44ce-bbe3-a1a023fc5df3'
     ),
     (
-        'b1ba476c-c932-4601-b99d-2bc33f24b06a',
+        '952f5056-fb58-4ac5-bfd7-9669d6ce70e8',
         'Fladdermussafari',
         'Bat-safari',
         'Fladdermusvandring
@@ -4812,10 +4810,10 @@ Meeting point: Information Desk, Pavilion, Challenger Hub.',
         30,
         '2026-07-30 19:00:00',
         '2026-07-30 21:00:00',
-        '5a3e5f3a-f12a-4043-8940-4113486433da'
+        '1beaefca-76a1-4806-8b27-713af48b4cb5'
     ),
     (
-        'acbb1c9f-fea9-49f2-a206-5138feab159c',
+        '7a065ec1-baa6-4d4d-8204-1755b53897f7',
         'Tim Bergling Foundation',
         'Tim Bergling Foundation',
         'Tanken med välmåendearenan är att ge ledare konkreta verktyg som enkelt kan användas före, under eller efter mötet – för att skapa en tryggare miljö där både kropp och själ får utrymme. 
@@ -4827,10 +4825,10 @@ Genom korta övningar kopplade till välmående kan barn och unga reflektera, by
         NULL,
         '2026-07-30 07:00:00',
         '2026-07-30 10:00:00',
-        'bed2dc35-1e4d-4426-a9d0-f9c1731ae493'
+        '75bec7fd-a4f5-439a-9f1d-8fae424c4118'
     ),
     (
-        '79df28d8-762d-452a-b448-c4a13c0b484c',
+        '6a725e1b-560d-4bb0-8799-aff35e6224e5',
         'Upptäck dina värderingar',
         'Upptäck dina värderingar',
         'Ett reflekterande och interaktivt pass där du får utforska vad värderingar är, hur de formas och hur de påverkar våra val, relationer och beslut. Genom ett praktiskt verktyg och gemensamma övningar får du syn på dina egna värderingar och nya perspektiv på hur vi möter och samarbetar med andra.',
@@ -4838,10 +4836,10 @@ Genom korta övningar kopplade till välmående kan barn och unga reflektera, by
         NULL,
         '2026-07-30 07:15:00',
         '2026-07-30 08:00:00',
-        'bed2dc35-1e4d-4426-a9d0-f9c1731ae493'
+        '75bec7fd-a4f5-439a-9f1d-8fae424c4118'
     ),
     (
-        '2379befd-cc20-4795-bb80-a50113ff79f6',
+        '587ae839-b2ec-4512-bf76-5066a7c23565',
         'Upptäck dina värderingar',
         'Upptäck dina värderingar',
         'Ett reflekterande och interaktivt pass där du får utforska vad värderingar är, hur de formas och hur de påverkar våra val, relationer och beslut. Genom ett praktiskt verktyg och gemensamma övningar får du syn på dina egna värderingar och nya perspektiv på hur vi möter och samarbetar med andra.',
@@ -4849,10 +4847,10 @@ Genom korta övningar kopplade till välmående kan barn och unga reflektera, by
         NULL,
         '2026-07-30 11:15:00',
         '2026-07-30 12:00:00',
-        'bed2dc35-1e4d-4426-a9d0-f9c1731ae493'
+        '75bec7fd-a4f5-439a-9f1d-8fae424c4118'
     ),
     (
-        '0dc0fa05-17a2-4ce5-b55b-37a3cab86c6f',
+        '2a74bda0-71b9-4bcb-b686-3b006c2db059',
         'Tim Bergling Foundation',
         'Tim Bergling Foundation',
         'Tanken med välmåendearenan är att ge ledare konkreta verktyg som enkelt kan användas före, under eller efter mötet – för att skapa en tryggare miljö där både kropp och själ får utrymme. 
@@ -4864,10 +4862,10 @@ Genom korta övningar kopplade till välmående kan barn och unga reflektera, by
         NULL,
         '2026-07-30 12:00:00',
         '2026-07-30 15:00:00',
-        'bed2dc35-1e4d-4426-a9d0-f9c1731ae493'
+        '75bec7fd-a4f5-439a-9f1d-8fae424c4118'
     ),
     (
-        '869a0486-e26d-4c9a-b49e-ec1c098545f6',
+        '12dd8879-fdd5-4565-bdc7-ff0281af665f',
         'Mekanisk tjur',
         'Mechanical bull',
         'Testa hur länge du kan sitta på tjurens rygg! Kanske är det svårare än du tror?',
@@ -4875,10 +4873,10 @@ Genom korta övningar kopplade till välmående kan barn och unga reflektera, by
         NULL,
         '2026-07-30 07:00:00',
         '2026-07-30 19:00:00',
-        'e56b12f0-7d5e-47f3-aa86-9a832be3e185'
+        '92228c5e-1d0e-415c-a41b-35f5435a0a30'
     ),
     (
-        '0b84ef96-5364-4acf-9faa-bd448c6751c8',
+        '3d123ac6-2cf0-4371-8f8a-324c768c732d',
         'Schackturnering',
         'Chess tournament',
         'Har du också spenderat alldeles för många timmar på chess.com? Eller har du aldrig ens rört en schackpjäs? Det spelar ingen roll! Kom och testa dina schack-skills i Äventyrarhubbens alldeles egna schackturnering!',
@@ -4886,10 +4884,10 @@ Genom korta övningar kopplade till välmående kan barn och unga reflektera, by
         NULL,
         '2026-07-30 07:00:00',
         '2026-07-30 15:00:00',
-        'e56b12f0-7d5e-47f3-aa86-9a832be3e185'
+        '92228c5e-1d0e-415c-a41b-35f5435a0a30'
     ),
     (
-        '6807c7eb-68b9-4537-b707-df2cbd028bd8',
+        '3b008ad1-8980-4a9f-936d-10b50d6504ac',
         'Unga forskare',
         'Unga forskare',
         'Testa på spännande aktiviteter med Unga Forskare!',
@@ -4897,10 +4895,10 @@ Genom korta övningar kopplade till välmående kan barn och unga reflektera, by
         NULL,
         '2026-07-30 07:00:00',
         '2026-07-30 15:00:00',
-        '16bc8872-5e30-416b-a71b-05a56731e44e'
+        'd7cf4654-4614-43bf-92b9-73325c18ddb9'
     ),
     (
-        '041e9ac8-788b-40cf-bc17-987f86fdf038',
+        'a049faed-ec9b-42ea-a2f4-e2e497a42e30',
         'Äventyrare berättar: Per Eriksson',
         'The adventurer shares: Per Eriksson',
         'Lyssna på när äventyraren Per Eriksson berättar om hur scouterna tagit honom ut i hela världen! Det är svårt att nämna en plats han inte varit på; Kanada, Rwanda, Burundi, Östra Kongo är bara några exempel. Kanske berättar han om gången han seglade till Jamboree i Chile!',
@@ -4908,10 +4906,10 @@ Genom korta övningar kopplade till välmående kan barn och unga reflektera, by
         NULL,
         '2026-07-30 07:00:00',
         '2026-07-30 08:00:00',
-        '55043f4b-a2be-48b3-858d-c11dad88de22'
+        'df5460d7-e435-4434-b63e-4755564087f4'
     ),
     (
-        '05eb5f0b-7677-4edb-8197-6a44c462a4ac',
+        '89bbc9d9-d3d1-481b-8657-cffbc9beb53d',
         'Psykologisk beredskap',
         'Psykologisk beredskap',
         'Ett fartfyllt och interaktivt pass där du får uppleva hur lätt det är att bli påverkad – och hur du kan stå emot. Du får konkreta verktyg för att tänka kritiskt, samarbeta och fatta kloka beslut när det verkligen gäller.',
@@ -4919,10 +4917,10 @@ Genom korta övningar kopplade till välmående kan barn och unga reflektera, by
         NULL,
         '2026-07-30 08:00:00',
         '2026-07-30 09:00:00',
-        '55043f4b-a2be-48b3-858d-c11dad88de22'
+        'df5460d7-e435-4434-b63e-4755564087f4'
     ),
     (
-        '2f7e8731-e10d-430c-a547-809fc1388461',
+        'fb5a34cc-b1a6-49af-85ff-8d5c6011745a',
         'Psykologisk beredskap',
         'Psykologisk beredskap',
         'Ett fartfyllt och interaktivt pass där du får uppleva hur lätt det är att bli påverkad – och hur du kan stå emot. Du får konkreta verktyg för att tänka kritiskt, samarbeta och fatta kloka beslut när det verkligen gäller.',
@@ -4930,10 +4928,10 @@ Genom korta övningar kopplade till välmående kan barn och unga reflektera, by
         NULL,
         '2026-07-30 12:30:00',
         '2026-07-30 13:30:00',
-        '55043f4b-a2be-48b3-858d-c11dad88de22'
+        'df5460d7-e435-4434-b63e-4755564087f4'
     ),
     (
-        'ee3798c2-2adf-4461-8001-36ceda6900a0',
+        '8f85c68b-d9f6-4571-a32a-8f3fe8858e01',
         'Äventyrare berättar: Per Eriksson',
         'The adventurer shares: Per Eriksson',
         'Lyssna på när äventyraren Per Eriksson berättar om hur scouterna tagit honom ut i hela världen! Det är svårt att nämna en plats han inte varit på; Kanada, Rwanda, Burundi, Östra Kongo är bara några exempel. Kanske berättar han om gången han seglade till Jamboree i Chile!',
@@ -4941,10 +4939,10 @@ Genom korta övningar kopplade till välmående kan barn och unga reflektera, by
         NULL,
         '2026-07-30 14:00:00',
         '2026-07-30 15:00:00',
-        '55043f4b-a2be-48b3-858d-c11dad88de22'
+        'df5460d7-e435-4434-b63e-4755564087f4'
     ),
     (
-        '29f09aa7-d87c-41f4-96d9-4482439b32e8',
+        '88b54da4-0551-4d7d-9793-35e997bc49db',
         'Quiz',
         'Quiz',
         'Var med och testa dina kunskaper i musik, scouting och annat kul tillsammans med dina vänner! Allt du behöver är penna och papper.',
@@ -4952,10 +4950,10 @@ Genom korta övningar kopplade till välmående kan barn och unga reflektera, by
         NULL,
         '2026-07-30 17:00:00',
         '2026-07-30 18:00:00',
-        '55043f4b-a2be-48b3-858d-c11dad88de22'
+        'df5460d7-e435-4434-b63e-4755564087f4'
     ),
     (
-        '9e1ac256-f090-4012-8137-19958a08341e',
+        '2cd8e0b7-802b-4836-9898-1d32ee984009',
         'Konsert',
         'Concert',
         'Kom och kolla in kvällens konsert! Kanske kan du sjunga med i någon låt?',
@@ -4963,10 +4961,10 @@ Genom korta övningar kopplade till välmående kan barn och unga reflektera, by
         NULL,
         '2026-07-30 18:00:00',
         '2026-07-30 19:00:00',
-        '55043f4b-a2be-48b3-858d-c11dad88de22'
+        'df5460d7-e435-4434-b63e-4755564087f4'
     ),
     (
-        'eab5757d-31e8-4896-9ac7-6b000dcbcd66',
+        '0ea0f5ba-74fe-4a41-bb42-559a45925173',
         'BRIS',
         'BRIS',
         'Pärla och spela spel tillsammans med organisationen BRIS',
@@ -4974,10 +4972,10 @@ Genom korta övningar kopplade till välmående kan barn och unga reflektera, by
         NULL,
         '2026-07-30 07:00:00',
         '2026-07-30 10:00:00',
-        'ac16114d-5336-4915-a862-041ff634cd1b'
+        'db966c21-9b0b-4c91-91dd-dfde4bde651d'
     ),
     (
-        '0a69add9-695e-4569-a0ad-d54a6de50c53',
+        'f3dee379-997c-4ef0-989d-8180b0c9670f',
         'BRIS',
         'BRIS',
         'Pärla och spela spel tillsammans med organisationen BRIS',
@@ -4985,10 +4983,10 @@ Genom korta övningar kopplade till välmående kan barn och unga reflektera, by
         NULL,
         '2026-07-30 12:00:00',
         '2026-07-30 15:00:00',
-        'ac16114d-5336-4915-a862-041ff634cd1b'
+        'db966c21-9b0b-4c91-91dd-dfde4bde651d'
     ),
     (
-        '8178b25f-7204-46f6-ad84-85472b0cdaab',
+        '84e15b7b-2b0a-48b0-9b0f-ec17d053b80e',
         'Kartkampen',
         'The Map Battle',
         'Vilken åldersgrupp kan vinna flest kartdelar? På varje torg finns en aktivitet utplacerad. Genomför den för att få sätta upp en pin i åldersgruppens färg på kartområdet. Åldersgruppen som i slutet av dagen kontrollerar flest områden på kartan blir dagens vinnare. Varje ny dag börjar kampen om från början',
@@ -4997,10 +4995,10 @@ An activity is located at each square. Complete the activity to place a pin in y
         NULL,
         '2026-07-30 08:00:00',
         '2026-07-30 19:00:00',
-        'eb304d4b-3ef9-400c-b216-d94927081760'
+        'f50f4431-4e79-4d3c-a52e-4e556e8be09f'
     ),
     (
-        'b263f517-3b0c-4343-aea2-755a125712ff',
+        'aac6f435-eefd-41ae-bb00-309cbb1e52a0',
         'Från Frankrike till Korea - på cykel!',
         'From France to Korea - on a bike!',
         '2023 var det världsjamboree i Sydkorea, och tre franska scouter bestämde sig för att ta ekologiskt - på cykel 15 000 km! Nu är de här på Jamboree26 och visar sin film om upplevelsen.',
@@ -5008,10 +5006,10 @@ An activity is located at each square. Complete the activity to place a pin in y
         NULL,
         '2026-07-30 20:00:00',
         '2026-07-30 21:00:00',
-        'f96bb333-7390-40d1-92a3-29b7b3fbeb16'
+        '2b32a9d9-da57-40f4-ba95-6e6de28ed846'
     ),
     (
-        '99e8c85c-cabb-4098-9131-bc4934a5cd1b',
+        'a3098ae9-9d06-49f9-b5e9-9bdbe64d07d6',
         'Escape room',
         'Escape room',
         'Testa patrullens sammarbetsförmåga i upptäkarhubbens escape room. Aktiviteten kan bokas på platts i hubben',
@@ -5019,10 +5017,10 @@ An activity is located at each square. Complete the activity to place a pin in y
         NULL,
         '2026-07-30 07:00:00',
         '2026-07-30 19:00:00',
-        'ece176aa-dcec-42c7-b780-7bbb4391a2cf'
+        '418ac649-ad80-4e2c-aa1b-db3733b97938'
     ),
     (
-        '06dc9422-cf64-4736-bfa8-e2051150c7d7',
+        '2cd9b150-be5c-435f-bec4-d018c114892b',
         'Internationell 5-kamp',
         'Internetionel pantathlon',
         'Samla ihop ett lag på 5 personer bestående av minst två olika nationaliteter och tävla mot andra lag i internationella lekar!',
@@ -5030,10 +5028,10 @@ An activity is located at each square. Complete the activity to place a pin in y
         NULL,
         '2026-07-30 13:00:00',
         '2026-07-30 13:40:00',
-        '572671ce-7f67-4e16-8f32-5bda9bb2e5e7'
+        '10952f43-79b5-436d-bb7f-c7337f4ab7e6'
     ),
     (
-        '266985db-56ca-42be-a2a8-214f528e7919',
+        'ee6ed2c4-a90b-498f-bb6d-d024c3ddfd5c',
         'Aktivitetstombola',
         'Activity tombola',
         'I aktivitetstombolan finns mängder med roliga aktiviteter. Ni snurrar på tombolan, får en utmaning eller aktivitet och sedan genomför ni den!',
@@ -5041,10 +5039,10 @@ An activity is located at each square. Complete the activity to place a pin in y
         NULL,
         '2026-07-30 07:00:00',
         '2026-07-30 15:00:00',
-        '6491fa9b-418a-4d26-b8ff-f92267fb5b7d'
+        '9d1275be-7f8b-4567-8616-8c3d0a319a52'
     ),
     (
-        '0bb67d93-9aef-4bd4-82aa-c095f20b628d',
+        '1a575b9c-4e04-422a-bf53-2585e3457325',
         'Klartänkt - Spel och aktiviteter',
         'Clear minds - Games and activities',
         'Här kan du prova på vår nya kortlek, spela spel i vår myshörna eller bara ladda powerbankem och sitta och chilla en stund.',
@@ -5052,10 +5050,10 @@ An activity is located at each square. Complete the activity to place a pin in y
         NULL,
         '2026-07-30 07:00:00',
         '2026-07-30 19:30:00',
-        '6491fa9b-418a-4d26-b8ff-f92267fb5b7d'
+        '9d1275be-7f8b-4567-8616-8c3d0a319a52'
     ),
     (
-        '03244174-744b-400d-a774-157ee6892a0b',
+        '5d78a4b5-6b0e-4394-90fc-ff8c81e35cbb',
         'Klartänkt material',
         'Clear minds - material',
         'Är du nyfiken på progammaterial och verkty att använda för ANDTS hemma i kåren, sväng förbi oss och ta del av våra kunskaper och få tips att använda.',
@@ -5063,10 +5061,10 @@ An activity is located at each square. Complete the activity to place a pin in y
         NULL,
         '2026-07-30 07:00:00',
         '2026-07-30 15:00:00',
-        '6491fa9b-418a-4d26-b8ff-f92267fb5b7d'
+        '9d1275be-7f8b-4567-8616-8c3d0a319a52'
     ),
     (
-        '260df763-9fcd-46b0-aef5-6dd5736c586e',
+        '4cf92843-4968-4597-a63e-8a625e881a7a',
         'Tryck tröjor',
         'Print shirts',
         'Ta med dig en tröja, köp ett tryck och skapa din egen coola tröja, (eller valfritt plagg) i vår tröjtryck. Kostnad 15 kr.',
@@ -5074,10 +5072,10 @@ An activity is located at each square. Complete the activity to place a pin in y
         NULL,
         '2026-07-30 07:00:00',
         '2026-07-30 15:00:00',
-        '6491fa9b-418a-4d26-b8ff-f92267fb5b7d'
+        '9d1275be-7f8b-4567-8616-8c3d0a319a52'
     ),
     (
-        'e3a55c2c-fa6a-4f9c-8630-e1591392ca67',
+        'f59a3a68-82bf-4d84-84a7-410ce2db717f',
         'Världsförbättrare & Världens Barn',
         'World improvers and "Världens Barn"',
         'Lär dig mer om IOGT-NTO International och deras arbete/projekt i Uganda med UGGA. Tillsammans förbättrar vi scouter världen!',
@@ -5085,10 +5083,10 @@ An activity is located at each square. Complete the activity to place a pin in y
         NULL,
         '2026-07-30 07:00:00',
         '2026-07-30 15:00:00',
-        '6491fa9b-418a-4d26-b8ff-f92267fb5b7d'
+        '9d1275be-7f8b-4567-8616-8c3d0a319a52'
     ),
     (
-        '6217b070-1c4f-4fbd-a8dd-ff0e571a3f0a',
+        'a77e79d3-5274-4fab-9329-93a1c2cd02b1',
         'Gör din egen pin',
         'Make you own pin',
         'Tillverka en egen pin i pinmaskinen, det finns olika motiv att välja på.',
@@ -5096,10 +5094,10 @@ An activity is located at each square. Complete the activity to place a pin in y
         NULL,
         '2026-07-30 07:00:00',
         '2026-07-30 19:00:00',
-        '6491fa9b-418a-4d26-b8ff-f92267fb5b7d'
+        '9d1275be-7f8b-4567-8616-8c3d0a319a52'
     ),
     (
-        'f3d07b29-6827-4d80-b84e-a25031ef9174',
+        '82722ea9-5963-4305-815d-17c0be80d29a',
         '15-spel CAN',
         '15 games CAN',
         'CAN, centalförbundet för alkohol och narkotikaupplysning utmanar er i ett 15-spel från deras arbete "ANTDS på Schemat"',
@@ -5107,10 +5105,10 @@ An activity is located at each square. Complete the activity to place a pin in y
         NULL,
         '2026-07-30 07:00:00',
         '2026-07-30 15:00:00',
-        '6491fa9b-418a-4d26-b8ff-f92267fb5b7d'
+        '9d1275be-7f8b-4567-8616-8c3d0a319a52'
     ),
     (
-        'b4a24bfd-68f0-4865-9c3e-717fd85d5218',
+        '7ed06668-641f-492d-9f80-df72ac95b3dd',
         'Försäljning av märken och kortlekar',
         'Badges and card games for sale',
         'I tältet kan du köpa Klartänk reflektionskortlekar på både svenska och engelska. Ett begränsat antal märken finns också till försäljning. Kostnad mellan 10 kr och 50 kr.',
@@ -5118,10 +5116,10 @@ An activity is located at each square. Complete the activity to place a pin in y
         NULL,
         '2026-07-30 07:00:00',
         '2026-07-30 19:30:00',
-        '6491fa9b-418a-4d26-b8ff-f92267fb5b7d'
+        '9d1275be-7f8b-4567-8616-8c3d0a319a52'
     ),
     (
-        '01badd2b-c40d-416c-acc9-bfc6750648cf',
+        'f3139682-2286-48e4-9a17-8c6fc56f8489',
         'Öppet häng med kareoke och annat trevligt',
         'Open hangout with karaoke and other fun stuff',
         'USCK (Utmanarscoutkommiten i NSF bjuder in till ett öppet häng för alla över utmanarscoutålder, samt sista års äventyrare. Kom och träffas, spela spel, sjung kareoke!',
@@ -5129,10 +5127,10 @@ An activity is located at each square. Complete the activity to place a pin in y
         NULL,
         '2026-07-30 18:00:00',
         '2026-07-30 19:30:00',
-        '6491fa9b-418a-4d26-b8ff-f92267fb5b7d'
+        '9d1275be-7f8b-4567-8616-8c3d0a319a52'
     ),
     (
-        'fd61ac1f-0f02-4c90-8b88-ee6a3ce4cdf2',
+        '977a7b4b-c1a6-476d-9918-9bf7bb637011',
         'VM i Scoutscarf',
         'Scarf World Cup',
         'Rösta fram världens snyggaste scoutscarf! Semifinal',
@@ -5140,10 +5138,10 @@ An activity is located at each square. Complete the activity to place a pin in y
         NULL,
         '2026-07-30 07:00:00',
         '2026-07-30 16:00:00',
-        '572671ce-7f67-4e16-8f32-5bda9bb2e5e7'
+        '10952f43-79b5-436d-bb7f-c7337f4ab7e6'
     ),
     (
-        '39d4f90c-8ad7-4396-80ff-603e22dfa92d',
+        'b677df86-5805-4ab5-b9dd-8c4723ba3311',
         'Nyfiken på att bli utbildare',
         'Nyfiken på att bli utbildare',
         'En workshop för ledare som är nyfikna på att utbilda inom Scouterna och Scouternas folkhögskola. Hur blir man utbildare och vad det innebär det att vara ackrediterad utbildare för scoututbildningar på Scouternas folkhögskola? Vi testar på något moment från kursen Utbildare för utbildare.',
@@ -5151,10 +5149,10 @@ An activity is located at each square. Complete the activity to place a pin in y
         NULL,
         '2026-07-31 13:00:00',
         '2026-07-31 14:00:00',
-        '89199cdc-5aba-40bc-a1c7-4cc9a9520c4d'
+        'c0dd822f-ca76-43fe-90be-b69647b37551'
     ),
     (
-        '9d7ff1d0-686b-4545-98d8-344406d916f2',
+        '19918ead-6d4b-46ef-9716-150a998b1070',
         'Vad kan du göra för EU, och vad kan EU göra för dig?',
         'Vad kan du göra för EU, och vad kan EU göra för dig?',
         'EU känns kanske stort och långt borta – men tänk om det är närmare än du tror? Vad har en scoutpatrull gemensamt med EU? Kan du påverka beslut innan du ens får rösta? Och varför spelar ditt engagemang större roll än du kanske anar? Helena Halldorf, arbetar till vardags med utrikespolitik inom EU och visar hur unga kan göra skillnad i Europa och vad EU kan erbjuda dig som är ung. Genom konkreta exempel och personliga berättelser får du veta hur dina idéer och ditt engagemang spelar roll. Häng med och upptäck vad just du kan göra för EU!',
@@ -5162,10 +5160,10 @@ An activity is located at each square. Complete the activity to place a pin in y
         NULL,
         '2026-07-31 07:30:00',
         '2026-07-31 08:30:00',
-        '8457d5f0-bcae-424b-91d6-69cc47259e48'
+        '5ef6c219-43f8-43d4-ad73-55afcf6a44ae'
     ),
     (
-        '064b7662-eaea-41fe-8de1-cffda7328dc5',
+        '65fb0d8a-01f7-4d1b-83f1-2e4e98275995',
         'Quiz',
         'Quiz',
         'Kom och var med på quiz! Spela själv eller i lag.',
@@ -5173,10 +5171,10 @@ An activity is located at each square. Complete the activity to place a pin in y
         NULL,
         '2026-07-31 14:00:00',
         '2026-07-31 14:30:00',
-        '572671ce-7f67-4e16-8f32-5bda9bb2e5e7'
+        '10952f43-79b5-436d-bb7f-c7337f4ab7e6'
     ),
     (
-        '8fea3f31-8ad8-469f-a235-deda5ef42e27',
+        '37c77ebd-830d-49dc-909e-22486bd1c047',
         'Internationell 5-kamp',
         'International pentathlon',
         'Samla ihop ett lag på 5 personer bestående av minst två olika nationaliteter och tävla mot andra lag i internationella lekar!',
@@ -5184,10 +5182,10 @@ An activity is located at each square. Complete the activity to place a pin in y
         NULL,
         '2026-07-31 13:00:00',
         '2026-07-31 13:40:00',
-        '572671ce-7f67-4e16-8f32-5bda9bb2e5e7'
+        '10952f43-79b5-436d-bb7f-c7337f4ab7e6'
     ),
     (
-        '158a659a-4120-4e42-a8d4-22ffc1847daa',
+        'a7a5438c-33b9-48bc-a46d-b712a09cd380',
         'VM i Scoutscarf',
         'Scarf World Cup',
         'Rösta fram världens snyggaste scoutscarf! Final',
@@ -5195,10 +5193,10 @@ An activity is located at each square. Complete the activity to place a pin in y
         NULL,
         '2026-07-31 07:00:00',
         '2026-07-31 16:00:00',
-        '572671ce-7f67-4e16-8f32-5bda9bb2e5e7'
+        '10952f43-79b5-436d-bb7f-c7337f4ab7e6'
     ),
     (
-        '80390d8f-4d2e-452a-a93b-1eed40372394',
+        '92dee66d-5575-437e-a5e0-23d6537c6f43',
         'Klättervägg',
         'Climbing',
         'Välkommen att prova klättring i Hjärtat! Ta dig upp längs utsiktstornets väggar och njut av utsikten över lägerplatsen från ovan. Här finns klätterbanor för både nybörjare och vana klättrare.',
@@ -5206,10 +5204,10 @@ An activity is located at each square. Complete the activity to place a pin in y
         NULL,
         '2026-07-31 06:30:00',
         '2026-07-31 15:30:00',
-        '5094c36d-3f40-4d41-8070-1046bc015799'
+        'dc8255e8-e563-4d09-b073-e0ecd24e8423'
     ),
     (
-        '05f3a49d-c6ce-44e4-b50d-0eed45aeac8a',
+        '22afd73f-b923-4f94-a2d2-03a5e63b5539',
         'Aktivitetstombola',
         'Activity tombola',
         'I aktivitetstombolan finns mängder med roliga aktiviteter. Ni snurrar på tombolan, får en utmaning eller aktivitet och sedan genomför ni den!',
@@ -5217,10 +5215,10 @@ An activity is located at each square. Complete the activity to place a pin in y
         NULL,
         '2026-07-31 07:00:00',
         '2026-07-31 15:00:00',
-        '6491fa9b-418a-4d26-b8ff-f92267fb5b7d'
+        '9d1275be-7f8b-4567-8616-8c3d0a319a52'
     ),
     (
-        'daa94d01-d69c-4344-b90c-9f087e136876',
+        '1b76c0c3-784d-4f46-920f-b07cfc7c8281',
         'Klartänkt - Spel och aktiviteter',
         'Clear minds - Games and activities',
         'Här kan du prova på vår nya kortlek, spela spel i vår myshörna eller bara ladda powerbankem och sitta och chilla en stund.',
@@ -5228,10 +5226,10 @@ An activity is located at each square. Complete the activity to place a pin in y
         NULL,
         '2026-07-31 07:00:00',
         '2026-07-31 15:00:00',
-        '6491fa9b-418a-4d26-b8ff-f92267fb5b7d'
+        '9d1275be-7f8b-4567-8616-8c3d0a319a52'
     ),
     (
-        '157679a4-2cc7-43e4-b5fc-c371a2a3ae99',
+        'e3b7bb1b-6778-4c94-8a7d-17b15ca964f9',
         'Klartänkt material',
         'Clear minds - material',
         'Är du nyfiken på progammaterial och verkty att använda för ANDTS hemma i kåren, sväng förbi oss och ta del av våra kunskaper och få tips att använda.',
@@ -5239,10 +5237,10 @@ An activity is located at each square. Complete the activity to place a pin in y
         NULL,
         '2026-07-31 07:00:00',
         '2026-07-31 15:00:00',
-        '6491fa9b-418a-4d26-b8ff-f92267fb5b7d'
+        '9d1275be-7f8b-4567-8616-8c3d0a319a52'
     ),
     (
-        'dc7f490c-aa83-4b57-8612-553726d6b644',
+        'dcb42a57-614b-4367-9236-01537832c080',
         'Tryck tröjor',
         'Print shirts',
         'Ta med dig en tröja, köp ett tryck och skapa din egen coola tröja, (eller valfritt plagg) i vår tröjtryck. Kostnad 15 kr.',
@@ -5250,10 +5248,10 @@ An activity is located at each square. Complete the activity to place a pin in y
         NULL,
         '2026-07-31 07:00:00',
         '2026-07-31 15:00:00',
-        '6491fa9b-418a-4d26-b8ff-f92267fb5b7d'
+        '9d1275be-7f8b-4567-8616-8c3d0a319a52'
     ),
     (
-        'e8650668-09ec-423c-8cc2-36268da00023',
+        '7e224978-9e58-4856-9e30-937ca6e87543',
         'Världsförbättrare & Världens Barn',
         'World improvers and "Världens Barn"',
         'Lär dig mer om IOGT-NTO International och deras arbete/projekt i Uganda med UGGA. Tillsammans förbättrar vi scouter världen!',
@@ -5261,10 +5259,10 @@ An activity is located at each square. Complete the activity to place a pin in y
         NULL,
         '2026-07-31 07:00:00',
         '2026-07-31 15:00:00',
-        '6491fa9b-418a-4d26-b8ff-f92267fb5b7d'
+        '9d1275be-7f8b-4567-8616-8c3d0a319a52'
     ),
     (
-        '36b05490-248b-46c4-a1f6-9e5075f3d6cb',
+        '4d364bc0-748d-461a-ac01-1764e161d1a5',
         'Gör din egen pin',
         'Make you own pin',
         'Tillverka en egen pin i pinmaskinen, det finns olika motiv att välja på.',
@@ -5272,10 +5270,10 @@ An activity is located at each square. Complete the activity to place a pin in y
         NULL,
         '2026-07-31 07:00:00',
         '2026-07-31 15:00:00',
-        '6491fa9b-418a-4d26-b8ff-f92267fb5b7d'
+        '9d1275be-7f8b-4567-8616-8c3d0a319a52'
     ),
     (
-        '1856cc9c-fc8b-48ee-94a1-a45973c53677',
+        '8fb16a5b-6944-474b-9c5d-5365e9b14a49',
         '15-spel CAN',
         '15 games CAN',
         'CAN, centalförbundet för alkohol och narkotikaupplysning utmanar er i ett 15-spel från deras arbete "ANTDS på Schemat"',
@@ -5283,10 +5281,10 @@ An activity is located at each square. Complete the activity to place a pin in y
         NULL,
         '2026-07-31 07:00:00',
         '2026-07-31 15:00:00',
-        '6491fa9b-418a-4d26-b8ff-f92267fb5b7d'
+        '9d1275be-7f8b-4567-8616-8c3d0a319a52'
     ),
     (
-        'f622ac0f-f6f7-4ca9-acb8-c9ecd971e721',
+        'c34d133b-b932-46e3-8fdb-ebc099e3dae8',
         'Försäljning av märken och kortlekar',
         'Badges and card games for sale',
         'I tältet kan du köpa Klartänk reflektionskortlekar på både svenska och engelska. Ett begränsat antal märken finns också till försäljning. Kostnad mellan 10 kr och 50 kr.',
@@ -5294,10 +5292,10 @@ An activity is located at each square. Complete the activity to place a pin in y
         NULL,
         '2026-07-31 07:00:00',
         '2026-07-31 15:00:00',
-        '6491fa9b-418a-4d26-b8ff-f92267fb5b7d'
+        '9d1275be-7f8b-4567-8616-8c3d0a319a52'
     ),
     (
-        'b4e29b77-b38c-4296-9551-783b4ee94295',
+        '830a8df4-057f-42ef-82a8-1e5d309816ac',
         'Ledarsamtal',
         'Scout leader gathering',
         'Slå dig ner vid lägerelden och möt Scoutledare från hela landet, dela erfarenheter, hämta inspiration och skapa nya kontakter.',
@@ -5305,10 +5303,10 @@ An activity is located at each square. Complete the activity to place a pin in y
         NULL,
         '2026-07-31 08:00:00',
         '2026-07-31 09:00:00',
-        'eb304d4b-3ef9-400c-b216-d94927081760'
+        'f50f4431-4e79-4d3c-a52e-4e556e8be09f'
     ),
     (
-        '3fb6c691-cddf-49b2-b280-198edb43dd83',
+        '6a85d945-41d3-4316-9681-339ec7450822',
         'Utmanarsamtal',
         'Challenger scout leader gathering',
         'Slå dig ner vid lägerelden och möt utmanareledare från hela landet, dela erfarenheter, hämta inspiration och skapa nya kontakter.',
@@ -5316,10 +5314,10 @@ An activity is located at each square. Complete the activity to place a pin in y
         NULL,
         '2026-07-31 12:00:00',
         '2026-07-31 13:00:00',
-        'eb304d4b-3ef9-400c-b216-d94927081760'
+        'f50f4431-4e79-4d3c-a52e-4e556e8be09f'
     ),
     (
-        '7891394e-63ba-4c79-b901-fd24a494e69e',
+        '687bb09f-11a3-4be9-a131-333616d20667',
         'Kartkampen',
         'The Map Battle',
         'Vilken åldersgrupp kan vinna flest kartdelar? På varje torg finns en aktivitet utplacerad. Genomför den för att få sätta upp en pin i åldersgruppens färg på kartområdet. Åldersgruppen som i slutet av dagen kontrollerar flest områden på kartan blir dagens vinnare. Varje ny dag börjar kampen om från början',
@@ -5328,10 +5326,10 @@ An activity is located at each square. Complete the activity to place a pin in y
         NULL,
         '2026-07-31 08:00:00',
         '2026-07-31 15:00:00',
-        'eb304d4b-3ef9-400c-b216-d94927081760'
+        'f50f4431-4e79-4d3c-a52e-4e556e8be09f'
     ),
     (
-        '9163a1bc-ac3f-4044-8166-bf35575c8c90',
+        '97c44248-db79-47d7-9b23-1a854912e63e',
         'Leda Scouting - Spork del 2',
         'Leda Scouting - Spork del 2',
         'Leda scouting är kursen för dig som vill förstå vad scouting är och hur du skapar verksamhet där scouter får växa, utmanas och ha roligt tillsammans. Här får du inspiration, konkreta verktyg och nya perspektiv på ledarskap i Scouterna. Anmälan via Scoutnet senast 17 juli.',
@@ -5339,10 +5337,10 @@ An activity is located at each square. Complete the activity to place a pin in y
         NULL,
         '2026-07-31 07:00:00',
         '2026-07-31 10:00:00',
-        'b1298fd2-c01a-4469-a1f2-bbd25bb9d908'
+        'accfffb4-5ccc-4ed3-bb28-a82f88440b92'
     ),
     (
-        'aba4b461-f3bd-40dd-964e-72a29ebbdb18',
+        'c4ccc29e-ef82-4f68-8329-55de7e99327d',
         'Leda Scouting - Tamoj del 2',
         'Leda Scouting - Tamoj del 2',
         'Leda scouting är kursen för dig som vill förstå vad scouting är och hur du skapar verksamhet där scouter får växa, utmanas och ha roligt tillsammans. Här får du inspiration, konkreta verktyg och nya perspektiv på ledarskap i Scouterna. Anmälan via Scoutnet senast 17 juli.',
@@ -5350,10 +5348,10 @@ An activity is located at each square. Complete the activity to place a pin in y
         NULL,
         '2026-07-31 12:00:00',
         '2026-07-31 15:00:00',
-        'b1298fd2-c01a-4469-a1f2-bbd25bb9d908'
+        'accfffb4-5ccc-4ed3-bb28-a82f88440b92'
     ),
     (
-        'e9c5c9b0-481a-46f7-a0d4-2943c17a6340',
+        '76641cb3-61d2-4be6-abdc-430b70d6a925',
         'Speedfriending',
         'Speedfriending',
         '',
@@ -5361,10 +5359,10 @@ An activity is located at each square. Complete the activity to place a pin in y
         60,
         '2026-07-31 17:00:00',
         '2026-07-31 18:00:00',
-        'b1298fd2-c01a-4469-a1f2-bbd25bb9d908'
+        'accfffb4-5ccc-4ed3-bb28-a82f88440b92'
     ),
     (
-        '903ac7be-bed4-430f-b594-49b7bd7cdb35',
+        'e83c6ecb-92f0-4e6a-98a2-28a89fda8ac8',
         'Lounge Solnedgång',
         'Lounge Sunset',
         'Ingen vill gå hem och kvällen är ung. Soft stämning för ett sista kväll med vänner, gamla som nya. Vi bjuder på go musik, kom och häng efter avslutningen.',
@@ -5372,10 +5370,10 @@ An activity is located at each square. Complete the activity to place a pin in y
         NULL,
         '2026-07-31 20:00:00',
         '2026-07-31 21:59:00',
-        'b1298fd2-c01a-4469-a1f2-bbd25bb9d908'
+        'accfffb4-5ccc-4ed3-bb28-a82f88440b92'
     ),
     (
-        '83c48ee5-9343-4ce1-ba65-9dfedadfa75d',
+        'eea74c1e-2c95-40fa-a8df-8513559c76e8',
         'Gör Scouterna skillnad på riktigt?',
         'Do scouts actually make a difference?',
         'Helena Halldorf, arbetar till vardags med utrikespolitik inom EU och visar hur unga kan göra skillnad i Europa och vad EU kan erbjuda dig som är ung. Genom konkreta exempel och personliga berättelser får du veta hur dina idéer och ditt engagemang spelar roll. Häng med och upptäck vad just du kan göra för EU!',
@@ -5383,10 +5381,10 @@ An activity is located at each square. Complete the activity to place a pin in y
         NULL,
         '2026-07-31 11:15:00',
         '2026-07-31 12:00:00',
-        'f96bb333-7390-40d1-92a3-29b7b3fbeb16'
+        '2b32a9d9-da57-40f4-ba95-6e6de28ed846'
     ),
     (
-        'fb99ae04-02f7-44ff-83e5-2990d57c6607',
+        'e155e34f-99e6-460d-8b93-c5acb65154a4',
         'Bli arrangemangsledare!',
         'Become a scout event leader!',
         'Person från Scouternas Arrangemangsgrupp kommer och berättar hur du kan göra för att engagera dig som ledare för ett av de nationella arrangemangen. Explorer Belt, Mullfjället, Upplev, Rooverway mm. Vikla krav är det? Är det mycket jobb?',
@@ -5394,10 +5392,10 @@ An activity is located at each square. Complete the activity to place a pin in y
         NULL,
         '2026-07-31 15:00:00',
         '2026-07-31 15:30:00',
-        'f96bb333-7390-40d1-92a3-29b7b3fbeb16'
+        '2b32a9d9-da57-40f4-ba95-6e6de28ed846'
     ),
     (
-        'de45e94a-843c-4c0e-afcb-f5fb22f8fbeb',
+        '46cd642b-a63c-4a65-a65e-2204dad0d682',
         'Konsert: Old Carters Memory Lane',
         'Concert: Old Carters Memory Lane',
         '',
@@ -5405,10 +5403,10 @@ An activity is located at each square. Complete the activity to place a pin in y
         NULL,
         '2026-07-31 19:00:00',
         '2026-07-31 21:00:00',
-        'f96bb333-7390-40d1-92a3-29b7b3fbeb16'
+        '2b32a9d9-da57-40f4-ba95-6e6de28ed846'
     ),
     (
-        'd3a1f489-2729-40b8-b439-ff00f6b22b00',
+        'c614ba7c-5bef-4971-937f-cdbf9541a446',
         'En Känsla av Fest',
         'The Party Feeling',
         'Sista dagen! Trist – JA. Trista aktiviteter på roverprogrammet – NEJ, VERKLIGEN INTE! Det blir capture the flag-varianten JERIKO, känsla lite av ett nöjesfält och tid att kanske uppleva något oväntat! Idag är det Drop-in som gäller, området har öppet hela tiden men, Jeriko Startar med 45 minuters mellanrum, med start 8:30!',
@@ -5416,10 +5414,10 @@ An activity is located at each square. Complete the activity to place a pin in y
         NULL,
         '2026-07-31 06:30:00',
         '2026-07-31 10:30:00',
-        '279f9b05-e635-4923-9fb9-13d09c23f31c'
+        '0171900f-3f29-4119-8a92-c9e688fa582b'
     ),
     (
-        '02902cc5-4176-48c3-9be8-c1a1277687fa',
+        'c566e010-4a19-40a4-a030-d51135b33b27',
         'En Känsla av Fest',
         'The Party Feeling',
         'Sista dagen! Trist – JA. Trista aktiviteter på roverprogrammet – NEJ, VERKLIGEN INTE! Det blir capture the flag-varianten JERIKO, känsla lite av ett nöjesfält och tid att kanske uppleva något oväntat! Idag är det Drop-in som gäller, området har öppet hela tiden men, Jeriko Startar med 45 minuters mellanrum, med start 8:30!',
@@ -5427,10 +5425,10 @@ An activity is located at each square. Complete the activity to place a pin in y
         NULL,
         '2026-07-31 12:00:00',
         '2026-07-31 16:00:00',
-        '279f9b05-e635-4923-9fb9-13d09c23f31c'
+        '0171900f-3f29-4119-8a92-c9e688fa582b'
     ),
     (
-        'ef833731-27d1-454e-a667-ec454dbdae53',
+        'dd581d69-02e4-413b-8754-94d0eeabde32',
         'Sagostund',
         'Storytime',
         'Inspirerande sagostund öppet för alla',
@@ -5438,10 +5436,10 @@ An activity is located at each square. Complete the activity to place a pin in y
         NULL,
         '2026-07-31 06:00:00',
         '2026-07-31 07:00:00',
-        '556a6e3c-62b3-4c9a-8720-4cee10542d9f'
+        '8e335d16-2369-474d-b774-d16f9e44b0fe'
     ),
     (
-        '03bb91b7-0f33-4411-a01d-dbd1dbbdcf97',
+        '46c73b06-f6e2-4a49-bbfc-b56beb642815',
         'Kvällsbön',
         'Evening prayer',
         '',
@@ -5449,10 +5447,10 @@ An activity is located at each square. Complete the activity to place a pin in y
         NULL,
         '2026-07-31 20:00:00',
         '2026-07-31 20:30:00',
-        '556a6e3c-62b3-4c9a-8720-4cee10542d9f'
+        '8e335d16-2369-474d-b774-d16f9e44b0fe'
     ),
     (
-        '5059dba9-0f78-4d49-9c2e-e083421e4ff6',
+        '9751b425-47ec-4c54-a45f-d293dea318c3',
         'Våga Lyssna fördjupning',
         'Dare to Listen',
         '​​Våga lyssna fördjupning är en fördjupande workshop för scoutledare som fokuserar på att fördjupa kunskaper och öva på olika verktyg från webbkursen Våga lyssna. Målet är att känna större trygghet i att hålla samtal om mående och känslor med barn och unga.',
@@ -5460,10 +5458,10 @@ An activity is located at each square. Complete the activity to place a pin in y
         40,
         '2026-07-31 07:00:00',
         '2026-07-31 09:00:00',
-        '556a6e3c-62b3-4c9a-8720-4cee10542d9f'
+        '8e335d16-2369-474d-b774-d16f9e44b0fe'
     ),
     (
-        'dc40456d-fdee-4aa4-96c1-5acf3ee206a6',
+        'eb04ee41-ee7c-4c01-95d4-f04fbd5ab989',
         'Muslimsk tro - NAMN kommer',
         'Muslimsk tro - NAMN kommer',
         '​Workshopen leds av Trygga mötens samtalsledare.',
@@ -5471,10 +5469,10 @@ An activity is located at each square. Complete the activity to place a pin in y
         40,
         '2026-07-31 09:00:00',
         '2026-07-31 10:00:00',
-        '556a6e3c-62b3-4c9a-8720-4cee10542d9f'
+        '8e335d16-2369-474d-b774-d16f9e44b0fe'
     ),
     (
-        '4b46fed7-ada8-47a6-a408-ab70468637d5',
+        '1bf6c681-fcf4-481c-b9f1-7a09dc98a49e',
         'Musikmosaik: Öppet Jam',
         'Music Mosaic: Open Jam',
         'En öppen scen för alla musikälskare! Delta med egna låtar, covers, improvisationer eller bara lyssna och njut. Vi välkomnar allt från nyskrivna stycken som speglar livets mångfald till klassiska favoriter som berör själen. För scentid anmäler du dig senast 1 timme innan. Först till kvarn!',
@@ -5482,10 +5480,10 @@ An activity is located at each square. Complete the activity to place a pin in y
         NULL,
         '2026-07-31 12:00:00',
         '2026-07-31 13:00:00',
-        '556a6e3c-62b3-4c9a-8720-4cee10542d9f'
+        '8e335d16-2369-474d-b774-d16f9e44b0fe'
     ),
     (
-        '722bbc94-ff75-4bb6-aced-cc52da4097f2',
+        'a118249a-60fc-4778-b202-9852b4c1517f',
         'Poetry Slam',
         'Poetry Slam',
         'Öppen scen för alla poeter. Delta med ditt egna material eller högläs dina personliga favoriter. Vi välkomnar allt från modernt material som belyser viktiga samhällsaspekter till simpel själavårdande vacker poesi. För scentid anmäler du dig senast 1 h innan. Först till kvarn!',
@@ -5493,10 +5491,10 @@ An activity is located at each square. Complete the activity to place a pin in y
         NULL,
         '2026-07-31 13:30:00',
         '2026-07-31 15:00:00',
-        '556a6e3c-62b3-4c9a-8720-4cee10542d9f'
+        '8e335d16-2369-474d-b774-d16f9e44b0fe'
     ),
     (
-        '91b3282e-47fb-4aca-abb5-fe91fe1d438b',
+        '0aa23bad-24eb-4577-b743-c27f4745f960',
         '31/7 – Nyår 🎉',
         '31/7 – New Year''s Eve 🎉',
         '3... 2... 1... Gott nytt år! Vänta... det är ju juli? Det spelar ingen roll – vi tycker att man kan fira ändå! Kom och avsluta veckan med festlig stämning, svenska nyårstraditioner och vår allra sista Limited Edition. Har du något glittrigt, en festhatt eller dina finaste kläder? Klä upp dig och fira med oss! Ett perfekt sätt att säga hej då till Jamboree 2026 – och räkna ner till Jamboree 2027!',
@@ -5504,10 +5502,10 @@ An activity is located at each square. Complete the activity to place a pin in y
         NULL,
         '2026-07-31 08:00:00',
         '2026-07-31 20:00:00',
-        '5fca0ebc-b407-4f5e-810e-4573f945b6bd'
+        '6955cb7f-38a0-4f47-b16e-6633608b04f0'
     ),
     (
-        'ce8f6214-85f6-4390-81df-6931c9fe1348',
+        '6e78fb83-48fe-43d0-8fee-29c1ad011b02',
         'The HERDS',
         'The HERDS',
         'THE HERDS är ett banbrytande offentligt konstprojekt som låter djurnaturtrogna dockor i naturlig storlek ge sig ut på en episk resa från Kongobäckenet till Norra polcirkeln och låter publiken komma nära klimatkrisens verklighet. Projektet har skapats av The Walk Productions, teamet bakom Little Amal. THE HERDS har rest genom städer och landskap världen över och samlat konstnärer, unga människor och lokalsamhällen för att tillsammans föreställa sig en bättre framtid för vår planet. På Jamboree26 bjuds du in att bli en del av berättelsen. Tillsammans med THE HERDS-teamet får du skapa din egen flyttfågeldocka och upptäcka de fantastiska resor som fåglar gör genom länder, klimat och livsmiljöer. Genom dockteater, rörelse och berättande får du lära dig hur fåglar varje år färdas tusentals kilometer och vilka utmaningar de möter längs vägen. Tillsammans kommer deltagarna att skapa flockar av fåglar som växer under veckan och som så småningom kommer att vandra genom jamboreeområdet för att möta THE HERDS gorilla, som har rest hela vägen från Kinshasa i Kongobäckenet. Denna roliga och praktiska workshop kombinerar kreativitet, klimatmedvetenhet och gemensamt engagemang. Den ger unga människor möjlighet att bli en del av ett storskaligt konstnärligt projekt och bidra till en minnesvärd avslutande samling på Jamboree26. Inga förkunskaper behövs – bara fantasi, nyfikenhet och en vilja att följa med på flytten. OBS! Workshopen är på engelska.',
@@ -5515,10 +5513,10 @@ An activity is located at each square. Complete the activity to place a pin in y
         45,
         '2026-07-31 07:00:00',
         '2026-07-31 08:00:00',
-        '6a359ef7-71e7-481c-a468-1a5bb7a3d645'
+        'a504bebf-9f26-4a36-a538-9244e0fb5efc'
     ),
     (
-        'f027ade7-68b0-4005-a3e5-462cf2080f7f',
+        '28b05cc5-20c9-47d6-b776-762a5db0a2cd',
         'The HERDS',
         'The HERDS',
         'THE HERDS är ett banbrytande offentligt konstprojekt som låter djurnaturtrogna dockor i naturlig storlek ge sig ut på en episk resa från Kongobäckenet till Norra polcirkeln och låter publiken komma nära klimatkrisens verklighet. Projektet har skapats av The Walk Productions, teamet bakom Little Amal. THE HERDS har rest genom städer och landskap världen över och samlat konstnärer, unga människor och lokalsamhällen för att tillsammans föreställa sig en bättre framtid för vår planet. På Jamboree26 bjuds du in att bli en del av berättelsen. Tillsammans med THE HERDS-teamet får du skapa din egen flyttfågeldocka och upptäcka de fantastiska resor som fåglar gör genom länder, klimat och livsmiljöer. Genom dockteater, rörelse och berättande får du lära dig hur fåglar varje år färdas tusentals kilometer och vilka utmaningar de möter längs vägen. Tillsammans kommer deltagarna att skapa flockar av fåglar som växer under veckan och som så småningom kommer att vandra genom jamboreeområdet för att möta THE HERDS gorilla, som har rest hela vägen från Kinshasa i Kongobäckenet. Denna roliga och praktiska workshop kombinerar kreativitet, klimatmedvetenhet och gemensamt engagemang. Den ger unga människor möjlighet att bli en del av ett storskaligt konstnärligt projekt och bidra till en minnesvärd avslutande samling på Jamboree26. Inga förkunskaper behövs – bara fantasi, nyfikenhet och en vilja att följa med på flytten. OBS! Workshopen är på engelska.',
@@ -5526,10 +5524,10 @@ An activity is located at each square. Complete the activity to place a pin in y
         45,
         '2026-07-31 09:00:00',
         '2026-07-31 10:00:00',
-        '6a359ef7-71e7-481c-a468-1a5bb7a3d645'
+        'a504bebf-9f26-4a36-a538-9244e0fb5efc'
     ),
     (
-        'f94d6b44-0955-46b2-9ac4-a2072c4aefe6',
+        'f343c8cc-3ed7-4b93-a2e4-4a121bf91345',
         'Vattenlek',
         'Vattenlek',
         'Kom och testa på olika vattenlekar i hubben. Ha på dig kläder som kan bli blöta',
@@ -5537,10 +5535,10 @@ An activity is located at each square. Complete the activity to place a pin in y
         NULL,
         '2026-07-31 07:00:00',
         '2026-07-31 15:00:00',
-        'ece176aa-dcec-42c7-b780-7bbb4391a2cf'
+        '418ac649-ad80-4e2c-aa1b-db3733b97938'
     ),
     (
-        'a5b68ba4-4c64-4da4-90d3-509eac732e1a',
+        '40eb1883-3683-4f14-bf6a-8cb7e585beae',
         'Dagens lek',
         'Dagens lek',
         'Starttider för lekarna kommer finnas på anslagstavlan i hubben',
@@ -5548,10 +5546,10 @@ An activity is located at each square. Complete the activity to place a pin in y
         NULL,
         '2026-07-31 07:00:00',
         '2026-07-31 15:00:00',
-        'ece176aa-dcec-42c7-b780-7bbb4391a2cf'
+        '418ac649-ad80-4e2c-aa1b-db3733b97938'
     ),
     (
-        '36c00c14-b917-4d1f-9cf0-8f61c3aeb08c',
+        'cb716991-b6a4-432c-9698-b7598d28db91',
         'Lekaktiviteter',
         'Lekaktiviteter',
         'Hämta fotboll, rockring, hopprep, gagaboll boll m.m och spela med patrullkompisar eller nya vänner',
@@ -5559,10 +5557,10 @@ An activity is located at each square. Complete the activity to place a pin in y
         NULL,
         '2026-07-31 07:00:00',
         '2026-07-31 15:00:00',
-        'ece176aa-dcec-42c7-b780-7bbb4391a2cf'
+        '418ac649-ad80-4e2c-aa1b-db3733b97938'
     ),
     (
-        'd74b662d-0d2c-4a8d-92e6-4872756eff05',
+        'e3847f08-17af-4b18-8017-57be5e1b450e',
         'Bubbelballs',
         'Bubbelballs',
         'Studsa runt i stora uppblåsbara bollar! Bokning sker på plats i hubben',
@@ -5570,10 +5568,10 @@ An activity is located at each square. Complete the activity to place a pin in y
         NULL,
         '2026-07-31 07:00:00',
         '2026-07-31 15:00:00',
-        'ece176aa-dcec-42c7-b780-7bbb4391a2cf'
+        '418ac649-ad80-4e2c-aa1b-db3733b97938'
     ),
     (
-        '3dacbcab-9cd9-43c2-9d48-7e4b6bbe2d0b',
+        'dc098373-84f3-4039-96ac-f78cbc4914df',
         'Escape room',
         'Escape room',
         'Testa patrullens sammarbetsförmåga i upptäkarhubbens escape room. Aktiviteten kan bokas på platts i hubben',
@@ -5581,10 +5579,10 @@ An activity is located at each square. Complete the activity to place a pin in y
         NULL,
         '2026-07-31 07:00:00',
         '2026-07-31 15:00:00',
-        'ece176aa-dcec-42c7-b780-7bbb4391a2cf'
+        '418ac649-ad80-4e2c-aa1b-db3733b97938'
     ),
     (
-        '1307ed63-461d-407b-9481-1420c25e10d9',
+        'df1eef92-232f-41e2-a006-495817188985',
         'Må-bra-kåsan',
         'Må-bra-kåsan',
         'Genom några tankeväckande övningar får du under den här aktiviteten fokusera på hur du kan stärka ditt eget mående. När du är klar med alla aktiviteter får du hämta ut en kåsa i upptäckarhubbens infodisk med självstärkande, peppande budskap från olika organisationer som på olika sätt arbetar med att stärka barn och ungas psykiska hälsa.',
@@ -5592,10 +5590,10 @@ An activity is located at each square. Complete the activity to place a pin in y
         NULL,
         '2026-07-31 12:00:00',
         '2026-07-31 15:00:00',
-        'c2880eae-3277-43d7-a5b2-ddcfb11f7318'
+        'd617bf4f-1e00-4ab4-b6a7-ae90be48c0a0'
     ),
     (
-        'ea2eb77d-370b-456f-9bd6-27f536d7d4c9',
+        'ee41132a-9c60-466a-a36b-dd0625be4b64',
         'Känslokartan',
         'Känslokartan',
         '',
@@ -5603,10 +5601,10 @@ An activity is located at each square. Complete the activity to place a pin in y
         NULL,
         '2026-07-31 07:00:00',
         '2026-07-31 15:00:00',
-        '9151b3ad-e8ab-4019-bbcd-d71d8102dde8'
+        '7fef2277-0728-41e0-947d-c487fae3efde'
     ),
     (
-        'be938adc-d768-4208-bb3c-a84b1b174ce3',
+        '60738342-4e5b-46ae-9d62-6870e2000b1f',
         'Brädspel',
         'Brädspel',
         'Brädspel',
@@ -5614,10 +5612,10 @@ An activity is located at each square. Complete the activity to place a pin in y
         NULL,
         '2026-07-31 07:00:00',
         '2026-07-31 15:00:00',
-        '9151b3ad-e8ab-4019-bbcd-d71d8102dde8'
+        '7fef2277-0728-41e0-947d-c487fae3efde'
     ),
     (
-        'b363b873-28b8-4a0b-9f99-bfceb0d88bdc',
+        '9f957e42-e396-4252-acd8-3d88df2089c5',
         'Cybersäkerhet med Unga forskare',
         'Cybersäkerhet med Unga forskare',
         'Testa på spännande aktiviteter med Unga Forskare!',
@@ -5625,10 +5623,10 @@ An activity is located at each square. Complete the activity to place a pin in y
         NULL,
         '2026-07-31 07:00:00',
         '2026-07-31 15:00:00',
-        '9151b3ad-e8ab-4019-bbcd-d71d8102dde8'
+        '7fef2277-0728-41e0-947d-c487fae3efde'
     ),
     (
-        '0a558527-3ab7-422a-9528-af151eff5a8b',
+        '0c41210d-0ba6-4ccc-9148-f57340a59859',
         'Hantverk fokus: Kompisminnen',
         'Hantverk fokus: Kompisminnen',
         '',
@@ -5636,10 +5634,10 @@ An activity is located at each square. Complete the activity to place a pin in y
         NULL,
         '2026-07-31 07:00:00',
         '2026-07-31 15:00:00',
-        '0563ef6a-4f77-458e-9f69-c45d1ef491c5'
+        '87afd904-fe20-4ec8-8a0d-325500b60b63'
     ),
     (
-        'e170497d-499b-4e22-8406-c6607af9bcc7',
+        'ab9a7ffc-d33d-4345-ac61-083f057324d3',
         'Quiz: Film/tvserie',
         'Quiz: Movies & Series',
         '',
@@ -5647,10 +5645,10 @@ An activity is located at each square. Complete the activity to place a pin in y
         NULL,
         '2026-07-31 08:00:00',
         '2026-07-31 09:00:00',
-        'bed2dc35-1e4d-4426-a9d0-f9c1731ae493'
+        '75bec7fd-a4f5-439a-9f1d-8fae424c4118'
     ),
     (
-        '7b1cdf12-4932-467f-b510-8731b514fa46',
+        '98cbb676-3110-4f81-ac86-e59a0d7d488e',
         'Quiz: Film/tvserie',
         'Quiz: Movies & Series',
         '',
@@ -5658,10 +5656,10 @@ An activity is located at each square. Complete the activity to place a pin in y
         NULL,
         '2026-07-31 13:00:00',
         '2026-07-31 14:00:00',
-        'bed2dc35-1e4d-4426-a9d0-f9c1731ae493'
+        '75bec7fd-a4f5-439a-9f1d-8fae424c4118'
     ),
     (
-        '7ce427e0-0257-44e0-b28c-dcb3236a317c',
+        '40cce802-3d3f-432a-ab99-40bd7febf64f',
         'Quiz med Johan och Lottie',
         'Quiz with Johan and Lottie',
         'Kom och quizza med Johan och Lottie!',
@@ -5669,10 +5667,10 @@ An activity is located at each square. Complete the activity to place a pin in y
         NULL,
         '2026-07-31 20:00:00',
         '2026-07-31 21:30:00',
-        'bed2dc35-1e4d-4426-a9d0-f9c1731ae493'
+        '75bec7fd-a4f5-439a-9f1d-8fae424c4118'
     ),
     (
-        'e6e60e4c-25ff-4fe1-bab7-4d59b2b1ae02',
+        'eaa07ad9-0667-4a58-979c-50faf03baa77',
         'Mekanisk tjur',
         'Mechanical bull',
         'Testa hur länge du kan sitta på tjurens rygg! Kanske är det svårare än du tror?',
@@ -5680,10 +5678,10 @@ An activity is located at each square. Complete the activity to place a pin in y
         NULL,
         '2026-07-31 07:00:00',
         '2026-07-31 15:00:00',
-        'e56b12f0-7d5e-47f3-aa86-9a832be3e185'
+        '92228c5e-1d0e-415c-a41b-35f5435a0a30'
     ),
     (
-        '99e1c1e6-a269-4ce6-a961-54c986748fd1',
+        '712c87ab-1374-40b6-86f7-f1792c474ed1',
         'Fäktning',
         'Fencing',
         'Finns det något bättre sätt att avsluta lägret på än att testa på lite fäktning? Vi tror inte det.',
@@ -5691,10 +5689,10 @@ An activity is located at each square. Complete the activity to place a pin in y
         NULL,
         '2026-07-31 07:00:00',
         '2026-07-31 10:00:00',
-        'e56b12f0-7d5e-47f3-aa86-9a832be3e185'
+        '92228c5e-1d0e-415c-a41b-35f5435a0a30'
     ),
     (
-        '42c7b30c-9042-4a6e-bed2-f79fabe4bd99',
+        '1943eadf-2f9a-40d3-bfcc-cd6fa88bb92a',
         'Unga forskare',
         'Unga forskare',
         'Testa på spännande aktiviteter med Unga Forskare!',
@@ -5702,10 +5700,10 @@ An activity is located at each square. Complete the activity to place a pin in y
         NULL,
         '2026-07-31 08:00:00',
         '2026-07-31 15:00:00',
-        '16bc8872-5e30-416b-a71b-05a56731e44e'
+        'd7cf4654-4614-43bf-92b9-73325c18ddb9'
     ),
     (
-        '9da3aa01-e154-4b83-811d-fa7d849cb23e',
+        'e4611336-6b09-40a0-babe-fa5cf8a54722',
         'Tim Bergling Foundation',
         'Tim Bergling Foundation',
         'Testa på olika aktiviteter från Välmåendearenan tillsammans med Tim Bergling Foundation',
@@ -5713,10 +5711,10 @@ An activity is located at each square. Complete the activity to place a pin in y
         NULL,
         '2026-07-31 07:00:00',
         '2026-07-31 10:00:00',
-        '55043f4b-a2be-48b3-858d-c11dad88de22'
+        'df5460d7-e435-4434-b63e-4755564087f4'
     ),
     (
-        'd9b74ff5-458b-479c-8be4-a8eebc042956',
+        'e132cbb2-2fd6-43cd-9052-1234293dff8b',
         'Tim Bergling Foundation',
         'Tim Bergling Foundation',
         'Testa på olika aktiviteter från Välmåendearenan tillsammans med Tim Bergling Foundation',
@@ -5724,10 +5722,10 @@ An activity is located at each square. Complete the activity to place a pin in y
         NULL,
         '2026-07-31 12:00:00',
         '2026-07-31 15:00:00',
-        '55043f4b-a2be-48b3-858d-c11dad88de22'
+        'df5460d7-e435-4434-b63e-4755564087f4'
     ),
     (
-        '63c778a0-2e89-40c9-a9a2-9d3c1165b0a2',
+        '6abcaa88-527d-4148-ad48-6764d1ed3637',
         'BRIS',
         'BRIS',
         'Pärla och spela spel tillsammans med organisationen BRIS',
@@ -5735,10 +5733,10 @@ An activity is located at each square. Complete the activity to place a pin in y
         NULL,
         '2026-07-31 07:00:00',
         '2026-07-31 10:00:00',
-        'ac16114d-5336-4915-a862-041ff634cd1b'
+        'db966c21-9b0b-4c91-91dd-dfde4bde651d'
     ),
     (
-        'e4f24566-43fc-403e-9e67-b6b3c1288e89',
+        '4d3d3696-b382-45d2-ba60-5888d28ac73b',
         'BRIS',
         'BRIS',
         'Pärla och spela spel tillsammans med organisationen BRIS',
@@ -5746,10 +5744,10 @@ An activity is located at each square. Complete the activity to place a pin in y
         NULL,
         '2026-07-31 12:00:00',
         '2026-07-31 15:00:00',
-        'ac16114d-5336-4915-a862-041ff634cd1b'
+        'db966c21-9b0b-4c91-91dd-dfde4bde651d'
     ),
     (
-        '1e95c66c-829a-472d-b212-e5356a333793',
+        '8e2665e1-672a-4c8c-b0c6-8cda32a306c9',
         'Knoprep',
         'Knoprep',
         'Knoprep och instruktion finns för att lära sig en ny knop',
@@ -5757,10 +5755,10 @@ An activity is located at each square. Complete the activity to place a pin in y
         NULL,
         '2026-07-31 07:00:00',
         '2026-07-31 15:00:00',
-        '0563ef6a-4f77-458e-9f69-c45d1ef491c5'
+        '87afd904-fe20-4ec8-8a0d-325500b60b63'
     ),
     (
-        '86d9f4eb-c8a1-4ab5-b942-ae7262b715e8',
+        'e138951e-759f-4a78-a944-636f605dceee',
         'Tillsammans målning',
         'Tillsammans målning',
         'Hjälp till att skapa en målning tillsammans. Rita något på tavlan som betyder jamboree för dig.',
@@ -5768,10 +5766,10 @@ An activity is located at each square. Complete the activity to place a pin in y
         NULL,
         '2026-07-31 07:00:00',
         '2026-07-31 15:00:00',
-        '0563ef6a-4f77-458e-9f69-c45d1ef491c5'
+        '87afd904-fe20-4ec8-8a0d-325500b60b63'
     ),
     (
-        '3c6588ee-9781-4cfd-9b99-282e7d0982d4',
+        '40c701db-2c07-47ad-9690-65a481c7a144',
         'Halmpool',
         'Halmpool',
         'Hoppa ner i halmen, kan du hitta nålen i halmstacken?',
@@ -5779,10 +5777,10 @@ An activity is located at each square. Complete the activity to place a pin in y
         NULL,
         '2026-07-31 07:00:00',
         '2026-07-31 15:00:00',
-        '185f5091-1e3f-4ad6-b684-c0a0670efe07'
+        '573d544a-5fd7-4c09-b2d6-99050e4dd6ae'
     ),
     (
-        'a802e815-01ae-4755-aeff-9ee342fc0ec4',
+        '66b13a38-36a8-4444-b938-717a61d08217',
         'Slankaruseller',
         'Slankaruseller',
         'Åk på en karusell byggd av slanor.',
@@ -5790,10 +5788,10 @@ An activity is located at each square. Complete the activity to place a pin in y
         NULL,
         '2026-07-31 07:00:00',
         '2026-07-31 15:00:00',
-        '185f5091-1e3f-4ad6-b684-c0a0670efe07'
+        '573d544a-5fd7-4c09-b2d6-99050e4dd6ae'
     ),
     (
-        '699a1140-891a-4406-912c-09e0d3934f19',
+        'd6fa9ff3-abda-4e87-9f1a-14cec9b29610',
         'Midnattsföreläsning',
         'Midnight Lecture',
         'Delta på en klassisk skånsk rovertradition med en föreläsning och workshop om någon skånsk "vetenskap" vid tiden när alla är som som mest tankespridda och flummiga. Det är den sista aktiviteten på Roverhubben, och hålls av midnattsföreläsningsmästaren Jakob Öreberg. Enligt tradition behålls föreläsningens ämne hemligt tills tiden är inne.',
@@ -5801,10 +5799,10 @@ An activity is located at each square. Complete the activity to place a pin in y
         NULL,
         '2026-07-31 22:00:00',
         '2026-07-31 23:00:00',
-        'f96bb333-7390-40d1-92a3-29b7b3fbeb16'
+        '2b32a9d9-da57-40f4-ba95-6e6de28ed846'
     ),
     (
-        '358c86fa-e2c8-436f-8092-df622c90036e',
+        '8029aa74-77a1-4b06-9829-5c9f35a4381d',
         'Sagostund',
         'Storytime',
         'Inspirerande sagostund öppet för alla',
@@ -5812,2868 +5810,3243 @@ An activity is located at each square. Complete the activity to place a pin in y
         NULL,
         '2026-08-01 06:00:00',
         '2026-08-01 07:00:00',
-        '556a6e3c-62b3-4c9a-8720-4cee10542d9f'
+        '8e335d16-2369-474d-b774-d16f9e44b0fe'
     );
 
 -- Each activity's Kategori column.
 INSERT INTO activity_tag_activity (activity_tag_id, activity_id)
 VALUES
     (
-        'ecd20aba-dd59-4b37-b6ed-71beb9ad95b3',
-        '004c002e-19c7-4dbd-b726-084601be54ae'
+        '4b9ebcea-07aa-4d8a-8c0c-f39f1e0ff4fa',
+        '58278fcb-4aec-41ef-8203-e7d58d1a6ca3'
     ),
     (
-        '169bb890-b034-4c69-81fb-1a20358e83fa',
-        '34852307-3afe-4fba-91f8-d8a6be8b3fe3'
+        '669610ae-e145-46b2-9f6f-ab964b45e919',
+        '5faece95-29aa-4644-b2dc-3593f2ef0612'
     ),
     (
-        '0aecf569-9165-4a37-8fd2-a4e897bee7e2',
-        'f5b7e999-37cb-4a30-b6e2-7220c157cca5'
+        'ca6e7403-02eb-429e-b034-372732d9e010',
+        '1ffd28a8-4c42-458b-bc27-648fb6618223'
     ),
     (
-        'dc493f30-2e4a-41fb-9375-2ee408043aa8',
-        'ce6de84a-4ba8-4e0f-b5a6-9e7d8660a7c5'
+        'fa971a25-50d5-4956-81ae-572a5dbd9c1b',
+        '01a8a1f8-1233-4f9e-8d3e-53c25d78ecf1'
     ),
     (
-        '0aecf569-9165-4a37-8fd2-a4e897bee7e2',
-        '4165f541-21a7-407f-abab-55824ece5908'
+        'ca6e7403-02eb-429e-b034-372732d9e010',
+        'ca0cd3c2-5da4-45f0-b289-a8f2f6aaa35a'
     ),
     (
-        'c09a94c0-c244-490b-994f-01fe0b0d919c',
-        'd27ce94f-3d06-4ffa-9062-9fc73b406055'
+        'b3990bd3-82a9-452a-ac13-d304cce0e771',
+        '05cc4aaa-5215-4d96-acc4-24a803b076ba'
     ),
     (
-        '0aecf569-9165-4a37-8fd2-a4e897bee7e2',
-        '6763fee7-496c-444d-9a76-13da3895cb64'
+        'ca6e7403-02eb-429e-b034-372732d9e010',
+        'e2c62742-b56d-4461-aadf-d0b217c4cb24'
     ),
     (
-        '169bb890-b034-4c69-81fb-1a20358e83fa',
-        '35ec03e5-2280-47c9-994c-ef17e35a2ec0'
+        '669610ae-e145-46b2-9f6f-ab964b45e919',
+        'cd54dab7-227a-4526-831e-820d42101c8d'
     ),
     (
-        'dea8b5ec-37f8-4a0f-92b7-54952ce0fd60',
-        'a28289a5-9490-4ede-acf0-5a27d13cdfa7'
+        '62c2167d-4a74-4a17-9543-7fdddaa4596f',
+        'd333487e-2324-4afa-967e-7a8ab6d4306b'
     ),
     (
-        'dea8b5ec-37f8-4a0f-92b7-54952ce0fd60',
-        '3df42c5b-66a0-4dcc-b914-950f06fd8dd0'
+        '62c2167d-4a74-4a17-9543-7fdddaa4596f',
+        '04fb21ac-be67-4314-b759-714cc57fe1cc'
     ),
     (
-        '0aecf569-9165-4a37-8fd2-a4e897bee7e2',
-        'fc8edeeb-d4fb-415f-a6ba-83b2587b9609'
+        'ca6e7403-02eb-429e-b034-372732d9e010',
+        'e483e13b-6017-4773-897f-0b9bb3396c39'
     ),
     (
-        'bd01fdd9-6c07-44d1-a0ef-e2b0ef499a1e',
-        '796c7d6d-d7ea-407c-b02e-74df22241290'
+        'bc81293e-9a2c-4b83-95f5-518144be5d4a',
+        '00b282e8-3804-4643-9f40-7d1a19982e0a'
     ),
     (
-        'dea8b5ec-37f8-4a0f-92b7-54952ce0fd60',
-        'a0aa7e9b-c4c2-4a8a-9d7b-3cd0b71beaca'
+        '62c2167d-4a74-4a17-9543-7fdddaa4596f',
+        'c2d6cdea-13c5-4dd5-91c6-9acac8246f3a'
     ),
     (
-        'dea8b5ec-37f8-4a0f-92b7-54952ce0fd60',
-        'a0ac13b6-13a1-492e-be9c-314019ac1b64'
+        '62c2167d-4a74-4a17-9543-7fdddaa4596f',
+        'fcf976d0-795d-45b9-8453-1227555b920d'
     ),
     (
-        'dea8b5ec-37f8-4a0f-92b7-54952ce0fd60',
-        '8ae19ed6-4f64-4bcc-9a24-478ed28a82e0'
+        '62c2167d-4a74-4a17-9543-7fdddaa4596f',
+        '82f42079-2bc4-4e2f-88b9-3dcd378623f4'
     ),
     (
-        '1a914051-79e1-43bf-998f-96b159b1aa0c',
-        '6f3c0f8f-d80f-4e0c-a9e1-0c62e746c624'
+        '56241fb6-fd2c-4c88-9b00-42aa1bf66b86',
+        '1f71e256-e0b9-4f39-bf56-0ccf1c1d8e5d'
     ),
     (
-        '1a914051-79e1-43bf-998f-96b159b1aa0c',
-        '0c22d135-54e6-424a-9f12-129853251fde'
+        '56241fb6-fd2c-4c88-9b00-42aa1bf66b86',
+        'd9462687-7588-4341-a053-7472570c3222'
     ),
     (
-        'dea8b5ec-37f8-4a0f-92b7-54952ce0fd60',
-        '3ad83178-7483-401f-b21e-870936db2376'
+        '62c2167d-4a74-4a17-9543-7fdddaa4596f',
+        '2c8158cd-513d-46da-9425-128b2ea1e522'
     ),
     (
-        'dea8b5ec-37f8-4a0f-92b7-54952ce0fd60',
-        '1160f5d9-c54d-4de3-a58e-64cfb5818cec'
+        '62c2167d-4a74-4a17-9543-7fdddaa4596f',
+        '8d0fad3e-2cc2-4784-871e-a47c946e3770'
     ),
     (
-        'dea8b5ec-37f8-4a0f-92b7-54952ce0fd60',
-        '29ee2cec-a901-4ff9-b1f3-9265cba92c77'
+        '62c2167d-4a74-4a17-9543-7fdddaa4596f',
+        '75a9a95d-360d-4428-8bf4-fd7a8bcf29dd'
     ),
     (
-        'dea8b5ec-37f8-4a0f-92b7-54952ce0fd60',
-        '322a000d-6a7c-4d60-89f1-69ae3304ca7c'
+        '62c2167d-4a74-4a17-9543-7fdddaa4596f',
+        'b9b5abdd-3cf0-4077-910f-55e2de11968f'
     ),
     (
-        'dea8b5ec-37f8-4a0f-92b7-54952ce0fd60',
-        'f55cf1a6-b0ea-4240-8b78-b2e32cd0ffa6'
+        '62c2167d-4a74-4a17-9543-7fdddaa4596f',
+        '4014e912-9b13-4145-8fda-a70a9ed12de4'
     ),
     (
-        '1a914051-79e1-43bf-998f-96b159b1aa0c',
-        '27690871-a249-4361-a84e-fbd778a5c229'
+        '56241fb6-fd2c-4c88-9b00-42aa1bf66b86',
+        'b8d715b0-2642-42ab-8ab4-1afb32f4adb4'
     ),
     (
-        'a7207eac-2526-4ec1-88b7-a6d3b4e8fd2c',
-        'b96c164b-6584-4a75-9c84-dff11e90aec2'
+        'a84cd579-8020-43d0-a2e3-7970cbfdc1fa',
+        '26b7b073-6621-4fea-9099-eff31f926e96'
     ),
     (
-        'dea8b5ec-37f8-4a0f-92b7-54952ce0fd60',
-        '69ea6b66-7d58-4e0d-ba1f-e003f19cca06'
+        '62c2167d-4a74-4a17-9543-7fdddaa4596f',
+        '248bf0b3-e2e5-495d-b360-8ca3e8ee4a1b'
     ),
     (
-        'dea8b5ec-37f8-4a0f-92b7-54952ce0fd60',
-        '1366c587-66e0-4f33-b05d-98a980e0264b'
+        '62c2167d-4a74-4a17-9543-7fdddaa4596f',
+        '2d41316d-85b5-45ff-ae76-16a6735cd663'
     ),
     (
-        '19f116a9-53d6-4804-bf72-96fcc346dbd6',
-        'fc13f168-f4a1-4b6b-9be3-044242fb26da'
+        '49b767d1-bf90-4d0c-be9b-abe5f2cb43cf',
+        'cceceab0-b39e-41ed-8843-e83a1f6fcfd7'
     ),
     (
-        '19f116a9-53d6-4804-bf72-96fcc346dbd6',
-        '84254ff1-db71-4de9-ace1-c3991c9ccf2e'
+        '49b767d1-bf90-4d0c-be9b-abe5f2cb43cf',
+        'f1514c55-0c7a-46da-8e50-9673884b1239'
     ),
     (
-        '0aecf569-9165-4a37-8fd2-a4e897bee7e2',
-        '47d71c34-aebd-4772-96a3-121bf61583f8'
+        'ca6e7403-02eb-429e-b034-372732d9e010',
+        'e3b3fe4e-93b8-46d0-8978-146bfefff074'
     ),
     (
-        'dea8b5ec-37f8-4a0f-92b7-54952ce0fd60',
-        '2004235b-7edf-48da-9ef0-003545cbe2c7'
+        '62c2167d-4a74-4a17-9543-7fdddaa4596f',
+        '77b4262b-f494-4534-ae0e-bf991570f165'
     ),
     (
-        '459a4902-2100-4b7d-9474-0cbf07c95250',
-        'fc362d1b-a5ff-4331-9662-7abada6031d6'
+        'e72cb193-a1e8-4244-81ea-008e44e272b1',
+        '1305466e-0b0c-4d29-a832-24a2c170a027'
     ),
     (
-        '169bb890-b034-4c69-81fb-1a20358e83fa',
-        'ad9d3e04-83a6-48f8-9734-8455a9b97c94'
+        '669610ae-e145-46b2-9f6f-ab964b45e919',
+        '12b2b52c-cf5c-4919-8e93-6e9d45df32e1'
     ),
     (
-        '169bb890-b034-4c69-81fb-1a20358e83fa',
-        'fc1f4497-a585-4f56-bfcc-8653648c8f49'
+        '669610ae-e145-46b2-9f6f-ab964b45e919',
+        'bf006af9-0d1f-49cf-a63e-56bd67a8be08'
     ),
     (
-        'a7207eac-2526-4ec1-88b7-a6d3b4e8fd2c',
-        'c220e412-6cf1-4dc0-a94f-afd88b1b5d57'
+        'a84cd579-8020-43d0-a2e3-7970cbfdc1fa',
+        '0741e7ef-4a36-4881-a068-04d37d15179e'
     ),
     (
-        'a7207eac-2526-4ec1-88b7-a6d3b4e8fd2c',
-        '827276ef-27da-409d-813a-eab2495e8ac6'
+        'a84cd579-8020-43d0-a2e3-7970cbfdc1fa',
+        'c9ff690f-c992-47c1-99df-b0ac7b67a20e'
     ),
     (
-        'c09a94c0-c244-490b-994f-01fe0b0d919c',
-        'd8b6e7b6-9c1b-4c8c-85ac-a7d547123b0a'
+        'b3990bd3-82a9-452a-ac13-d304cce0e771',
+        '9c22e37d-4a8f-4197-9ad8-7e64cf61a16c'
     ),
     (
-        '0aecf569-9165-4a37-8fd2-a4e897bee7e2',
-        'ec9da051-5c27-4acc-8ee7-4c2d1264b786'
+        'ca6e7403-02eb-429e-b034-372732d9e010',
+        'b8132bec-aa9f-49dd-95da-2475c6a9baf0'
     ),
     (
-        '65b237f1-2acb-457c-99b8-c64024eed172',
-        '904fe23e-01d9-49fd-906b-01e59deea454'
+        '5246c5d2-f2d3-4fc1-9232-054105c1fe02',
+        'cde307f0-e9ae-4c14-8ada-21b3b1011a60'
     ),
     (
-        '0aecf569-9165-4a37-8fd2-a4e897bee7e2',
-        '656237f5-f389-43dc-ba17-cb3e9c5849ec'
+        'ca6e7403-02eb-429e-b034-372732d9e010',
+        '8febfe22-9777-4e5b-8a13-f0cb9a85d2b9'
     ),
     (
-        '33d95c9b-83b8-464c-aef8-95bc702adc7e',
-        '2490f8c2-8f80-4176-b30a-1734386066e4'
+        '2c183c7f-a67f-4811-8c90-af5317825510',
+        '3b299632-3e3d-4ee5-86a4-7327c53f0cea'
     ),
     (
-        '97427141-5463-4e5c-a50e-f5cbf7b38086',
-        '2d8ceff5-fa57-4881-ac5c-fdc14f3ea60a'
+        '59286979-bec5-409d-81a8-570517e0049c',
+        'aa4c9b49-c102-49c2-8ee1-a0639ad7d4e7'
     ),
     (
-        '0aecf569-9165-4a37-8fd2-a4e897bee7e2',
-        'fe928524-4f6b-45a7-9da5-ebdd167d22ee'
+        'ca6e7403-02eb-429e-b034-372732d9e010',
+        '32f4114f-2c64-4341-9fcb-79cd3d11bdb4'
     ),
     (
-        '0aecf569-9165-4a37-8fd2-a4e897bee7e2',
-        'c106d9ac-831e-4969-9409-2cbccec91c18'
+        'ca6e7403-02eb-429e-b034-372732d9e010',
+        'c70f425c-1775-410d-b534-1ad11b72eaf7'
     ),
     (
-        '0aecf569-9165-4a37-8fd2-a4e897bee7e2',
-        '31efd74b-2d9c-489a-9c74-fce5ee4a86a6'
+        'ca6e7403-02eb-429e-b034-372732d9e010',
+        '2575fa25-5776-49a8-af0e-10581cca9bb6'
     ),
     (
-        '0aecf569-9165-4a37-8fd2-a4e897bee7e2',
-        '9db62c89-841d-43c6-9a7d-60c9a8b53158'
+        'ca6e7403-02eb-429e-b034-372732d9e010',
+        'fd4bb9bb-9f99-4a8d-bab1-b63fbdef281c'
     ),
     (
-        '0aecf569-9165-4a37-8fd2-a4e897bee7e2',
-        '26502954-a6cc-4e2b-ba96-f5bd330953e1'
+        'ca6e7403-02eb-429e-b034-372732d9e010',
+        '94427abd-60ba-469c-8dba-504a98cfccef'
     ),
     (
-        'dea8b5ec-37f8-4a0f-92b7-54952ce0fd60',
-        '5d32c8fb-2a94-4926-8361-1c01c87b3d1f'
+        '62c2167d-4a74-4a17-9543-7fdddaa4596f',
+        '597fbbbd-509f-45a5-a65f-e42024de36b8'
     ),
     (
-        'dea8b5ec-37f8-4a0f-92b7-54952ce0fd60',
-        '361b9210-5ea7-4d22-8b3a-396f272a6e65'
+        '62c2167d-4a74-4a17-9543-7fdddaa4596f',
+        '72ce1073-0ea5-4098-840b-7489126065ad'
     ),
     (
-        'bd01fdd9-6c07-44d1-a0ef-e2b0ef499a1e',
-        '3fb32311-5d91-44a2-8a81-cfa56211b12e'
+        'bc81293e-9a2c-4b83-95f5-518144be5d4a',
+        '9a443f61-9cac-47de-97be-5c7fa9911b91'
     ),
     (
-        'dea8b5ec-37f8-4a0f-92b7-54952ce0fd60',
-        '1ec6f9f3-b569-4c00-be6a-e6780db3f95e'
+        '62c2167d-4a74-4a17-9543-7fdddaa4596f',
+        'dfd9740c-6a66-4023-9538-1c4378133649'
     ),
     (
-        'dea8b5ec-37f8-4a0f-92b7-54952ce0fd60',
-        '493d8750-0408-4c63-968b-57ef60d20ba2'
+        '62c2167d-4a74-4a17-9543-7fdddaa4596f',
+        '7130fd92-3bca-43d4-bfba-722229fe3298'
     ),
     (
-        'dea8b5ec-37f8-4a0f-92b7-54952ce0fd60',
-        '808e1233-536b-4f00-a28e-9d8972caeca1'
+        '62c2167d-4a74-4a17-9543-7fdddaa4596f',
+        '10998d26-c75c-4b25-b866-14f8c1ababb3'
     ),
     (
-        '1a914051-79e1-43bf-998f-96b159b1aa0c',
-        '9a07122f-7ae6-4768-ab2d-daeda77db07c'
+        '56241fb6-fd2c-4c88-9b00-42aa1bf66b86',
+        '9350dee8-f507-4393-97ad-ef4d8140744f'
     ),
     (
-        '1a914051-79e1-43bf-998f-96b159b1aa0c',
-        '48e16e73-38d4-4e5b-b257-660cb5505f11'
+        '56241fb6-fd2c-4c88-9b00-42aa1bf66b86',
+        '3b076323-bbb3-4d33-ac49-2f08763d006f'
     ),
     (
-        '1a914051-79e1-43bf-998f-96b159b1aa0c',
-        'ddb56fd4-6597-4dd7-b2bc-c3b814233ba4'
+        '56241fb6-fd2c-4c88-9b00-42aa1bf66b86',
+        'e63c785f-3710-4a3a-8149-9fee48324717'
     ),
     (
-        'dea8b5ec-37f8-4a0f-92b7-54952ce0fd60',
-        '13870506-6706-4726-82b0-f84e366fdc7b'
+        '62c2167d-4a74-4a17-9543-7fdddaa4596f',
+        '62393742-64ae-42ea-b083-bd8c38b6396a'
     ),
     (
-        'dea8b5ec-37f8-4a0f-92b7-54952ce0fd60',
-        '4e3555ce-3c28-4766-8a3d-8abef939c7e4'
+        '62c2167d-4a74-4a17-9543-7fdddaa4596f',
+        '0d940dcf-1595-4409-bb1a-c353fbb02c69'
     ),
     (
-        '65b237f1-2acb-457c-99b8-c64024eed172',
-        '0a5c9dbc-b475-44a8-a439-893032630c85'
+        '5246c5d2-f2d3-4fc1-9232-054105c1fe02',
+        '8c51476d-6e92-43a3-8f10-947c1f8a35bc'
     ),
     (
-        '65b237f1-2acb-457c-99b8-c64024eed172',
-        'ae01cd6f-7659-4b05-94d7-e6fa014d4118'
+        '5246c5d2-f2d3-4fc1-9232-054105c1fe02',
+        '14d85681-ba1b-476c-a312-369997bdba37'
     ),
     (
-        '459a4902-2100-4b7d-9474-0cbf07c95250',
-        '6e20d53b-d119-477d-bff5-fd221fd5d363'
+        'e72cb193-a1e8-4244-81ea-008e44e272b1',
+        '1ea39ab9-0333-4e53-8c9b-01f89046e4cd'
     ),
     (
-        '19f116a9-53d6-4804-bf72-96fcc346dbd6',
-        '4d57474c-4cc0-4d0b-b3fb-67c786a52ed1'
+        '49b767d1-bf90-4d0c-be9b-abe5f2cb43cf',
+        '3299c0f9-6b7b-43a1-a0fd-d7ae6fb6c168'
     ),
     (
-        '0aecf569-9165-4a37-8fd2-a4e897bee7e2',
-        '05238e67-7f2c-43cf-8442-f9c8ca2654c3'
+        'ca6e7403-02eb-429e-b034-372732d9e010',
+        '51dc9a7b-c70a-4383-93e0-3f40b0781794'
     ),
     (
-        '0aecf569-9165-4a37-8fd2-a4e897bee7e2',
-        '20fc8ad4-dd67-429d-bcfd-f137a70d1065'
+        'ca6e7403-02eb-429e-b034-372732d9e010',
+        'd243e55a-4b6a-40b3-b2f9-c9caf716cfba'
     ),
     (
-        '0aecf569-9165-4a37-8fd2-a4e897bee7e2',
-        '19087016-6487-47fd-ba75-3f23d4f05f2f'
+        'ca6e7403-02eb-429e-b034-372732d9e010',
+        '5a093e5b-0ddf-47f3-9b39-dcea109b268b'
     ),
     (
-        '0aecf569-9165-4a37-8fd2-a4e897bee7e2',
-        '1170a027-31c5-4f24-9024-c8fe682d411f'
+        'ca6e7403-02eb-429e-b034-372732d9e010',
+        'de844675-e5f5-4675-adad-9e6d76988b35'
     ),
     (
-        '9ec16055-f735-4768-a400-65e6cb388c6f',
-        '8455e566-b4a4-4696-8d5d-fafed53dbf62'
+        'ec5b2e78-a977-438f-b33c-2c39039f7903',
+        '365f4cd5-a36d-4ae4-b7cb-87442e560b16'
     ),
     (
-        '0aecf569-9165-4a37-8fd2-a4e897bee7e2',
-        'd9e741f0-3c34-4f92-b0c1-81c166b98e81'
+        'ca6e7403-02eb-429e-b034-372732d9e010',
+        'a3dbb72d-59dc-44af-a701-bcf717ad2a6e'
     ),
     (
-        '0aecf569-9165-4a37-8fd2-a4e897bee7e2',
-        '125b1215-77be-4f74-8ef9-199327d40b90'
+        'ca6e7403-02eb-429e-b034-372732d9e010',
+        '786dc423-eff8-4bb8-8950-38bbad18b083'
     ),
     (
-        'dea8b5ec-37f8-4a0f-92b7-54952ce0fd60',
-        'dc19cb20-449c-4803-9455-7213ff6d7a29'
+        '62c2167d-4a74-4a17-9543-7fdddaa4596f',
+        '4d60029a-1691-41e1-8418-4aa1f554c409'
     ),
     (
-        'dea8b5ec-37f8-4a0f-92b7-54952ce0fd60',
-        '5988927f-6c8c-4c45-a7a5-2efa6ec006a6'
+        '62c2167d-4a74-4a17-9543-7fdddaa4596f',
+        'bb0a660b-0cf7-4a5a-aa29-43ceab35eefc'
     ),
     (
-        'dea8b5ec-37f8-4a0f-92b7-54952ce0fd60',
-        '44baed8c-465c-4a5e-a19e-e33a1c10bf55'
+        '62c2167d-4a74-4a17-9543-7fdddaa4596f',
+        '786b9e05-aebe-445d-b396-9ce1bc110b56'
     ),
     (
-        'a7207eac-2526-4ec1-88b7-a6d3b4e8fd2c',
-        '114c5ba4-773f-4055-8719-a53ce04f0097'
+        'a84cd579-8020-43d0-a2e3-7970cbfdc1fa',
+        '387ca2e5-ab36-4ee2-9570-f54e468aa9ba'
     ),
     (
-        '1a914051-79e1-43bf-998f-96b159b1aa0c',
-        '9642b83e-bdd4-4517-a6af-967ff3a0e8db'
+        '56241fb6-fd2c-4c88-9b00-42aa1bf66b86',
+        '29d3c8f4-1b20-4d67-b538-dc1d25259c75'
     ),
     (
-        'a7207eac-2526-4ec1-88b7-a6d3b4e8fd2c',
-        '0871419b-fd71-4ffb-8847-d12b2fb1ef86'
+        'a84cd579-8020-43d0-a2e3-7970cbfdc1fa',
+        '24b10184-bad9-4f4c-a3a7-d4a343af2f43'
     ),
     (
-        '19f116a9-53d6-4804-bf72-96fcc346dbd6',
-        '6c60df4a-05d1-4abf-8b5a-5070e291e8d1'
+        '49b767d1-bf90-4d0c-be9b-abe5f2cb43cf',
+        '5cdc97f8-0767-4d3a-99a0-787623bdbbf5'
     ),
     (
-        '19f116a9-53d6-4804-bf72-96fcc346dbd6',
-        '9685269e-73f2-4f87-9650-961b94ac3708'
+        '49b767d1-bf90-4d0c-be9b-abe5f2cb43cf',
+        '1742c584-80b9-4c11-9d6e-50f90acda5f1'
     ),
     (
-        'ecd20aba-dd59-4b37-b6ed-71beb9ad95b3',
-        '013e253b-7209-4a0a-980c-5395919ece34'
+        '4b9ebcea-07aa-4d8a-8c0c-f39f1e0ff4fa',
+        'd034f855-ae23-482f-b803-13e4cf2c1a8f'
     ),
     (
-        '65b237f1-2acb-457c-99b8-c64024eed172',
-        '95328179-0861-4892-a33e-806ad31ce49c'
+        '5246c5d2-f2d3-4fc1-9232-054105c1fe02',
+        'e38e6835-5792-4c4f-9141-b081a29665de'
     ),
     (
-        '169bb890-b034-4c69-81fb-1a20358e83fa',
-        'ff9653d0-b7a0-4900-89ed-08205c6bf020'
+        '669610ae-e145-46b2-9f6f-ab964b45e919',
+        '01111fc5-2b1d-41fd-a9e7-ba5dedaef333'
     ),
     (
-        '65b237f1-2acb-457c-99b8-c64024eed172',
-        'b8ccbb5e-0199-45f1-aa97-899984131984'
+        '5246c5d2-f2d3-4fc1-9232-054105c1fe02',
+        '4e3e2e52-cdb3-4473-9616-3abb834f048c'
     ),
     (
-        '169bb890-b034-4c69-81fb-1a20358e83fa',
-        'b90878c6-bd60-4091-9110-522d2bcea2e8'
+        '669610ae-e145-46b2-9f6f-ab964b45e919',
+        '55d7ed70-73cd-41de-81af-d6e18a6ef323'
     ),
     (
-        '169bb890-b034-4c69-81fb-1a20358e83fa',
-        'f1fd8053-09e2-42e0-a5b5-1c7eb8290c3f'
+        '669610ae-e145-46b2-9f6f-ab964b45e919',
+        '71ee0070-d248-4411-92c6-a730cfaa5e8a'
     ),
     (
-        '720d266e-38a6-4686-b68f-09e1512bc96d',
-        'e9644720-98be-48be-9d71-f41a8d312ec3'
+        'aa9ae11c-ac6a-4d1d-a462-d4087d5236f0',
+        '69dabe41-fe67-4b4e-aedb-ff7182ae317a'
     ),
     (
-        '720d266e-38a6-4686-b68f-09e1512bc96d',
-        '6c5b4d88-6d66-48a8-ad67-cbc682967df9'
+        'aa9ae11c-ac6a-4d1d-a462-d4087d5236f0',
+        'f2f40edb-36d6-41c1-9721-8c5360280ea5'
     ),
     (
-        '720d266e-38a6-4686-b68f-09e1512bc96d',
-        'd8dfc4e6-1d4b-4006-b2d4-18171a50ea50'
+        'aa9ae11c-ac6a-4d1d-a462-d4087d5236f0',
+        '2d61f979-4364-4429-931b-e79a574de01b'
     ),
     (
-        '720d266e-38a6-4686-b68f-09e1512bc96d',
-        '49d4fb8a-1a28-4b06-a40c-98de22ecc09c'
+        'aa9ae11c-ac6a-4d1d-a462-d4087d5236f0',
+        '57ebec87-bed5-43ca-902e-8a98b335ca71'
     ),
     (
-        '720d266e-38a6-4686-b68f-09e1512bc96d',
-        '6d5ff716-904f-4628-95e7-e496b7ac6383'
+        'aa9ae11c-ac6a-4d1d-a462-d4087d5236f0',
+        '8775144c-8fc1-4d38-a9d8-dd2aeda366a2'
     ),
     (
-        '720d266e-38a6-4686-b68f-09e1512bc96d',
-        '1d1f80b9-1098-49b6-bced-ea12dccd24e2'
+        'aa9ae11c-ac6a-4d1d-a462-d4087d5236f0',
+        '811fe8c9-60b8-41ef-9c12-6b15b89bf7fc'
     ),
     (
-        '0aecf569-9165-4a37-8fd2-a4e897bee7e2',
-        'f3d525cc-b819-4ece-8c82-9d6873928080'
+        'ca6e7403-02eb-429e-b034-372732d9e010',
+        '789c9d2e-cdf6-447f-865e-8c010f958095'
     ),
     (
-        '0aecf569-9165-4a37-8fd2-a4e897bee7e2',
-        'f436d7b3-074d-41ce-8fc3-cad2ed8e2087'
+        'ca6e7403-02eb-429e-b034-372732d9e010',
+        '49a0051c-cc47-41e1-b5ca-c94c2f8433f0'
     ),
     (
-        '459a4902-2100-4b7d-9474-0cbf07c95250',
-        '5f6161f8-9caf-41c5-ae43-3034af9e4042'
+        'e72cb193-a1e8-4244-81ea-008e44e272b1',
+        'f2f66433-898d-482f-90e0-53b6cef9f2a6'
     ),
     (
-        '9ec16055-f735-4768-a400-65e6cb388c6f',
-        '52ea5fbf-7f6a-4d32-b366-16d17cbeeb36'
+        'ec5b2e78-a977-438f-b33c-2c39039f7903',
+        'e42f8a04-3a02-4d4a-a265-4312494f0d6a'
     ),
     (
-        '19f116a9-53d6-4804-bf72-96fcc346dbd6',
-        '4533ce20-5a98-49e4-9b87-41e5cdfa7e95'
+        '49b767d1-bf90-4d0c-be9b-abe5f2cb43cf',
+        'a01cf86d-8f01-45d7-b239-d91d31da1bb7'
     ),
     (
-        '33d95c9b-83b8-464c-aef8-95bc702adc7e',
-        '1eb4d50a-29e7-450a-860a-724ac05baafd'
+        '2c183c7f-a67f-4811-8c90-af5317825510',
+        '1bc2ee88-2847-460d-8d2a-34e43edf1bc4'
     ),
     (
-        '33d95c9b-83b8-464c-aef8-95bc702adc7e',
-        '08bd3e6d-07d0-4257-aaae-2092f9801495'
+        '2c183c7f-a67f-4811-8c90-af5317825510',
+        'b0afef83-4f3f-49d5-ba4b-af4c7f652059'
     ),
     (
-        '169bb890-b034-4c69-81fb-1a20358e83fa',
-        '45237a39-ab57-49e8-8328-0fcac848b8e4'
+        '669610ae-e145-46b2-9f6f-ab964b45e919',
+        '514fd549-c6d8-40c1-90f2-1a3bbe8f6ea5'
     ),
     (
-        '169bb890-b034-4c69-81fb-1a20358e83fa',
-        '957c5a3b-d6dc-4d06-b19d-1fedbdcb9184'
+        '669610ae-e145-46b2-9f6f-ab964b45e919',
+        '52a346e4-a17a-4260-8c60-aa197118a322'
     ),
     (
-        '169bb890-b034-4c69-81fb-1a20358e83fa',
-        '3aafaa68-960a-49c6-a274-18af991ee6ad'
+        '669610ae-e145-46b2-9f6f-ab964b45e919',
+        'c5f6d48a-2126-49dc-b920-351b8ff5eb2d'
     ),
     (
-        'a7207eac-2526-4ec1-88b7-a6d3b4e8fd2c',
-        '6ba0d48d-ff18-41c1-80af-c272c396aecd'
+        'a84cd579-8020-43d0-a2e3-7970cbfdc1fa',
+        '6bdb8df4-5af4-4143-a08d-74827ecf0a81'
     ),
     (
-        '0aecf569-9165-4a37-8fd2-a4e897bee7e2',
-        'd8ec976e-98ee-465a-8347-61fac169e018'
+        'ca6e7403-02eb-429e-b034-372732d9e010',
+        '68e42658-235d-4ca1-841c-4383792ae90b'
     ),
     (
-        'c09a94c0-c244-490b-994f-01fe0b0d919c',
-        '2d80fbdd-e8de-4bb5-9142-2e7b78eb3e71'
+        'b3990bd3-82a9-452a-ac13-d304cce0e771',
+        'd64aca51-7663-428c-be18-0fd551d6acf2'
     ),
     (
-        '459a4902-2100-4b7d-9474-0cbf07c95250',
-        'ebb7ee4c-58e3-495b-9615-4338c59f7bad'
+        'e72cb193-a1e8-4244-81ea-008e44e272b1',
+        '6c2ec1b4-a4d2-4671-b86f-796c8f09ac31'
     ),
     (
-        '19f116a9-53d6-4804-bf72-96fcc346dbd6',
-        'aacf630e-590c-475f-8104-4c500619fe8e'
+        '49b767d1-bf90-4d0c-be9b-abe5f2cb43cf',
+        'd56276e7-ca84-4682-bd94-81991b4de6fc'
     ),
     (
-        '0aecf569-9165-4a37-8fd2-a4e897bee7e2',
-        '6c0e051e-aa37-4d9b-964c-d9eed027a2d3'
+        'ca6e7403-02eb-429e-b034-372732d9e010',
+        '6c930c68-5498-4923-aa0b-f4c2ab904af3'
     ),
     (
-        '0aecf569-9165-4a37-8fd2-a4e897bee7e2',
-        '482552df-cdcd-4516-a46c-9dbd4c63ba3a'
+        'ca6e7403-02eb-429e-b034-372732d9e010',
+        '8d452e39-9b64-4af9-a376-9fd6d281173f'
     ),
     (
-        '9ec16055-f735-4768-a400-65e6cb388c6f',
-        '0bd9a9d2-46c1-4f50-90a5-9777da516168'
+        'ec5b2e78-a977-438f-b33c-2c39039f7903',
+        '899054b9-d9f3-41b8-a79e-23fcb47a62a8'
     ),
     (
-        '9ec16055-f735-4768-a400-65e6cb388c6f',
-        'fc667e38-dbb6-4b9e-a61f-14c3baf12835'
+        'ec5b2e78-a977-438f-b33c-2c39039f7903',
+        'f3bbe710-573c-45db-908b-bb77b8e5910b'
     ),
     (
-        '0aecf569-9165-4a37-8fd2-a4e897bee7e2',
-        '2603048f-0158-4877-9875-f13b5b1f5c8a'
+        'ca6e7403-02eb-429e-b034-372732d9e010',
+        'aaa140b5-b2af-414c-b5fc-d459fcae52ec'
     ),
     (
-        '33d95c9b-83b8-464c-aef8-95bc702adc7e',
-        'b4cfd222-4cbe-497f-af22-57e81af50ece'
+        '2c183c7f-a67f-4811-8c90-af5317825510',
+        'b99d2cde-fedb-491d-810c-50875ad30b1c'
     ),
     (
-        '97427141-5463-4e5c-a50e-f5cbf7b38086',
-        '257d28f4-0601-4bb9-8c84-e8fdc0c6696c'
+        '59286979-bec5-409d-81a8-570517e0049c',
+        '29c8f8d4-1515-42c5-b1c5-0fa6dd32aa52'
     ),
     (
-        '0aecf569-9165-4a37-8fd2-a4e897bee7e2',
-        '6946aaf6-1d84-468c-aee5-ab97ac2e652f'
+        'ca6e7403-02eb-429e-b034-372732d9e010',
+        '6c20f823-8ea4-4858-bba5-7405d98b598b'
     ),
     (
-        'bd01fdd9-6c07-44d1-a0ef-e2b0ef499a1e',
-        'd467c64f-ca17-4acc-915e-28d4dcb16c18'
+        'bc81293e-9a2c-4b83-95f5-518144be5d4a',
+        'e8876b36-6167-4cc0-aa54-41e6ee1988f8'
     ),
     (
-        '459a4902-2100-4b7d-9474-0cbf07c95250',
-        'd8105d31-ad0e-4894-b0b6-bf604b70d65a'
+        'e72cb193-a1e8-4244-81ea-008e44e272b1',
+        '2b5c3faf-338b-4837-ae2f-61e45e43143f'
     ),
     (
-        '459a4902-2100-4b7d-9474-0cbf07c95250',
-        'b1b32f71-0d3f-43d7-a591-87663f070081'
+        'e72cb193-a1e8-4244-81ea-008e44e272b1',
+        '194f1fec-9ebb-499e-958c-be5c3617f549'
     ),
     (
-        'dea8b5ec-37f8-4a0f-92b7-54952ce0fd60',
-        'c1c69d4b-9504-45ed-92b4-95101db027af'
+        '62c2167d-4a74-4a17-9543-7fdddaa4596f',
+        'a681a84d-25b8-4b68-8339-93e381227d06'
     ),
     (
-        'dea8b5ec-37f8-4a0f-92b7-54952ce0fd60',
-        'a2b54e64-1b67-45d3-89e5-0f7c389a6151'
+        '62c2167d-4a74-4a17-9543-7fdddaa4596f',
+        'a54eafb5-c533-41a9-ad2d-2f9fd1de44d4'
     ),
     (
-        '0aecf569-9165-4a37-8fd2-a4e897bee7e2',
-        '32d13152-f6e9-4f6d-90ad-630c82fcf17b'
+        'ca6e7403-02eb-429e-b034-372732d9e010',
+        '48b7ad21-d23d-419f-b744-0bdfbf560c4b'
     ),
     (
-        'bd01fdd9-6c07-44d1-a0ef-e2b0ef499a1e',
-        '523b0701-ceaa-4ef9-bbca-3f7c795a6a21'
+        'bc81293e-9a2c-4b83-95f5-518144be5d4a',
+        'a0ed142b-1682-4c92-b7d5-a7809188c797'
     ),
     (
-        'dea8b5ec-37f8-4a0f-92b7-54952ce0fd60',
-        '3395c1b9-0331-4852-a2fa-d4eaa10042aa'
+        '62c2167d-4a74-4a17-9543-7fdddaa4596f',
+        '9a04dcdd-6a3a-4a55-bc98-db6200239c71'
     ),
     (
-        'dea8b5ec-37f8-4a0f-92b7-54952ce0fd60',
-        '5c511e61-cea5-41c8-8385-5a80df68be3c'
+        '62c2167d-4a74-4a17-9543-7fdddaa4596f',
+        'f29c2e52-48c0-4539-b2a4-f16979fbdbe3'
     ),
     (
-        'dea8b5ec-37f8-4a0f-92b7-54952ce0fd60',
-        'c7733531-af4d-4289-a750-2208e7675d1a'
+        '62c2167d-4a74-4a17-9543-7fdddaa4596f',
+        '346f5a07-f65e-45f7-af39-46768544a128'
     ),
     (
-        '1a914051-79e1-43bf-998f-96b159b1aa0c',
-        'c84eb3d4-c0cc-4a62-96d8-062b0b5c6652'
+        '56241fb6-fd2c-4c88-9b00-42aa1bf66b86',
+        '9d1930c5-8aa7-4007-9649-fd0c8517dbf1'
     ),
     (
-        '1a914051-79e1-43bf-998f-96b159b1aa0c',
-        '12c76ac7-573c-4def-80b6-879b82542c20'
+        '56241fb6-fd2c-4c88-9b00-42aa1bf66b86',
+        'cc99f64b-2cc9-4799-9049-48b94c005248'
     ),
     (
-        '1a914051-79e1-43bf-998f-96b159b1aa0c',
-        '04056659-cd32-4485-a52d-9f52e4539122'
+        '56241fb6-fd2c-4c88-9b00-42aa1bf66b86',
+        '5cc120fe-82a6-40ed-9b52-93d4f7626e95'
     ),
     (
-        'dea8b5ec-37f8-4a0f-92b7-54952ce0fd60',
-        '07e127fe-a5fc-4abe-a64e-d29e7c5f529c'
+        '62c2167d-4a74-4a17-9543-7fdddaa4596f',
+        '8df403e1-fdf8-44f7-a94e-c1b5657417ce'
     ),
     (
-        'dea8b5ec-37f8-4a0f-92b7-54952ce0fd60',
-        'c2f5a8be-1263-44ff-a8f4-e0237591851f'
+        '62c2167d-4a74-4a17-9543-7fdddaa4596f',
+        '793713a0-e218-42f6-8cc9-7fdf2840f031'
     ),
     (
-        '459a4902-2100-4b7d-9474-0cbf07c95250',
-        'b1698d70-45db-4d17-a3d5-c4abfaa879b9'
+        'e72cb193-a1e8-4244-81ea-008e44e272b1',
+        '4852796d-c9fb-4256-ac23-9d0dc2f9dc11'
     ),
     (
-        '459a4902-2100-4b7d-9474-0cbf07c95250',
-        'dc9302e3-9b71-4bcd-9a0b-cd449e769f3e'
+        'e72cb193-a1e8-4244-81ea-008e44e272b1',
+        '33a1f2a8-691e-4658-b091-b3f3ee4722e0'
     ),
     (
-        '19f116a9-53d6-4804-bf72-96fcc346dbd6',
-        'ed09f4b6-747f-415c-bdab-c4be12dab68a'
+        '49b767d1-bf90-4d0c-be9b-abe5f2cb43cf',
+        '0d749e44-0658-4878-9350-a3f0b8e84e5d'
     ),
     (
-        '459a4902-2100-4b7d-9474-0cbf07c95250',
-        'e4c83221-8d80-4be7-ab80-72071680f45f'
+        'e72cb193-a1e8-4244-81ea-008e44e272b1',
+        'e8c6b133-0ed0-4381-a391-70926b725bf6'
     ),
     (
-        '19f116a9-53d6-4804-bf72-96fcc346dbd6',
-        'df67b411-1dd8-4072-8205-235b77b56578'
+        '49b767d1-bf90-4d0c-be9b-abe5f2cb43cf',
+        '43d8ada7-0c72-4f9f-b065-511892678971'
     ),
     (
-        '459a4902-2100-4b7d-9474-0cbf07c95250',
-        'd0324cdb-9a89-4952-8ef9-0974c8b4f1bd'
+        'e72cb193-a1e8-4244-81ea-008e44e272b1',
+        '0ef9513a-bfca-4a06-88df-ae5e10bce560'
     ),
     (
-        '0aecf569-9165-4a37-8fd2-a4e897bee7e2',
-        'e60f51a6-ef19-4e35-a5f0-d32c1c185711'
+        'ca6e7403-02eb-429e-b034-372732d9e010',
+        '78e0b8b3-465e-433c-b71f-de77d8884979'
     ),
     (
-        '0aecf569-9165-4a37-8fd2-a4e897bee7e2',
-        'ded32f6f-5f09-47bb-90ef-85af58271769'
+        'ca6e7403-02eb-429e-b034-372732d9e010',
+        'c9b3585c-cfef-4562-8765-3c20a999d748'
     ),
     (
-        '459a4902-2100-4b7d-9474-0cbf07c95250',
-        '1c47fb6b-8983-4b99-ba4c-5e18e80e9e07'
+        'e72cb193-a1e8-4244-81ea-008e44e272b1',
+        '94078c61-9191-448e-91dd-6486fe971806'
     ),
     (
-        '459a4902-2100-4b7d-9474-0cbf07c95250',
-        '831eb197-a2c3-483e-8e25-74530b179dea'
+        'e72cb193-a1e8-4244-81ea-008e44e272b1',
+        '12540a0c-ee6c-402d-9e01-b02829399805'
     ),
     (
-        '19f116a9-53d6-4804-bf72-96fcc346dbd6',
-        '35ebb711-576d-456a-90c7-e233d8e84dac'
+        '49b767d1-bf90-4d0c-be9b-abe5f2cb43cf',
+        'a89f5c31-2797-450d-89e2-73e32e7131f5'
     ),
     (
-        'bd01fdd9-6c07-44d1-a0ef-e2b0ef499a1e',
-        'af83d5be-e331-4457-a962-9f3dd456cd3b'
+        'bc81293e-9a2c-4b83-95f5-518144be5d4a',
+        '9137c378-24c4-4b46-bb4d-719c9e7fdbdd'
     ),
     (
-        '0aecf569-9165-4a37-8fd2-a4e897bee7e2',
-        '66035bfa-c651-40f4-aedd-1ec4fa3cfb1a'
+        'ca6e7403-02eb-429e-b034-372732d9e010',
+        'e12410dc-bef7-4066-8620-a70a961d592b'
     ),
     (
-        '0aecf569-9165-4a37-8fd2-a4e897bee7e2',
-        '7720600e-802c-481f-82df-290ecf4f7e71'
+        'ca6e7403-02eb-429e-b034-372732d9e010',
+        '35f293e7-ff88-4a4f-82aa-4ea439fbf963'
     ),
     (
-        '0aecf569-9165-4a37-8fd2-a4e897bee7e2',
-        '28427a26-f73f-48d3-99a9-8c8d8a9ac1a0'
+        'ca6e7403-02eb-429e-b034-372732d9e010',
+        '0fe49224-1843-46bd-9744-b30961255a24'
     ),
     (
-        '19f116a9-53d6-4804-bf72-96fcc346dbd6',
-        '5cfe4f51-c6b9-41a9-95e4-813351089f5b'
+        '49b767d1-bf90-4d0c-be9b-abe5f2cb43cf',
+        '212ab3dd-93b0-47c3-bea0-74a2d0f74569'
     ),
     (
-        '0aecf569-9165-4a37-8fd2-a4e897bee7e2',
-        '6f08dfb2-27ed-4da8-a439-35c08b9412db'
+        'ca6e7403-02eb-429e-b034-372732d9e010',
+        '578760b2-7789-4a52-a5bd-8daddf538dde'
     ),
     (
-        '0aecf569-9165-4a37-8fd2-a4e897bee7e2',
-        'ba8fe444-844a-4cba-959e-fccfab0234fb'
+        'ca6e7403-02eb-429e-b034-372732d9e010',
+        '09f11538-638a-444a-b413-44def40926ef'
     ),
     (
-        'ecd20aba-dd59-4b37-b6ed-71beb9ad95b3',
-        'f27427ce-cf8e-43be-8b23-0de088cb58e3'
+        '4b9ebcea-07aa-4d8a-8c0c-f39f1e0ff4fa',
+        '056ec3d8-58c3-4fa7-b2c7-58e48cc09056'
     ),
     (
-        'ecd20aba-dd59-4b37-b6ed-71beb9ad95b3',
-        '0728dde2-dc50-4bbe-a15b-7bf106af290e'
+        '4b9ebcea-07aa-4d8a-8c0c-f39f1e0ff4fa',
+        '4c154c4c-7726-43bf-b112-33ba8ae7e92e'
     ),
     (
-        'c09a94c0-c244-490b-994f-01fe0b0d919c',
-        '476adff5-ca9b-4b2b-be0f-460385ae0490'
+        'b3990bd3-82a9-452a-ac13-d304cce0e771',
+        '034767d4-190d-47de-8d70-1802c36249a1'
     ),
     (
-        'dea8b5ec-37f8-4a0f-92b7-54952ce0fd60',
-        'a6aed46d-6b35-4873-b1d8-d055b26cfe98'
+        '62c2167d-4a74-4a17-9543-7fdddaa4596f',
+        'b27b87ab-8929-4432-8732-105ffca4670f'
     ),
     (
-        'dea8b5ec-37f8-4a0f-92b7-54952ce0fd60',
-        '1f1c5e24-e107-4a77-8dd1-0303a6c3b280'
+        '62c2167d-4a74-4a17-9543-7fdddaa4596f',
+        '52020de4-3b13-4d0e-995f-b575901d5f3a'
     ),
     (
-        'dea8b5ec-37f8-4a0f-92b7-54952ce0fd60',
-        '2e40b863-aa95-4fc0-a501-1997d5768ef4'
+        '62c2167d-4a74-4a17-9543-7fdddaa4596f',
+        '6488d054-b05a-4591-863a-a384c6703707'
     ),
     (
-        'a7207eac-2526-4ec1-88b7-a6d3b4e8fd2c',
-        'bde5da82-2af8-4087-a72d-e07b86bd897e'
+        'a84cd579-8020-43d0-a2e3-7970cbfdc1fa',
+        '51a3d150-565f-484e-a998-66f482b9d1f2'
     ),
     (
-        '1a914051-79e1-43bf-998f-96b159b1aa0c',
-        '009806a3-3e10-4e6c-ae52-6abd535ca909'
+        '56241fb6-fd2c-4c88-9b00-42aa1bf66b86',
+        'b3010a94-b865-41fe-bd28-0db3d6ef261b'
     ),
     (
-        'a7207eac-2526-4ec1-88b7-a6d3b4e8fd2c',
-        '1225b69c-0349-439e-9cec-9eaf5a77ace5'
+        'a84cd579-8020-43d0-a2e3-7970cbfdc1fa',
+        '009d6907-c48b-47ce-a5ff-6471306544cf'
     ),
     (
-        '1a914051-79e1-43bf-998f-96b159b1aa0c',
-        'f065584d-c777-42e3-b1c7-950eaaf209fd'
+        '56241fb6-fd2c-4c88-9b00-42aa1bf66b86',
+        '44cbdbce-ba15-466c-a331-a189761e0126'
     ),
     (
-        'dea8b5ec-37f8-4a0f-92b7-54952ce0fd60',
-        '51148b5c-c888-480e-98eb-3bae8b226e71'
+        '62c2167d-4a74-4a17-9543-7fdddaa4596f',
+        '7e2b8974-5bf4-45d8-b5ca-7eae0cddf4e1'
     ),
     (
-        '0aecf569-9165-4a37-8fd2-a4e897bee7e2',
-        '45ad3b09-87ea-48a8-83ca-2a1a7ad9912b'
+        'ca6e7403-02eb-429e-b034-372732d9e010',
+        '04bfbb73-e3b1-47bb-a325-e1e20ab46c46'
     ),
     (
-        '19f116a9-53d6-4804-bf72-96fcc346dbd6',
-        '8d7886b9-4229-4b4b-baa8-d765417d093b'
+        '49b767d1-bf90-4d0c-be9b-abe5f2cb43cf',
+        'bb50c7be-1d3d-4fa5-9309-6fe0c30bd224'
     ),
     (
-        '19f116a9-53d6-4804-bf72-96fcc346dbd6',
-        '25810b17-f8b6-4299-8efc-f09fff010e54'
+        '49b767d1-bf90-4d0c-be9b-abe5f2cb43cf',
+        '88c23972-8434-4be2-b545-deb136495f45'
     ),
     (
-        '65b237f1-2acb-457c-99b8-c64024eed172',
-        'c0d97ff7-69a5-4972-8073-c825fdc9104e'
+        '5246c5d2-f2d3-4fc1-9232-054105c1fe02',
+        '4c3c3cbf-c862-4105-adb1-453006cd38f5'
     ),
     (
-        '19f116a9-53d6-4804-bf72-96fcc346dbd6',
-        '236dfbb3-fc37-49cd-a383-05c065263d3d'
+        '49b767d1-bf90-4d0c-be9b-abe5f2cb43cf',
+        '4f7e0bc5-deec-4a4f-aec2-ca348bc36603'
     ),
     (
-        '19f116a9-53d6-4804-bf72-96fcc346dbd6',
-        '94900f81-7507-47e4-b204-aa1c98f85197'
+        '49b767d1-bf90-4d0c-be9b-abe5f2cb43cf',
+        '0793979d-ad75-4f6f-8160-76fae508c6fc'
     ),
     (
-        '65b237f1-2acb-457c-99b8-c64024eed172',
-        '89a6822d-454b-44c1-bc50-9ff0e37df30f'
+        '5246c5d2-f2d3-4fc1-9232-054105c1fe02',
+        '9650b6ce-2710-4ff7-964d-d1388a0547a5'
     ),
     (
-        '65b237f1-2acb-457c-99b8-c64024eed172',
-        '9108fd6a-cf4c-4f95-91d9-7e13ed1e1c56'
+        '5246c5d2-f2d3-4fc1-9232-054105c1fe02',
+        'ec8a02f2-98a8-4faf-acf6-d39058180b5e'
     ),
     (
-        '65b237f1-2acb-457c-99b8-c64024eed172',
-        'aa217f2d-8aaa-4183-b5e6-950d918cf10e'
+        '5246c5d2-f2d3-4fc1-9232-054105c1fe02',
+        'c43ec0a9-7448-4b8a-a029-2f5a98c45b2f'
     ),
     (
-        '0aecf569-9165-4a37-8fd2-a4e897bee7e2',
-        'b676bc82-0055-4b0c-9a15-808703ffb948'
+        'ca6e7403-02eb-429e-b034-372732d9e010',
+        '94a81ce5-36b3-420c-aed8-72bc118c1a8a'
     ),
     (
-        '0aecf569-9165-4a37-8fd2-a4e897bee7e2',
-        'db7e043b-2ce9-4dc6-b6a9-4ff8a99e42ae'
+        'ca6e7403-02eb-429e-b034-372732d9e010',
+        '4764a8d2-f046-419a-a304-2cee2f458d6f'
     ),
     (
-        '0aecf569-9165-4a37-8fd2-a4e897bee7e2',
-        '09623077-3b8b-4deb-87d0-7ae6a9ac6636'
+        'ca6e7403-02eb-429e-b034-372732d9e010',
+        'ef014fa6-941d-4da3-9b9f-26f72651c1b0'
     ),
     (
-        '1a914051-79e1-43bf-998f-96b159b1aa0c',
-        'fb3e8f51-12dc-47a0-966a-1f499a58f54b'
+        '56241fb6-fd2c-4c88-9b00-42aa1bf66b86',
+        '1fe33eba-6faf-4a74-8eda-76a60e87136a'
     ),
     (
-        '1a914051-79e1-43bf-998f-96b159b1aa0c',
-        'bf25893c-1c54-49ce-876d-7763f09a309a'
+        '56241fb6-fd2c-4c88-9b00-42aa1bf66b86',
+        '9408beb7-68ff-49fb-bee1-eff7c1c61e84'
     ),
     (
-        '459a4902-2100-4b7d-9474-0cbf07c95250',
-        'ac654d2d-140b-4a46-9de0-d489668a9f50'
+        'e72cb193-a1e8-4244-81ea-008e44e272b1',
+        '2134139f-c63a-4fc6-af29-283e3de947a5'
     ),
     (
-        'dea8b5ec-37f8-4a0f-92b7-54952ce0fd60',
-        'd633d55b-fe8d-46d1-ad0c-b5b495a10b98'
+        '62c2167d-4a74-4a17-9543-7fdddaa4596f',
+        '14f82806-421c-467a-a662-8970b4561bee'
     ),
     (
-        'dea8b5ec-37f8-4a0f-92b7-54952ce0fd60',
-        '2bf21b4b-c9b6-4832-9e2d-24c1ce0ced12'
+        '62c2167d-4a74-4a17-9543-7fdddaa4596f',
+        '6d96c115-9642-47a2-afa8-62d145bdef8a'
     ),
     (
-        'a7207eac-2526-4ec1-88b7-a6d3b4e8fd2c',
-        '00d99e6b-77ea-4f99-9894-164931892486'
+        'a84cd579-8020-43d0-a2e3-7970cbfdc1fa',
+        '03a6ea28-1d81-4da6-bcc4-936a97e2ac66'
     ),
     (
-        '1a914051-79e1-43bf-998f-96b159b1aa0c',
-        'e4fb877c-477c-461c-b70d-577acb0eaec1'
+        '56241fb6-fd2c-4c88-9b00-42aa1bf66b86',
+        'cabccabc-2dcc-4559-8f58-588089bf46e3'
     ),
     (
-        'a7207eac-2526-4ec1-88b7-a6d3b4e8fd2c',
-        '2ad6b4d8-46ba-43d3-afa5-ac981c521f1c'
+        'a84cd579-8020-43d0-a2e3-7970cbfdc1fa',
+        '019e2f99-ef7b-4673-972f-a5d2d8020fbd'
     ),
     (
-        '1a914051-79e1-43bf-998f-96b159b1aa0c',
-        '90908a34-0b2e-4997-b9d8-cb4a361aff13'
+        '56241fb6-fd2c-4c88-9b00-42aa1bf66b86',
+        'a6943d80-186e-4f7e-a69e-00be95b90d68'
     ),
     (
-        'dea8b5ec-37f8-4a0f-92b7-54952ce0fd60',
-        '92b13f23-822e-46d2-bb55-123505112027'
+        '62c2167d-4a74-4a17-9543-7fdddaa4596f',
+        '0f8093d6-655e-418e-9408-162ebc6646d1'
     ),
     (
-        '169bb890-b034-4c69-81fb-1a20358e83fa',
-        'caa876bb-50de-41d5-8261-3cab7ded737e'
+        '669610ae-e145-46b2-9f6f-ab964b45e919',
+        '00645e6f-efc1-4a17-86ec-c43602cacc50'
     ),
     (
-        '169bb890-b034-4c69-81fb-1a20358e83fa',
-        'daad249f-1524-43e4-a692-74ce43d99cc5'
+        '669610ae-e145-46b2-9f6f-ab964b45e919',
+        '0a33b254-528c-4489-aac0-3aacd291ef4b'
     ),
     (
-        '0aecf569-9165-4a37-8fd2-a4e897bee7e2',
-        '74808953-07c8-4a21-8451-ac526a339ec2'
+        'ca6e7403-02eb-429e-b034-372732d9e010',
+        'f9286a48-999f-4e8e-bcd7-2edb3c817fe5'
     ),
     (
-        'a7207eac-2526-4ec1-88b7-a6d3b4e8fd2c',
-        'a387031b-4874-45e3-893a-ed46ab7c0f56'
+        'a84cd579-8020-43d0-a2e3-7970cbfdc1fa',
+        '1c3d1ae8-ad2c-43cf-8620-50078d564eca'
     ),
     (
-        '65b237f1-2acb-457c-99b8-c64024eed172',
-        '1c8c0c7c-52b3-449e-85d0-8fff41188284'
+        '5246c5d2-f2d3-4fc1-9232-054105c1fe02',
+        'e186a112-e29d-4ad2-82b9-b099e9409ec8'
     ),
     (
-        '65b237f1-2acb-457c-99b8-c64024eed172',
-        '01541136-b030-4ce7-8556-0da16169f483'
+        '5246c5d2-f2d3-4fc1-9232-054105c1fe02',
+        'c15f7c24-f049-44b8-868a-f2ffa6fa5043'
     ),
     (
-        '19f116a9-53d6-4804-bf72-96fcc346dbd6',
-        'a80bdb5f-eb40-4c5d-926c-c58a9d6ae2a8'
+        '49b767d1-bf90-4d0c-be9b-abe5f2cb43cf',
+        '8326ca21-6991-4048-bb01-620f6aa073b9'
     ),
     (
-        '19f116a9-53d6-4804-bf72-96fcc346dbd6',
-        '43c6df0c-04be-49ea-b250-405cbcfd1780'
+        '49b767d1-bf90-4d0c-be9b-abe5f2cb43cf',
+        '8b9e6a6d-f316-4442-83a1-54159b48aa15'
     ),
     (
-        '169bb890-b034-4c69-81fb-1a20358e83fa',
-        '3dd49c66-e853-48ea-b19a-016a724dbdf8'
+        '669610ae-e145-46b2-9f6f-ab964b45e919',
+        'b3917552-911c-479f-86e4-98a33f4f5193'
     ),
     (
-        '169bb890-b034-4c69-81fb-1a20358e83fa',
-        '357fbc9a-1aa2-4492-94ec-2b5ceb8c1064'
+        '669610ae-e145-46b2-9f6f-ab964b45e919',
+        '31cfb400-0333-4a86-83f7-df0004e61e63'
     ),
     (
-        '0aecf569-9165-4a37-8fd2-a4e897bee7e2',
-        '56b55b61-716d-453f-b31c-1b70efe9a337'
+        'ca6e7403-02eb-429e-b034-372732d9e010',
+        '281972b8-b1e3-4e52-8c89-97ef91775914'
     ),
     (
-        '9ec16055-f735-4768-a400-65e6cb388c6f',
-        '07ae0ce7-224d-4b96-98f1-41117ab184f0'
+        'ec5b2e78-a977-438f-b33c-2c39039f7903',
+        'e4535f74-9f42-4b56-acac-e770bb71fcc5'
     ),
     (
-        '9ec16055-f735-4768-a400-65e6cb388c6f',
-        'ee1d4e99-3aa0-4a22-a07e-11545940091e'
+        'ec5b2e78-a977-438f-b33c-2c39039f7903',
+        'cf4c8448-ccb3-4a64-83ea-8e96482fca98'
     ),
     (
-        '9ec16055-f735-4768-a400-65e6cb388c6f',
-        '3c2b50f9-5d8e-4f7b-8273-490cf2a81c43'
+        'ec5b2e78-a977-438f-b33c-2c39039f7903',
+        '32f9c69a-d135-480b-81e6-7a06b48b98b4'
     ),
     (
-        '9ec16055-f735-4768-a400-65e6cb388c6f',
-        '65202891-1714-468f-b9b8-711c96e8d3de'
+        'ec5b2e78-a977-438f-b33c-2c39039f7903',
+        '37ed0401-ee00-4a19-92fd-529ff40364d0'
     ),
     (
-        '0aecf569-9165-4a37-8fd2-a4e897bee7e2',
-        'f206be43-1765-4b65-b505-f90247f0d789'
+        'ca6e7403-02eb-429e-b034-372732d9e010',
+        'b9738c36-3172-44a7-a3c7-8bc9c0b7adb1'
     ),
     (
-        '33d95c9b-83b8-464c-aef8-95bc702adc7e',
-        '52ba5f5f-95f4-4980-953e-7f3a3aef9ab9'
+        '2c183c7f-a67f-4811-8c90-af5317825510',
+        '1f088112-e57a-4a9f-b209-38a215e0ffc7'
     ),
     (
-        '97427141-5463-4e5c-a50e-f5cbf7b38086',
-        '5a3572d3-1b10-4a5a-aa13-3c2d8e6ec460'
+        '59286979-bec5-409d-81a8-570517e0049c',
+        'be7c5544-b9e3-4470-9f97-a3f662b21f3a'
     ),
     (
-        '0aecf569-9165-4a37-8fd2-a4e897bee7e2',
-        'a7fc581a-7e86-458a-b3ed-14c64f63261e'
+        'ca6e7403-02eb-429e-b034-372732d9e010',
+        'fd42f21b-77ee-468b-9425-23ecb25e72f4'
     ),
     (
-        '459a4902-2100-4b7d-9474-0cbf07c95250',
-        '90945caf-70bd-41c0-83ee-39be750c661b'
+        'e72cb193-a1e8-4244-81ea-008e44e272b1',
+        '15a12ec3-8171-476d-b29b-f3e7fe6d7c56'
     ),
     (
-        '459a4902-2100-4b7d-9474-0cbf07c95250',
-        '98ad3a38-5afb-48c7-9c8b-4cc237ba1f63'
+        'e72cb193-a1e8-4244-81ea-008e44e272b1',
+        '5cc8feb5-0dae-46e8-908b-07d77929d193'
     ),
     (
-        '459a4902-2100-4b7d-9474-0cbf07c95250',
-        'add52958-deb1-4b35-98c3-fc5339b7026d'
+        'e72cb193-a1e8-4244-81ea-008e44e272b1',
+        '58a2df20-60d3-4500-8e8a-3d5a3576f355'
     ),
     (
-        '459a4902-2100-4b7d-9474-0cbf07c95250',
-        '4dacd42f-02fd-4dcd-baa1-396fe4cb08c5'
+        'e72cb193-a1e8-4244-81ea-008e44e272b1',
+        '92ddcb49-62cd-48ce-85ac-73b25bf140cb'
     ),
     (
-        '459a4902-2100-4b7d-9474-0cbf07c95250',
-        'b06035fd-b7b0-431f-a2cd-0742590ad6f1'
+        'e72cb193-a1e8-4244-81ea-008e44e272b1',
+        'd333aaea-5dfe-4c1f-997c-546d766fdea2'
     ),
     (
-        '459a4902-2100-4b7d-9474-0cbf07c95250',
-        '41da0677-d3d8-41bb-af3f-7c1ab3b74d02'
+        'e72cb193-a1e8-4244-81ea-008e44e272b1',
+        '596cef8f-fc7e-402e-8810-c6986f1d4206'
     ),
     (
-        'dea8b5ec-37f8-4a0f-92b7-54952ce0fd60',
-        '2624e3a5-9eae-41b9-9cd5-524e8c0cb7a0'
+        '62c2167d-4a74-4a17-9543-7fdddaa4596f',
+        '5fdbfc65-f34d-44b4-ac00-8e73f6070b1c'
     ),
     (
-        'dea8b5ec-37f8-4a0f-92b7-54952ce0fd60',
-        '79ea459c-d0e5-4e84-ac32-927c0c4f9a9a'
+        '62c2167d-4a74-4a17-9543-7fdddaa4596f',
+        '031f22d5-c73a-442f-996f-6ad1db69c629'
     ),
     (
-        '0aecf569-9165-4a37-8fd2-a4e897bee7e2',
-        '60ab3f91-0876-4844-86fa-d63f701a84bd'
+        'ca6e7403-02eb-429e-b034-372732d9e010',
+        '14c4c378-94f4-462d-af93-31bdcdf38469'
     ),
     (
-        'bd01fdd9-6c07-44d1-a0ef-e2b0ef499a1e',
-        'f6336931-4a79-403e-b2a4-dbc4dffc0c4e'
+        'bc81293e-9a2c-4b83-95f5-518144be5d4a',
+        'b60370e5-d0f5-4ae3-a1ba-9b76e2f5633f'
     ),
     (
-        'dea8b5ec-37f8-4a0f-92b7-54952ce0fd60',
-        'fc0034ea-7648-472c-bafb-5daf8805ce59'
+        '62c2167d-4a74-4a17-9543-7fdddaa4596f',
+        '06045bc6-046a-4b14-a9d4-ec54e1a5d545'
     ),
     (
-        'dea8b5ec-37f8-4a0f-92b7-54952ce0fd60',
-        'a6dab0ac-4269-4c5a-97b1-6e6a20fa4b24'
+        '62c2167d-4a74-4a17-9543-7fdddaa4596f',
+        '8804198b-88c2-4d22-9cf7-002915cb0d82'
     ),
     (
-        'dea8b5ec-37f8-4a0f-92b7-54952ce0fd60',
-        '9e0f5e78-0595-48a6-bd57-8ba6120eeaa9'
+        '62c2167d-4a74-4a17-9543-7fdddaa4596f',
+        'e610c3ab-2a5b-4377-a763-bf368fd5bf13'
     ),
     (
-        '1a914051-79e1-43bf-998f-96b159b1aa0c',
-        'a7afc834-fde2-4ca1-8241-c4cbcb1492ec'
+        '56241fb6-fd2c-4c88-9b00-42aa1bf66b86',
+        'ba6bf12e-b11a-4505-99b0-27b4f9c7c0a4'
     ),
     (
-        '1a914051-79e1-43bf-998f-96b159b1aa0c',
-        '020cb0dc-6b5a-416a-9a5d-fff8f4c7d3fb'
+        '56241fb6-fd2c-4c88-9b00-42aa1bf66b86',
+        '8fa45844-175e-4c54-b0e6-47e2b8586280'
     ),
     (
-        '1a914051-79e1-43bf-998f-96b159b1aa0c',
-        'daeaca85-b208-4ab1-a9df-4c630317460f'
+        '56241fb6-fd2c-4c88-9b00-42aa1bf66b86',
+        '19f03ccd-74a5-416b-8f26-996261a6a050'
     ),
     (
-        '1a914051-79e1-43bf-998f-96b159b1aa0c',
-        'f3e59171-5490-4e0c-aaef-f89aba0eef16'
+        '56241fb6-fd2c-4c88-9b00-42aa1bf66b86',
+        '4aa5c09c-4fa4-4aba-bab8-4443af50cd0e'
     ),
     (
-        '0aecf569-9165-4a37-8fd2-a4e897bee7e2',
-        '844c13eb-7b92-4539-937d-4edf2ad04eca'
+        'ca6e7403-02eb-429e-b034-372732d9e010',
+        '51e246d5-c984-4872-a5a2-2ad33a69b915'
     ),
     (
-        '0aecf569-9165-4a37-8fd2-a4e897bee7e2',
-        '8ab73d23-771e-4145-8cea-add12374e7a9'
+        'ca6e7403-02eb-429e-b034-372732d9e010',
+        'f659dce6-bec8-4170-863e-7190d2ade0e5'
     ),
     (
-        '1a914051-79e1-43bf-998f-96b159b1aa0c',
-        '0952a123-318d-407e-b5a9-616960e74b98'
+        '56241fb6-fd2c-4c88-9b00-42aa1bf66b86',
+        'd4c3688f-98ff-4b47-8880-ece11ecdc9e9'
     ),
     (
-        '1a914051-79e1-43bf-998f-96b159b1aa0c',
-        'cf3f8e28-8e8f-4355-8f58-f7b214d354cf'
+        '56241fb6-fd2c-4c88-9b00-42aa1bf66b86',
+        'd5cba28b-2cd5-4650-a5ef-fd7cf9852d50'
     ),
     (
-        'dea8b5ec-37f8-4a0f-92b7-54952ce0fd60',
-        '342f0972-034c-4857-8e66-8aad3ca40bbd'
+        '62c2167d-4a74-4a17-9543-7fdddaa4596f',
+        'ba6dda5e-0898-4df8-a932-7bce3086fbfc'
     ),
     (
-        'dea8b5ec-37f8-4a0f-92b7-54952ce0fd60',
-        'c8420b8f-9d30-4a2f-aeb2-ce294753a79e'
+        '62c2167d-4a74-4a17-9543-7fdddaa4596f',
+        'bc37788c-4c7e-4462-96f6-87b406efb988'
     ),
     (
-        'bd01fdd9-6c07-44d1-a0ef-e2b0ef499a1e',
-        '74a0e44a-27b4-49bb-9a3f-4e1de93ac008'
+        'bc81293e-9a2c-4b83-95f5-518144be5d4a',
+        '99feb579-efc2-4658-a509-7479628f7347'
     ),
     (
-        '459a4902-2100-4b7d-9474-0cbf07c95250',
-        '1a6a0de4-be0a-4379-9529-519d32a7ef3b'
+        'e72cb193-a1e8-4244-81ea-008e44e272b1',
+        'bc44bf22-3f8b-4ae1-8021-14bdac938b40'
     ),
     (
-        '459a4902-2100-4b7d-9474-0cbf07c95250',
-        'ca5bb8f0-14e4-4338-9644-ab5f12fcf95a'
+        'e72cb193-a1e8-4244-81ea-008e44e272b1',
+        'ba6d55b6-c6d8-4fb9-aadc-a066ba68d041'
     ),
     (
-        '459a4902-2100-4b7d-9474-0cbf07c95250',
-        'a443f713-3e4e-41ec-ac24-7f392a572735'
+        'e72cb193-a1e8-4244-81ea-008e44e272b1',
+        'd25d866a-b564-4b35-ba3d-4e0562eed67c'
     ),
     (
-        '459a4902-2100-4b7d-9474-0cbf07c95250',
-        'c9017306-5fad-4af3-be68-5e7a37e1573c'
+        'e72cb193-a1e8-4244-81ea-008e44e272b1',
+        '62b185fb-0e89-49f2-9ae1-61650c3ef918'
     ),
     (
-        '459a4902-2100-4b7d-9474-0cbf07c95250',
-        '665685c3-c5a5-421d-a00a-516f9bead8b9'
+        'e72cb193-a1e8-4244-81ea-008e44e272b1',
+        '1660a351-737f-4d16-a97a-182d0af79943'
     ),
     (
-        '19f116a9-53d6-4804-bf72-96fcc346dbd6',
-        '53c264bf-f38e-4043-9e6a-92d0cd63094c'
+        '49b767d1-bf90-4d0c-be9b-abe5f2cb43cf',
+        'cc151db7-f5ee-40bd-bea1-f9b9daea2256'
     ),
     (
-        'bd01fdd9-6c07-44d1-a0ef-e2b0ef499a1e',
-        '5bbacdbc-9579-41a0-b74f-0fdabb681908'
+        'bc81293e-9a2c-4b83-95f5-518144be5d4a',
+        '8d4ccf16-7e0d-4427-b2f2-a431ec8f48f5'
     ),
     (
-        'bd01fdd9-6c07-44d1-a0ef-e2b0ef499a1e',
-        '56e67f45-d552-419e-a181-0370f31b6bc8'
+        'bc81293e-9a2c-4b83-95f5-518144be5d4a',
+        'f940ffbc-4923-4219-8572-1a65b5d2b060'
     ),
     (
-        'bd01fdd9-6c07-44d1-a0ef-e2b0ef499a1e',
-        '3e693a09-ed42-493c-b27a-5bf9e13eedbb'
+        'bc81293e-9a2c-4b83-95f5-518144be5d4a',
+        '6f5541a9-7bea-4739-974e-b927f2338c24'
     ),
     (
-        '65b237f1-2acb-457c-99b8-c64024eed172',
-        'a0934f61-a5cd-41bf-afaa-0eea3cd390e0'
+        '5246c5d2-f2d3-4fc1-9232-054105c1fe02',
+        '7f6c75f3-bf3b-465b-9e21-86fe973e56ad'
     ),
     (
-        '65b237f1-2acb-457c-99b8-c64024eed172',
-        'a00e9b00-71f9-4f7c-b9d7-198ad53fd942'
+        '5246c5d2-f2d3-4fc1-9232-054105c1fe02',
+        '7942051f-2ab3-497d-80c4-da11464da94a'
     ),
     (
-        '65b237f1-2acb-457c-99b8-c64024eed172',
-        'ce637af3-f48f-4615-9ff7-9114781a7c37'
+        '5246c5d2-f2d3-4fc1-9232-054105c1fe02',
+        '118a0abe-7289-44d1-a083-0b1cd93d3d58'
     ),
     (
-        '0aecf569-9165-4a37-8fd2-a4e897bee7e2',
-        '8d9cbe1d-4dcb-4926-bdcc-535b6c8265a1'
+        'ca6e7403-02eb-429e-b034-372732d9e010',
+        'c9dd9e80-c9bc-4be4-bff7-97aca0d80a1f'
     ),
     (
-        '720d266e-38a6-4686-b68f-09e1512bc96d',
-        'd767758f-7c19-4e19-acaa-12674bcfdd8f'
+        'aa9ae11c-ac6a-4d1d-a462-d4087d5236f0',
+        '5aa2f963-4ce7-4583-a9ce-b3e73c73c079'
     ),
     (
-        '720d266e-38a6-4686-b68f-09e1512bc96d',
-        '69e357a4-88eb-4cfb-bb28-d143403f452b'
+        'aa9ae11c-ac6a-4d1d-a462-d4087d5236f0',
+        'ba2f3a75-63cc-4d11-8b10-b09b3d8cb77f'
     ),
     (
-        '720d266e-38a6-4686-b68f-09e1512bc96d',
-        'fe37ba95-5add-43dd-807f-efea16f3064c'
+        'aa9ae11c-ac6a-4d1d-a462-d4087d5236f0',
+        'f3f6b1d8-e4ff-43d7-85dc-6547f72325f0'
     ),
     (
-        '720d266e-38a6-4686-b68f-09e1512bc96d',
-        'de1d6c30-63d6-4380-95e7-532faaf8675b'
+        'aa9ae11c-ac6a-4d1d-a462-d4087d5236f0',
+        '68ca88e3-f228-4a3c-b155-08a5560c5679'
     ),
     (
-        '169bb890-b034-4c69-81fb-1a20358e83fa',
-        '8efc0644-ae00-4438-add2-c4238d416f8b'
+        '669610ae-e145-46b2-9f6f-ab964b45e919',
+        'a93a5ba3-b962-4cf7-baa2-77eb5e0608eb'
     ),
     (
-        '169bb890-b034-4c69-81fb-1a20358e83fa',
-        '217f2377-41d4-48a9-9189-27edcbaf54b0'
+        '669610ae-e145-46b2-9f6f-ab964b45e919',
+        'ad0ab1fb-a534-4316-9079-3913bff81a71'
     ),
     (
-        '169bb890-b034-4c69-81fb-1a20358e83fa',
-        'f295f281-e713-4447-86ec-5d501c859abd'
+        '669610ae-e145-46b2-9f6f-ab964b45e919',
+        '7a233311-1ff2-4960-ac5b-5c8038fbc4f4'
     ),
     (
-        '459a4902-2100-4b7d-9474-0cbf07c95250',
-        '9cca49f3-89d9-442a-aad5-e26b9db0f636'
+        'e72cb193-a1e8-4244-81ea-008e44e272b1',
+        'b3e4332b-0ff0-4fe7-96fb-3172bb87b1ab'
     ),
     (
-        'a7207eac-2526-4ec1-88b7-a6d3b4e8fd2c',
-        'a2a01294-734f-442b-9be6-e879cfb62326'
+        'a84cd579-8020-43d0-a2e3-7970cbfdc1fa',
+        'b4203be6-a301-4f92-b80b-4ca2aa7ade97'
     ),
     (
-        '19f116a9-53d6-4804-bf72-96fcc346dbd6',
-        '9e175482-1e71-4476-85c2-5ebe9d6d5b74'
+        '49b767d1-bf90-4d0c-be9b-abe5f2cb43cf',
+        '199035eb-4ad4-440b-b16a-b16c6c1c5682'
     ),
     (
-        '720d266e-38a6-4686-b68f-09e1512bc96d',
-        '3906cb0a-e01f-4f42-b8e2-5522f1ef7ec2'
+        'aa9ae11c-ac6a-4d1d-a462-d4087d5236f0',
+        '0bdaae55-1001-4b2c-9738-75a9585e3a7c'
     ),
     (
-        '169bb890-b034-4c69-81fb-1a20358e83fa',
-        'a18dca7e-e100-42af-bfd2-f0cd329590ea'
+        '669610ae-e145-46b2-9f6f-ab964b45e919',
+        '07f6cedf-7131-468d-b112-51b8e0f70ea4'
     ),
     (
-        '19f116a9-53d6-4804-bf72-96fcc346dbd6',
-        'e3a54ec8-9d75-4988-9891-059067c1d2d7'
+        '49b767d1-bf90-4d0c-be9b-abe5f2cb43cf',
+        '092d4d58-721e-4f61-8e02-ffe0b7b202bd'
     ),
     (
-        '19f116a9-53d6-4804-bf72-96fcc346dbd6',
-        '594c0f84-f3b4-4625-b200-3a38fb8e9280'
+        '49b767d1-bf90-4d0c-be9b-abe5f2cb43cf',
+        '8e7bb827-623e-4874-9b0d-8a071dd472f2'
     ),
     (
-        '19f116a9-53d6-4804-bf72-96fcc346dbd6',
-        'b6b479b6-73af-4f8e-8aa0-060c5142ea33'
+        '49b767d1-bf90-4d0c-be9b-abe5f2cb43cf',
+        'f0187d5a-ec01-4146-9c33-36f8caf14845'
     ),
     (
-        '0aecf569-9165-4a37-8fd2-a4e897bee7e2',
-        'bb1bb4b9-5ccd-4940-b062-4d1dde27b0de'
+        'ca6e7403-02eb-429e-b034-372732d9e010',
+        '6b240a4e-97bf-4651-99b4-626816971296'
     ),
     (
-        '459a4902-2100-4b7d-9474-0cbf07c95250',
-        'e8602b0a-ec58-4079-b6f0-350dd5e62741'
+        'e72cb193-a1e8-4244-81ea-008e44e272b1',
+        'f43e187c-c9e7-4f50-a815-8839819423f3'
     ),
     (
-        '19f116a9-53d6-4804-bf72-96fcc346dbd6',
-        '59991769-3fae-497c-b247-f024264fe091'
+        '49b767d1-bf90-4d0c-be9b-abe5f2cb43cf',
+        'd3c3ed22-1ec4-489a-ac02-37f7910578e7'
     ),
     (
-        '19f116a9-53d6-4804-bf72-96fcc346dbd6',
-        '9d7d71b7-3f3c-4519-bbca-c84eb94aad07'
+        '49b767d1-bf90-4d0c-be9b-abe5f2cb43cf',
+        '2d6d8ce5-4880-4924-81f5-d63210bdad55'
     ),
     (
-        '19f116a9-53d6-4804-bf72-96fcc346dbd6',
-        'edf6cb8a-4bd2-4607-b466-3860f5da2024'
+        '49b767d1-bf90-4d0c-be9b-abe5f2cb43cf',
+        'ad0637af-13bd-4354-9a83-155cd5755b39'
     ),
     (
-        '19f116a9-53d6-4804-bf72-96fcc346dbd6',
-        '6738bb07-5a12-4c3f-811a-d39faee4ba31'
+        '49b767d1-bf90-4d0c-be9b-abe5f2cb43cf',
+        '1d9e6314-92c7-4a60-82f6-26e1ad0f5b0e'
     ),
     (
-        '9ec16055-f735-4768-a400-65e6cb388c6f',
-        '05824292-8c0f-4288-a626-57f554023e60'
+        'ec5b2e78-a977-438f-b33c-2c39039f7903',
+        '67b39f3a-689b-4aa1-875d-5e9a80d51889'
     ),
     (
-        '1a914051-79e1-43bf-998f-96b159b1aa0c',
-        '6a3df992-0e63-4eaa-80e8-b006a9767c62'
+        '56241fb6-fd2c-4c88-9b00-42aa1bf66b86',
+        '143b7c9b-7e06-4f99-bdb0-1b3188241420'
     ),
     (
-        '1a914051-79e1-43bf-998f-96b159b1aa0c',
-        '66b82a9b-b8a9-4c90-9f26-e8742de5340f'
+        '56241fb6-fd2c-4c88-9b00-42aa1bf66b86',
+        '667bcd75-f0be-47f8-b039-a4b5d6a9507e'
     ),
     (
-        '1a914051-79e1-43bf-998f-96b159b1aa0c',
-        '85eb3b79-32a8-4b43-800a-3ec65946ad53'
+        '56241fb6-fd2c-4c88-9b00-42aa1bf66b86',
+        'a004b010-b46c-4657-9dab-2801f3ec1c47'
     ),
     (
-        '0aecf569-9165-4a37-8fd2-a4e897bee7e2',
-        '4cb627d9-99c1-4be6-9fb5-851acb3d2ae2'
+        'ca6e7403-02eb-429e-b034-372732d9e010',
+        '221752e6-e007-4004-be66-82cfc8f357e4'
     ),
     (
-        '0aecf569-9165-4a37-8fd2-a4e897bee7e2',
-        '00849d0c-4f3f-40af-9dc9-c8a41fe2a306'
+        'ca6e7403-02eb-429e-b034-372732d9e010',
+        '20ae0f07-5ed9-4249-b4b5-7b84c1d402b8'
     ),
     (
-        '459a4902-2100-4b7d-9474-0cbf07c95250',
-        '76c90650-3394-4857-8935-b8d758960dd5'
+        'e72cb193-a1e8-4244-81ea-008e44e272b1',
+        'cee2ef15-1613-4982-96ae-7e04215c6d49'
     ),
     (
-        '459a4902-2100-4b7d-9474-0cbf07c95250',
-        '2ba41480-8cdf-492c-8600-60ec38c4b86a'
+        'e72cb193-a1e8-4244-81ea-008e44e272b1',
+        '64459137-360b-4067-a1f2-1cd37c1cc9a7'
     ),
     (
-        '459a4902-2100-4b7d-9474-0cbf07c95250',
-        'eb006201-d5f0-4907-8c26-366ef5a5e436'
+        'e72cb193-a1e8-4244-81ea-008e44e272b1',
+        '1b68f980-7857-46f3-9b8d-67bd24b48a17'
     ),
     (
-        '459a4902-2100-4b7d-9474-0cbf07c95250',
-        'bbe258ff-f353-4d7b-8e6d-f670f73c1c6b'
+        'e72cb193-a1e8-4244-81ea-008e44e272b1',
+        '3085277e-0bc7-487e-afa1-3cc54f62db75'
     ),
     (
-        '459a4902-2100-4b7d-9474-0cbf07c95250',
-        '7630deb2-f5d1-47bb-a23c-d058002103db'
+        'e72cb193-a1e8-4244-81ea-008e44e272b1',
+        'e0c8bbf4-57d2-4924-bd51-27fa81318e0e'
     ),
     (
-        '459a4902-2100-4b7d-9474-0cbf07c95250',
-        'c47d26d8-1ac0-4397-912d-37fc0b62377d'
+        'e72cb193-a1e8-4244-81ea-008e44e272b1',
+        '00ad8bfe-14dc-4301-a7e6-50efeb190efb'
     ),
     (
-        '459a4902-2100-4b7d-9474-0cbf07c95250',
-        'c7e81a7e-823d-4bb3-a59d-f16389c8475e'
+        'e72cb193-a1e8-4244-81ea-008e44e272b1',
+        'cd28fcef-0d5f-426d-951d-ccabbf1c6bef'
     ),
     (
-        '459a4902-2100-4b7d-9474-0cbf07c95250',
-        '54f76f3f-a429-4a4b-9759-6d5fbdc72e09'
+        'e72cb193-a1e8-4244-81ea-008e44e272b1',
+        'fac5e258-d674-45df-ad43-f8a40a27a200'
     ),
     (
-        '459a4902-2100-4b7d-9474-0cbf07c95250',
-        '4173f0cc-744d-4f5c-94b9-9fc620470e75'
+        'e72cb193-a1e8-4244-81ea-008e44e272b1',
+        'e8ddd901-0743-4499-80e0-aada4c455f33'
     ),
     (
-        '0aecf569-9165-4a37-8fd2-a4e897bee7e2',
-        'cd2a85d0-a37b-40a2-9bfc-a19ff2b9f64d'
+        'ca6e7403-02eb-429e-b034-372732d9e010',
+        '4b144211-f3f2-47bb-bab0-e8b128b4324e'
     ),
     (
-        '0aecf569-9165-4a37-8fd2-a4e897bee7e2',
-        'f95a34f2-187e-4ac5-9426-959e46c01442'
+        'ca6e7403-02eb-429e-b034-372732d9e010',
+        '68f4dbd7-ff66-45a0-abf7-9076ef4abe6e'
     ),
     (
-        '33d95c9b-83b8-464c-aef8-95bc702adc7e',
-        'ab437c31-d001-412e-a751-22954265d36e'
+        '2c183c7f-a67f-4811-8c90-af5317825510',
+        '8c1513c9-7345-4595-b3d0-538fba63fae1'
     ),
     (
-        '65b237f1-2acb-457c-99b8-c64024eed172',
-        '6979ff6f-baec-404c-b2e0-f2286ac9d7ae'
+        '5246c5d2-f2d3-4fc1-9232-054105c1fe02',
+        'b36e6339-0a77-4a7c-829f-48df1684478e'
     ),
     (
-        '33d95c9b-83b8-464c-aef8-95bc702adc7e',
-        '1a19fccb-b791-4bca-a49e-16753a1a050d'
+        '2c183c7f-a67f-4811-8c90-af5317825510',
+        '20960d62-9f35-4714-ae6e-bda4ec40cb0b'
     ),
     (
-        '0aecf569-9165-4a37-8fd2-a4e897bee7e2',
-        '184ad7f0-ba86-4259-ba3a-039d7417d792'
+        'ca6e7403-02eb-429e-b034-372732d9e010',
+        '152fb4f0-3cbf-4939-aeb9-0c40c658cf26'
     ),
     (
-        '459a4902-2100-4b7d-9474-0cbf07c95250',
-        '582edfd5-975f-46e0-9f04-8e3097f7cbd9'
+        'e72cb193-a1e8-4244-81ea-008e44e272b1',
+        '701c590b-41b9-425f-8b78-48084c519a4b'
     ),
     (
-        '65b237f1-2acb-457c-99b8-c64024eed172',
-        '7ad32a53-43aa-4c4f-b12e-045102fc6520'
+        '5246c5d2-f2d3-4fc1-9232-054105c1fe02',
+        '58952e81-e341-4e06-83d7-5ed66e188830'
     ),
     (
-        '65b237f1-2acb-457c-99b8-c64024eed172',
-        'e0e680df-d3d2-49ad-be03-f537678c8444'
+        '5246c5d2-f2d3-4fc1-9232-054105c1fe02',
+        '69e972c2-8738-429f-8d1a-7214274b222c'
     ),
     (
-        '65b237f1-2acb-457c-99b8-c64024eed172',
-        '75ae17fc-7d55-43d9-a407-a3c482ddfe05'
+        '5246c5d2-f2d3-4fc1-9232-054105c1fe02',
+        'f339a2bd-a7c5-4a02-a4ca-29685c981811'
     ),
     (
-        '65b237f1-2acb-457c-99b8-c64024eed172',
-        'c3f10cb7-fd1f-4877-a07f-01663d9f0105'
+        '5246c5d2-f2d3-4fc1-9232-054105c1fe02',
+        '5ff58965-7c12-49a4-a045-2fbede692487'
     ),
     (
-        '65b237f1-2acb-457c-99b8-c64024eed172',
-        '848c7d38-4ad7-457c-b08d-5e9a81ecc493'
+        '5246c5d2-f2d3-4fc1-9232-054105c1fe02',
+        'e7096e16-669c-45a9-8040-c189929a29af'
     ),
     (
-        'c09a94c0-c244-490b-994f-01fe0b0d919c',
-        '383ebd2a-64f0-4563-9718-9320833b759b'
+        'b3990bd3-82a9-452a-ac13-d304cce0e771',
+        '70079a17-eb70-4c7a-bba7-26593f058c76'
     ),
     (
-        'c09a94c0-c244-490b-994f-01fe0b0d919c',
-        '885bffb3-7d55-4f1e-a86b-24a0ca4b2e73'
+        'b3990bd3-82a9-452a-ac13-d304cce0e771',
+        '24f4a2a7-1838-404d-9d47-fa080a806f19'
     ),
     (
-        '65b237f1-2acb-457c-99b8-c64024eed172',
-        '23d95a4a-b7c5-4da4-8fa7-e2afde0d89dd'
+        '5246c5d2-f2d3-4fc1-9232-054105c1fe02',
+        '75a090a5-e657-4e25-a808-c426ae225aa6'
     ),
     (
-        '65b237f1-2acb-457c-99b8-c64024eed172',
-        'e66cefbc-35f4-49a8-a752-1fa27fe3ce0f'
+        '5246c5d2-f2d3-4fc1-9232-054105c1fe02',
+        'a4c6ba1b-801a-4cc9-943d-8c1aa5f74ad3'
     ),
     (
-        '19f116a9-53d6-4804-bf72-96fcc346dbd6',
-        '4242fe83-a9c4-4c9a-b4eb-b4b57e28ff5b'
+        '49b767d1-bf90-4d0c-be9b-abe5f2cb43cf',
+        'bed4e36a-c1ce-439e-88c4-2ed83bf24e6e'
     ),
     (
-        '65b237f1-2acb-457c-99b8-c64024eed172',
-        '2aae7423-2055-4b66-b683-dc0d7c0402ed'
+        '5246c5d2-f2d3-4fc1-9232-054105c1fe02',
+        '280528d1-efee-4bf0-b0c4-5e36dd15048b'
     ),
     (
-        '65b237f1-2acb-457c-99b8-c64024eed172',
-        '1bf0fa05-9a83-4593-bd82-096e6644be3b'
+        '5246c5d2-f2d3-4fc1-9232-054105c1fe02',
+        'd8e0a495-1f71-4664-91e6-cc58a87ab5b2'
     ),
     (
-        '19f116a9-53d6-4804-bf72-96fcc346dbd6',
-        '4611282b-056d-499a-ad4f-eb7e74e534b1'
+        '49b767d1-bf90-4d0c-be9b-abe5f2cb43cf',
+        '818357ce-0808-4012-9afa-fc8266fcaf3e'
     ),
     (
-        '65b237f1-2acb-457c-99b8-c64024eed172',
-        '7524ecf9-8715-476a-be68-c875f13478df'
+        '5246c5d2-f2d3-4fc1-9232-054105c1fe02',
+        'b787e054-ca8a-4b60-a45c-a9d47c4d608a'
     ),
     (
-        '459a4902-2100-4b7d-9474-0cbf07c95250',
-        '8cbf058d-9a40-4a08-b419-987bdc639a72'
+        'e72cb193-a1e8-4244-81ea-008e44e272b1',
+        'f7544371-06ed-4e2d-85a9-11be1d5d48d2'
     ),
     (
-        '65b237f1-2acb-457c-99b8-c64024eed172',
-        'be6aac64-0d39-4249-b45b-8f71cc2fbfad'
+        '5246c5d2-f2d3-4fc1-9232-054105c1fe02',
+        '196b36eb-250b-450f-b221-6eeabc0d5226'
     ),
     (
-        '65b237f1-2acb-457c-99b8-c64024eed172',
-        '4081f071-1809-4ae3-aecb-dd79ec59e0c3'
+        '5246c5d2-f2d3-4fc1-9232-054105c1fe02',
+        '21662608-7405-494d-8b93-fbb813a5934d'
     ),
     (
-        '459a4902-2100-4b7d-9474-0cbf07c95250',
-        '3e536048-e3dd-4563-9988-4e5c2e172b98'
+        'e72cb193-a1e8-4244-81ea-008e44e272b1',
+        '8880b1dd-5c9c-4097-8c90-077f62c9c40f'
     ),
     (
-        'a7207eac-2526-4ec1-88b7-a6d3b4e8fd2c',
-        '2f126d3a-4704-4369-af15-1161cac161b9'
+        'a84cd579-8020-43d0-a2e3-7970cbfdc1fa',
+        'af766f77-5794-4068-8726-046b86905429'
     ),
     (
-        '65b237f1-2acb-457c-99b8-c64024eed172',
-        'e9205b27-88e4-4785-bc2d-b8f9348824bf'
+        '5246c5d2-f2d3-4fc1-9232-054105c1fe02',
+        '8530f868-ef6a-4ce0-bae9-528990e615bc'
     ),
     (
-        '65b237f1-2acb-457c-99b8-c64024eed172',
-        'bdb0b116-500f-4b88-bc29-2b948ad8f751'
+        '5246c5d2-f2d3-4fc1-9232-054105c1fe02',
+        'b3071d7b-b34b-40a0-a3d8-9cc741d5b801'
     ),
     (
-        '169bb890-b034-4c69-81fb-1a20358e83fa',
-        '289fbaf8-95d7-4a44-b922-23c4437f0705'
+        '669610ae-e145-46b2-9f6f-ab964b45e919',
+        '7a559089-e0be-4077-9fe9-912cdcb55545'
     ),
     (
-        '169bb890-b034-4c69-81fb-1a20358e83fa',
-        '1c16d352-11a7-4b33-878c-f8b22737fa7c'
+        '669610ae-e145-46b2-9f6f-ab964b45e919',
+        '1b9184a3-4a8f-4522-b267-3ed723140085'
     ),
     (
-        '0aecf569-9165-4a37-8fd2-a4e897bee7e2',
-        'b6675467-cc25-4975-a2a7-ab705ca26b65'
+        'ca6e7403-02eb-429e-b034-372732d9e010',
+        '128b213b-c87d-42b4-b3a7-749f9a3974cf'
     ),
     (
-        '0aecf569-9165-4a37-8fd2-a4e897bee7e2',
-        '09f91c94-269f-452d-8fca-751f5a9da850'
+        'ca6e7403-02eb-429e-b034-372732d9e010',
+        'e193f63b-d3c4-486a-b796-17e241d649aa'
     ),
     (
-        'a7207eac-2526-4ec1-88b7-a6d3b4e8fd2c',
-        'b41c4874-9c91-48f0-9643-00c08036a28b'
+        'a84cd579-8020-43d0-a2e3-7970cbfdc1fa',
+        '3298e437-e099-4b39-935d-425170e4bbf4'
     ),
     (
-        'a7207eac-2526-4ec1-88b7-a6d3b4e8fd2c',
-        '056162e6-ae26-438d-b69e-a80bfbee5722'
+        'a84cd579-8020-43d0-a2e3-7970cbfdc1fa',
+        '6c6af510-ea32-46bf-be5d-b152bc6d2beb'
     ),
     (
-        '9ec16055-f735-4768-a400-65e6cb388c6f',
-        '4de6d7a7-58a6-490c-812c-74b8dae9ec6b'
+        'ec5b2e78-a977-438f-b33c-2c39039f7903',
+        '8ee307bb-737e-4297-8958-dfcdfbcbe592'
     ),
     (
-        '0aecf569-9165-4a37-8fd2-a4e897bee7e2',
-        'eeae401e-4e73-4780-8700-5ea31c7a8215'
+        'ca6e7403-02eb-429e-b034-372732d9e010',
+        '1a579b2e-f81e-4759-ad44-c1d88f8da3c7'
     ),
     (
-        '19f116a9-53d6-4804-bf72-96fcc346dbd6',
-        'b8f54bd5-9899-4b87-9b93-ad47280da3f4'
+        '49b767d1-bf90-4d0c-be9b-abe5f2cb43cf',
+        '006503f9-8638-46e9-86be-a71a812111f7'
     ),
     (
-        '97427141-5463-4e5c-a50e-f5cbf7b38086',
-        '8f5a8e46-61a2-4d69-99b5-659801840fdd'
+        '59286979-bec5-409d-81a8-570517e0049c',
+        'ba86b43a-9d35-4b5f-8286-f8f5eb0bba95'
     ),
     (
-        'dea8b5ec-37f8-4a0f-92b7-54952ce0fd60',
-        'c8703347-661c-4134-a2ec-cf683dc04e19'
+        '62c2167d-4a74-4a17-9543-7fdddaa4596f',
+        '70dfd9ff-9ac8-4813-b1ae-8c307c296309'
     ),
     (
-        'dea8b5ec-37f8-4a0f-92b7-54952ce0fd60',
-        '245b3c84-24e4-416e-8de2-b1290705ee15'
+        '62c2167d-4a74-4a17-9543-7fdddaa4596f',
+        '958a18dc-80bc-4d7d-a22c-40e0b3606b56'
     ),
     (
-        'bd01fdd9-6c07-44d1-a0ef-e2b0ef499a1e',
-        'e4eab0e5-8a51-436e-9605-98c6565d945f'
+        'bc81293e-9a2c-4b83-95f5-518144be5d4a',
+        '686eb54a-6dd3-4b99-bcc7-3ded099bfa26'
     ),
     (
-        'dea8b5ec-37f8-4a0f-92b7-54952ce0fd60',
-        '97bea2c9-0c63-460e-8943-0bfc57ddc55f'
+        '62c2167d-4a74-4a17-9543-7fdddaa4596f',
+        'b8132e38-6e99-4007-a5a5-912fbba478c0'
     ),
     (
-        'dea8b5ec-37f8-4a0f-92b7-54952ce0fd60',
-        '11f99f28-aee7-4f69-a0ce-f5cdd480c041'
+        '62c2167d-4a74-4a17-9543-7fdddaa4596f',
+        '008d008d-5347-4428-84c2-c4a560c521ab'
     ),
     (
-        'dea8b5ec-37f8-4a0f-92b7-54952ce0fd60',
-        'f944966d-7a81-462b-8cae-41b6d864415b'
+        '62c2167d-4a74-4a17-9543-7fdddaa4596f',
+        '2f4fc74b-844e-4dd3-9a48-66286aa5c1cc'
     ),
     (
-        '1a914051-79e1-43bf-998f-96b159b1aa0c',
-        '9d14232b-dad0-473f-ad87-96be7c26056c'
+        '56241fb6-fd2c-4c88-9b00-42aa1bf66b86',
+        'a5ec1a04-8a68-4586-b1ea-768118d1293d'
     ),
     (
-        '1a914051-79e1-43bf-998f-96b159b1aa0c',
-        'b9718054-1be0-4e9f-9a61-d751c6e21905'
+        '56241fb6-fd2c-4c88-9b00-42aa1bf66b86',
+        'c659dec6-df19-4564-b968-2e405ea5551e'
     ),
     (
-        'dea8b5ec-37f8-4a0f-92b7-54952ce0fd60',
-        'e3158eee-ba36-4fcd-a152-c69525acf3e6'
+        '62c2167d-4a74-4a17-9543-7fdddaa4596f',
+        '8e64f0f1-99fd-4288-b504-36b226fedf9f'
     ),
     (
-        'dea8b5ec-37f8-4a0f-92b7-54952ce0fd60',
-        '1181d489-a9f5-413c-9324-6440936ee4b8'
+        '62c2167d-4a74-4a17-9543-7fdddaa4596f',
+        'c6e6bacf-3316-49a6-a4b5-72c10672b565'
     ),
     (
-        '0aecf569-9165-4a37-8fd2-a4e897bee7e2',
-        '7c44c059-6798-44c3-a246-d5b25ab404b8'
+        'ca6e7403-02eb-429e-b034-372732d9e010',
+        'cbd2ad67-8872-40fe-9017-a0fa1c5d8f7a'
     ),
     (
-        '0aecf569-9165-4a37-8fd2-a4e897bee7e2',
-        '8f95d425-c0db-4e56-b91b-5fc989c349fd'
+        'ca6e7403-02eb-429e-b034-372732d9e010',
+        'ce3820f0-aa75-4b05-a01d-b01ac1ad324b'
     ),
     (
-        '0aecf569-9165-4a37-8fd2-a4e897bee7e2',
-        'ca2777aa-4471-4ab3-b9a6-3399937e1656'
+        'ca6e7403-02eb-429e-b034-372732d9e010',
+        '98c85397-679b-47e6-9e9f-0a8cc3ca485c'
     ),
     (
-        '720d266e-38a6-4686-b68f-09e1512bc96d',
-        'ae66a177-4386-48f3-9170-dfe04c7f04b8'
+        'aa9ae11c-ac6a-4d1d-a462-d4087d5236f0',
+        '2bf0d388-d046-4a87-b3d3-dafb316a6bb0'
     ),
     (
-        'dea8b5ec-37f8-4a0f-92b7-54952ce0fd60',
-        'ffa6cc32-3927-41f9-8b18-3ab7771c1829'
+        '62c2167d-4a74-4a17-9543-7fdddaa4596f',
+        'e43dc241-bfa8-4386-9112-4d31cbc26e1c'
     ),
     (
-        'dea8b5ec-37f8-4a0f-92b7-54952ce0fd60',
-        'f772c02c-5601-41d0-a4d2-b722e4add062'
+        '62c2167d-4a74-4a17-9543-7fdddaa4596f',
+        'aa98977b-adae-4094-b7f2-e255595691b6'
     ),
     (
-        'a7207eac-2526-4ec1-88b7-a6d3b4e8fd2c',
-        '1694fb0a-fd18-49a9-85b7-f4a8804e5fb2'
+        'a84cd579-8020-43d0-a2e3-7970cbfdc1fa',
+        '79371432-fa0d-495c-825b-fd49b8bdadf0'
     ),
     (
-        '1a914051-79e1-43bf-998f-96b159b1aa0c',
-        'f64de19c-5eb4-48c5-ae60-236b0dc5cf21'
+        '56241fb6-fd2c-4c88-9b00-42aa1bf66b86',
+        '90cb7a52-6568-4f70-9ded-17a0975fb448'
     ),
     (
-        'a7207eac-2526-4ec1-88b7-a6d3b4e8fd2c',
-        '9c9c2b2b-d8b8-499d-940d-d11eeaafcb6b'
+        'a84cd579-8020-43d0-a2e3-7970cbfdc1fa',
+        'c5073efb-b4e4-4637-861f-9942b3d00c3e'
     ),
     (
-        '1a914051-79e1-43bf-998f-96b159b1aa0c',
-        'dad3472d-688c-4031-a9ec-e359bf444434'
+        '56241fb6-fd2c-4c88-9b00-42aa1bf66b86',
+        '74c5c963-952a-43b9-9e40-79bb34856eab'
     ),
     (
-        'dea8b5ec-37f8-4a0f-92b7-54952ce0fd60',
-        'd6f9b9cd-7238-4469-a4c8-10302f567125'
+        '62c2167d-4a74-4a17-9543-7fdddaa4596f',
+        'b09c15c1-c3f5-4eb8-b01f-73856f31b321'
     ),
     (
-        '1a914051-79e1-43bf-998f-96b159b1aa0c',
-        'e4ae3724-5b2a-44fd-af40-fc4008e8a667'
+        '56241fb6-fd2c-4c88-9b00-42aa1bf66b86',
+        '88dafed7-5451-4b8d-a822-a6a10953da84'
     ),
     (
-        '1a914051-79e1-43bf-998f-96b159b1aa0c',
-        '04e06a5d-dddb-46bd-9d4c-2700593f1e72'
+        '56241fb6-fd2c-4c88-9b00-42aa1bf66b86',
+        'f6de8395-2378-45a1-a9b9-31962d542ec8'
     ),
     (
-        '0aecf569-9165-4a37-8fd2-a4e897bee7e2',
-        'a74e2d81-f9a9-420f-984a-518f310da914'
+        'ca6e7403-02eb-429e-b034-372732d9e010',
+        'bf4efcfb-b627-4028-8967-4717119c0292'
     ),
     (
-        '19f116a9-53d6-4804-bf72-96fcc346dbd6',
-        '267fd75d-3511-40b0-a3d7-0b017b153986'
+        '49b767d1-bf90-4d0c-be9b-abe5f2cb43cf',
+        'c997c4ad-5f8b-46a5-8cd0-577534a1d91f'
     ),
     (
-        '65b237f1-2acb-457c-99b8-c64024eed172',
-        '25018ad7-f84e-4aec-9c36-97709800cddd'
+        '5246c5d2-f2d3-4fc1-9232-054105c1fe02',
+        '07496c81-cc44-4eb9-ae39-8ab7cb13635f'
     ),
     (
-        '65b237f1-2acb-457c-99b8-c64024eed172',
-        'efb8cd6d-1876-4858-89a1-df315974587c'
+        '5246c5d2-f2d3-4fc1-9232-054105c1fe02',
+        '61a50eb2-2d1a-4253-971e-3949394717a6'
     ),
     (
-        '19f116a9-53d6-4804-bf72-96fcc346dbd6',
-        '9016ab6f-598d-45eb-8393-ccfb6e5bfa16'
+        '49b767d1-bf90-4d0c-be9b-abe5f2cb43cf',
+        'dac00514-1887-411a-b84a-9937cb9a2cfe'
     ),
     (
-        '19f116a9-53d6-4804-bf72-96fcc346dbd6',
-        'd2822e69-2cc6-49c5-82a9-3d92ad46e0b2'
+        '49b767d1-bf90-4d0c-be9b-abe5f2cb43cf',
+        '696ae8ab-c252-48a8-96c8-13894428453d'
     ),
     (
-        '19f116a9-53d6-4804-bf72-96fcc346dbd6',
-        'f4220686-c52d-4581-a0b2-18d42e84734a'
+        '49b767d1-bf90-4d0c-be9b-abe5f2cb43cf',
+        '5834a215-066c-40f1-9813-7e0f9026d8db'
     ),
     (
-        '65b237f1-2acb-457c-99b8-c64024eed172',
-        'b7b8bef4-9bac-4fa5-83e7-6d704b5c8eb4'
+        '5246c5d2-f2d3-4fc1-9232-054105c1fe02',
+        '6ed78062-f1e2-4436-9788-d572be278680'
     ),
     (
-        '19f116a9-53d6-4804-bf72-96fcc346dbd6',
-        'b78a067b-1fc3-432a-9ae1-fb5c1f235801'
+        '49b767d1-bf90-4d0c-be9b-abe5f2cb43cf',
+        'cfaf69b8-eac8-4b8e-beaf-f26e6f6f014a'
     ),
     (
-        '169bb890-b034-4c69-81fb-1a20358e83fa',
-        'b51e6e5f-52f9-4254-8630-8b471944e5d9'
+        '669610ae-e145-46b2-9f6f-ab964b45e919',
+        '6a9d9ffd-9e3c-4953-8dbe-d044ba867fed'
     ),
     (
-        '169bb890-b034-4c69-81fb-1a20358e83fa',
-        'b53407f9-31ac-44db-9091-ed9f0dbc542e'
+        '669610ae-e145-46b2-9f6f-ab964b45e919',
+        'a874b267-1976-4a05-945a-183dfbf789bc'
     ),
     (
-        '0aecf569-9165-4a37-8fd2-a4e897bee7e2',
-        '5499007b-f55b-4d0e-8649-a6a155a94fc3'
+        'ca6e7403-02eb-429e-b034-372732d9e010',
+        '92475b9d-7360-480d-946e-fd8e8c5c1737'
     ),
     (
-        '720d266e-38a6-4686-b68f-09e1512bc96d',
-        '986889ee-3fd0-4602-8235-08cd1a281441'
+        'aa9ae11c-ac6a-4d1d-a462-d4087d5236f0',
+        'e06a48f6-c190-4f24-84fe-0d0038e5847a'
     ),
     (
-        '720d266e-38a6-4686-b68f-09e1512bc96d',
-        '76018974-0e46-4e7a-acd3-a32052aacc4d'
+        'aa9ae11c-ac6a-4d1d-a462-d4087d5236f0',
+        '569c9050-252c-4c20-9f37-1fcb48a81b62'
     ),
     (
-        '720d266e-38a6-4686-b68f-09e1512bc96d',
-        '9c90434e-a75e-45dc-9903-a69a2ed397a1'
+        'aa9ae11c-ac6a-4d1d-a462-d4087d5236f0',
+        '1cd039de-0dcd-4b84-85fe-f8300154c903'
     ),
     (
-        '0aecf569-9165-4a37-8fd2-a4e897bee7e2',
-        '3d97f91b-d054-4ac0-ae08-49a0a3ccc5bd'
+        'ca6e7403-02eb-429e-b034-372732d9e010',
+        'b1e54368-b5a9-4c26-b368-f279c0462bab'
     ),
     (
-        '65b237f1-2acb-457c-99b8-c64024eed172',
-        'b23eada2-b4c2-4c40-8d3e-608e40214769'
+        '5246c5d2-f2d3-4fc1-9232-054105c1fe02',
+        '630dd325-8c88-40eb-b535-6235563a4edd'
     ),
     (
-        '459a4902-2100-4b7d-9474-0cbf07c95250',
-        'b7faa410-9a7d-4a0a-bb15-3343316c5ea0'
+        'e72cb193-a1e8-4244-81ea-008e44e272b1',
+        'e2e8443a-6666-42ff-bbc0-94f01daa9b3b'
     ),
     (
-        '19f116a9-53d6-4804-bf72-96fcc346dbd6',
-        '9c82d98a-f615-44b4-b50f-298c62a5438b'
+        '49b767d1-bf90-4d0c-be9b-abe5f2cb43cf',
+        '0fd99969-ac1a-433c-be79-5e66221f9c63'
     ),
     (
-        '169bb890-b034-4c69-81fb-1a20358e83fa',
-        'c6bb3b34-7e19-4dd1-a00d-86b880e8b703'
+        '669610ae-e145-46b2-9f6f-ab964b45e919',
+        '354fc4c2-2572-4a5f-95b7-32a49e693db6'
     ),
     (
-        '169bb890-b034-4c69-81fb-1a20358e83fa',
-        'b95a4705-bb5f-496a-b855-1a2bd27b3337'
+        '669610ae-e145-46b2-9f6f-ab964b45e919',
+        '1e6e1722-3036-45f0-b690-b15efa64954d'
     ),
     (
-        '169bb890-b034-4c69-81fb-1a20358e83fa',
-        'd92d9861-86f6-42b8-a8c8-758ecd7d71c7'
+        '669610ae-e145-46b2-9f6f-ab964b45e919',
+        'd07cba18-9cf4-4f1e-80fa-928531c2841b'
     ),
     (
-        '65b237f1-2acb-457c-99b8-c64024eed172',
-        '7aa012e1-129a-4722-b32f-806e42e57b97'
+        '5246c5d2-f2d3-4fc1-9232-054105c1fe02',
+        'e4f1737c-b110-4245-ae6e-52d02d0d207e'
     ),
     (
-        '0aecf569-9165-4a37-8fd2-a4e897bee7e2',
-        'f39ee405-2dcd-4b9a-9088-7d9e992cd110'
+        'ca6e7403-02eb-429e-b034-372732d9e010',
+        'c4dada3e-6912-45c0-82ff-4b5ee75770f4'
     ),
     (
-        '65b237f1-2acb-457c-99b8-c64024eed172',
-        'eac70653-90a5-4e95-bcfd-6f1e00f2f5dd'
+        '5246c5d2-f2d3-4fc1-9232-054105c1fe02',
+        'e36935e8-0c96-4639-b7ca-91f5ddd325d3'
     ),
     (
-        'c09a94c0-c244-490b-994f-01fe0b0d919c',
-        '9f9cb624-c3c4-44b5-8f93-be03b1339ca4'
+        'b3990bd3-82a9-452a-ac13-d304cce0e771',
+        'd705582c-12f5-4322-89e4-76318aea60e2'
     ),
     (
-        'c09a94c0-c244-490b-994f-01fe0b0d919c',
-        '460d84e0-277d-40ed-9f88-f19da9d7263b'
+        'b3990bd3-82a9-452a-ac13-d304cce0e771',
+        'cad5d92a-781d-4eed-adac-78f176a1959f'
     ),
     (
-        'c09a94c0-c244-490b-994f-01fe0b0d919c',
-        '790c6f5b-4282-44f0-b496-0fc803bdac7d'
+        'b3990bd3-82a9-452a-ac13-d304cce0e771',
+        '95f6cc23-5c72-4b55-a769-25c4df4d7a98'
     ),
     (
-        'c09a94c0-c244-490b-994f-01fe0b0d919c',
-        'a5fe9d3e-67d3-4a6f-ae20-901c78ae7e64'
+        'b3990bd3-82a9-452a-ac13-d304cce0e771',
+        '2c4c6fa6-3319-4786-ba6e-3bf7788047b9'
     ),
     (
-        '459a4902-2100-4b7d-9474-0cbf07c95250',
-        'd7964c5f-0dee-4aa7-8aa5-72ae09c8f426'
+        'e72cb193-a1e8-4244-81ea-008e44e272b1',
+        '644e4d62-57a8-4066-bb89-3ef8ec28ee8e'
     ),
     (
-        '19f116a9-53d6-4804-bf72-96fcc346dbd6',
-        '159b1877-e514-4841-9996-16b0b4388c80'
+        '49b767d1-bf90-4d0c-be9b-abe5f2cb43cf',
+        '6528dfff-eba9-4aee-8fe8-1126ee095151'
     ),
     (
-        '0aecf569-9165-4a37-8fd2-a4e897bee7e2',
-        'be04e029-2f9a-461c-b9dc-2e6ba41ef783'
+        'ca6e7403-02eb-429e-b034-372732d9e010',
+        '5d0c4f87-f936-4b90-95b3-d309c37bd4fd'
     ),
     (
-        '0aecf569-9165-4a37-8fd2-a4e897bee7e2',
-        '96168b74-1c00-4f76-ac44-1312cf796e50'
+        'ca6e7403-02eb-429e-b034-372732d9e010',
+        '94831226-348d-4dd9-a619-2123eeaebbf9'
     ),
     (
-        '9ec16055-f735-4768-a400-65e6cb388c6f',
-        'f4b1ab48-aa49-4e2a-9ba0-8e0a1be1190d'
+        'ec5b2e78-a977-438f-b33c-2c39039f7903',
+        '6600556f-22f8-4a6c-ad28-c940bbe97b7a'
     ),
     (
-        '9ec16055-f735-4768-a400-65e6cb388c6f',
-        '4e092f97-ae54-48d8-bef3-11ed67da026e'
+        'ec5b2e78-a977-438f-b33c-2c39039f7903',
+        'df635123-451b-40b6-b376-6ff8284d11e4'
     ),
     (
-        '9ec16055-f735-4768-a400-65e6cb388c6f',
-        'c89ef12e-fbf4-4f1b-87e9-f308dddfb8a8'
+        'ec5b2e78-a977-438f-b33c-2c39039f7903',
+        'feb013ab-10fe-4771-9861-bc7656e647a5'
     ),
     (
-        '9ec16055-f735-4768-a400-65e6cb388c6f',
-        '53e52a6f-b7c2-49cc-8bc3-eef238d165ae'
+        'ec5b2e78-a977-438f-b33c-2c39039f7903',
+        'dec562d5-a3ea-4b67-9efe-3e56ad6827b1'
     ),
     (
-        '0aecf569-9165-4a37-8fd2-a4e897bee7e2',
-        'acedfa1e-d516-48e5-a5ce-4a7114485d23'
+        'ca6e7403-02eb-429e-b034-372732d9e010',
+        'b01f0309-fab4-4e8e-b750-03a385835da4'
     ),
     (
-        '33d95c9b-83b8-464c-aef8-95bc702adc7e',
-        '0c5620b0-39f3-4f4c-bf6b-aa2a89730584'
+        '2c183c7f-a67f-4811-8c90-af5317825510',
+        '90d7fc9b-f613-4651-b9cf-35e4b00921ca'
     ),
     (
-        '19f116a9-53d6-4804-bf72-96fcc346dbd6',
-        '16503653-e0f6-4e52-acbb-7f296d82498f'
+        '49b767d1-bf90-4d0c-be9b-abe5f2cb43cf',
+        'bf88162b-09e3-4aaf-884f-482624afdb76'
     ),
     (
-        '19f116a9-53d6-4804-bf72-96fcc346dbd6',
-        '1a2561ce-5179-4caa-99a9-bd13da9844c6'
+        '49b767d1-bf90-4d0c-be9b-abe5f2cb43cf',
+        '1f68d280-73e4-40c0-a5f0-e4d74c9c61d1'
     ),
     (
-        '33d95c9b-83b8-464c-aef8-95bc702adc7e',
-        'a30d78a9-a079-419a-a643-12fc0a7abd9b'
+        '2c183c7f-a67f-4811-8c90-af5317825510',
+        'a2f1d2aa-7add-41f2-925b-d5569b4fc586'
     ),
     (
-        '19f116a9-53d6-4804-bf72-96fcc346dbd6',
-        '017bab66-bce1-46ff-a428-bd137f07907e'
+        '49b767d1-bf90-4d0c-be9b-abe5f2cb43cf',
+        '40ad1dc7-5df0-4319-8b86-75c32a53a669'
     ),
     (
-        '19f116a9-53d6-4804-bf72-96fcc346dbd6',
-        'ab701dfe-e702-4ee3-a4a8-a43b9fe76af8'
+        '49b767d1-bf90-4d0c-be9b-abe5f2cb43cf',
+        'c69cb7ea-4e94-443d-8e3d-7d1e7b4f83e4'
     ),
     (
-        '19f116a9-53d6-4804-bf72-96fcc346dbd6',
-        '4c6da152-5142-4c2f-a633-76a26e611f86'
+        '49b767d1-bf90-4d0c-be9b-abe5f2cb43cf',
+        'a9aa2bcd-4b6c-442b-b15f-821d04c57f26'
     ),
     (
-        '19f116a9-53d6-4804-bf72-96fcc346dbd6',
-        'acd519bc-2762-4a69-befd-d22370d7060e'
+        '49b767d1-bf90-4d0c-be9b-abe5f2cb43cf',
+        '93e91f06-a2d8-49d6-a4e4-1761e35ed479'
     ),
     (
-        '0aecf569-9165-4a37-8fd2-a4e897bee7e2',
-        'c0b31f00-2c9f-4f5e-abab-d9d2783840b8'
+        'ca6e7403-02eb-429e-b034-372732d9e010',
+        '2d6cca53-5b3f-42f1-85be-a42220ac0793'
     ),
     (
-        '459a4902-2100-4b7d-9474-0cbf07c95250',
-        '04ca052a-9f9e-4c43-bf45-f5c38f8da639'
+        'e72cb193-a1e8-4244-81ea-008e44e272b1',
+        '485dd83b-fec5-48b6-a887-7c7fc861309d'
     ),
     (
-        '459a4902-2100-4b7d-9474-0cbf07c95250',
-        'd8e103a0-b35d-4e1b-b96a-6cd1dee502f4'
+        'e72cb193-a1e8-4244-81ea-008e44e272b1',
+        '114f33ec-e104-4ef9-a282-c8251f39072f'
     ),
     (
-        '0aecf569-9165-4a37-8fd2-a4e897bee7e2',
-        '04a9a96e-e746-41ae-9757-66d568343a83'
+        'ca6e7403-02eb-429e-b034-372732d9e010',
+        '94c86cb6-fd1d-4e58-83c0-026d6892dd3e'
     ),
     (
-        'dea8b5ec-37f8-4a0f-92b7-54952ce0fd60',
-        '1a87ed67-08a3-4698-bf85-2440cea4ff3f'
+        '62c2167d-4a74-4a17-9543-7fdddaa4596f',
+        '4e6b1072-a431-4cbe-857d-14cb470c5017'
     ),
     (
-        'dea8b5ec-37f8-4a0f-92b7-54952ce0fd60',
-        '2c98d711-5f8c-4d65-af48-9a29627b2483'
+        '62c2167d-4a74-4a17-9543-7fdddaa4596f',
+        '93927737-f647-4e60-ab4a-0bc9f8309d79'
     ),
     (
-        '0aecf569-9165-4a37-8fd2-a4e897bee7e2',
-        'd92c742d-f79c-4d41-ba1c-ab76805ece72'
+        'ca6e7403-02eb-429e-b034-372732d9e010',
+        '0392b5f0-d984-47fc-a269-fb8e7f44d340'
     ),
     (
-        'bd01fdd9-6c07-44d1-a0ef-e2b0ef499a1e',
-        '3d5daa00-bf60-45b5-9cb8-7234614e81b4'
+        'bc81293e-9a2c-4b83-95f5-518144be5d4a',
+        '2f3557e4-93f2-4583-9e32-8e4b375daf85'
     ),
     (
-        'dea8b5ec-37f8-4a0f-92b7-54952ce0fd60',
-        'db4e5ed2-3c64-4ec1-b24e-5333e53960f4'
+        '62c2167d-4a74-4a17-9543-7fdddaa4596f',
+        '7f07552c-1609-49dc-bb35-83eb323cf138'
     ),
     (
-        'dea8b5ec-37f8-4a0f-92b7-54952ce0fd60',
-        'd935eb52-2b1e-4d8f-861f-0657a8069f4b'
+        '62c2167d-4a74-4a17-9543-7fdddaa4596f',
+        'ca62a353-7daf-41dd-96dd-7d8d08b78454'
     ),
     (
-        'dea8b5ec-37f8-4a0f-92b7-54952ce0fd60',
-        'c542ba53-e0bc-46bb-9f0e-9adbf9f8a25e'
+        '62c2167d-4a74-4a17-9543-7fdddaa4596f',
+        '107d6f60-d1ec-4244-b983-dc3d2d104255'
     ),
     (
-        '1a914051-79e1-43bf-998f-96b159b1aa0c',
-        'f2e6ba41-0705-4509-89fa-99aa567355dd'
+        '56241fb6-fd2c-4c88-9b00-42aa1bf66b86',
+        '4fa20a23-68e5-407a-9929-d6fd3c840b1c'
     ),
     (
-        '19f116a9-53d6-4804-bf72-96fcc346dbd6',
-        'be4eec0e-37c2-44fb-b994-f69cb85492d9'
+        '49b767d1-bf90-4d0c-be9b-abe5f2cb43cf',
+        'f9249978-c55c-47e9-aceb-1546f4d49fd4'
     ),
     (
-        '19f116a9-53d6-4804-bf72-96fcc346dbd6',
-        '1e707069-cfe5-454d-97b1-2f8265de1568'
+        '49b767d1-bf90-4d0c-be9b-abe5f2cb43cf',
+        '7002d383-a8ce-4393-b55a-d74ae8a04fd4'
     ),
     (
-        '1a914051-79e1-43bf-998f-96b159b1aa0c',
-        '5e2dedba-4a63-4eaa-a5b0-f455fe9adc01'
+        '56241fb6-fd2c-4c88-9b00-42aa1bf66b86',
+        '0c969ef8-ca71-4e77-9422-b70ec1e7c8e9'
     ),
     (
-        '1a914051-79e1-43bf-998f-96b159b1aa0c',
-        '092b3682-c944-4403-bc25-71386ff6fb3e'
+        '56241fb6-fd2c-4c88-9b00-42aa1bf66b86',
+        '3abf076c-520f-497f-8650-aec7e6cc4f22'
     ),
     (
-        'dea8b5ec-37f8-4a0f-92b7-54952ce0fd60',
-        '31507c4e-3b8f-4a86-9360-777e70d0b116'
+        '62c2167d-4a74-4a17-9543-7fdddaa4596f',
+        'c63e4360-0582-4d6e-8a95-81c3f39be2e9'
     ),
     (
-        'dea8b5ec-37f8-4a0f-92b7-54952ce0fd60',
-        '99f85e07-c700-47ee-b8dd-dab559b66b92'
+        '62c2167d-4a74-4a17-9543-7fdddaa4596f',
+        'e314140c-4ea8-4cbb-a005-81dd5dd72b28'
     ),
     (
-        '1a914051-79e1-43bf-998f-96b159b1aa0c',
-        'bbcf8f78-e83f-498c-ac13-9f9eb638130c'
+        '56241fb6-fd2c-4c88-9b00-42aa1bf66b86',
+        '43da840e-b0b5-48b7-8aa4-81e5989ce12a'
     ),
     (
-        'a7207eac-2526-4ec1-88b7-a6d3b4e8fd2c',
-        'b1ba476c-c932-4601-b99d-2bc33f24b06a'
+        'a84cd579-8020-43d0-a2e3-7970cbfdc1fa',
+        '952f5056-fb58-4ac5-bfd7-9669d6ce70e8'
     ),
     (
-        '459a4902-2100-4b7d-9474-0cbf07c95250',
-        'acbb1c9f-fea9-49f2-a206-5138feab159c'
+        'e72cb193-a1e8-4244-81ea-008e44e272b1',
+        '7a065ec1-baa6-4d4d-8204-1755b53897f7'
     ),
     (
-        '19f116a9-53d6-4804-bf72-96fcc346dbd6',
-        '79df28d8-762d-452a-b448-c4a13c0b484c'
+        '49b767d1-bf90-4d0c-be9b-abe5f2cb43cf',
+        '6a725e1b-560d-4bb0-8799-aff35e6224e5'
     ),
     (
-        '19f116a9-53d6-4804-bf72-96fcc346dbd6',
-        '2379befd-cc20-4795-bb80-a50113ff79f6'
+        '49b767d1-bf90-4d0c-be9b-abe5f2cb43cf',
+        '587ae839-b2ec-4512-bf76-5066a7c23565'
     ),
     (
-        '459a4902-2100-4b7d-9474-0cbf07c95250',
-        '0dc0fa05-17a2-4ce5-b55b-37a3cab86c6f'
+        'e72cb193-a1e8-4244-81ea-008e44e272b1',
+        '2a74bda0-71b9-4bcb-b686-3b006c2db059'
     ),
     (
-        '459a4902-2100-4b7d-9474-0cbf07c95250',
-        '869a0486-e26d-4c9a-b49e-ec1c098545f6'
+        'e72cb193-a1e8-4244-81ea-008e44e272b1',
+        '12dd8879-fdd5-4565-bdc7-ff0281af665f'
     ),
     (
-        '0aecf569-9165-4a37-8fd2-a4e897bee7e2',
-        '0b84ef96-5364-4acf-9faa-bd448c6751c8'
+        'ca6e7403-02eb-429e-b034-372732d9e010',
+        '3d123ac6-2cf0-4371-8f8a-324c768c732d'
     ),
     (
-        '19f116a9-53d6-4804-bf72-96fcc346dbd6',
-        '6807c7eb-68b9-4537-b707-df2cbd028bd8'
+        '49b767d1-bf90-4d0c-be9b-abe5f2cb43cf',
+        '3b008ad1-8980-4a9f-936d-10b50d6504ac'
     ),
     (
-        '65b237f1-2acb-457c-99b8-c64024eed172',
-        '041e9ac8-788b-40cf-bc17-987f86fdf038'
+        '5246c5d2-f2d3-4fc1-9232-054105c1fe02',
+        'a049faed-ec9b-42ea-a2f4-e2e497a42e30'
     ),
     (
-        '65b237f1-2acb-457c-99b8-c64024eed172',
-        'ee3798c2-2adf-4461-8001-36ceda6900a0'
+        '5246c5d2-f2d3-4fc1-9232-054105c1fe02',
+        '8f85c68b-d9f6-4571-a32a-8f3fe8858e01'
     ),
     (
-        '0aecf569-9165-4a37-8fd2-a4e897bee7e2',
-        '29f09aa7-d87c-41f4-96d9-4482439b32e8'
+        'ca6e7403-02eb-429e-b034-372732d9e010',
+        '88b54da4-0551-4d7d-9793-35e997bc49db'
     ),
     (
-        '0aecf569-9165-4a37-8fd2-a4e897bee7e2',
-        '9e1ac256-f090-4012-8137-19958a08341e'
+        'ca6e7403-02eb-429e-b034-372732d9e010',
+        '2cd8e0b7-802b-4836-9898-1d32ee984009'
     ),
     (
-        '19f116a9-53d6-4804-bf72-96fcc346dbd6',
-        'eab5757d-31e8-4896-9ac7-6b000dcbcd66'
+        '49b767d1-bf90-4d0c-be9b-abe5f2cb43cf',
+        '0ea0f5ba-74fe-4a41-bb42-559a45925173'
     ),
     (
-        '19f116a9-53d6-4804-bf72-96fcc346dbd6',
-        '0a69add9-695e-4569-a0ad-d54a6de50c53'
+        '49b767d1-bf90-4d0c-be9b-abe5f2cb43cf',
+        'f3dee379-997c-4ef0-989d-8180b0c9670f'
     ),
     (
-        '0aecf569-9165-4a37-8fd2-a4e897bee7e2',
-        '8178b25f-7204-46f6-ad84-85472b0cdaab'
+        'ca6e7403-02eb-429e-b034-372732d9e010',
+        '84e15b7b-2b0a-48b0-9b0f-ec17d053b80e'
     ),
     (
-        '19f116a9-53d6-4804-bf72-96fcc346dbd6',
-        'b263f517-3b0c-4343-aea2-755a125712ff'
+        '49b767d1-bf90-4d0c-be9b-abe5f2cb43cf',
+        'aac6f435-eefd-41ae-bb00-309cbb1e52a0'
     ),
     (
-        '0aecf569-9165-4a37-8fd2-a4e897bee7e2',
-        '99e8c85c-cabb-4098-9131-bc4934a5cd1b'
+        'ca6e7403-02eb-429e-b034-372732d9e010',
+        'a3098ae9-9d06-49f9-b5e9-9bdbe64d07d6'
     ),
     (
-        '0aecf569-9165-4a37-8fd2-a4e897bee7e2',
-        '06dc9422-cf64-4736-bfa8-e2051150c7d7'
+        'ca6e7403-02eb-429e-b034-372732d9e010',
+        '2cd9b150-be5c-435f-bec4-d018c114892b'
     ),
     (
-        'dea8b5ec-37f8-4a0f-92b7-54952ce0fd60',
-        '266985db-56ca-42be-a2a8-214f528e7919'
+        '62c2167d-4a74-4a17-9543-7fdddaa4596f',
+        'ee6ed2c4-a90b-498f-bb6d-d024c3ddfd5c'
     ),
     (
-        'dea8b5ec-37f8-4a0f-92b7-54952ce0fd60',
-        '0bb67d93-9aef-4bd4-82aa-c095f20b628d'
+        '62c2167d-4a74-4a17-9543-7fdddaa4596f',
+        '1a575b9c-4e04-422a-bf53-2585e3457325'
     ),
     (
-        'a7207eac-2526-4ec1-88b7-a6d3b4e8fd2c',
-        '03244174-744b-400d-a774-157ee6892a0b'
+        'a84cd579-8020-43d0-a2e3-7970cbfdc1fa',
+        '5d78a4b5-6b0e-4394-90fc-ff8c81e35cbb'
     ),
     (
-        '1a914051-79e1-43bf-998f-96b159b1aa0c',
-        '260df763-9fcd-46b0-aef5-6dd5736c586e'
+        '56241fb6-fd2c-4c88-9b00-42aa1bf66b86',
+        '4cf92843-4968-4597-a63e-8a625e881a7a'
     ),
     (
-        'a7207eac-2526-4ec1-88b7-a6d3b4e8fd2c',
-        'e3a55c2c-fa6a-4f9c-8630-e1591392ca67'
+        'a84cd579-8020-43d0-a2e3-7970cbfdc1fa',
+        'f59a3a68-82bf-4d84-84a7-410ce2db717f'
     ),
     (
-        '1a914051-79e1-43bf-998f-96b159b1aa0c',
-        '6217b070-1c4f-4fbd-a8dd-ff0e571a3f0a'
+        '56241fb6-fd2c-4c88-9b00-42aa1bf66b86',
+        'a77e79d3-5274-4fab-9329-93a1c2cd02b1'
     ),
     (
-        'dea8b5ec-37f8-4a0f-92b7-54952ce0fd60',
-        'f3d07b29-6827-4d80-b84e-a25031ef9174'
+        '62c2167d-4a74-4a17-9543-7fdddaa4596f',
+        '82722ea9-5963-4305-815d-17c0be80d29a'
     ),
     (
-        '0aecf569-9165-4a37-8fd2-a4e897bee7e2',
-        'fd61ac1f-0f02-4c90-8b88-ee6a3ce4cdf2'
+        'ca6e7403-02eb-429e-b034-372732d9e010',
+        '977a7b4b-c1a6-476d-9918-9bf7bb637011'
     ),
     (
-        '19f116a9-53d6-4804-bf72-96fcc346dbd6',
-        '39d4f90c-8ad7-4396-80ff-603e22dfa92d'
+        '49b767d1-bf90-4d0c-be9b-abe5f2cb43cf',
+        'b677df86-5805-4ab5-b9dd-8c4723ba3311'
     ),
     (
-        '65b237f1-2acb-457c-99b8-c64024eed172',
-        '9d7ff1d0-686b-4545-98d8-344406d916f2'
+        '5246c5d2-f2d3-4fc1-9232-054105c1fe02',
+        '19918ead-6d4b-46ef-9716-150a998b1070'
     ),
     (
-        '0aecf569-9165-4a37-8fd2-a4e897bee7e2',
-        '064b7662-eaea-41fe-8de1-cffda7328dc5'
+        'ca6e7403-02eb-429e-b034-372732d9e010',
+        '65fb0d8a-01f7-4d1b-83f1-2e4e98275995'
     ),
     (
-        '0aecf569-9165-4a37-8fd2-a4e897bee7e2',
-        '8fea3f31-8ad8-469f-a235-deda5ef42e27'
+        'ca6e7403-02eb-429e-b034-372732d9e010',
+        '37c77ebd-830d-49dc-909e-22486bd1c047'
     ),
     (
-        '0aecf569-9165-4a37-8fd2-a4e897bee7e2',
-        '158a659a-4120-4e42-a8d4-22ffc1847daa'
+        'ca6e7403-02eb-429e-b034-372732d9e010',
+        'a7a5438c-33b9-48bc-a46d-b712a09cd380'
     ),
     (
-        '459a4902-2100-4b7d-9474-0cbf07c95250',
-        '80390d8f-4d2e-452a-a93b-1eed40372394'
+        'e72cb193-a1e8-4244-81ea-008e44e272b1',
+        '92dee66d-5575-437e-a5e0-23d6537c6f43'
     ),
     (
-        'dea8b5ec-37f8-4a0f-92b7-54952ce0fd60',
-        '05f3a49d-c6ce-44e4-b50d-0eed45aeac8a'
+        '62c2167d-4a74-4a17-9543-7fdddaa4596f',
+        '22afd73f-b923-4f94-a2d2-03a5e63b5539'
     ),
     (
-        'dea8b5ec-37f8-4a0f-92b7-54952ce0fd60',
-        'daa94d01-d69c-4344-b90c-9f087e136876'
+        '62c2167d-4a74-4a17-9543-7fdddaa4596f',
+        '1b76c0c3-784d-4f46-920f-b07cfc7c8281'
     ),
     (
-        'a7207eac-2526-4ec1-88b7-a6d3b4e8fd2c',
-        '157679a4-2cc7-43e4-b5fc-c371a2a3ae99'
+        'a84cd579-8020-43d0-a2e3-7970cbfdc1fa',
+        'e3b7bb1b-6778-4c94-8a7d-17b15ca964f9'
     ),
     (
-        '1a914051-79e1-43bf-998f-96b159b1aa0c',
-        'dc7f490c-aa83-4b57-8612-553726d6b644'
+        '56241fb6-fd2c-4c88-9b00-42aa1bf66b86',
+        'dcb42a57-614b-4367-9236-01537832c080'
     ),
     (
-        'a7207eac-2526-4ec1-88b7-a6d3b4e8fd2c',
-        'e8650668-09ec-423c-8cc2-36268da00023'
+        'a84cd579-8020-43d0-a2e3-7970cbfdc1fa',
+        '7e224978-9e58-4856-9e30-937ca6e87543'
     ),
     (
-        '1a914051-79e1-43bf-998f-96b159b1aa0c',
-        '36b05490-248b-46c4-a1f6-9e5075f3d6cb'
+        '56241fb6-fd2c-4c88-9b00-42aa1bf66b86',
+        '4d364bc0-748d-461a-ac01-1764e161d1a5'
     ),
     (
-        'dea8b5ec-37f8-4a0f-92b7-54952ce0fd60',
-        '1856cc9c-fc8b-48ee-94a1-a45973c53677'
+        '62c2167d-4a74-4a17-9543-7fdddaa4596f',
+        '8fb16a5b-6944-474b-9c5d-5365e9b14a49'
     ),
     (
-        '169bb890-b034-4c69-81fb-1a20358e83fa',
-        'b4e29b77-b38c-4296-9551-783b4ee94295'
+        '669610ae-e145-46b2-9f6f-ab964b45e919',
+        '830a8df4-057f-42ef-82a8-1e5d309816ac'
     ),
     (
-        '169bb890-b034-4c69-81fb-1a20358e83fa',
-        '3fb6c691-cddf-49b2-b280-198edb43dd83'
+        '669610ae-e145-46b2-9f6f-ab964b45e919',
+        '6a85d945-41d3-4316-9681-339ec7450822'
     ),
     (
-        '0aecf569-9165-4a37-8fd2-a4e897bee7e2',
-        '7891394e-63ba-4c79-b901-fd24a494e69e'
+        'ca6e7403-02eb-429e-b034-372732d9e010',
+        '687bb09f-11a3-4be9-a131-333616d20667'
     ),
     (
-        'a7207eac-2526-4ec1-88b7-a6d3b4e8fd2c',
-        '9163a1bc-ac3f-4044-8166-bf35575c8c90'
+        'a84cd579-8020-43d0-a2e3-7970cbfdc1fa',
+        '97c44248-db79-47d7-9b23-1a854912e63e'
     ),
     (
-        'a7207eac-2526-4ec1-88b7-a6d3b4e8fd2c',
-        'aba4b461-f3bd-40dd-964e-72a29ebbdb18'
+        'a84cd579-8020-43d0-a2e3-7970cbfdc1fa',
+        'c4ccc29e-ef82-4f68-8329-55de7e99327d'
     ),
     (
-        '0aecf569-9165-4a37-8fd2-a4e897bee7e2',
-        'e9c5c9b0-481a-46f7-a0d4-2943c17a6340'
+        'ca6e7403-02eb-429e-b034-372732d9e010',
+        '76641cb3-61d2-4be6-abdc-430b70d6a925'
     ),
     (
-        '0aecf569-9165-4a37-8fd2-a4e897bee7e2',
-        '903ac7be-bed4-430f-b594-49b7bd7cdb35'
+        'ca6e7403-02eb-429e-b034-372732d9e010',
+        'e83c6ecb-92f0-4e6a-98a2-28a89fda8ac8'
     ),
     (
-        '19f116a9-53d6-4804-bf72-96fcc346dbd6',
-        '83c48ee5-9343-4ce1-ba65-9dfedadfa75d'
+        '49b767d1-bf90-4d0c-be9b-abe5f2cb43cf',
+        'eea74c1e-2c95-40fa-a8df-8513559c76e8'
     ),
     (
-        '19f116a9-53d6-4804-bf72-96fcc346dbd6',
-        'fb99ae04-02f7-44ff-83e5-2990d57c6607'
+        '49b767d1-bf90-4d0c-be9b-abe5f2cb43cf',
+        'e155e34f-99e6-460d-8b93-c5acb65154a4'
     ),
     (
-        '0aecf569-9165-4a37-8fd2-a4e897bee7e2',
-        'de45e94a-843c-4c0e-afcb-f5fb22f8fbeb'
+        'ca6e7403-02eb-429e-b034-372732d9e010',
+        '46cd642b-a63c-4a65-a65e-2204dad0d682'
     ),
     (
-        '9ec16055-f735-4768-a400-65e6cb388c6f',
-        'd3a1f489-2729-40b8-b439-ff00f6b22b00'
+        'ec5b2e78-a977-438f-b33c-2c39039f7903',
+        'c614ba7c-5bef-4971-937f-cdbf9541a446'
     ),
     (
-        '9ec16055-f735-4768-a400-65e6cb388c6f',
-        '02902cc5-4176-48c3-9be8-c1a1277687fa'
+        'ec5b2e78-a977-438f-b33c-2c39039f7903',
+        'c566e010-4a19-40a4-a030-d51135b33b27'
     ),
     (
-        '0aecf569-9165-4a37-8fd2-a4e897bee7e2',
-        'ef833731-27d1-454e-a667-ec454dbdae53'
+        'ca6e7403-02eb-429e-b034-372732d9e010',
+        'dd581d69-02e4-413b-8754-94d0eeabde32'
     ),
     (
-        '33d95c9b-83b8-464c-aef8-95bc702adc7e',
-        '03bb91b7-0f33-4411-a01d-dbd1dbbdcf97'
+        '2c183c7f-a67f-4811-8c90-af5317825510',
+        '46c73b06-f6e2-4a49-bbfc-b56beb642815'
     ),
     (
-        '65b237f1-2acb-457c-99b8-c64024eed172',
-        '5059dba9-0f78-4d49-9c2e-e083421e4ff6'
+        '5246c5d2-f2d3-4fc1-9232-054105c1fe02',
+        '9751b425-47ec-4c54-a45f-d293dea318c3'
     ),
     (
-        '65b237f1-2acb-457c-99b8-c64024eed172',
-        'dc40456d-fdee-4aa4-96c1-5acf3ee206a6'
+        '5246c5d2-f2d3-4fc1-9232-054105c1fe02',
+        'eb04ee41-ee7c-4c01-95d4-f04fbd5ab989'
     ),
     (
-        '0aecf569-9165-4a37-8fd2-a4e897bee7e2',
-        '4b46fed7-ada8-47a6-a408-ab70468637d5'
+        'ca6e7403-02eb-429e-b034-372732d9e010',
+        '1bf6c681-fcf4-481c-b9f1-7a09dc98a49e'
     ),
     (
-        '0aecf569-9165-4a37-8fd2-a4e897bee7e2',
-        '722bbc94-ff75-4bb6-aced-cc52da4097f2'
+        'ca6e7403-02eb-429e-b034-372732d9e010',
+        'a118249a-60fc-4778-b202-9852b4c1517f'
     ),
     (
-        '97427141-5463-4e5c-a50e-f5cbf7b38086',
-        '91b3282e-47fb-4aca-abb5-fe91fe1d438b'
+        '59286979-bec5-409d-81a8-570517e0049c',
+        '0aa23bad-24eb-4577-b743-c27f4745f960'
     ),
     (
-        '19f116a9-53d6-4804-bf72-96fcc346dbd6',
-        'ce8f6214-85f6-4390-81df-6931c9fe1348'
+        '49b767d1-bf90-4d0c-be9b-abe5f2cb43cf',
+        '6e78fb83-48fe-43d0-8fee-29c1ad011b02'
     ),
     (
-        '19f116a9-53d6-4804-bf72-96fcc346dbd6',
-        'f027ade7-68b0-4005-a3e5-462cf2080f7f'
+        '49b767d1-bf90-4d0c-be9b-abe5f2cb43cf',
+        '28b05cc5-20c9-47d6-b776-762a5db0a2cd'
     ),
     (
-        'dea8b5ec-37f8-4a0f-92b7-54952ce0fd60',
-        'f94d6b44-0955-46b2-9ac4-a2072c4aefe6'
+        '62c2167d-4a74-4a17-9543-7fdddaa4596f',
+        'f343c8cc-3ed7-4b93-a2e4-4a121bf91345'
     ),
     (
-        'dea8b5ec-37f8-4a0f-92b7-54952ce0fd60',
-        'a5b68ba4-4c64-4da4-90d3-509eac732e1a'
+        '62c2167d-4a74-4a17-9543-7fdddaa4596f',
+        '40eb1883-3683-4f14-bf6a-8cb7e585beae'
     ),
     (
-        'dea8b5ec-37f8-4a0f-92b7-54952ce0fd60',
-        '36c00c14-b917-4d1f-9cf0-8f61c3aeb08c'
+        '62c2167d-4a74-4a17-9543-7fdddaa4596f',
+        'cb716991-b6a4-432c-9698-b7598d28db91'
     ),
     (
-        'dea8b5ec-37f8-4a0f-92b7-54952ce0fd60',
-        'd74b662d-0d2c-4a8d-92e6-4872756eff05'
+        '62c2167d-4a74-4a17-9543-7fdddaa4596f',
+        'e3847f08-17af-4b18-8017-57be5e1b450e'
     ),
     (
-        'dea8b5ec-37f8-4a0f-92b7-54952ce0fd60',
-        '3dacbcab-9cd9-43c2-9d48-7e4b6bbe2d0b'
+        '62c2167d-4a74-4a17-9543-7fdddaa4596f',
+        'dc098373-84f3-4039-96ac-f78cbc4914df'
     ),
     (
-        'bd01fdd9-6c07-44d1-a0ef-e2b0ef499a1e',
-        '1307ed63-461d-407b-9481-1420c25e10d9'
+        'bc81293e-9a2c-4b83-95f5-518144be5d4a',
+        'df1eef92-232f-41e2-a006-495817188985'
     ),
     (
-        'dea8b5ec-37f8-4a0f-92b7-54952ce0fd60',
-        'ea2eb77d-370b-456f-9bd6-27f536d7d4c9'
+        '62c2167d-4a74-4a17-9543-7fdddaa4596f',
+        'ee41132a-9c60-466a-a36b-dd0625be4b64'
     ),
     (
-        'dea8b5ec-37f8-4a0f-92b7-54952ce0fd60',
-        'be938adc-d768-4208-bb3c-a84b1b174ce3'
+        '62c2167d-4a74-4a17-9543-7fdddaa4596f',
+        '60738342-4e5b-46ae-9d62-6870e2000b1f'
     ),
     (
-        'dea8b5ec-37f8-4a0f-92b7-54952ce0fd60',
-        'b363b873-28b8-4a0b-9f99-bfceb0d88bdc'
+        '62c2167d-4a74-4a17-9543-7fdddaa4596f',
+        '9f957e42-e396-4252-acd8-3d88df2089c5'
     ),
     (
-        '1a914051-79e1-43bf-998f-96b159b1aa0c',
-        '0a558527-3ab7-422a-9528-af151eff5a8b'
+        '56241fb6-fd2c-4c88-9b00-42aa1bf66b86',
+        '0c41210d-0ba6-4ccc-9148-f57340a59859'
     ),
     (
-        '0aecf569-9165-4a37-8fd2-a4e897bee7e2',
-        'e170497d-499b-4e22-8406-c6607af9bcc7'
+        'ca6e7403-02eb-429e-b034-372732d9e010',
+        'ab9a7ffc-d33d-4345-ac61-083f057324d3'
     ),
     (
-        '0aecf569-9165-4a37-8fd2-a4e897bee7e2',
-        '7b1cdf12-4932-467f-b510-8731b514fa46'
+        'ca6e7403-02eb-429e-b034-372732d9e010',
+        '98cbb676-3110-4f81-ac86-e59a0d7d488e'
     ),
     (
-        '0aecf569-9165-4a37-8fd2-a4e897bee7e2',
-        '7ce427e0-0257-44e0-b28c-dcb3236a317c'
+        'ca6e7403-02eb-429e-b034-372732d9e010',
+        '40cce802-3d3f-432a-ab99-40bd7febf64f'
     ),
     (
-        '459a4902-2100-4b7d-9474-0cbf07c95250',
-        'e6e60e4c-25ff-4fe1-bab7-4d59b2b1ae02'
+        'e72cb193-a1e8-4244-81ea-008e44e272b1',
+        'eaa07ad9-0667-4a58-979c-50faf03baa77'
     ),
     (
-        '459a4902-2100-4b7d-9474-0cbf07c95250',
-        '99e1c1e6-a269-4ce6-a961-54c986748fd1'
+        'e72cb193-a1e8-4244-81ea-008e44e272b1',
+        '712c87ab-1374-40b6-86f7-f1792c474ed1'
     ),
     (
-        '19f116a9-53d6-4804-bf72-96fcc346dbd6',
-        '42c7b30c-9042-4a6e-bed2-f79fabe4bd99'
+        '49b767d1-bf90-4d0c-be9b-abe5f2cb43cf',
+        '1943eadf-2f9a-40d3-bfcc-cd6fa88bb92a'
     ),
     (
-        'bd01fdd9-6c07-44d1-a0ef-e2b0ef499a1e',
-        '9da3aa01-e154-4b83-811d-fa7d849cb23e'
+        'bc81293e-9a2c-4b83-95f5-518144be5d4a',
+        'e4611336-6b09-40a0-babe-fa5cf8a54722'
     ),
     (
-        'bd01fdd9-6c07-44d1-a0ef-e2b0ef499a1e',
-        'd9b74ff5-458b-479c-8be4-a8eebc042956'
+        'bc81293e-9a2c-4b83-95f5-518144be5d4a',
+        'e132cbb2-2fd6-43cd-9052-1234293dff8b'
     ),
     (
-        '19f116a9-53d6-4804-bf72-96fcc346dbd6',
-        '63c778a0-2e89-40c9-a9a2-9d3c1165b0a2'
+        '49b767d1-bf90-4d0c-be9b-abe5f2cb43cf',
+        '6abcaa88-527d-4148-ad48-6764d1ed3637'
     ),
     (
-        '19f116a9-53d6-4804-bf72-96fcc346dbd6',
-        'e4f24566-43fc-403e-9e67-b6b3c1288e89'
+        '49b767d1-bf90-4d0c-be9b-abe5f2cb43cf',
+        '4d3d3696-b382-45d2-ba60-5888d28ac73b'
     ),
     (
-        '1a914051-79e1-43bf-998f-96b159b1aa0c',
-        '1e95c66c-829a-472d-b212-e5356a333793'
+        '56241fb6-fd2c-4c88-9b00-42aa1bf66b86',
+        '8e2665e1-672a-4c8c-b0c6-8cda32a306c9'
     ),
     (
-        '1a914051-79e1-43bf-998f-96b159b1aa0c',
-        '86d9f4eb-c8a1-4ab5-b942-ae7262b715e8'
+        '56241fb6-fd2c-4c88-9b00-42aa1bf66b86',
+        'e138951e-759f-4a78-a944-636f605dceee'
     ),
     (
-        'dea8b5ec-37f8-4a0f-92b7-54952ce0fd60',
-        '3c6588ee-9781-4cfd-9b99-282e7d0982d4'
+        '62c2167d-4a74-4a17-9543-7fdddaa4596f',
+        '40c701db-2c07-47ad-9690-65a481c7a144'
     ),
     (
-        'dea8b5ec-37f8-4a0f-92b7-54952ce0fd60',
-        'a802e815-01ae-4755-aeff-9ee342fc0ec4'
+        '62c2167d-4a74-4a17-9543-7fdddaa4596f',
+        '66b13a38-36a8-4444-b938-717a61d08217'
     ),
     (
-        '19f116a9-53d6-4804-bf72-96fcc346dbd6',
-        '699a1140-891a-4406-912c-09e0d3934f19'
+        '49b767d1-bf90-4d0c-be9b-abe5f2cb43cf',
+        'd6fa9ff3-abda-4e87-9f1a-14cec9b29610'
     ),
     (
-        '0aecf569-9165-4a37-8fd2-a4e897bee7e2',
-        '358c86fa-e2c8-436f-8092-df622c90036e'
+        'ca6e7403-02eb-429e-b034-372732d9e010',
+        '8029aa74-77a1-4b06-9829-5c9f35a4381d'
     );
 
 INSERT INTO activity_target_group (activity_id, target_group)
 VALUES
-    ('004c002e-19c7-4dbd-b726-084601be54ae', 'aventyrare'),
-    ('004c002e-19c7-4dbd-b726-084601be54ae', 'utmanare'),
-    ('34852307-3afe-4fba-91f8-d8a6be8b3fe3', 'aventyrare'),
-    ('34852307-3afe-4fba-91f8-d8a6be8b3fe3', 'utmanare'),
-    ('f5b7e999-37cb-4a30-b6e2-7220c157cca5', 'aventyrare'),
-    ('f5b7e999-37cb-4a30-b6e2-7220c157cca5', 'utmanare'),
-    ('f5b7e999-37cb-4a30-b6e2-7220c157cca5', 'rover'),
-    ('ce6de84a-4ba8-4e0f-b5a6-9e7d8660a7c5', 'rover'),
-    ('4165f541-21a7-407f-abab-55824ece5908', 'upptackare'),
-    ('4165f541-21a7-407f-abab-55824ece5908', 'aventyrare'),
-    ('4165f541-21a7-407f-abab-55824ece5908', 'utmanare'),
-    ('4165f541-21a7-407f-abab-55824ece5908', 'rover'),
-    ('d27ce94f-3d06-4ffa-9062-9fc73b406055', 'upptackare'),
-    ('d27ce94f-3d06-4ffa-9062-9fc73b406055', 'aventyrare'),
-    ('d27ce94f-3d06-4ffa-9062-9fc73b406055', 'utmanare'),
-    ('d27ce94f-3d06-4ffa-9062-9fc73b406055', 'rover'),
-    ('6763fee7-496c-444d-9a76-13da3895cb64', 'rover'),
-    ('35ec03e5-2280-47c9-994c-ef17e35a2ec0', 'upptackare'),
-    ('35ec03e5-2280-47c9-994c-ef17e35a2ec0', 'aventyrare'),
-    ('35ec03e5-2280-47c9-994c-ef17e35a2ec0', 'utmanare'),
-    ('35ec03e5-2280-47c9-994c-ef17e35a2ec0', 'rover'),
-    ('a28289a5-9490-4ede-acf0-5a27d13cdfa7', 'upptackare'),
-    ('3df42c5b-66a0-4dcc-b914-950f06fd8dd0', 'upptackare'),
-    ('fc8edeeb-d4fb-415f-a6ba-83b2587b9609', 'upptackare'),
-    ('796c7d6d-d7ea-407c-b02e-74df22241290', 'upptackare'),
-    ('a0aa7e9b-c4c2-4a8a-9d7b-3cd0b71beaca', 'upptackare'),
-    ('a0ac13b6-13a1-492e-be9c-314019ac1b64', 'upptackare'),
-    ('8ae19ed6-4f64-4bcc-9a24-478ed28a82e0', 'upptackare'),
-    ('6f3c0f8f-d80f-4e0c-a9e1-0c62e746c624', 'upptackare'),
-    ('0c22d135-54e6-424a-9f12-129853251fde', 'upptackare'),
-    ('3ad83178-7483-401f-b21e-870936db2376', 'upptackare'),
-    ('1160f5d9-c54d-4de3-a58e-64cfb5818cec', 'upptackare'),
-    ('29ee2cec-a901-4ff9-b1f3-9265cba92c77', 'upptackare'),
-    ('29ee2cec-a901-4ff9-b1f3-9265cba92c77', 'aventyrare'),
-    ('29ee2cec-a901-4ff9-b1f3-9265cba92c77', 'utmanare'),
-    ('29ee2cec-a901-4ff9-b1f3-9265cba92c77', 'rover'),
-    ('322a000d-6a7c-4d60-89f1-69ae3304ca7c', 'upptackare'),
-    ('322a000d-6a7c-4d60-89f1-69ae3304ca7c', 'aventyrare'),
-    ('322a000d-6a7c-4d60-89f1-69ae3304ca7c', 'utmanare'),
-    ('322a000d-6a7c-4d60-89f1-69ae3304ca7c', 'rover'),
-    ('f55cf1a6-b0ea-4240-8b78-b2e32cd0ffa6', 'aventyrare'),
-    ('f55cf1a6-b0ea-4240-8b78-b2e32cd0ffa6', 'utmanare'),
-    ('f55cf1a6-b0ea-4240-8b78-b2e32cd0ffa6', 'rover'),
-    ('27690871-a249-4361-a84e-fbd778a5c229', 'upptackare'),
-    ('27690871-a249-4361-a84e-fbd778a5c229', 'aventyrare'),
-    ('27690871-a249-4361-a84e-fbd778a5c229', 'utmanare'),
-    ('27690871-a249-4361-a84e-fbd778a5c229', 'rover'),
-    ('b96c164b-6584-4a75-9c84-dff11e90aec2', 'aventyrare'),
-    ('b96c164b-6584-4a75-9c84-dff11e90aec2', 'utmanare'),
-    ('b96c164b-6584-4a75-9c84-dff11e90aec2', 'rover'),
-    ('69ea6b66-7d58-4e0d-ba1f-e003f19cca06', 'aventyrare'),
-    ('69ea6b66-7d58-4e0d-ba1f-e003f19cca06', 'utmanare'),
-    ('69ea6b66-7d58-4e0d-ba1f-e003f19cca06', 'rover'),
-    ('1366c587-66e0-4f33-b05d-98a980e0264b', 'aventyrare'),
-    ('1366c587-66e0-4f33-b05d-98a980e0264b', 'utmanare'),
-    ('1366c587-66e0-4f33-b05d-98a980e0264b', 'rover'),
-    ('5c0b00bf-5b7a-42b0-b3cf-657dfb2e4e3b', 'upptackare'),
-    ('5c0b00bf-5b7a-42b0-b3cf-657dfb2e4e3b', 'aventyrare'),
-    ('5c0b00bf-5b7a-42b0-b3cf-657dfb2e4e3b', 'utmanare'),
-    ('5c0b00bf-5b7a-42b0-b3cf-657dfb2e4e3b', 'rover'),
-    ('fc13f168-f4a1-4b6b-9be3-044242fb26da', 'upptackare'),
-    ('84254ff1-db71-4de9-ace1-c3991c9ccf2e', 'aventyrare'),
-    ('84254ff1-db71-4de9-ace1-c3991c9ccf2e', 'utmanare'),
-    ('47d71c34-aebd-4772-96a3-121bf61583f8', 'upptackare'),
-    ('47d71c34-aebd-4772-96a3-121bf61583f8', 'aventyrare'),
-    ('47d71c34-aebd-4772-96a3-121bf61583f8', 'utmanare'),
-    ('47d71c34-aebd-4772-96a3-121bf61583f8', 'rover'),
-    ('2004235b-7edf-48da-9ef0-003545cbe2c7', 'upptackare'),
-    ('fc362d1b-a5ff-4331-9662-7abada6031d6', 'upptackare'),
-    ('fc362d1b-a5ff-4331-9662-7abada6031d6', 'aventyrare'),
-    ('fc362d1b-a5ff-4331-9662-7abada6031d6', 'utmanare'),
-    ('fc362d1b-a5ff-4331-9662-7abada6031d6', 'rover'),
-    ('ad9d3e04-83a6-48f8-9734-8455a9b97c94', 'rover'),
-    ('fc1f4497-a585-4f56-bfcc-8653648c8f49', 'rover'),
-    ('c220e412-6cf1-4dc0-a94f-afd88b1b5d57', 'utmanare'),
-    ('c220e412-6cf1-4dc0-a94f-afd88b1b5d57', 'rover'),
-    ('827276ef-27da-409d-813a-eab2495e8ac6', 'utmanare'),
-    ('827276ef-27da-409d-813a-eab2495e8ac6', 'rover'),
-    ('d8b6e7b6-9c1b-4c8c-85ac-a7d547123b0a', 'upptackare'),
-    ('d8b6e7b6-9c1b-4c8c-85ac-a7d547123b0a', 'aventyrare'),
-    ('d8b6e7b6-9c1b-4c8c-85ac-a7d547123b0a', 'utmanare'),
-    ('d8b6e7b6-9c1b-4c8c-85ac-a7d547123b0a', 'rover'),
-    ('ec9da051-5c27-4acc-8ee7-4c2d1264b786', 'rover'),
-    ('904fe23e-01d9-49fd-906b-01e59deea454', 'rover'),
-    ('656237f5-f389-43dc-ba17-cb3e9c5849ec', 'upptackare'),
-    ('656237f5-f389-43dc-ba17-cb3e9c5849ec', 'aventyrare'),
-    ('656237f5-f389-43dc-ba17-cb3e9c5849ec', 'utmanare'),
-    ('656237f5-f389-43dc-ba17-cb3e9c5849ec', 'rover'),
-    ('2490f8c2-8f80-4176-b30a-1734386066e4', 'upptackare'),
-    ('2490f8c2-8f80-4176-b30a-1734386066e4', 'aventyrare'),
-    ('2490f8c2-8f80-4176-b30a-1734386066e4', 'utmanare'),
-    ('2490f8c2-8f80-4176-b30a-1734386066e4', 'rover'),
-    ('2d8ceff5-fa57-4881-ac5c-fdc14f3ea60a', 'upptackare'),
-    ('2d8ceff5-fa57-4881-ac5c-fdc14f3ea60a', 'aventyrare'),
-    ('2d8ceff5-fa57-4881-ac5c-fdc14f3ea60a', 'utmanare'),
-    ('2d8ceff5-fa57-4881-ac5c-fdc14f3ea60a', 'rover'),
-    ('fe928524-4f6b-45a7-9da5-ebdd167d22ee', 'upptackare'),
-    ('c106d9ac-831e-4969-9409-2cbccec91c18', 'upptackare'),
-    ('31efd74b-2d9c-489a-9c74-fce5ee4a86a6', 'upptackare'),
-    ('9db62c89-841d-43c6-9a7d-60c9a8b53158', 'upptackare'),
-    ('26502954-a6cc-4e2b-ba96-f5bd330953e1', 'upptackare'),
-    ('5d32c8fb-2a94-4926-8361-1c01c87b3d1f', 'upptackare'),
-    ('361b9210-5ea7-4d22-8b3a-396f272a6e65', 'upptackare'),
-    ('3fb32311-5d91-44a2-8a81-cfa56211b12e', 'upptackare'),
-    ('1ec6f9f3-b569-4c00-be6a-e6780db3f95e', 'upptackare'),
-    ('493d8750-0408-4c63-968b-57ef60d20ba2', 'upptackare'),
-    ('808e1233-536b-4f00-a28e-9d8972caeca1', 'upptackare'),
-    ('9a07122f-7ae6-4768-ab2d-daeda77db07c', 'upptackare'),
-    ('48e16e73-38d4-4e5b-b257-660cb5505f11', 'upptackare'),
-    ('ddb56fd4-6597-4dd7-b2bc-c3b814233ba4', 'upptackare'),
-    ('13870506-6706-4726-82b0-f84e366fdc7b', 'upptackare'),
-    ('4e3555ce-3c28-4766-8a3d-8abef939c7e4', 'upptackare'),
-    ('0a5c9dbc-b475-44a8-a439-893032630c85', 'utmanare'),
-    ('ae01cd6f-7659-4b05-94d7-e6fa014d4118', 'utmanare'),
-    ('6e20d53b-d119-477d-bff5-fd221fd5d363', 'aventyrare'),
-    ('4d57474c-4cc0-4d0b-b3fb-67c786a52ed1', 'aventyrare'),
-    ('05238e67-7f2c-43cf-8442-f9c8ca2654c3', 'aventyrare'),
-    ('20fc8ad4-dd67-429d-bcfd-f137a70d1065', 'aventyrare'),
-    ('19087016-6487-47fd-ba75-3f23d4f05f2f', 'aventyrare'),
-    ('1170a027-31c5-4f24-9024-c8fe682d411f', 'upptackare'),
-    ('1170a027-31c5-4f24-9024-c8fe682d411f', 'aventyrare'),
-    ('1170a027-31c5-4f24-9024-c8fe682d411f', 'utmanare'),
-    ('1170a027-31c5-4f24-9024-c8fe682d411f', 'rover'),
-    ('8455e566-b4a4-4696-8d5d-fafed53dbf62', 'rover'),
-    ('d9e741f0-3c34-4f92-b0c1-81c166b98e81', 'upptackare'),
-    ('125b1215-77be-4f74-8ef9-199327d40b90', 'aventyrare'),
-    ('125b1215-77be-4f74-8ef9-199327d40b90', 'utmanare'),
-    ('125b1215-77be-4f74-8ef9-199327d40b90', 'rover'),
-    ('dc19cb20-449c-4803-9455-7213ff6d7a29', 'upptackare'),
-    ('dc19cb20-449c-4803-9455-7213ff6d7a29', 'aventyrare'),
-    ('dc19cb20-449c-4803-9455-7213ff6d7a29', 'utmanare'),
-    ('dc19cb20-449c-4803-9455-7213ff6d7a29', 'rover'),
-    ('5988927f-6c8c-4c45-a7a5-2efa6ec006a6', 'aventyrare'),
-    ('5988927f-6c8c-4c45-a7a5-2efa6ec006a6', 'utmanare'),
-    ('5988927f-6c8c-4c45-a7a5-2efa6ec006a6', 'rover'),
-    ('44baed8c-465c-4a5e-a19e-e33a1c10bf55', 'aventyrare'),
-    ('44baed8c-465c-4a5e-a19e-e33a1c10bf55', 'utmanare'),
-    ('44baed8c-465c-4a5e-a19e-e33a1c10bf55', 'rover'),
-    ('114c5ba4-773f-4055-8719-a53ce04f0097', 'utmanare'),
-    ('114c5ba4-773f-4055-8719-a53ce04f0097', 'rover'),
-    ('9642b83e-bdd4-4517-a6af-967ff3a0e8db', 'aventyrare'),
-    ('9642b83e-bdd4-4517-a6af-967ff3a0e8db', 'utmanare'),
-    ('9642b83e-bdd4-4517-a6af-967ff3a0e8db', 'rover'),
-    ('0871419b-fd71-4ffb-8847-d12b2fb1ef86', 'aventyrare'),
-    ('0871419b-fd71-4ffb-8847-d12b2fb1ef86', 'utmanare'),
-    ('0871419b-fd71-4ffb-8847-d12b2fb1ef86', 'rover'),
-    ('09401093-4490-43fe-8943-6aeae6ebf9b1', 'upptackare'),
-    ('09401093-4490-43fe-8943-6aeae6ebf9b1', 'aventyrare'),
-    ('09401093-4490-43fe-8943-6aeae6ebf9b1', 'utmanare'),
-    ('09401093-4490-43fe-8943-6aeae6ebf9b1', 'rover'),
-    ('6c60df4a-05d1-4abf-8b5a-5070e291e8d1', 'rover'),
-    ('013e253b-7209-4a0a-980c-5395919ece34', 'aventyrare'),
-    ('013e253b-7209-4a0a-980c-5395919ece34', 'utmanare'),
-    ('95328179-0861-4892-a33e-806ad31ce49c', 'aventyrare'),
-    ('95328179-0861-4892-a33e-806ad31ce49c', 'utmanare'),
-    ('95328179-0861-4892-a33e-806ad31ce49c', 'rover'),
-    ('ff9653d0-b7a0-4900-89ed-08205c6bf020', 'aventyrare'),
-    ('ff9653d0-b7a0-4900-89ed-08205c6bf020', 'utmanare'),
-    ('ff9653d0-b7a0-4900-89ed-08205c6bf020', 'rover'),
-    ('b8ccbb5e-0199-45f1-aa97-899984131984', 'aventyrare'),
-    ('b8ccbb5e-0199-45f1-aa97-899984131984', 'utmanare'),
-    ('b8ccbb5e-0199-45f1-aa97-899984131984', 'rover'),
-    ('b90878c6-bd60-4091-9110-522d2bcea2e8', 'aventyrare'),
-    ('b90878c6-bd60-4091-9110-522d2bcea2e8', 'utmanare'),
-    ('b90878c6-bd60-4091-9110-522d2bcea2e8', 'rover'),
-    ('f1fd8053-09e2-42e0-a5b5-1c7eb8290c3f', 'aventyrare'),
-    ('f1fd8053-09e2-42e0-a5b5-1c7eb8290c3f', 'utmanare'),
-    ('e9644720-98be-48be-9d71-f41a8d312ec3', 'utmanare'),
-    ('e9644720-98be-48be-9d71-f41a8d312ec3', 'rover'),
-    ('6c5b4d88-6d66-48a8-ad67-cbc682967df9', 'utmanare'),
-    ('6c5b4d88-6d66-48a8-ad67-cbc682967df9', 'rover'),
-    ('d8dfc4e6-1d4b-4006-b2d4-18171a50ea50', 'aventyrare'),
-    ('d8dfc4e6-1d4b-4006-b2d4-18171a50ea50', 'utmanare'),
-    ('d8dfc4e6-1d4b-4006-b2d4-18171a50ea50', 'rover'),
-    ('49d4fb8a-1a28-4b06-a40c-98de22ecc09c', 'aventyrare'),
-    ('49d4fb8a-1a28-4b06-a40c-98de22ecc09c', 'utmanare'),
-    ('49d4fb8a-1a28-4b06-a40c-98de22ecc09c', 'rover'),
-    ('6d5ff716-904f-4628-95e7-e496b7ac6383', 'utmanare'),
-    ('6d5ff716-904f-4628-95e7-e496b7ac6383', 'rover'),
-    ('1d1f80b9-1098-49b6-bced-ea12dccd24e2', 'aventyrare'),
-    ('1d1f80b9-1098-49b6-bced-ea12dccd24e2', 'utmanare'),
-    ('1d1f80b9-1098-49b6-bced-ea12dccd24e2', 'rover'),
-    ('f3d525cc-b819-4ece-8c82-9d6873928080', 'upptackare'),
-    ('f3d525cc-b819-4ece-8c82-9d6873928080', 'aventyrare'),
-    ('f3d525cc-b819-4ece-8c82-9d6873928080', 'utmanare'),
-    ('f3d525cc-b819-4ece-8c82-9d6873928080', 'rover'),
-    ('f436d7b3-074d-41ce-8fc3-cad2ed8e2087', 'upptackare'),
-    ('f436d7b3-074d-41ce-8fc3-cad2ed8e2087', 'aventyrare'),
-    ('f436d7b3-074d-41ce-8fc3-cad2ed8e2087', 'utmanare'),
-    ('f436d7b3-074d-41ce-8fc3-cad2ed8e2087', 'rover'),
-    ('5f6161f8-9caf-41c5-ae43-3034af9e4042', 'upptackare'),
-    ('5f6161f8-9caf-41c5-ae43-3034af9e4042', 'aventyrare'),
-    ('5f6161f8-9caf-41c5-ae43-3034af9e4042', 'utmanare'),
-    ('5f6161f8-9caf-41c5-ae43-3034af9e4042', 'rover'),
-    ('1eb4d50a-29e7-450a-860a-724ac05baafd', 'upptackare'),
-    ('1eb4d50a-29e7-450a-860a-724ac05baafd', 'aventyrare'),
-    ('1eb4d50a-29e7-450a-860a-724ac05baafd', 'utmanare'),
-    ('1eb4d50a-29e7-450a-860a-724ac05baafd', 'rover'),
-    ('08bd3e6d-07d0-4257-aaae-2092f9801495', 'upptackare'),
-    ('08bd3e6d-07d0-4257-aaae-2092f9801495', 'aventyrare'),
-    ('08bd3e6d-07d0-4257-aaae-2092f9801495', 'utmanare'),
-    ('08bd3e6d-07d0-4257-aaae-2092f9801495', 'rover'),
-    ('45237a39-ab57-49e8-8328-0fcac848b8e4', 'rover'),
-    ('957c5a3b-d6dc-4d06-b19d-1fedbdcb9184', 'rover'),
-    ('3aafaa68-960a-49c6-a274-18af991ee6ad', 'rover'),
-    ('6ba0d48d-ff18-41c1-80af-c272c396aecd', 'utmanare'),
-    ('6ba0d48d-ff18-41c1-80af-c272c396aecd', 'rover'),
-    ('d8ec976e-98ee-465a-8347-61fac169e018', 'upptackare'),
-    ('d8ec976e-98ee-465a-8347-61fac169e018', 'aventyrare'),
-    ('d8ec976e-98ee-465a-8347-61fac169e018', 'utmanare'),
-    ('d8ec976e-98ee-465a-8347-61fac169e018', 'rover'),
-    ('2d80fbdd-e8de-4bb5-9142-2e7b78eb3e71', 'upptackare'),
-    ('2d80fbdd-e8de-4bb5-9142-2e7b78eb3e71', 'aventyrare'),
-    ('2d80fbdd-e8de-4bb5-9142-2e7b78eb3e71', 'utmanare'),
-    ('2d80fbdd-e8de-4bb5-9142-2e7b78eb3e71', 'rover'),
-    ('ebb7ee4c-58e3-495b-9615-4338c59f7bad', 'rover'),
-    ('aacf630e-590c-475f-8104-4c500619fe8e', 'rover'),
-    ('6c0e051e-aa37-4d9b-964c-d9eed027a2d3', 'rover'),
-    ('482552df-cdcd-4516-a46c-9dbd4c63ba3a', 'rover'),
-    ('0bd9a9d2-46c1-4f50-90a5-9777da516168', 'rover'),
-    ('fc667e38-dbb6-4b9e-a61f-14c3baf12835', 'rover'),
-    ('2603048f-0158-4877-9875-f13b5b1f5c8a', 'upptackare'),
-    ('2603048f-0158-4877-9875-f13b5b1f5c8a', 'aventyrare'),
-    ('2603048f-0158-4877-9875-f13b5b1f5c8a', 'utmanare'),
-    ('2603048f-0158-4877-9875-f13b5b1f5c8a', 'rover'),
-    ('b4cfd222-4cbe-497f-af22-57e81af50ece', 'upptackare'),
-    ('b4cfd222-4cbe-497f-af22-57e81af50ece', 'aventyrare'),
-    ('b4cfd222-4cbe-497f-af22-57e81af50ece', 'utmanare'),
-    ('b4cfd222-4cbe-497f-af22-57e81af50ece', 'rover'),
-    ('257d28f4-0601-4bb9-8c84-e8fdc0c6696c', 'upptackare'),
-    ('257d28f4-0601-4bb9-8c84-e8fdc0c6696c', 'aventyrare'),
-    ('257d28f4-0601-4bb9-8c84-e8fdc0c6696c', 'utmanare'),
-    ('257d28f4-0601-4bb9-8c84-e8fdc0c6696c', 'rover'),
-    ('6946aaf6-1d84-468c-aee5-ab97ac2e652f', 'upptackare'),
-    ('d467c64f-ca17-4acc-915e-28d4dcb16c18', 'upptackare'),
-    ('d8105d31-ad0e-4894-b0b6-bf604b70d65a', 'upptackare'),
-    ('b1b32f71-0d3f-43d7-a591-87663f070081', 'upptackare'),
-    ('dde06127-ec78-4110-913f-d502b12fbca7', 'upptackare'),
-    ('c1c69d4b-9504-45ed-92b4-95101db027af', 'upptackare'),
-    ('a2b54e64-1b67-45d3-89e5-0f7c389a6151', 'upptackare'),
-    ('32d13152-f6e9-4f6d-90ad-630c82fcf17b', 'upptackare'),
-    ('523b0701-ceaa-4ef9-bbca-3f7c795a6a21', 'upptackare'),
-    ('3395c1b9-0331-4852-a2fa-d4eaa10042aa', 'upptackare'),
-    ('5c511e61-cea5-41c8-8385-5a80df68be3c', 'upptackare'),
-    ('c7733531-af4d-4289-a750-2208e7675d1a', 'upptackare'),
-    ('c84eb3d4-c0cc-4a62-96d8-062b0b5c6652', 'upptackare'),
-    ('12c76ac7-573c-4def-80b6-879b82542c20', 'upptackare'),
-    ('04056659-cd32-4485-a52d-9f52e4539122', 'upptackare'),
-    ('07e127fe-a5fc-4abe-a64e-d29e7c5f529c', 'upptackare'),
-    ('c2f5a8be-1263-44ff-a8f4-e0237591851f', 'upptackare'),
-    ('b1698d70-45db-4d17-a3d5-c4abfaa879b9', 'utmanare'),
-    ('dc9302e3-9b71-4bcd-9a0b-cd449e769f3e', 'utmanare'),
-    ('e4c83221-8d80-4be7-ab80-72071680f45f', 'utmanare'),
-    ('df67b411-1dd8-4072-8205-235b77b56578', 'utmanare'),
-    ('d0324cdb-9a89-4952-8ef9-0974c8b4f1bd', 'utmanare'),
-    ('e60f51a6-ef19-4e35-a5f0-d32c1c185711', 'utmanare'),
-    ('ded32f6f-5f09-47bb-90ef-85af58271769', 'utmanare'),
-    ('1c47fb6b-8983-4b99-ba4c-5e18e80e9e07', 'aventyrare'),
-    ('831eb197-a2c3-483e-8e25-74530b179dea', 'aventyrare'),
-    ('35ebb711-576d-456a-90c7-e233d8e84dac', 'aventyrare'),
-    ('af83d5be-e331-4457-a962-9f3dd456cd3b', 'aventyrare'),
-    ('66035bfa-c651-40f4-aedd-1ec4fa3cfb1a', 'upptackare'),
-    ('66035bfa-c651-40f4-aedd-1ec4fa3cfb1a', 'aventyrare'),
-    ('66035bfa-c651-40f4-aedd-1ec4fa3cfb1a', 'utmanare'),
-    ('66035bfa-c651-40f4-aedd-1ec4fa3cfb1a', 'rover'),
-    ('28427a26-f73f-48d3-99a9-8c8d8a9ac1a0', 'rover'),
-    ('5cfe4f51-c6b9-41a9-95e4-813351089f5b', 'rover'),
-    ('094d047b-2cc4-4490-810a-f0cdcc790ef5', 'rover'),
-    ('6f08dfb2-27ed-4da8-a439-35c08b9412db', 'upptackare'),
-    ('ba8fe444-844a-4cba-959e-fccfab0234fb', 'aventyrare'),
-    ('ba8fe444-844a-4cba-959e-fccfab0234fb', 'utmanare'),
-    ('ba8fe444-844a-4cba-959e-fccfab0234fb', 'rover'),
-    ('f27427ce-cf8e-43be-8b23-0de088cb58e3', 'upptackare'),
-    ('f27427ce-cf8e-43be-8b23-0de088cb58e3', 'aventyrare'),
-    ('f27427ce-cf8e-43be-8b23-0de088cb58e3', 'utmanare'),
-    ('f27427ce-cf8e-43be-8b23-0de088cb58e3', 'rover'),
-    ('0728dde2-dc50-4bbe-a15b-7bf106af290e', 'upptackare'),
-    ('0728dde2-dc50-4bbe-a15b-7bf106af290e', 'aventyrare'),
-    ('0728dde2-dc50-4bbe-a15b-7bf106af290e', 'utmanare'),
-    ('0728dde2-dc50-4bbe-a15b-7bf106af290e', 'rover'),
-    ('476adff5-ca9b-4b2b-be0f-460385ae0490', 'utmanare'),
-    ('476adff5-ca9b-4b2b-be0f-460385ae0490', 'rover'),
-    ('a6aed46d-6b35-4873-b1d8-d055b26cfe98', 'upptackare'),
-    ('a6aed46d-6b35-4873-b1d8-d055b26cfe98', 'aventyrare'),
-    ('a6aed46d-6b35-4873-b1d8-d055b26cfe98', 'utmanare'),
-    ('a6aed46d-6b35-4873-b1d8-d055b26cfe98', 'rover'),
-    ('1f1c5e24-e107-4a77-8dd1-0303a6c3b280', 'upptackare'),
-    ('1f1c5e24-e107-4a77-8dd1-0303a6c3b280', 'aventyrare'),
-    ('1f1c5e24-e107-4a77-8dd1-0303a6c3b280', 'utmanare'),
-    ('1f1c5e24-e107-4a77-8dd1-0303a6c3b280', 'rover'),
-    ('2e40b863-aa95-4fc0-a501-1997d5768ef4', 'aventyrare'),
-    ('2e40b863-aa95-4fc0-a501-1997d5768ef4', 'utmanare'),
-    ('2e40b863-aa95-4fc0-a501-1997d5768ef4', 'rover'),
-    ('bde5da82-2af8-4087-a72d-e07b86bd897e', 'utmanare'),
-    ('bde5da82-2af8-4087-a72d-e07b86bd897e', 'rover'),
-    ('009806a3-3e10-4e6c-ae52-6abd535ca909', 'aventyrare'),
-    ('009806a3-3e10-4e6c-ae52-6abd535ca909', 'utmanare'),
-    ('009806a3-3e10-4e6c-ae52-6abd535ca909', 'rover'),
-    ('1225b69c-0349-439e-9cec-9eaf5a77ace5', 'aventyrare'),
-    ('1225b69c-0349-439e-9cec-9eaf5a77ace5', 'utmanare'),
-    ('1225b69c-0349-439e-9cec-9eaf5a77ace5', 'rover'),
-    ('f065584d-c777-42e3-b1c7-950eaaf209fd', 'upptackare'),
-    ('f065584d-c777-42e3-b1c7-950eaaf209fd', 'aventyrare'),
-    ('f065584d-c777-42e3-b1c7-950eaaf209fd', 'utmanare'),
-    ('f065584d-c777-42e3-b1c7-950eaaf209fd', 'rover'),
-    ('51148b5c-c888-480e-98eb-3bae8b226e71', 'aventyrare'),
-    ('51148b5c-c888-480e-98eb-3bae8b226e71', 'utmanare'),
-    ('51148b5c-c888-480e-98eb-3bae8b226e71', 'rover'),
-    ('9591458d-8ab9-464d-9899-91e2f405bd36', 'upptackare'),
-    ('9591458d-8ab9-464d-9899-91e2f405bd36', 'aventyrare'),
-    ('9591458d-8ab9-464d-9899-91e2f405bd36', 'utmanare'),
-    ('9591458d-8ab9-464d-9899-91e2f405bd36', 'rover'),
-    ('45ad3b09-87ea-48a8-83ca-2a1a7ad9912b', 'utmanare'),
-    ('45ad3b09-87ea-48a8-83ca-2a1a7ad9912b', 'rover'),
-    ('8d7886b9-4229-4b4b-baa8-d765417d093b', 'aventyrare'),
-    ('8d7886b9-4229-4b4b-baa8-d765417d093b', 'utmanare'),
-    ('8d7886b9-4229-4b4b-baa8-d765417d093b', 'rover'),
-    ('25810b17-f8b6-4299-8efc-f09fff010e54', 'upptackare'),
-    ('25810b17-f8b6-4299-8efc-f09fff010e54', 'aventyrare'),
-    ('25810b17-f8b6-4299-8efc-f09fff010e54', 'utmanare'),
-    ('25810b17-f8b6-4299-8efc-f09fff010e54', 'rover'),
-    ('c0d97ff7-69a5-4972-8073-c825fdc9104e', 'utmanare'),
-    ('c0d97ff7-69a5-4972-8073-c825fdc9104e', 'rover'),
-    ('236dfbb3-fc37-49cd-a383-05c065263d3d', 'aventyrare'),
-    ('236dfbb3-fc37-49cd-a383-05c065263d3d', 'utmanare'),
-    ('236dfbb3-fc37-49cd-a383-05c065263d3d', 'rover'),
-    ('94900f81-7507-47e4-b204-aa1c98f85197', 'rover'),
-    ('9108fd6a-cf4c-4f95-91d9-7e13ed1e1c56', 'aventyrare'),
-    ('9108fd6a-cf4c-4f95-91d9-7e13ed1e1c56', 'utmanare'),
-    ('9108fd6a-cf4c-4f95-91d9-7e13ed1e1c56', 'rover'),
-    ('aa217f2d-8aaa-4183-b5e6-950d918cf10e', 'aventyrare'),
-    ('aa217f2d-8aaa-4183-b5e6-950d918cf10e', 'utmanare'),
-    ('aa217f2d-8aaa-4183-b5e6-950d918cf10e', 'rover'),
-    ('b676bc82-0055-4b0c-9a15-808703ffb948', 'upptackare'),
-    ('b676bc82-0055-4b0c-9a15-808703ffb948', 'aventyrare'),
-    ('b676bc82-0055-4b0c-9a15-808703ffb948', 'utmanare'),
-    ('b676bc82-0055-4b0c-9a15-808703ffb948', 'rover'),
-    ('db7e043b-2ce9-4dc6-b6a9-4ff8a99e42ae', 'aventyrare'),
-    ('db7e043b-2ce9-4dc6-b6a9-4ff8a99e42ae', 'utmanare'),
-    ('db7e043b-2ce9-4dc6-b6a9-4ff8a99e42ae', 'rover'),
-    ('09623077-3b8b-4deb-87d0-7ae6a9ac6636', 'upptackare'),
-    ('09623077-3b8b-4deb-87d0-7ae6a9ac6636', 'aventyrare'),
-    ('09623077-3b8b-4deb-87d0-7ae6a9ac6636', 'utmanare'),
-    ('09623077-3b8b-4deb-87d0-7ae6a9ac6636', 'rover'),
-    ('fb3e8f51-12dc-47a0-966a-1f499a58f54b', 'upptackare'),
-    ('fb3e8f51-12dc-47a0-966a-1f499a58f54b', 'aventyrare'),
-    ('fb3e8f51-12dc-47a0-966a-1f499a58f54b', 'utmanare'),
-    ('fb3e8f51-12dc-47a0-966a-1f499a58f54b', 'rover'),
-    ('bf25893c-1c54-49ce-876d-7763f09a309a', 'upptackare'),
-    ('bf25893c-1c54-49ce-876d-7763f09a309a', 'aventyrare'),
-    ('bf25893c-1c54-49ce-876d-7763f09a309a', 'utmanare'),
-    ('bf25893c-1c54-49ce-876d-7763f09a309a', 'rover'),
-    ('ac654d2d-140b-4a46-9de0-d489668a9f50', 'upptackare'),
-    ('ac654d2d-140b-4a46-9de0-d489668a9f50', 'aventyrare'),
-    ('ac654d2d-140b-4a46-9de0-d489668a9f50', 'utmanare'),
-    ('ac654d2d-140b-4a46-9de0-d489668a9f50', 'rover'),
-    ('d633d55b-fe8d-46d1-ad0c-b5b495a10b98', 'upptackare'),
-    ('d633d55b-fe8d-46d1-ad0c-b5b495a10b98', 'aventyrare'),
-    ('d633d55b-fe8d-46d1-ad0c-b5b495a10b98', 'utmanare'),
-    ('d633d55b-fe8d-46d1-ad0c-b5b495a10b98', 'rover'),
-    ('2bf21b4b-c9b6-4832-9e2d-24c1ce0ced12', 'aventyrare'),
-    ('2bf21b4b-c9b6-4832-9e2d-24c1ce0ced12', 'utmanare'),
-    ('2bf21b4b-c9b6-4832-9e2d-24c1ce0ced12', 'rover'),
-    ('00d99e6b-77ea-4f99-9894-164931892486', 'utmanare'),
-    ('00d99e6b-77ea-4f99-9894-164931892486', 'rover'),
-    ('e4fb877c-477c-461c-b70d-577acb0eaec1', 'upptackare'),
-    ('e4fb877c-477c-461c-b70d-577acb0eaec1', 'aventyrare'),
-    ('e4fb877c-477c-461c-b70d-577acb0eaec1', 'utmanare'),
-    ('e4fb877c-477c-461c-b70d-577acb0eaec1', 'rover'),
-    ('2ad6b4d8-46ba-43d3-afa5-ac981c521f1c', 'aventyrare'),
-    ('2ad6b4d8-46ba-43d3-afa5-ac981c521f1c', 'utmanare'),
-    ('2ad6b4d8-46ba-43d3-afa5-ac981c521f1c', 'rover'),
-    ('90908a34-0b2e-4997-b9d8-cb4a361aff13', 'aventyrare'),
-    ('90908a34-0b2e-4997-b9d8-cb4a361aff13', 'utmanare'),
-    ('90908a34-0b2e-4997-b9d8-cb4a361aff13', 'rover'),
-    ('92b13f23-822e-46d2-bb55-123505112027', 'aventyrare'),
-    ('92b13f23-822e-46d2-bb55-123505112027', 'utmanare'),
-    ('92b13f23-822e-46d2-bb55-123505112027', 'rover'),
-    ('03ea20cf-cbc9-4065-86ef-3d878b0e6808', 'upptackare'),
-    ('03ea20cf-cbc9-4065-86ef-3d878b0e6808', 'aventyrare'),
-    ('03ea20cf-cbc9-4065-86ef-3d878b0e6808', 'utmanare'),
-    ('03ea20cf-cbc9-4065-86ef-3d878b0e6808', 'rover'),
-    ('caa876bb-50de-41d5-8261-3cab7ded737e', 'rover'),
-    ('daad249f-1524-43e4-a692-74ce43d99cc5', 'rover'),
-    ('74808953-07c8-4a21-8451-ac526a339ec2', 'upptackare'),
-    ('74808953-07c8-4a21-8451-ac526a339ec2', 'aventyrare'),
-    ('74808953-07c8-4a21-8451-ac526a339ec2', 'utmanare'),
-    ('74808953-07c8-4a21-8451-ac526a339ec2', 'rover'),
-    ('a387031b-4874-45e3-893a-ed46ab7c0f56', 'utmanare'),
-    ('a387031b-4874-45e3-893a-ed46ab7c0f56', 'rover'),
-    ('01541136-b030-4ce7-8556-0da16169f483', 'rover'),
-    ('a80bdb5f-eb40-4c5d-926c-c58a9d6ae2a8', 'rover'),
-    ('43c6df0c-04be-49ea-b250-405cbcfd1780', 'rover'),
-    ('3dd49c66-e853-48ea-b19a-016a724dbdf8', 'rover'),
-    ('357fbc9a-1aa2-4492-94ec-2b5ceb8c1064', 'rover'),
-    ('07ae0ce7-224d-4b96-98f1-41117ab184f0', 'rover'),
-    ('ee1d4e99-3aa0-4a22-a07e-11545940091e', 'rover'),
-    ('3c2b50f9-5d8e-4f7b-8273-490cf2a81c43', 'rover'),
-    ('65202891-1714-468f-b9b8-711c96e8d3de', 'rover'),
-    ('f206be43-1765-4b65-b505-f90247f0d789', 'upptackare'),
-    ('f206be43-1765-4b65-b505-f90247f0d789', 'aventyrare'),
-    ('f206be43-1765-4b65-b505-f90247f0d789', 'utmanare'),
-    ('f206be43-1765-4b65-b505-f90247f0d789', 'rover'),
-    ('52ba5f5f-95f4-4980-953e-7f3a3aef9ab9', 'upptackare'),
-    ('52ba5f5f-95f4-4980-953e-7f3a3aef9ab9', 'aventyrare'),
-    ('52ba5f5f-95f4-4980-953e-7f3a3aef9ab9', 'utmanare'),
-    ('52ba5f5f-95f4-4980-953e-7f3a3aef9ab9', 'rover'),
-    ('5a3572d3-1b10-4a5a-aa13-3c2d8e6ec460', 'upptackare'),
-    ('5a3572d3-1b10-4a5a-aa13-3c2d8e6ec460', 'aventyrare'),
-    ('5a3572d3-1b10-4a5a-aa13-3c2d8e6ec460', 'utmanare'),
-    ('5a3572d3-1b10-4a5a-aa13-3c2d8e6ec460', 'rover'),
-    ('bb0026d6-153f-4d1b-8a34-e525033c10d1', 'upptackare'),
-    ('a7fc581a-7e86-458a-b3ed-14c64f63261e', 'upptackare'),
-    ('90945caf-70bd-41c0-83ee-39be750c661b', 'upptackare'),
-    ('98ad3a38-5afb-48c7-9c8b-4cc237ba1f63', 'upptackare'),
-    ('add52958-deb1-4b35-98c3-fc5339b7026d', 'upptackare'),
-    ('4dacd42f-02fd-4dcd-baa1-396fe4cb08c5', 'upptackare'),
-    ('b06035fd-b7b0-431f-a2cd-0742590ad6f1', 'upptackare'),
-    ('41da0677-d3d8-41bb-af3f-7c1ab3b74d02', 'upptackare'),
-    ('2624e3a5-9eae-41b9-9cd5-524e8c0cb7a0', 'upptackare'),
-    ('79ea459c-d0e5-4e84-ac32-927c0c4f9a9a', 'upptackare'),
-    ('60ab3f91-0876-4844-86fa-d63f701a84bd', 'upptackare'),
-    ('f6336931-4a79-403e-b2a4-dbc4dffc0c4e', 'upptackare'),
-    ('fc0034ea-7648-472c-bafb-5daf8805ce59', 'upptackare'),
-    ('a6dab0ac-4269-4c5a-97b1-6e6a20fa4b24', 'upptackare'),
-    ('9e0f5e78-0595-48a6-bd57-8ba6120eeaa9', 'upptackare'),
-    ('a7afc834-fde2-4ca1-8241-c4cbcb1492ec', 'upptackare'),
-    ('020cb0dc-6b5a-416a-9a5d-fff8f4c7d3fb', 'upptackare'),
-    ('daeaca85-b208-4ab1-a9df-4c630317460f', 'upptackare'),
-    ('f3e59171-5490-4e0c-aaef-f89aba0eef16', 'upptackare'),
-    ('844c13eb-7b92-4539-937d-4edf2ad04eca', 'upptackare'),
-    ('8ab73d23-771e-4145-8cea-add12374e7a9', 'upptackare'),
-    ('0952a123-318d-407e-b5a9-616960e74b98', 'upptackare'),
-    ('cf3f8e28-8e8f-4355-8f58-f7b214d354cf', 'upptackare'),
-    ('342f0972-034c-4857-8e66-8aad3ca40bbd', 'upptackare'),
-    ('c8420b8f-9d30-4a2f-aeb2-ce294753a79e', 'upptackare'),
-    ('74a0e44a-27b4-49bb-9a3f-4e1de93ac008', 'upptackare'),
-    ('1a6a0de4-be0a-4379-9529-519d32a7ef3b', 'utmanare'),
-    ('ca5bb8f0-14e4-4338-9644-ab5f12fcf95a', 'utmanare'),
-    ('c9017306-5fad-4af3-be68-5e7a37e1573c', 'aventyrare'),
-    ('665685c3-c5a5-421d-a00a-516f9bead8b9', 'aventyrare'),
-    ('53c264bf-f38e-4043-9e6a-92d0cd63094c', 'aventyrare'),
-    ('5bbacdbc-9579-41a0-b74f-0fdabb681908', 'aventyrare'),
-    ('56e67f45-d552-419e-a181-0370f31b6bc8', 'aventyrare'),
-    ('3e693a09-ed42-493c-b27a-5bf9e13eedbb', 'aventyrare'),
-    ('a0934f61-a5cd-41bf-afaa-0eea3cd390e0', 'aventyrare'),
-    ('a00e9b00-71f9-4f7c-b9d7-198ad53fd942', 'aventyrare'),
-    ('ce637af3-f48f-4615-9ff7-9114781a7c37', 'aventyrare'),
-    ('8d9cbe1d-4dcb-4926-bdcc-535b6c8265a1', 'aventyrare'),
-    ('d767758f-7c19-4e19-acaa-12674bcfdd8f', 'utmanare'),
-    ('d767758f-7c19-4e19-acaa-12674bcfdd8f', 'rover'),
-    ('69e357a4-88eb-4cfb-bb28-d143403f452b', 'utmanare'),
-    ('69e357a4-88eb-4cfb-bb28-d143403f452b', 'rover'),
-    ('fe37ba95-5add-43dd-807f-efea16f3064c', 'utmanare'),
-    ('fe37ba95-5add-43dd-807f-efea16f3064c', 'rover'),
-    ('de1d6c30-63d6-4380-95e7-532faaf8675b', 'utmanare'),
-    ('de1d6c30-63d6-4380-95e7-532faaf8675b', 'rover'),
-    ('8efc0644-ae00-4438-add2-c4238d416f8b', 'rover'),
-    ('217f2377-41d4-48a9-9189-27edcbaf54b0', 'rover'),
-    ('f295f281-e713-4447-86ec-5d501c859abd', 'rover'),
-    ('9cca49f3-89d9-442a-aad5-e26b9db0f636', 'upptackare'),
-    ('9cca49f3-89d9-442a-aad5-e26b9db0f636', 'aventyrare'),
-    ('9cca49f3-89d9-442a-aad5-e26b9db0f636', 'utmanare'),
-    ('9cca49f3-89d9-442a-aad5-e26b9db0f636', 'rover'),
-    ('e3a54ec8-9d75-4988-9891-059067c1d2d7', 'rover'),
-    ('594c0f84-f3b4-4625-b200-3a38fb8e9280', 'rover'),
-    ('b6b479b6-73af-4f8e-8aa0-060c5142ea33', 'rover'),
-    ('bb1bb4b9-5ccd-4940-b062-4d1dde27b0de', 'rover'),
-    ('e8602b0a-ec58-4079-b6f0-350dd5e62741', 'rover'),
-    ('59991769-3fae-497c-b247-f024264fe091', 'upptackare'),
-    ('59991769-3fae-497c-b247-f024264fe091', 'aventyrare'),
-    ('59991769-3fae-497c-b247-f024264fe091', 'utmanare'),
-    ('59991769-3fae-497c-b247-f024264fe091', 'rover'),
-    ('9d7d71b7-3f3c-4519-bbca-c84eb94aad07', 'upptackare'),
-    ('9d7d71b7-3f3c-4519-bbca-c84eb94aad07', 'aventyrare'),
-    ('9d7d71b7-3f3c-4519-bbca-c84eb94aad07', 'utmanare'),
-    ('9d7d71b7-3f3c-4519-bbca-c84eb94aad07', 'rover'),
-    ('edf6cb8a-4bd2-4607-b466-3860f5da2024', 'utmanare'),
-    ('6738bb07-5a12-4c3f-811a-d39faee4ba31', 'utmanare'),
-    ('05824292-8c0f-4288-a626-57f554023e60', 'rover'),
-    ('6a3df992-0e63-4eaa-80e8-b006a9767c62', 'upptackare'),
-    ('66b82a9b-b8a9-4c90-9f26-e8742de5340f', 'upptackare'),
-    ('85eb3b79-32a8-4b43-800a-3ec65946ad53', 'upptackare'),
-    ('4cb627d9-99c1-4be6-9fb5-851acb3d2ae2', 'upptackare'),
-    ('00849d0c-4f3f-40af-9dc9-c8a41fe2a306', 'upptackare'),
-    ('76c90650-3394-4857-8935-b8d758960dd5', 'aventyrare'),
-    ('2ba41480-8cdf-492c-8600-60ec38c4b86a', 'upptackare'),
-    ('eb006201-d5f0-4907-8c26-366ef5a5e436', 'upptackare'),
-    ('bbe258ff-f353-4d7b-8e6d-f670f73c1c6b', 'upptackare'),
-    ('7630deb2-f5d1-47bb-a23c-d058002103db', 'upptackare'),
-    ('c47d26d8-1ac0-4397-912d-37fc0b62377d', 'upptackare'),
-    ('c7e81a7e-823d-4bb3-a59d-f16389c8475e', 'upptackare'),
-    ('54f76f3f-a429-4a4b-9759-6d5fbdc72e09', 'upptackare'),
-    ('4173f0cc-744d-4f5c-94b9-9fc620470e75', 'upptackare'),
-    ('cd2a85d0-a37b-40a2-9bfc-a19ff2b9f64d', 'upptackare'),
-    ('f95a34f2-187e-4ac5-9426-959e46c01442', 'upptackare'),
-    ('f95a34f2-187e-4ac5-9426-959e46c01442', 'aventyrare'),
-    ('f95a34f2-187e-4ac5-9426-959e46c01442', 'utmanare'),
-    ('f95a34f2-187e-4ac5-9426-959e46c01442', 'rover'),
-    ('ab437c31-d001-412e-a751-22954265d36e', 'upptackare'),
-    ('ab437c31-d001-412e-a751-22954265d36e', 'aventyrare'),
-    ('ab437c31-d001-412e-a751-22954265d36e', 'utmanare'),
-    ('ab437c31-d001-412e-a751-22954265d36e', 'rover'),
-    ('6979ff6f-baec-404c-b2e0-f2286ac9d7ae', 'upptackare'),
-    ('6979ff6f-baec-404c-b2e0-f2286ac9d7ae', 'aventyrare'),
-    ('6979ff6f-baec-404c-b2e0-f2286ac9d7ae', 'utmanare'),
-    ('6979ff6f-baec-404c-b2e0-f2286ac9d7ae', 'rover'),
-    ('184ad7f0-ba86-4259-ba3a-039d7417d792', 'upptackare'),
-    ('184ad7f0-ba86-4259-ba3a-039d7417d792', 'aventyrare'),
-    ('184ad7f0-ba86-4259-ba3a-039d7417d792', 'utmanare'),
-    ('184ad7f0-ba86-4259-ba3a-039d7417d792', 'rover'),
-    ('582edfd5-975f-46e0-9f04-8e3097f7cbd9', 'upptackare'),
-    ('582edfd5-975f-46e0-9f04-8e3097f7cbd9', 'aventyrare'),
-    ('582edfd5-975f-46e0-9f04-8e3097f7cbd9', 'utmanare'),
-    ('582edfd5-975f-46e0-9f04-8e3097f7cbd9', 'rover'),
-    ('e66cefbc-35f4-49a8-a752-1fa27fe3ce0f', 'upptackare'),
-    ('e66cefbc-35f4-49a8-a752-1fa27fe3ce0f', 'aventyrare'),
-    ('e66cefbc-35f4-49a8-a752-1fa27fe3ce0f', 'utmanare'),
-    ('e66cefbc-35f4-49a8-a752-1fa27fe3ce0f', 'rover'),
-    ('65e0bd41-d7ed-44e9-8ede-39c6a2c0839b', 'upptackare'),
-    ('65e0bd41-d7ed-44e9-8ede-39c6a2c0839b', 'aventyrare'),
-    ('65e0bd41-d7ed-44e9-8ede-39c6a2c0839b', 'utmanare'),
-    ('65e0bd41-d7ed-44e9-8ede-39c6a2c0839b', 'rover'),
-    ('2aae7423-2055-4b66-b683-dc0d7c0402ed', 'aventyrare'),
-    ('1bf0fa05-9a83-4593-bd82-096e6644be3b', 'aventyrare'),
-    ('4611282b-056d-499a-ad4f-eb7e74e534b1', 'aventyrare'),
-    ('7524ecf9-8715-476a-be68-c875f13478df', 'utmanare'),
-    ('7524ecf9-8715-476a-be68-c875f13478df', 'rover'),
-    ('8cbf058d-9a40-4a08-b419-987bdc639a72', 'utmanare'),
-    ('be6aac64-0d39-4249-b45b-8f71cc2fbfad', 'utmanare'),
-    ('4081f071-1809-4ae3-aecb-dd79ec59e0c3', 'utmanare'),
-    ('3e536048-e3dd-4563-9988-4e5c2e172b98', 'utmanare'),
-    ('2f126d3a-4704-4369-af15-1161cac161b9', 'utmanare'),
-    ('e9205b27-88e4-4785-bc2d-b8f9348824bf', 'aventyrare'),
-    ('e9205b27-88e4-4785-bc2d-b8f9348824bf', 'utmanare'),
-    ('e9205b27-88e4-4785-bc2d-b8f9348824bf', 'rover'),
-    ('239fd174-cf9c-4f49-b642-a0316437862f', 'aventyrare'),
-    ('239fd174-cf9c-4f49-b642-a0316437862f', 'utmanare'),
-    ('239fd174-cf9c-4f49-b642-a0316437862f', 'rover'),
-    ('bdb0b116-500f-4b88-bc29-2b948ad8f751', 'aventyrare'),
-    ('bdb0b116-500f-4b88-bc29-2b948ad8f751', 'utmanare'),
-    ('bdb0b116-500f-4b88-bc29-2b948ad8f751', 'rover'),
-    ('289fbaf8-95d7-4a44-b922-23c4437f0705', 'aventyrare'),
-    ('289fbaf8-95d7-4a44-b922-23c4437f0705', 'utmanare'),
-    ('289fbaf8-95d7-4a44-b922-23c4437f0705', 'rover'),
-    ('1c16d352-11a7-4b33-878c-f8b22737fa7c', 'rover'),
-    ('b6675467-cc25-4975-a2a7-ab705ca26b65', 'upptackare'),
-    ('b6675467-cc25-4975-a2a7-ab705ca26b65', 'aventyrare'),
-    ('b6675467-cc25-4975-a2a7-ab705ca26b65', 'utmanare'),
-    ('b6675467-cc25-4975-a2a7-ab705ca26b65', 'rover'),
-    ('09f91c94-269f-452d-8fca-751f5a9da850', 'upptackare'),
-    ('09f91c94-269f-452d-8fca-751f5a9da850', 'aventyrare'),
-    ('09f91c94-269f-452d-8fca-751f5a9da850', 'utmanare'),
-    ('09f91c94-269f-452d-8fca-751f5a9da850', 'rover'),
-    ('b41c4874-9c91-48f0-9643-00c08036a28b', 'utmanare'),
-    ('056162e6-ae26-438d-b69e-a80bfbee5722', 'utmanare'),
-    ('4de6d7a7-58a6-490c-812c-74b8dae9ec6b', 'utmanare'),
-    ('eeae401e-4e73-4780-8700-5ea31c7a8215', 'rover'),
-    ('8f5a8e46-61a2-4d69-99b5-659801840fdd', 'upptackare'),
-    ('8f5a8e46-61a2-4d69-99b5-659801840fdd', 'aventyrare'),
-    ('8f5a8e46-61a2-4d69-99b5-659801840fdd', 'utmanare'),
-    ('8f5a8e46-61a2-4d69-99b5-659801840fdd', 'rover'),
-    ('c8703347-661c-4134-a2ec-cf683dc04e19', 'upptackare'),
-    ('245b3c84-24e4-416e-8de2-b1290705ee15', 'upptackare'),
-    ('e4eab0e5-8a51-436e-9605-98c6565d945f', 'upptackare'),
-    ('97bea2c9-0c63-460e-8943-0bfc57ddc55f', 'upptackare'),
-    ('11f99f28-aee7-4f69-a0ce-f5cdd480c041', 'upptackare'),
-    ('f944966d-7a81-462b-8cae-41b6d864415b', 'upptackare'),
-    ('9d14232b-dad0-473f-ad87-96be7c26056c', 'upptackare'),
-    ('b9718054-1be0-4e9f-9a61-d751c6e21905', 'upptackare'),
-    ('e3158eee-ba36-4fcd-a152-c69525acf3e6', 'upptackare'),
-    ('1181d489-a9f5-413c-9324-6440936ee4b8', 'upptackare'),
-    ('7c44c059-6798-44c3-a246-d5b25ab404b8', 'upptackare'),
-    ('7c44c059-6798-44c3-a246-d5b25ab404b8', 'aventyrare'),
-    ('7c44c059-6798-44c3-a246-d5b25ab404b8', 'utmanare'),
-    ('7c44c059-6798-44c3-a246-d5b25ab404b8', 'rover'),
-    ('8f95d425-c0db-4e56-b91b-5fc989c349fd', 'upptackare'),
-    ('ca2777aa-4471-4ab3-b9a6-3399937e1656', 'aventyrare'),
-    ('ca2777aa-4471-4ab3-b9a6-3399937e1656', 'utmanare'),
-    ('ca2777aa-4471-4ab3-b9a6-3399937e1656', 'rover'),
-    ('ae66a177-4386-48f3-9170-dfe04c7f04b8', 'aventyrare'),
-    ('ffa6cc32-3927-41f9-8b18-3ab7771c1829', 'upptackare'),
-    ('ffa6cc32-3927-41f9-8b18-3ab7771c1829', 'aventyrare'),
-    ('ffa6cc32-3927-41f9-8b18-3ab7771c1829', 'utmanare'),
-    ('ffa6cc32-3927-41f9-8b18-3ab7771c1829', 'rover'),
-    ('f772c02c-5601-41d0-a4d2-b722e4add062', 'aventyrare'),
-    ('f772c02c-5601-41d0-a4d2-b722e4add062', 'utmanare'),
-    ('f772c02c-5601-41d0-a4d2-b722e4add062', 'rover'),
-    ('1694fb0a-fd18-49a9-85b7-f4a8804e5fb2', 'utmanare'),
-    ('1694fb0a-fd18-49a9-85b7-f4a8804e5fb2', 'rover'),
-    ('f64de19c-5eb4-48c5-ae60-236b0dc5cf21', 'upptackare'),
-    ('f64de19c-5eb4-48c5-ae60-236b0dc5cf21', 'aventyrare'),
-    ('f64de19c-5eb4-48c5-ae60-236b0dc5cf21', 'utmanare'),
-    ('f64de19c-5eb4-48c5-ae60-236b0dc5cf21', 'rover'),
-    ('9c9c2b2b-d8b8-499d-940d-d11eeaafcb6b', 'aventyrare'),
-    ('9c9c2b2b-d8b8-499d-940d-d11eeaafcb6b', 'utmanare'),
-    ('9c9c2b2b-d8b8-499d-940d-d11eeaafcb6b', 'rover'),
-    ('dad3472d-688c-4031-a9ec-e359bf444434', 'aventyrare'),
-    ('dad3472d-688c-4031-a9ec-e359bf444434', 'utmanare'),
-    ('dad3472d-688c-4031-a9ec-e359bf444434', 'rover'),
-    ('d6f9b9cd-7238-4469-a4c8-10302f567125', 'aventyrare'),
-    ('d6f9b9cd-7238-4469-a4c8-10302f567125', 'utmanare'),
-    ('d6f9b9cd-7238-4469-a4c8-10302f567125', 'rover'),
-    ('681bc57f-b919-4137-8d85-2d100f761898', 'upptackare'),
-    ('681bc57f-b919-4137-8d85-2d100f761898', 'aventyrare'),
-    ('681bc57f-b919-4137-8d85-2d100f761898', 'utmanare'),
-    ('681bc57f-b919-4137-8d85-2d100f761898', 'rover'),
-    ('e4ae3724-5b2a-44fd-af40-fc4008e8a667', 'upptackare'),
-    ('e4ae3724-5b2a-44fd-af40-fc4008e8a667', 'aventyrare'),
-    ('e4ae3724-5b2a-44fd-af40-fc4008e8a667', 'utmanare'),
-    ('e4ae3724-5b2a-44fd-af40-fc4008e8a667', 'rover'),
-    ('04e06a5d-dddb-46bd-9d4c-2700593f1e72', 'upptackare'),
-    ('04e06a5d-dddb-46bd-9d4c-2700593f1e72', 'aventyrare'),
-    ('04e06a5d-dddb-46bd-9d4c-2700593f1e72', 'utmanare'),
-    ('04e06a5d-dddb-46bd-9d4c-2700593f1e72', 'rover'),
-    ('a74e2d81-f9a9-420f-984a-518f310da914', 'upptackare'),
-    ('a74e2d81-f9a9-420f-984a-518f310da914', 'aventyrare'),
-    ('a74e2d81-f9a9-420f-984a-518f310da914', 'utmanare'),
-    ('a74e2d81-f9a9-420f-984a-518f310da914', 'rover'),
-    ('267fd75d-3511-40b0-a3d7-0b017b153986', 'aventyrare'),
-    ('267fd75d-3511-40b0-a3d7-0b017b153986', 'utmanare'),
-    ('267fd75d-3511-40b0-a3d7-0b017b153986', 'rover'),
-    ('25018ad7-f84e-4aec-9c36-97709800cddd', 'rover'),
-    ('b78a067b-1fc3-432a-9ae1-fb5c1f235801', 'aventyrare'),
-    ('b78a067b-1fc3-432a-9ae1-fb5c1f235801', 'utmanare'),
-    ('b78a067b-1fc3-432a-9ae1-fb5c1f235801', 'rover'),
-    ('b51e6e5f-52f9-4254-8630-8b471944e5d9', 'aventyrare'),
-    ('b51e6e5f-52f9-4254-8630-8b471944e5d9', 'utmanare'),
-    ('b51e6e5f-52f9-4254-8630-8b471944e5d9', 'rover'),
-    ('e71d5ece-f14f-45bc-a1e9-7cf19cc8e918', 'aventyrare'),
-    ('e71d5ece-f14f-45bc-a1e9-7cf19cc8e918', 'utmanare'),
-    ('b53407f9-31ac-44db-9091-ed9f0dbc542e', 'aventyrare'),
-    ('b53407f9-31ac-44db-9091-ed9f0dbc542e', 'utmanare'),
-    ('b53407f9-31ac-44db-9091-ed9f0dbc542e', 'rover'),
-    ('5499007b-f55b-4d0e-8649-a6a155a94fc3', 'rover'),
-    ('986889ee-3fd0-4602-8235-08cd1a281441', 'utmanare'),
-    ('986889ee-3fd0-4602-8235-08cd1a281441', 'rover'),
-    ('76018974-0e46-4e7a-acd3-a32052aacc4d', 'rover'),
-    ('9c90434e-a75e-45dc-9903-a69a2ed397a1', 'rover'),
-    ('3d97f91b-d054-4ac0-ae08-49a0a3ccc5bd', 'upptackare'),
-    ('3d97f91b-d054-4ac0-ae08-49a0a3ccc5bd', 'aventyrare'),
-    ('3d97f91b-d054-4ac0-ae08-49a0a3ccc5bd', 'utmanare'),
-    ('3d97f91b-d054-4ac0-ae08-49a0a3ccc5bd', 'rover'),
-    ('b23eada2-b4c2-4c40-8d3e-608e40214769', 'upptackare'),
-    ('b23eada2-b4c2-4c40-8d3e-608e40214769', 'aventyrare'),
-    ('b23eada2-b4c2-4c40-8d3e-608e40214769', 'utmanare'),
-    ('b23eada2-b4c2-4c40-8d3e-608e40214769', 'rover'),
-    ('b7faa410-9a7d-4a0a-bb15-3343316c5ea0', 'upptackare'),
-    ('b7faa410-9a7d-4a0a-bb15-3343316c5ea0', 'aventyrare'),
-    ('b7faa410-9a7d-4a0a-bb15-3343316c5ea0', 'utmanare'),
-    ('b7faa410-9a7d-4a0a-bb15-3343316c5ea0', 'rover'),
-    ('c6bb3b34-7e19-4dd1-a00d-86b880e8b703', 'rover'),
-    ('b95a4705-bb5f-496a-b855-1a2bd27b3337', 'rover'),
-    ('d92d9861-86f6-42b8-a8c8-758ecd7d71c7', 'rover'),
-    ('f39ee405-2dcd-4b9a-9088-7d9e992cd110', 'upptackare'),
-    ('f39ee405-2dcd-4b9a-9088-7d9e992cd110', 'aventyrare'),
-    ('f39ee405-2dcd-4b9a-9088-7d9e992cd110', 'utmanare'),
-    ('f39ee405-2dcd-4b9a-9088-7d9e992cd110', 'rover'),
-    ('9f9cb624-c3c4-44b5-8f93-be03b1339ca4', 'upptackare'),
-    ('9f9cb624-c3c4-44b5-8f93-be03b1339ca4', 'aventyrare'),
-    ('9f9cb624-c3c4-44b5-8f93-be03b1339ca4', 'utmanare'),
-    ('9f9cb624-c3c4-44b5-8f93-be03b1339ca4', 'rover'),
-    ('460d84e0-277d-40ed-9f88-f19da9d7263b', 'upptackare'),
-    ('460d84e0-277d-40ed-9f88-f19da9d7263b', 'aventyrare'),
-    ('460d84e0-277d-40ed-9f88-f19da9d7263b', 'utmanare'),
-    ('460d84e0-277d-40ed-9f88-f19da9d7263b', 'rover'),
-    ('790c6f5b-4282-44f0-b496-0fc803bdac7d', 'upptackare'),
-    ('790c6f5b-4282-44f0-b496-0fc803bdac7d', 'aventyrare'),
-    ('790c6f5b-4282-44f0-b496-0fc803bdac7d', 'utmanare'),
-    ('790c6f5b-4282-44f0-b496-0fc803bdac7d', 'rover'),
-    ('a5fe9d3e-67d3-4a6f-ae20-901c78ae7e64', 'upptackare'),
-    ('a5fe9d3e-67d3-4a6f-ae20-901c78ae7e64', 'aventyrare'),
-    ('a5fe9d3e-67d3-4a6f-ae20-901c78ae7e64', 'utmanare'),
-    ('a5fe9d3e-67d3-4a6f-ae20-901c78ae7e64', 'rover'),
-    ('d7964c5f-0dee-4aa7-8aa5-72ae09c8f426', 'rover'),
-    ('159b1877-e514-4841-9996-16b0b4388c80', 'rover'),
-    ('be04e029-2f9a-461c-b9dc-2e6ba41ef783', 'rover'),
-    ('96168b74-1c00-4f76-ac44-1312cf796e50', 'rover'),
-    ('f4b1ab48-aa49-4e2a-9ba0-8e0a1be1190d', 'rover'),
-    ('4e092f97-ae54-48d8-bef3-11ed67da026e', 'rover'),
-    ('c89ef12e-fbf4-4f1b-87e9-f308dddfb8a8', 'rover'),
-    ('53e52a6f-b7c2-49cc-8bc3-eef238d165ae', 'rover'),
-    ('acedfa1e-d516-48e5-a5ce-4a7114485d23', 'upptackare'),
-    ('acedfa1e-d516-48e5-a5ce-4a7114485d23', 'aventyrare'),
-    ('acedfa1e-d516-48e5-a5ce-4a7114485d23', 'utmanare'),
-    ('acedfa1e-d516-48e5-a5ce-4a7114485d23', 'rover'),
-    ('0c5620b0-39f3-4f4c-bf6b-aa2a89730584', 'upptackare'),
-    ('0c5620b0-39f3-4f4c-bf6b-aa2a89730584', 'aventyrare'),
-    ('0c5620b0-39f3-4f4c-bf6b-aa2a89730584', 'utmanare'),
-    ('0c5620b0-39f3-4f4c-bf6b-aa2a89730584', 'rover'),
-    ('16503653-e0f6-4e52-acbb-7f296d82498f', 'upptackare'),
-    ('16503653-e0f6-4e52-acbb-7f296d82498f', 'aventyrare'),
-    ('16503653-e0f6-4e52-acbb-7f296d82498f', 'utmanare'),
-    ('16503653-e0f6-4e52-acbb-7f296d82498f', 'rover'),
-    ('1a2561ce-5179-4caa-99a9-bd13da9844c6', 'upptackare'),
-    ('1a2561ce-5179-4caa-99a9-bd13da9844c6', 'aventyrare'),
-    ('1a2561ce-5179-4caa-99a9-bd13da9844c6', 'utmanare'),
-    ('1a2561ce-5179-4caa-99a9-bd13da9844c6', 'rover'),
-    ('a30d78a9-a079-419a-a643-12fc0a7abd9b', 'upptackare'),
-    ('a30d78a9-a079-419a-a643-12fc0a7abd9b', 'aventyrare'),
-    ('a30d78a9-a079-419a-a643-12fc0a7abd9b', 'utmanare'),
-    ('a30d78a9-a079-419a-a643-12fc0a7abd9b', 'rover'),
-    ('511655cf-c27b-4084-8f14-ead8a2e7134b', 'upptackare'),
-    ('511655cf-c27b-4084-8f14-ead8a2e7134b', 'aventyrare'),
-    ('511655cf-c27b-4084-8f14-ead8a2e7134b', 'utmanare'),
-    ('511655cf-c27b-4084-8f14-ead8a2e7134b', 'rover'),
-    ('017bab66-bce1-46ff-a428-bd137f07907e', 'upptackare'),
-    ('017bab66-bce1-46ff-a428-bd137f07907e', 'aventyrare'),
-    ('017bab66-bce1-46ff-a428-bd137f07907e', 'utmanare'),
-    ('017bab66-bce1-46ff-a428-bd137f07907e', 'rover'),
-    ('ab701dfe-e702-4ee3-a4a8-a43b9fe76af8', 'upptackare'),
-    ('ab701dfe-e702-4ee3-a4a8-a43b9fe76af8', 'aventyrare'),
-    ('ab701dfe-e702-4ee3-a4a8-a43b9fe76af8', 'utmanare'),
-    ('ab701dfe-e702-4ee3-a4a8-a43b9fe76af8', 'rover'),
-    ('4c6da152-5142-4c2f-a633-76a26e611f86', 'upptackare'),
-    ('4c6da152-5142-4c2f-a633-76a26e611f86', 'aventyrare'),
-    ('4c6da152-5142-4c2f-a633-76a26e611f86', 'utmanare'),
-    ('4c6da152-5142-4c2f-a633-76a26e611f86', 'rover'),
-    ('acd519bc-2762-4a69-befd-d22370d7060e', 'upptackare'),
-    ('acd519bc-2762-4a69-befd-d22370d7060e', 'aventyrare'),
-    ('acd519bc-2762-4a69-befd-d22370d7060e', 'utmanare'),
-    ('acd519bc-2762-4a69-befd-d22370d7060e', 'rover'),
-    ('c0b31f00-2c9f-4f5e-abab-d9d2783840b8', 'upptackare'),
-    ('04ca052a-9f9e-4c43-bf45-f5c38f8da639', 'upptackare'),
-    ('d8e103a0-b35d-4e1b-b96a-6cd1dee502f4', 'upptackare'),
-    ('04a9a96e-e746-41ae-9757-66d568343a83', 'upptackare'),
-    ('1a87ed67-08a3-4698-bf85-2440cea4ff3f', 'upptackare'),
-    ('2c98d711-5f8c-4d65-af48-9a29627b2483', 'upptackare'),
-    ('d92c742d-f79c-4d41-ba1c-ab76805ece72', 'upptackare'),
-    ('3d5daa00-bf60-45b5-9cb8-7234614e81b4', 'upptackare'),
-    ('db4e5ed2-3c64-4ec1-b24e-5333e53960f4', 'upptackare'),
-    ('d935eb52-2b1e-4d8f-861f-0657a8069f4b', 'upptackare'),
-    ('c542ba53-e0bc-46bb-9f0e-9adbf9f8a25e', 'upptackare'),
-    ('f2e6ba41-0705-4509-89fa-99aa567355dd', 'upptackare'),
-    ('be4eec0e-37c2-44fb-b994-f69cb85492d9', 'upptackare'),
-    ('1e707069-cfe5-454d-97b1-2f8265de1568', 'upptackare'),
-    ('5e2dedba-4a63-4eaa-a5b0-f455fe9adc01', 'upptackare'),
-    ('092b3682-c944-4403-bc25-71386ff6fb3e', 'upptackare'),
-    ('31507c4e-3b8f-4a86-9360-777e70d0b116', 'upptackare'),
-    ('99f85e07-c700-47ee-b8dd-dab559b66b92', 'upptackare'),
-    ('bbcf8f78-e83f-498c-ac13-9f9eb638130c', 'utmanare'),
-    ('b1ba476c-c932-4601-b99d-2bc33f24b06a', 'utmanare'),
-    ('acbb1c9f-fea9-49f2-a206-5138feab159c', 'utmanare'),
-    ('79df28d8-762d-452a-b448-c4a13c0b484c', 'utmanare'),
-    ('2379befd-cc20-4795-bb80-a50113ff79f6', 'utmanare'),
-    ('0dc0fa05-17a2-4ce5-b55b-37a3cab86c6f', 'utmanare'),
-    ('869a0486-e26d-4c9a-b49e-ec1c098545f6', 'aventyrare'),
-    ('0b84ef96-5364-4acf-9faa-bd448c6751c8', 'aventyrare'),
-    ('6807c7eb-68b9-4537-b707-df2cbd028bd8', 'aventyrare'),
-    ('041e9ac8-788b-40cf-bc17-987f86fdf038', 'aventyrare'),
-    ('05eb5f0b-7677-4edb-8197-6a44c462a4ac', 'aventyrare'),
-    ('2f7e8731-e10d-430c-a547-809fc1388461', 'aventyrare'),
-    ('ee3798c2-2adf-4461-8001-36ceda6900a0', 'aventyrare'),
-    ('29f09aa7-d87c-41f4-96d9-4482439b32e8', 'aventyrare'),
-    ('9e1ac256-f090-4012-8137-19958a08341e', 'aventyrare'),
-    ('eab5757d-31e8-4896-9ac7-6b000dcbcd66', 'aventyrare'),
-    ('0a69add9-695e-4569-a0ad-d54a6de50c53', 'aventyrare'),
-    ('8178b25f-7204-46f6-ad84-85472b0cdaab', 'upptackare'),
-    ('8178b25f-7204-46f6-ad84-85472b0cdaab', 'aventyrare'),
-    ('8178b25f-7204-46f6-ad84-85472b0cdaab', 'utmanare'),
-    ('8178b25f-7204-46f6-ad84-85472b0cdaab', 'rover'),
-    ('b263f517-3b0c-4343-aea2-755a125712ff', 'rover'),
-    ('99e8c85c-cabb-4098-9131-bc4934a5cd1b', 'upptackare'),
-    ('06dc9422-cf64-4736-bfa8-e2051150c7d7', 'aventyrare'),
-    ('06dc9422-cf64-4736-bfa8-e2051150c7d7', 'utmanare'),
-    ('06dc9422-cf64-4736-bfa8-e2051150c7d7', 'rover'),
-    ('266985db-56ca-42be-a2a8-214f528e7919', 'upptackare'),
-    ('266985db-56ca-42be-a2a8-214f528e7919', 'aventyrare'),
-    ('266985db-56ca-42be-a2a8-214f528e7919', 'utmanare'),
-    ('266985db-56ca-42be-a2a8-214f528e7919', 'rover'),
-    ('0bb67d93-9aef-4bd4-82aa-c095f20b628d', 'aventyrare'),
-    ('0bb67d93-9aef-4bd4-82aa-c095f20b628d', 'utmanare'),
-    ('0bb67d93-9aef-4bd4-82aa-c095f20b628d', 'rover'),
-    ('03244174-744b-400d-a774-157ee6892a0b', 'utmanare'),
-    ('03244174-744b-400d-a774-157ee6892a0b', 'rover'),
-    ('260df763-9fcd-46b0-aef5-6dd5736c586e', 'upptackare'),
-    ('260df763-9fcd-46b0-aef5-6dd5736c586e', 'aventyrare'),
-    ('260df763-9fcd-46b0-aef5-6dd5736c586e', 'utmanare'),
-    ('260df763-9fcd-46b0-aef5-6dd5736c586e', 'rover'),
-    ('e3a55c2c-fa6a-4f9c-8630-e1591392ca67', 'aventyrare'),
-    ('e3a55c2c-fa6a-4f9c-8630-e1591392ca67', 'utmanare'),
-    ('e3a55c2c-fa6a-4f9c-8630-e1591392ca67', 'rover'),
-    ('6217b070-1c4f-4fbd-a8dd-ff0e571a3f0a', 'aventyrare'),
-    ('6217b070-1c4f-4fbd-a8dd-ff0e571a3f0a', 'utmanare'),
-    ('6217b070-1c4f-4fbd-a8dd-ff0e571a3f0a', 'rover'),
-    ('f3d07b29-6827-4d80-b84e-a25031ef9174', 'aventyrare'),
-    ('f3d07b29-6827-4d80-b84e-a25031ef9174', 'utmanare'),
-    ('f3d07b29-6827-4d80-b84e-a25031ef9174', 'rover'),
-    ('b4a24bfd-68f0-4865-9c3e-717fd85d5218', 'upptackare'),
-    ('b4a24bfd-68f0-4865-9c3e-717fd85d5218', 'aventyrare'),
-    ('b4a24bfd-68f0-4865-9c3e-717fd85d5218', 'utmanare'),
-    ('b4a24bfd-68f0-4865-9c3e-717fd85d5218', 'rover'),
-    ('01badd2b-c40d-416c-acc9-bfc6750648cf', 'aventyrare'),
-    ('01badd2b-c40d-416c-acc9-bfc6750648cf', 'utmanare'),
-    ('01badd2b-c40d-416c-acc9-bfc6750648cf', 'rover'),
-    ('fd61ac1f-0f02-4c90-8b88-ee6a3ce4cdf2', 'upptackare'),
-    ('fd61ac1f-0f02-4c90-8b88-ee6a3ce4cdf2', 'aventyrare'),
-    ('fd61ac1f-0f02-4c90-8b88-ee6a3ce4cdf2', 'utmanare'),
-    ('fd61ac1f-0f02-4c90-8b88-ee6a3ce4cdf2', 'rover'),
-    ('39d4f90c-8ad7-4396-80ff-603e22dfa92d', 'rover'),
-    ('9d7ff1d0-686b-4545-98d8-344406d916f2', 'aventyrare'),
-    ('9d7ff1d0-686b-4545-98d8-344406d916f2', 'utmanare'),
-    ('9d7ff1d0-686b-4545-98d8-344406d916f2', 'rover'),
-    ('064b7662-eaea-41fe-8de1-cffda7328dc5', 'upptackare'),
-    ('064b7662-eaea-41fe-8de1-cffda7328dc5', 'aventyrare'),
-    ('064b7662-eaea-41fe-8de1-cffda7328dc5', 'utmanare'),
-    ('064b7662-eaea-41fe-8de1-cffda7328dc5', 'rover'),
-    ('8fea3f31-8ad8-469f-a235-deda5ef42e27', 'aventyrare'),
-    ('8fea3f31-8ad8-469f-a235-deda5ef42e27', 'utmanare'),
-    ('8fea3f31-8ad8-469f-a235-deda5ef42e27', 'rover'),
-    ('158a659a-4120-4e42-a8d4-22ffc1847daa', 'upptackare'),
-    ('158a659a-4120-4e42-a8d4-22ffc1847daa', 'aventyrare'),
-    ('158a659a-4120-4e42-a8d4-22ffc1847daa', 'utmanare'),
-    ('158a659a-4120-4e42-a8d4-22ffc1847daa', 'rover'),
-    ('80390d8f-4d2e-452a-a93b-1eed40372394', 'upptackare'),
-    ('80390d8f-4d2e-452a-a93b-1eed40372394', 'aventyrare'),
-    ('80390d8f-4d2e-452a-a93b-1eed40372394', 'utmanare'),
-    ('80390d8f-4d2e-452a-a93b-1eed40372394', 'rover'),
-    ('05f3a49d-c6ce-44e4-b50d-0eed45aeac8a', 'upptackare'),
-    ('05f3a49d-c6ce-44e4-b50d-0eed45aeac8a', 'aventyrare'),
-    ('05f3a49d-c6ce-44e4-b50d-0eed45aeac8a', 'utmanare'),
-    ('05f3a49d-c6ce-44e4-b50d-0eed45aeac8a', 'rover'),
-    ('daa94d01-d69c-4344-b90c-9f087e136876', 'aventyrare'),
-    ('daa94d01-d69c-4344-b90c-9f087e136876', 'utmanare'),
-    ('daa94d01-d69c-4344-b90c-9f087e136876', 'rover'),
-    ('157679a4-2cc7-43e4-b5fc-c371a2a3ae99', 'utmanare'),
-    ('157679a4-2cc7-43e4-b5fc-c371a2a3ae99', 'rover'),
-    ('dc7f490c-aa83-4b57-8612-553726d6b644', 'upptackare'),
-    ('dc7f490c-aa83-4b57-8612-553726d6b644', 'aventyrare'),
-    ('dc7f490c-aa83-4b57-8612-553726d6b644', 'utmanare'),
-    ('dc7f490c-aa83-4b57-8612-553726d6b644', 'rover'),
-    ('e8650668-09ec-423c-8cc2-36268da00023', 'aventyrare'),
-    ('e8650668-09ec-423c-8cc2-36268da00023', 'utmanare'),
-    ('e8650668-09ec-423c-8cc2-36268da00023', 'rover'),
-    ('36b05490-248b-46c4-a1f6-9e5075f3d6cb', 'aventyrare'),
-    ('36b05490-248b-46c4-a1f6-9e5075f3d6cb', 'utmanare'),
-    ('36b05490-248b-46c4-a1f6-9e5075f3d6cb', 'rover'),
-    ('1856cc9c-fc8b-48ee-94a1-a45973c53677', 'aventyrare'),
-    ('1856cc9c-fc8b-48ee-94a1-a45973c53677', 'utmanare'),
-    ('1856cc9c-fc8b-48ee-94a1-a45973c53677', 'rover'),
-    ('f622ac0f-f6f7-4ca9-acb8-c9ecd971e721', 'upptackare'),
-    ('f622ac0f-f6f7-4ca9-acb8-c9ecd971e721', 'aventyrare'),
-    ('f622ac0f-f6f7-4ca9-acb8-c9ecd971e721', 'utmanare'),
-    ('f622ac0f-f6f7-4ca9-acb8-c9ecd971e721', 'rover'),
-    ('b4e29b77-b38c-4296-9551-783b4ee94295', 'rover'),
-    ('3fb6c691-cddf-49b2-b280-198edb43dd83', 'rover'),
-    ('7891394e-63ba-4c79-b901-fd24a494e69e', 'upptackare'),
-    ('7891394e-63ba-4c79-b901-fd24a494e69e', 'aventyrare'),
-    ('7891394e-63ba-4c79-b901-fd24a494e69e', 'utmanare'),
-    ('7891394e-63ba-4c79-b901-fd24a494e69e', 'rover'),
-    ('9163a1bc-ac3f-4044-8166-bf35575c8c90', 'utmanare'),
-    ('9163a1bc-ac3f-4044-8166-bf35575c8c90', 'rover'),
-    ('aba4b461-f3bd-40dd-964e-72a29ebbdb18', 'utmanare'),
-    ('aba4b461-f3bd-40dd-964e-72a29ebbdb18', 'rover'),
-    ('e9c5c9b0-481a-46f7-a0d4-2943c17a6340', 'upptackare'),
-    ('e9c5c9b0-481a-46f7-a0d4-2943c17a6340', 'aventyrare'),
-    ('e9c5c9b0-481a-46f7-a0d4-2943c17a6340', 'utmanare'),
-    ('e9c5c9b0-481a-46f7-a0d4-2943c17a6340', 'rover'),
-    ('903ac7be-bed4-430f-b594-49b7bd7cdb35', 'upptackare'),
-    ('903ac7be-bed4-430f-b594-49b7bd7cdb35', 'aventyrare'),
-    ('903ac7be-bed4-430f-b594-49b7bd7cdb35', 'utmanare'),
-    ('903ac7be-bed4-430f-b594-49b7bd7cdb35', 'rover'),
-    ('83c48ee5-9343-4ce1-ba65-9dfedadfa75d', 'rover'),
-    ('fb99ae04-02f7-44ff-83e5-2990d57c6607', 'rover'),
-    ('de45e94a-843c-4c0e-afcb-f5fb22f8fbeb', 'rover'),
-    ('d3a1f489-2729-40b8-b439-ff00f6b22b00', 'rover'),
-    ('02902cc5-4176-48c3-9be8-c1a1277687fa', 'rover'),
-    ('ef833731-27d1-454e-a667-ec454dbdae53', 'upptackare'),
-    ('ef833731-27d1-454e-a667-ec454dbdae53', 'aventyrare'),
-    ('ef833731-27d1-454e-a667-ec454dbdae53', 'utmanare'),
-    ('ef833731-27d1-454e-a667-ec454dbdae53', 'rover'),
-    ('03bb91b7-0f33-4411-a01d-dbd1dbbdcf97', 'upptackare'),
-    ('03bb91b7-0f33-4411-a01d-dbd1dbbdcf97', 'aventyrare'),
-    ('03bb91b7-0f33-4411-a01d-dbd1dbbdcf97', 'utmanare'),
-    ('03bb91b7-0f33-4411-a01d-dbd1dbbdcf97', 'rover'),
-    ('5059dba9-0f78-4d49-9c2e-e083421e4ff6', 'upptackare'),
-    ('5059dba9-0f78-4d49-9c2e-e083421e4ff6', 'aventyrare'),
-    ('5059dba9-0f78-4d49-9c2e-e083421e4ff6', 'utmanare'),
-    ('5059dba9-0f78-4d49-9c2e-e083421e4ff6', 'rover'),
-    ('dc40456d-fdee-4aa4-96c1-5acf3ee206a6', 'upptackare'),
-    ('dc40456d-fdee-4aa4-96c1-5acf3ee206a6', 'aventyrare'),
-    ('dc40456d-fdee-4aa4-96c1-5acf3ee206a6', 'utmanare'),
-    ('dc40456d-fdee-4aa4-96c1-5acf3ee206a6', 'rover'),
-    ('4b46fed7-ada8-47a6-a408-ab70468637d5', 'upptackare'),
-    ('4b46fed7-ada8-47a6-a408-ab70468637d5', 'aventyrare'),
-    ('4b46fed7-ada8-47a6-a408-ab70468637d5', 'utmanare'),
-    ('4b46fed7-ada8-47a6-a408-ab70468637d5', 'rover'),
-    ('722bbc94-ff75-4bb6-aced-cc52da4097f2', 'upptackare'),
-    ('722bbc94-ff75-4bb6-aced-cc52da4097f2', 'aventyrare'),
-    ('722bbc94-ff75-4bb6-aced-cc52da4097f2', 'utmanare'),
-    ('722bbc94-ff75-4bb6-aced-cc52da4097f2', 'rover'),
-    ('91b3282e-47fb-4aca-abb5-fe91fe1d438b', 'upptackare'),
-    ('91b3282e-47fb-4aca-abb5-fe91fe1d438b', 'aventyrare'),
-    ('91b3282e-47fb-4aca-abb5-fe91fe1d438b', 'utmanare'),
-    ('91b3282e-47fb-4aca-abb5-fe91fe1d438b', 'rover'),
-    ('ce8f6214-85f6-4390-81df-6931c9fe1348', 'upptackare'),
-    ('ce8f6214-85f6-4390-81df-6931c9fe1348', 'aventyrare'),
-    ('ce8f6214-85f6-4390-81df-6931c9fe1348', 'utmanare'),
-    ('ce8f6214-85f6-4390-81df-6931c9fe1348', 'rover'),
-    ('f027ade7-68b0-4005-a3e5-462cf2080f7f', 'upptackare'),
-    ('f027ade7-68b0-4005-a3e5-462cf2080f7f', 'aventyrare'),
-    ('f027ade7-68b0-4005-a3e5-462cf2080f7f', 'utmanare'),
-    ('f027ade7-68b0-4005-a3e5-462cf2080f7f', 'rover'),
-    ('f94d6b44-0955-46b2-9ac4-a2072c4aefe6', 'upptackare'),
-    ('a5b68ba4-4c64-4da4-90d3-509eac732e1a', 'upptackare'),
-    ('36c00c14-b917-4d1f-9cf0-8f61c3aeb08c', 'upptackare'),
-    ('d74b662d-0d2c-4a8d-92e6-4872756eff05', 'upptackare'),
-    ('3dacbcab-9cd9-43c2-9d48-7e4b6bbe2d0b', 'upptackare'),
-    ('1307ed63-461d-407b-9481-1420c25e10d9', 'upptackare'),
-    ('ea2eb77d-370b-456f-9bd6-27f536d7d4c9', 'upptackare'),
-    ('be938adc-d768-4208-bb3c-a84b1b174ce3', 'upptackare'),
-    ('b363b873-28b8-4a0b-9f99-bfceb0d88bdc', 'upptackare'),
-    ('0a558527-3ab7-422a-9528-af151eff5a8b', 'upptackare'),
-    ('e170497d-499b-4e22-8406-c6607af9bcc7', 'rover'),
-    ('7b1cdf12-4932-467f-b510-8731b514fa46', 'rover'),
-    ('7ce427e0-0257-44e0-b28c-dcb3236a317c', 'utmanare'),
-    ('e6e60e4c-25ff-4fe1-bab7-4d59b2b1ae02', 'aventyrare'),
-    ('99e1c1e6-a269-4ce6-a961-54c986748fd1', 'aventyrare'),
-    ('42c7b30c-9042-4a6e-bed2-f79fabe4bd99', 'aventyrare'),
-    ('9da3aa01-e154-4b83-811d-fa7d849cb23e', 'aventyrare'),
-    ('d9b74ff5-458b-479c-8be4-a8eebc042956', 'aventyrare'),
-    ('63c778a0-2e89-40c9-a9a2-9d3c1165b0a2', 'aventyrare'),
-    ('e4f24566-43fc-403e-9e67-b6b3c1288e89', 'aventyrare'),
-    ('1e95c66c-829a-472d-b212-e5356a333793', 'upptackare'),
-    ('86d9f4eb-c8a1-4ab5-b942-ae7262b715e8', 'upptackare'),
-    ('3c6588ee-9781-4cfd-9b99-282e7d0982d4', 'upptackare'),
-    ('a802e815-01ae-4755-aeff-9ee342fc0ec4', 'upptackare'),
-    ('699a1140-891a-4406-912c-09e0d3934f19', 'rover'),
-    ('358c86fa-e2c8-436f-8092-df622c90036e', 'upptackare'),
-    ('358c86fa-e2c8-436f-8092-df622c90036e', 'aventyrare'),
-    ('358c86fa-e2c8-436f-8092-df622c90036e', 'utmanare'),
-    ('358c86fa-e2c8-436f-8092-df622c90036e', 'rover');
+    ('58278fcb-4aec-41ef-8203-e7d58d1a6ca3', 'aventyrare'),
+    ('58278fcb-4aec-41ef-8203-e7d58d1a6ca3', 'utmanare'),
+    ('5faece95-29aa-4644-b2dc-3593f2ef0612', 'aventyrare'),
+    ('5faece95-29aa-4644-b2dc-3593f2ef0612', 'utmanare'),
+    ('1ffd28a8-4c42-458b-bc27-648fb6618223', 'aventyrare'),
+    ('1ffd28a8-4c42-458b-bc27-648fb6618223', 'utmanare'),
+    ('1ffd28a8-4c42-458b-bc27-648fb6618223', 'rover'),
+    ('01a8a1f8-1233-4f9e-8d3e-53c25d78ecf1', 'rover'),
+    ('ca0cd3c2-5da4-45f0-b289-a8f2f6aaa35a', 'upptackare'),
+    ('ca0cd3c2-5da4-45f0-b289-a8f2f6aaa35a', 'aventyrare'),
+    ('ca0cd3c2-5da4-45f0-b289-a8f2f6aaa35a', 'utmanare'),
+    ('ca0cd3c2-5da4-45f0-b289-a8f2f6aaa35a', 'rover'),
+    ('ca0cd3c2-5da4-45f0-b289-a8f2f6aaa35a', 'ledare'),
+    ('ca0cd3c2-5da4-45f0-b289-a8f2f6aaa35a', 'funktionar'),
+    ('05cc4aaa-5215-4d96-acc4-24a803b076ba', 'upptackare'),
+    ('05cc4aaa-5215-4d96-acc4-24a803b076ba', 'aventyrare'),
+    ('05cc4aaa-5215-4d96-acc4-24a803b076ba', 'utmanare'),
+    ('05cc4aaa-5215-4d96-acc4-24a803b076ba', 'rover'),
+    ('05cc4aaa-5215-4d96-acc4-24a803b076ba', 'ledare'),
+    ('05cc4aaa-5215-4d96-acc4-24a803b076ba', 'funktionar'),
+    ('e2c62742-b56d-4461-aadf-d0b217c4cb24', 'rover'),
+    ('cd54dab7-227a-4526-831e-820d42101c8d', 'upptackare'),
+    ('cd54dab7-227a-4526-831e-820d42101c8d', 'aventyrare'),
+    ('cd54dab7-227a-4526-831e-820d42101c8d', 'utmanare'),
+    ('cd54dab7-227a-4526-831e-820d42101c8d', 'rover'),
+    ('cd54dab7-227a-4526-831e-820d42101c8d', 'ledare'),
+    ('cd54dab7-227a-4526-831e-820d42101c8d', 'funktionar'),
+    ('d333487e-2324-4afa-967e-7a8ab6d4306b', 'upptackare'),
+    ('04fb21ac-be67-4314-b759-714cc57fe1cc', 'upptackare'),
+    ('e483e13b-6017-4773-897f-0b9bb3396c39', 'upptackare'),
+    ('00b282e8-3804-4643-9f40-7d1a19982e0a', 'upptackare'),
+    ('c2d6cdea-13c5-4dd5-91c6-9acac8246f3a', 'upptackare'),
+    ('fcf976d0-795d-45b9-8453-1227555b920d', 'upptackare'),
+    ('82f42079-2bc4-4e2f-88b9-3dcd378623f4', 'upptackare'),
+    ('1f71e256-e0b9-4f39-bf56-0ccf1c1d8e5d', 'upptackare'),
+    ('d9462687-7588-4341-a053-7472570c3222', 'upptackare'),
+    ('2c8158cd-513d-46da-9425-128b2ea1e522', 'upptackare'),
+    ('8d0fad3e-2cc2-4784-871e-a47c946e3770', 'upptackare'),
+    ('75a9a95d-360d-4428-8bf4-fd7a8bcf29dd', 'upptackare'),
+    ('75a9a95d-360d-4428-8bf4-fd7a8bcf29dd', 'aventyrare'),
+    ('75a9a95d-360d-4428-8bf4-fd7a8bcf29dd', 'utmanare'),
+    ('75a9a95d-360d-4428-8bf4-fd7a8bcf29dd', 'rover'),
+    ('75a9a95d-360d-4428-8bf4-fd7a8bcf29dd', 'ledare'),
+    ('75a9a95d-360d-4428-8bf4-fd7a8bcf29dd', 'funktionar'),
+    ('b9b5abdd-3cf0-4077-910f-55e2de11968f', 'upptackare'),
+    ('b9b5abdd-3cf0-4077-910f-55e2de11968f', 'aventyrare'),
+    ('b9b5abdd-3cf0-4077-910f-55e2de11968f', 'utmanare'),
+    ('b9b5abdd-3cf0-4077-910f-55e2de11968f', 'rover'),
+    ('4014e912-9b13-4145-8fda-a70a9ed12de4', 'aventyrare'),
+    ('4014e912-9b13-4145-8fda-a70a9ed12de4', 'utmanare'),
+    ('4014e912-9b13-4145-8fda-a70a9ed12de4', 'rover'),
+    ('4014e912-9b13-4145-8fda-a70a9ed12de4', 'ledare'),
+    ('4014e912-9b13-4145-8fda-a70a9ed12de4', 'funktionar'),
+    ('b8d715b0-2642-42ab-8ab4-1afb32f4adb4', 'upptackare'),
+    ('b8d715b0-2642-42ab-8ab4-1afb32f4adb4', 'aventyrare'),
+    ('b8d715b0-2642-42ab-8ab4-1afb32f4adb4', 'utmanare'),
+    ('b8d715b0-2642-42ab-8ab4-1afb32f4adb4', 'rover'),
+    ('b8d715b0-2642-42ab-8ab4-1afb32f4adb4', 'ledare'),
+    ('b8d715b0-2642-42ab-8ab4-1afb32f4adb4', 'funktionar'),
+    ('26b7b073-6621-4fea-9099-eff31f926e96', 'aventyrare'),
+    ('26b7b073-6621-4fea-9099-eff31f926e96', 'utmanare'),
+    ('26b7b073-6621-4fea-9099-eff31f926e96', 'rover'),
+    ('26b7b073-6621-4fea-9099-eff31f926e96', 'ledare'),
+    ('26b7b073-6621-4fea-9099-eff31f926e96', 'funktionar'),
+    ('248bf0b3-e2e5-495d-b360-8ca3e8ee4a1b', 'aventyrare'),
+    ('248bf0b3-e2e5-495d-b360-8ca3e8ee4a1b', 'utmanare'),
+    ('248bf0b3-e2e5-495d-b360-8ca3e8ee4a1b', 'rover'),
+    ('248bf0b3-e2e5-495d-b360-8ca3e8ee4a1b', 'ledare'),
+    ('248bf0b3-e2e5-495d-b360-8ca3e8ee4a1b', 'funktionar'),
+    ('2d41316d-85b5-45ff-ae76-16a6735cd663', 'aventyrare'),
+    ('2d41316d-85b5-45ff-ae76-16a6735cd663', 'utmanare'),
+    ('2d41316d-85b5-45ff-ae76-16a6735cd663', 'rover'),
+    ('2d41316d-85b5-45ff-ae76-16a6735cd663', 'ledare'),
+    ('2d41316d-85b5-45ff-ae76-16a6735cd663', 'funktionar'),
+    ('b26f486b-e47f-4c8f-9857-666a18381de4', 'upptackare'),
+    ('b26f486b-e47f-4c8f-9857-666a18381de4', 'aventyrare'),
+    ('b26f486b-e47f-4c8f-9857-666a18381de4', 'utmanare'),
+    ('b26f486b-e47f-4c8f-9857-666a18381de4', 'rover'),
+    ('b26f486b-e47f-4c8f-9857-666a18381de4', 'ledare'),
+    ('b26f486b-e47f-4c8f-9857-666a18381de4', 'funktionar'),
+    ('cceceab0-b39e-41ed-8843-e83a1f6fcfd7', 'upptackare'),
+    ('f1514c55-0c7a-46da-8e50-9673884b1239', 'aventyrare'),
+    ('f1514c55-0c7a-46da-8e50-9673884b1239', 'utmanare'),
+    ('e3b3fe4e-93b8-46d0-8978-146bfefff074', 'upptackare'),
+    ('e3b3fe4e-93b8-46d0-8978-146bfefff074', 'aventyrare'),
+    ('e3b3fe4e-93b8-46d0-8978-146bfefff074', 'utmanare'),
+    ('e3b3fe4e-93b8-46d0-8978-146bfefff074', 'rover'),
+    ('e3b3fe4e-93b8-46d0-8978-146bfefff074', 'ledare'),
+    ('e3b3fe4e-93b8-46d0-8978-146bfefff074', 'funktionar'),
+    ('77b4262b-f494-4534-ae0e-bf991570f165', 'upptackare'),
+    ('1305466e-0b0c-4d29-a832-24a2c170a027', 'upptackare'),
+    ('1305466e-0b0c-4d29-a832-24a2c170a027', 'aventyrare'),
+    ('1305466e-0b0c-4d29-a832-24a2c170a027', 'utmanare'),
+    ('1305466e-0b0c-4d29-a832-24a2c170a027', 'rover'),
+    ('1305466e-0b0c-4d29-a832-24a2c170a027', 'ledare'),
+    ('1305466e-0b0c-4d29-a832-24a2c170a027', 'funktionar'),
+    ('12b2b52c-cf5c-4919-8e93-6e9d45df32e1', 'rover'),
+    ('12b2b52c-cf5c-4919-8e93-6e9d45df32e1', 'ledare'),
+    ('12b2b52c-cf5c-4919-8e93-6e9d45df32e1', 'funktionar'),
+    ('bf006af9-0d1f-49cf-a63e-56bd67a8be08', 'rover'),
+    ('bf006af9-0d1f-49cf-a63e-56bd67a8be08', 'ledare'),
+    ('bf006af9-0d1f-49cf-a63e-56bd67a8be08', 'funktionar'),
+    ('0741e7ef-4a36-4881-a068-04d37d15179e', 'utmanare'),
+    ('0741e7ef-4a36-4881-a068-04d37d15179e', 'rover'),
+    ('0741e7ef-4a36-4881-a068-04d37d15179e', 'ledare'),
+    ('0741e7ef-4a36-4881-a068-04d37d15179e', 'funktionar'),
+    ('c9ff690f-c992-47c1-99df-b0ac7b67a20e', 'utmanare'),
+    ('c9ff690f-c992-47c1-99df-b0ac7b67a20e', 'rover'),
+    ('c9ff690f-c992-47c1-99df-b0ac7b67a20e', 'ledare'),
+    ('c9ff690f-c992-47c1-99df-b0ac7b67a20e', 'funktionar'),
+    ('9c22e37d-4a8f-4197-9ad8-7e64cf61a16c', 'upptackare'),
+    ('9c22e37d-4a8f-4197-9ad8-7e64cf61a16c', 'aventyrare'),
+    ('9c22e37d-4a8f-4197-9ad8-7e64cf61a16c', 'utmanare'),
+    ('9c22e37d-4a8f-4197-9ad8-7e64cf61a16c', 'rover'),
+    ('9c22e37d-4a8f-4197-9ad8-7e64cf61a16c', 'ledare'),
+    ('9c22e37d-4a8f-4197-9ad8-7e64cf61a16c', 'funktionar'),
+    ('b8132bec-aa9f-49dd-95da-2475c6a9baf0', 'rover'),
+    ('cde307f0-e9ae-4c14-8ada-21b3b1011a60', 'rover'),
+    ('cde307f0-e9ae-4c14-8ada-21b3b1011a60', 'ledare'),
+    ('cde307f0-e9ae-4c14-8ada-21b3b1011a60', 'funktionar'),
+    ('8febfe22-9777-4e5b-8a13-f0cb9a85d2b9', 'upptackare'),
+    ('8febfe22-9777-4e5b-8a13-f0cb9a85d2b9', 'aventyrare'),
+    ('8febfe22-9777-4e5b-8a13-f0cb9a85d2b9', 'utmanare'),
+    ('8febfe22-9777-4e5b-8a13-f0cb9a85d2b9', 'rover'),
+    ('8febfe22-9777-4e5b-8a13-f0cb9a85d2b9', 'ledare'),
+    ('8febfe22-9777-4e5b-8a13-f0cb9a85d2b9', 'funktionar'),
+    ('3b299632-3e3d-4ee5-86a4-7327c53f0cea', 'upptackare'),
+    ('3b299632-3e3d-4ee5-86a4-7327c53f0cea', 'aventyrare'),
+    ('3b299632-3e3d-4ee5-86a4-7327c53f0cea', 'utmanare'),
+    ('3b299632-3e3d-4ee5-86a4-7327c53f0cea', 'rover'),
+    ('3b299632-3e3d-4ee5-86a4-7327c53f0cea', 'ledare'),
+    ('3b299632-3e3d-4ee5-86a4-7327c53f0cea', 'funktionar'),
+    ('aa4c9b49-c102-49c2-8ee1-a0639ad7d4e7', 'upptackare'),
+    ('aa4c9b49-c102-49c2-8ee1-a0639ad7d4e7', 'aventyrare'),
+    ('aa4c9b49-c102-49c2-8ee1-a0639ad7d4e7', 'utmanare'),
+    ('aa4c9b49-c102-49c2-8ee1-a0639ad7d4e7', 'rover'),
+    ('aa4c9b49-c102-49c2-8ee1-a0639ad7d4e7', 'ledare'),
+    ('aa4c9b49-c102-49c2-8ee1-a0639ad7d4e7', 'funktionar'),
+    ('32f4114f-2c64-4341-9fcb-79cd3d11bdb4', 'upptackare'),
+    ('c70f425c-1775-410d-b534-1ad11b72eaf7', 'upptackare'),
+    ('2575fa25-5776-49a8-af0e-10581cca9bb6', 'upptackare'),
+    ('fd4bb9bb-9f99-4a8d-bab1-b63fbdef281c', 'upptackare'),
+    ('94427abd-60ba-469c-8dba-504a98cfccef', 'upptackare'),
+    ('597fbbbd-509f-45a5-a65f-e42024de36b8', 'upptackare'),
+    ('72ce1073-0ea5-4098-840b-7489126065ad', 'upptackare'),
+    ('9a443f61-9cac-47de-97be-5c7fa9911b91', 'upptackare'),
+    ('dfd9740c-6a66-4023-9538-1c4378133649', 'upptackare'),
+    ('7130fd92-3bca-43d4-bfba-722229fe3298', 'upptackare'),
+    ('10998d26-c75c-4b25-b866-14f8c1ababb3', 'upptackare'),
+    ('9350dee8-f507-4393-97ad-ef4d8140744f', 'upptackare'),
+    ('3b076323-bbb3-4d33-ac49-2f08763d006f', 'upptackare'),
+    ('e63c785f-3710-4a3a-8149-9fee48324717', 'upptackare'),
+    ('62393742-64ae-42ea-b083-bd8c38b6396a', 'upptackare'),
+    ('0d940dcf-1595-4409-bb1a-c353fbb02c69', 'upptackare'),
+    ('8c51476d-6e92-43a3-8f10-947c1f8a35bc', 'utmanare'),
+    ('14d85681-ba1b-476c-a312-369997bdba37', 'utmanare'),
+    ('1ea39ab9-0333-4e53-8c9b-01f89046e4cd', 'aventyrare'),
+    ('3299c0f9-6b7b-43a1-a0fd-d7ae6fb6c168', 'aventyrare'),
+    ('51dc9a7b-c70a-4383-93e0-3f40b0781794', 'aventyrare'),
+    ('d243e55a-4b6a-40b3-b2f9-c9caf716cfba', 'aventyrare'),
+    ('5a093e5b-0ddf-47f3-9b39-dcea109b268b', 'aventyrare'),
+    ('de844675-e5f5-4675-adad-9e6d76988b35', 'upptackare'),
+    ('de844675-e5f5-4675-adad-9e6d76988b35', 'aventyrare'),
+    ('de844675-e5f5-4675-adad-9e6d76988b35', 'utmanare'),
+    ('de844675-e5f5-4675-adad-9e6d76988b35', 'rover'),
+    ('de844675-e5f5-4675-adad-9e6d76988b35', 'ledare'),
+    ('de844675-e5f5-4675-adad-9e6d76988b35', 'funktionar'),
+    ('365f4cd5-a36d-4ae4-b7cb-87442e560b16', 'rover'),
+    ('a3dbb72d-59dc-44af-a701-bcf717ad2a6e', 'upptackare'),
+    ('786dc423-eff8-4bb8-8950-38bbad18b083', 'aventyrare'),
+    ('786dc423-eff8-4bb8-8950-38bbad18b083', 'utmanare'),
+    ('786dc423-eff8-4bb8-8950-38bbad18b083', 'rover'),
+    ('4d60029a-1691-41e1-8418-4aa1f554c409', 'upptackare'),
+    ('4d60029a-1691-41e1-8418-4aa1f554c409', 'aventyrare'),
+    ('4d60029a-1691-41e1-8418-4aa1f554c409', 'utmanare'),
+    ('4d60029a-1691-41e1-8418-4aa1f554c409', 'rover'),
+    ('4d60029a-1691-41e1-8418-4aa1f554c409', 'ledare'),
+    ('4d60029a-1691-41e1-8418-4aa1f554c409', 'funktionar'),
+    ('bb0a660b-0cf7-4a5a-aa29-43ceab35eefc', 'aventyrare'),
+    ('bb0a660b-0cf7-4a5a-aa29-43ceab35eefc', 'utmanare'),
+    ('bb0a660b-0cf7-4a5a-aa29-43ceab35eefc', 'rover'),
+    ('786b9e05-aebe-445d-b396-9ce1bc110b56', 'aventyrare'),
+    ('786b9e05-aebe-445d-b396-9ce1bc110b56', 'utmanare'),
+    ('786b9e05-aebe-445d-b396-9ce1bc110b56', 'rover'),
+    ('786b9e05-aebe-445d-b396-9ce1bc110b56', 'ledare'),
+    ('786b9e05-aebe-445d-b396-9ce1bc110b56', 'funktionar'),
+    ('387ca2e5-ab36-4ee2-9570-f54e468aa9ba', 'utmanare'),
+    ('387ca2e5-ab36-4ee2-9570-f54e468aa9ba', 'rover'),
+    ('387ca2e5-ab36-4ee2-9570-f54e468aa9ba', 'ledare'),
+    ('387ca2e5-ab36-4ee2-9570-f54e468aa9ba', 'funktionar'),
+    ('29d3c8f4-1b20-4d67-b538-dc1d25259c75', 'aventyrare'),
+    ('29d3c8f4-1b20-4d67-b538-dc1d25259c75', 'utmanare'),
+    ('29d3c8f4-1b20-4d67-b538-dc1d25259c75', 'rover'),
+    ('29d3c8f4-1b20-4d67-b538-dc1d25259c75', 'ledare'),
+    ('29d3c8f4-1b20-4d67-b538-dc1d25259c75', 'funktionar'),
+    ('24b10184-bad9-4f4c-a3a7-d4a343af2f43', 'aventyrare'),
+    ('24b10184-bad9-4f4c-a3a7-d4a343af2f43', 'utmanare'),
+    ('24b10184-bad9-4f4c-a3a7-d4a343af2f43', 'rover'),
+    ('24b10184-bad9-4f4c-a3a7-d4a343af2f43', 'ledare'),
+    ('24b10184-bad9-4f4c-a3a7-d4a343af2f43', 'funktionar'),
+    ('f57c2b77-9a75-4d69-a304-0bcb255c7ebe', 'upptackare'),
+    ('f57c2b77-9a75-4d69-a304-0bcb255c7ebe', 'aventyrare'),
+    ('f57c2b77-9a75-4d69-a304-0bcb255c7ebe', 'utmanare'),
+    ('f57c2b77-9a75-4d69-a304-0bcb255c7ebe', 'rover'),
+    ('5cdc97f8-0767-4d3a-99a0-787623bdbbf5', 'rover'),
+    ('5cdc97f8-0767-4d3a-99a0-787623bdbbf5', 'ledare'),
+    ('5cdc97f8-0767-4d3a-99a0-787623bdbbf5', 'funktionar'),
+    ('1742c584-80b9-4c11-9d6e-50f90acda5f1', 'ledare'),
+    ('1742c584-80b9-4c11-9d6e-50f90acda5f1', 'funktionar'),
+    ('d034f855-ae23-482f-b803-13e4cf2c1a8f', 'aventyrare'),
+    ('d034f855-ae23-482f-b803-13e4cf2c1a8f', 'utmanare'),
+    ('e38e6835-5792-4c4f-9141-b081a29665de', 'aventyrare'),
+    ('e38e6835-5792-4c4f-9141-b081a29665de', 'utmanare'),
+    ('e38e6835-5792-4c4f-9141-b081a29665de', 'rover'),
+    ('01111fc5-2b1d-41fd-a9e7-ba5dedaef333', 'aventyrare'),
+    ('01111fc5-2b1d-41fd-a9e7-ba5dedaef333', 'utmanare'),
+    ('01111fc5-2b1d-41fd-a9e7-ba5dedaef333', 'rover'),
+    ('4e3e2e52-cdb3-4473-9616-3abb834f048c', 'aventyrare'),
+    ('4e3e2e52-cdb3-4473-9616-3abb834f048c', 'utmanare'),
+    ('4e3e2e52-cdb3-4473-9616-3abb834f048c', 'rover'),
+    ('55d7ed70-73cd-41de-81af-d6e18a6ef323', 'aventyrare'),
+    ('55d7ed70-73cd-41de-81af-d6e18a6ef323', 'utmanare'),
+    ('55d7ed70-73cd-41de-81af-d6e18a6ef323', 'rover'),
+    ('71ee0070-d248-4411-92c6-a730cfaa5e8a', 'aventyrare'),
+    ('71ee0070-d248-4411-92c6-a730cfaa5e8a', 'utmanare'),
+    ('69dabe41-fe67-4b4e-aedb-ff7182ae317a', 'utmanare'),
+    ('69dabe41-fe67-4b4e-aedb-ff7182ae317a', 'rover'),
+    ('69dabe41-fe67-4b4e-aedb-ff7182ae317a', 'ledare'),
+    ('69dabe41-fe67-4b4e-aedb-ff7182ae317a', 'funktionar'),
+    ('f2f40edb-36d6-41c1-9721-8c5360280ea5', 'utmanare'),
+    ('f2f40edb-36d6-41c1-9721-8c5360280ea5', 'rover'),
+    ('f2f40edb-36d6-41c1-9721-8c5360280ea5', 'ledare'),
+    ('f2f40edb-36d6-41c1-9721-8c5360280ea5', 'funktionar'),
+    ('2d61f979-4364-4429-931b-e79a574de01b', 'aventyrare'),
+    ('2d61f979-4364-4429-931b-e79a574de01b', 'utmanare'),
+    ('2d61f979-4364-4429-931b-e79a574de01b', 'rover'),
+    ('2d61f979-4364-4429-931b-e79a574de01b', 'ledare'),
+    ('2d61f979-4364-4429-931b-e79a574de01b', 'funktionar'),
+    ('57ebec87-bed5-43ca-902e-8a98b335ca71', 'aventyrare'),
+    ('57ebec87-bed5-43ca-902e-8a98b335ca71', 'utmanare'),
+    ('57ebec87-bed5-43ca-902e-8a98b335ca71', 'rover'),
+    ('57ebec87-bed5-43ca-902e-8a98b335ca71', 'ledare'),
+    ('57ebec87-bed5-43ca-902e-8a98b335ca71', 'funktionar'),
+    ('8775144c-8fc1-4d38-a9d8-dd2aeda366a2', 'utmanare'),
+    ('8775144c-8fc1-4d38-a9d8-dd2aeda366a2', 'rover'),
+    ('8775144c-8fc1-4d38-a9d8-dd2aeda366a2', 'ledare'),
+    ('8775144c-8fc1-4d38-a9d8-dd2aeda366a2', 'funktionar'),
+    ('811fe8c9-60b8-41ef-9c12-6b15b89bf7fc', 'aventyrare'),
+    ('811fe8c9-60b8-41ef-9c12-6b15b89bf7fc', 'utmanare'),
+    ('811fe8c9-60b8-41ef-9c12-6b15b89bf7fc', 'rover'),
+    ('811fe8c9-60b8-41ef-9c12-6b15b89bf7fc', 'ledare'),
+    ('811fe8c9-60b8-41ef-9c12-6b15b89bf7fc', 'funktionar'),
+    ('789c9d2e-cdf6-447f-865e-8c010f958095', 'upptackare'),
+    ('789c9d2e-cdf6-447f-865e-8c010f958095', 'aventyrare'),
+    ('789c9d2e-cdf6-447f-865e-8c010f958095', 'utmanare'),
+    ('789c9d2e-cdf6-447f-865e-8c010f958095', 'rover'),
+    ('789c9d2e-cdf6-447f-865e-8c010f958095', 'ledare'),
+    ('789c9d2e-cdf6-447f-865e-8c010f958095', 'funktionar'),
+    ('49a0051c-cc47-41e1-b5ca-c94c2f8433f0', 'upptackare'),
+    ('49a0051c-cc47-41e1-b5ca-c94c2f8433f0', 'aventyrare'),
+    ('49a0051c-cc47-41e1-b5ca-c94c2f8433f0', 'utmanare'),
+    ('49a0051c-cc47-41e1-b5ca-c94c2f8433f0', 'rover'),
+    ('49a0051c-cc47-41e1-b5ca-c94c2f8433f0', 'ledare'),
+    ('49a0051c-cc47-41e1-b5ca-c94c2f8433f0', 'funktionar'),
+    ('f2f66433-898d-482f-90e0-53b6cef9f2a6', 'upptackare'),
+    ('f2f66433-898d-482f-90e0-53b6cef9f2a6', 'aventyrare'),
+    ('f2f66433-898d-482f-90e0-53b6cef9f2a6', 'utmanare'),
+    ('f2f66433-898d-482f-90e0-53b6cef9f2a6', 'rover'),
+    ('f2f66433-898d-482f-90e0-53b6cef9f2a6', 'ledare'),
+    ('f2f66433-898d-482f-90e0-53b6cef9f2a6', 'funktionar'),
+    ('e42f8a04-3a02-4d4a-a265-4312494f0d6a', 'ledare'),
+    ('a01cf86d-8f01-45d7-b239-d91d31da1bb7', 'ledare'),
+    ('1bc2ee88-2847-460d-8d2a-34e43edf1bc4', 'upptackare'),
+    ('1bc2ee88-2847-460d-8d2a-34e43edf1bc4', 'aventyrare'),
+    ('1bc2ee88-2847-460d-8d2a-34e43edf1bc4', 'utmanare'),
+    ('1bc2ee88-2847-460d-8d2a-34e43edf1bc4', 'rover'),
+    ('1bc2ee88-2847-460d-8d2a-34e43edf1bc4', 'ledare'),
+    ('1bc2ee88-2847-460d-8d2a-34e43edf1bc4', 'funktionar'),
+    ('b0afef83-4f3f-49d5-ba4b-af4c7f652059', 'upptackare'),
+    ('b0afef83-4f3f-49d5-ba4b-af4c7f652059', 'aventyrare'),
+    ('b0afef83-4f3f-49d5-ba4b-af4c7f652059', 'utmanare'),
+    ('b0afef83-4f3f-49d5-ba4b-af4c7f652059', 'rover'),
+    ('b0afef83-4f3f-49d5-ba4b-af4c7f652059', 'ledare'),
+    ('b0afef83-4f3f-49d5-ba4b-af4c7f652059', 'funktionar'),
+    ('514fd549-c6d8-40c1-90f2-1a3bbe8f6ea5', 'rover'),
+    ('514fd549-c6d8-40c1-90f2-1a3bbe8f6ea5', 'ledare'),
+    ('514fd549-c6d8-40c1-90f2-1a3bbe8f6ea5', 'funktionar'),
+    ('52a346e4-a17a-4260-8c60-aa197118a322', 'rover'),
+    ('52a346e4-a17a-4260-8c60-aa197118a322', 'ledare'),
+    ('52a346e4-a17a-4260-8c60-aa197118a322', 'funktionar'),
+    ('c5f6d48a-2126-49dc-b920-351b8ff5eb2d', 'rover'),
+    ('c5f6d48a-2126-49dc-b920-351b8ff5eb2d', 'ledare'),
+    ('c5f6d48a-2126-49dc-b920-351b8ff5eb2d', 'funktionar'),
+    ('6bdb8df4-5af4-4143-a08d-74827ecf0a81', 'utmanare'),
+    ('6bdb8df4-5af4-4143-a08d-74827ecf0a81', 'rover'),
+    ('6bdb8df4-5af4-4143-a08d-74827ecf0a81', 'ledare'),
+    ('6bdb8df4-5af4-4143-a08d-74827ecf0a81', 'funktionar'),
+    ('68e42658-235d-4ca1-841c-4383792ae90b', 'upptackare'),
+    ('68e42658-235d-4ca1-841c-4383792ae90b', 'aventyrare'),
+    ('68e42658-235d-4ca1-841c-4383792ae90b', 'utmanare'),
+    ('68e42658-235d-4ca1-841c-4383792ae90b', 'rover'),
+    ('68e42658-235d-4ca1-841c-4383792ae90b', 'ledare'),
+    ('68e42658-235d-4ca1-841c-4383792ae90b', 'funktionar'),
+    ('d64aca51-7663-428c-be18-0fd551d6acf2', 'upptackare'),
+    ('d64aca51-7663-428c-be18-0fd551d6acf2', 'aventyrare'),
+    ('d64aca51-7663-428c-be18-0fd551d6acf2', 'utmanare'),
+    ('d64aca51-7663-428c-be18-0fd551d6acf2', 'rover'),
+    ('d64aca51-7663-428c-be18-0fd551d6acf2', 'ledare'),
+    ('d64aca51-7663-428c-be18-0fd551d6acf2', 'funktionar'),
+    ('6c2ec1b4-a4d2-4671-b86f-796c8f09ac31', 'rover'),
+    ('d56276e7-ca84-4682-bd94-81991b4de6fc', 'rover'),
+    ('d56276e7-ca84-4682-bd94-81991b4de6fc', 'ledare'),
+    ('d56276e7-ca84-4682-bd94-81991b4de6fc', 'funktionar'),
+    ('6c930c68-5498-4923-aa0b-f4c2ab904af3', 'rover'),
+    ('6c930c68-5498-4923-aa0b-f4c2ab904af3', 'ledare'),
+    ('6c930c68-5498-4923-aa0b-f4c2ab904af3', 'funktionar'),
+    ('8d452e39-9b64-4af9-a376-9fd6d281173f', 'rover'),
+    ('899054b9-d9f3-41b8-a79e-23fcb47a62a8', 'rover'),
+    ('f3bbe710-573c-45db-908b-bb77b8e5910b', 'rover'),
+    ('aaa140b5-b2af-414c-b5fc-d459fcae52ec', 'upptackare'),
+    ('aaa140b5-b2af-414c-b5fc-d459fcae52ec', 'aventyrare'),
+    ('aaa140b5-b2af-414c-b5fc-d459fcae52ec', 'utmanare'),
+    ('aaa140b5-b2af-414c-b5fc-d459fcae52ec', 'rover'),
+    ('aaa140b5-b2af-414c-b5fc-d459fcae52ec', 'ledare'),
+    ('aaa140b5-b2af-414c-b5fc-d459fcae52ec', 'funktionar'),
+    ('b99d2cde-fedb-491d-810c-50875ad30b1c', 'upptackare'),
+    ('b99d2cde-fedb-491d-810c-50875ad30b1c', 'aventyrare'),
+    ('b99d2cde-fedb-491d-810c-50875ad30b1c', 'utmanare'),
+    ('b99d2cde-fedb-491d-810c-50875ad30b1c', 'rover'),
+    ('b99d2cde-fedb-491d-810c-50875ad30b1c', 'ledare'),
+    ('b99d2cde-fedb-491d-810c-50875ad30b1c', 'funktionar'),
+    ('29c8f8d4-1515-42c5-b1c5-0fa6dd32aa52', 'upptackare'),
+    ('29c8f8d4-1515-42c5-b1c5-0fa6dd32aa52', 'aventyrare'),
+    ('29c8f8d4-1515-42c5-b1c5-0fa6dd32aa52', 'utmanare'),
+    ('29c8f8d4-1515-42c5-b1c5-0fa6dd32aa52', 'rover'),
+    ('29c8f8d4-1515-42c5-b1c5-0fa6dd32aa52', 'ledare'),
+    ('29c8f8d4-1515-42c5-b1c5-0fa6dd32aa52', 'funktionar'),
+    ('6c20f823-8ea4-4858-bba5-7405d98b598b', 'upptackare'),
+    ('e8876b36-6167-4cc0-aa54-41e6ee1988f8', 'upptackare'),
+    ('2b5c3faf-338b-4837-ae2f-61e45e43143f', 'upptackare'),
+    ('194f1fec-9ebb-499e-958c-be5c3617f549', 'upptackare'),
+    ('473ffae0-6e05-4eca-a612-19bb18ad00cf', 'upptackare'),
+    ('a681a84d-25b8-4b68-8339-93e381227d06', 'upptackare'),
+    ('a54eafb5-c533-41a9-ad2d-2f9fd1de44d4', 'upptackare'),
+    ('48b7ad21-d23d-419f-b744-0bdfbf560c4b', 'upptackare'),
+    ('48b7ad21-d23d-419f-b744-0bdfbf560c4b', 'ledare'),
+    ('a0ed142b-1682-4c92-b7d5-a7809188c797', 'upptackare'),
+    ('9a04dcdd-6a3a-4a55-bc98-db6200239c71', 'upptackare'),
+    ('f29c2e52-48c0-4539-b2a4-f16979fbdbe3', 'upptackare'),
+    ('346f5a07-f65e-45f7-af39-46768544a128', 'upptackare'),
+    ('9d1930c5-8aa7-4007-9649-fd0c8517dbf1', 'upptackare'),
+    ('cc99f64b-2cc9-4799-9049-48b94c005248', 'upptackare'),
+    ('5cc120fe-82a6-40ed-9b52-93d4f7626e95', 'upptackare'),
+    ('8df403e1-fdf8-44f7-a94e-c1b5657417ce', 'upptackare'),
+    ('793713a0-e218-42f6-8cc9-7fdf2840f031', 'upptackare'),
+    ('4852796d-c9fb-4256-ac23-9d0dc2f9dc11', 'utmanare'),
+    ('33a1f2a8-691e-4658-b091-b3f3ee4722e0', 'utmanare'),
+    ('e8c6b133-0ed0-4381-a391-70926b725bf6', 'utmanare'),
+    ('43d8ada7-0c72-4f9f-b065-511892678971', 'utmanare'),
+    ('0ef9513a-bfca-4a06-88df-ae5e10bce560', 'utmanare'),
+    ('78e0b8b3-465e-433c-b71f-de77d8884979', 'utmanare'),
+    ('c9b3585c-cfef-4562-8765-3c20a999d748', 'utmanare'),
+    ('94078c61-9191-448e-91dd-6486fe971806', 'aventyrare'),
+    ('12540a0c-ee6c-402d-9e01-b02829399805', 'aventyrare'),
+    ('a89f5c31-2797-450d-89e2-73e32e7131f5', 'aventyrare'),
+    ('9137c378-24c4-4b46-bb4d-719c9e7fdbdd', 'aventyrare'),
+    ('e12410dc-bef7-4066-8620-a70a961d592b', 'upptackare'),
+    ('e12410dc-bef7-4066-8620-a70a961d592b', 'aventyrare'),
+    ('e12410dc-bef7-4066-8620-a70a961d592b', 'utmanare'),
+    ('e12410dc-bef7-4066-8620-a70a961d592b', 'rover'),
+    ('e12410dc-bef7-4066-8620-a70a961d592b', 'ledare'),
+    ('e12410dc-bef7-4066-8620-a70a961d592b', 'funktionar'),
+    ('35f293e7-ff88-4a4f-82aa-4ea439fbf963', 'ledare'),
+    ('0fe49224-1843-46bd-9744-b30961255a24', 'rover'),
+    ('212ab3dd-93b0-47c3-bea0-74a2d0f74569', 'rover'),
+    ('212ab3dd-93b0-47c3-bea0-74a2d0f74569', 'ledare'),
+    ('212ab3dd-93b0-47c3-bea0-74a2d0f74569', 'funktionar'),
+    ('875d8123-0a8a-4de2-b9d2-6bf294fd765a', 'rover'),
+    ('875d8123-0a8a-4de2-b9d2-6bf294fd765a', 'ledare'),
+    ('875d8123-0a8a-4de2-b9d2-6bf294fd765a', 'funktionar'),
+    ('578760b2-7789-4a52-a5bd-8daddf538dde', 'upptackare'),
+    ('09f11538-638a-444a-b413-44def40926ef', 'aventyrare'),
+    ('09f11538-638a-444a-b413-44def40926ef', 'utmanare'),
+    ('09f11538-638a-444a-b413-44def40926ef', 'rover'),
+    ('056ec3d8-58c3-4fa7-b2c7-58e48cc09056', 'upptackare'),
+    ('056ec3d8-58c3-4fa7-b2c7-58e48cc09056', 'aventyrare'),
+    ('056ec3d8-58c3-4fa7-b2c7-58e48cc09056', 'utmanare'),
+    ('056ec3d8-58c3-4fa7-b2c7-58e48cc09056', 'rover'),
+    ('056ec3d8-58c3-4fa7-b2c7-58e48cc09056', 'ledare'),
+    ('056ec3d8-58c3-4fa7-b2c7-58e48cc09056', 'funktionar'),
+    ('4c154c4c-7726-43bf-b112-33ba8ae7e92e', 'upptackare'),
+    ('4c154c4c-7726-43bf-b112-33ba8ae7e92e', 'aventyrare'),
+    ('4c154c4c-7726-43bf-b112-33ba8ae7e92e', 'utmanare'),
+    ('4c154c4c-7726-43bf-b112-33ba8ae7e92e', 'rover'),
+    ('4c154c4c-7726-43bf-b112-33ba8ae7e92e', 'ledare'),
+    ('4c154c4c-7726-43bf-b112-33ba8ae7e92e', 'funktionar'),
+    ('034767d4-190d-47de-8d70-1802c36249a1', 'utmanare'),
+    ('034767d4-190d-47de-8d70-1802c36249a1', 'rover'),
+    ('034767d4-190d-47de-8d70-1802c36249a1', 'ledare'),
+    ('034767d4-190d-47de-8d70-1802c36249a1', 'funktionar'),
+    ('b27b87ab-8929-4432-8732-105ffca4670f', 'upptackare'),
+    ('b27b87ab-8929-4432-8732-105ffca4670f', 'aventyrare'),
+    ('b27b87ab-8929-4432-8732-105ffca4670f', 'utmanare'),
+    ('b27b87ab-8929-4432-8732-105ffca4670f', 'rover'),
+    ('b27b87ab-8929-4432-8732-105ffca4670f', 'ledare'),
+    ('b27b87ab-8929-4432-8732-105ffca4670f', 'funktionar'),
+    ('52020de4-3b13-4d0e-995f-b575901d5f3a', 'upptackare'),
+    ('52020de4-3b13-4d0e-995f-b575901d5f3a', 'aventyrare'),
+    ('52020de4-3b13-4d0e-995f-b575901d5f3a', 'utmanare'),
+    ('52020de4-3b13-4d0e-995f-b575901d5f3a', 'rover'),
+    ('6488d054-b05a-4591-863a-a384c6703707', 'aventyrare'),
+    ('6488d054-b05a-4591-863a-a384c6703707', 'utmanare'),
+    ('6488d054-b05a-4591-863a-a384c6703707', 'rover'),
+    ('6488d054-b05a-4591-863a-a384c6703707', 'ledare'),
+    ('6488d054-b05a-4591-863a-a384c6703707', 'funktionar'),
+    ('51a3d150-565f-484e-a998-66f482b9d1f2', 'utmanare'),
+    ('51a3d150-565f-484e-a998-66f482b9d1f2', 'rover'),
+    ('51a3d150-565f-484e-a998-66f482b9d1f2', 'ledare'),
+    ('51a3d150-565f-484e-a998-66f482b9d1f2', 'funktionar'),
+    ('b3010a94-b865-41fe-bd28-0db3d6ef261b', 'aventyrare'),
+    ('b3010a94-b865-41fe-bd28-0db3d6ef261b', 'utmanare'),
+    ('b3010a94-b865-41fe-bd28-0db3d6ef261b', 'rover'),
+    ('b3010a94-b865-41fe-bd28-0db3d6ef261b', 'ledare'),
+    ('b3010a94-b865-41fe-bd28-0db3d6ef261b', 'funktionar'),
+    ('009d6907-c48b-47ce-a5ff-6471306544cf', 'aventyrare'),
+    ('009d6907-c48b-47ce-a5ff-6471306544cf', 'utmanare'),
+    ('009d6907-c48b-47ce-a5ff-6471306544cf', 'rover'),
+    ('009d6907-c48b-47ce-a5ff-6471306544cf', 'ledare'),
+    ('009d6907-c48b-47ce-a5ff-6471306544cf', 'funktionar'),
+    ('44cbdbce-ba15-466c-a331-a189761e0126', 'upptackare'),
+    ('44cbdbce-ba15-466c-a331-a189761e0126', 'aventyrare'),
+    ('44cbdbce-ba15-466c-a331-a189761e0126', 'utmanare'),
+    ('44cbdbce-ba15-466c-a331-a189761e0126', 'rover'),
+    ('7e2b8974-5bf4-45d8-b5ca-7eae0cddf4e1', 'aventyrare'),
+    ('7e2b8974-5bf4-45d8-b5ca-7eae0cddf4e1', 'utmanare'),
+    ('7e2b8974-5bf4-45d8-b5ca-7eae0cddf4e1', 'rover'),
+    ('7e2b8974-5bf4-45d8-b5ca-7eae0cddf4e1', 'ledare'),
+    ('7e2b8974-5bf4-45d8-b5ca-7eae0cddf4e1', 'funktionar'),
+    ('859d4d0c-9787-4ca2-b5c5-ea5c68579790', 'upptackare'),
+    ('859d4d0c-9787-4ca2-b5c5-ea5c68579790', 'aventyrare'),
+    ('859d4d0c-9787-4ca2-b5c5-ea5c68579790', 'utmanare'),
+    ('859d4d0c-9787-4ca2-b5c5-ea5c68579790', 'rover'),
+    ('859d4d0c-9787-4ca2-b5c5-ea5c68579790', 'ledare'),
+    ('859d4d0c-9787-4ca2-b5c5-ea5c68579790', 'funktionar'),
+    ('04bfbb73-e3b1-47bb-a325-e1e20ab46c46', 'utmanare'),
+    ('04bfbb73-e3b1-47bb-a325-e1e20ab46c46', 'rover'),
+    ('04bfbb73-e3b1-47bb-a325-e1e20ab46c46', 'ledare'),
+    ('04bfbb73-e3b1-47bb-a325-e1e20ab46c46', 'funktionar'),
+    ('bb50c7be-1d3d-4fa5-9309-6fe0c30bd224', 'aventyrare'),
+    ('bb50c7be-1d3d-4fa5-9309-6fe0c30bd224', 'utmanare'),
+    ('bb50c7be-1d3d-4fa5-9309-6fe0c30bd224', 'rover'),
+    ('bb50c7be-1d3d-4fa5-9309-6fe0c30bd224', 'ledare'),
+    ('bb50c7be-1d3d-4fa5-9309-6fe0c30bd224', 'funktionar'),
+    ('88c23972-8434-4be2-b545-deb136495f45', 'upptackare'),
+    ('88c23972-8434-4be2-b545-deb136495f45', 'aventyrare'),
+    ('88c23972-8434-4be2-b545-deb136495f45', 'utmanare'),
+    ('88c23972-8434-4be2-b545-deb136495f45', 'rover'),
+    ('4c3c3cbf-c862-4105-adb1-453006cd38f5', 'utmanare'),
+    ('4c3c3cbf-c862-4105-adb1-453006cd38f5', 'rover'),
+    ('4c3c3cbf-c862-4105-adb1-453006cd38f5', 'ledare'),
+    ('4c3c3cbf-c862-4105-adb1-453006cd38f5', 'funktionar'),
+    ('4f7e0bc5-deec-4a4f-aec2-ca348bc36603', 'aventyrare'),
+    ('4f7e0bc5-deec-4a4f-aec2-ca348bc36603', 'utmanare'),
+    ('4f7e0bc5-deec-4a4f-aec2-ca348bc36603', 'rover'),
+    ('4f7e0bc5-deec-4a4f-aec2-ca348bc36603', 'ledare'),
+    ('4f7e0bc5-deec-4a4f-aec2-ca348bc36603', 'funktionar'),
+    ('0793979d-ad75-4f6f-8160-76fae508c6fc', 'rover'),
+    ('0793979d-ad75-4f6f-8160-76fae508c6fc', 'ledare'),
+    ('ec8a02f2-98a8-4faf-acf6-d39058180b5e', 'aventyrare'),
+    ('ec8a02f2-98a8-4faf-acf6-d39058180b5e', 'utmanare'),
+    ('ec8a02f2-98a8-4faf-acf6-d39058180b5e', 'rover'),
+    ('c43ec0a9-7448-4b8a-a029-2f5a98c45b2f', 'aventyrare'),
+    ('c43ec0a9-7448-4b8a-a029-2f5a98c45b2f', 'utmanare'),
+    ('c43ec0a9-7448-4b8a-a029-2f5a98c45b2f', 'rover'),
+    ('94a81ce5-36b3-420c-aed8-72bc118c1a8a', 'upptackare'),
+    ('94a81ce5-36b3-420c-aed8-72bc118c1a8a', 'aventyrare'),
+    ('94a81ce5-36b3-420c-aed8-72bc118c1a8a', 'utmanare'),
+    ('94a81ce5-36b3-420c-aed8-72bc118c1a8a', 'rover'),
+    ('94a81ce5-36b3-420c-aed8-72bc118c1a8a', 'ledare'),
+    ('94a81ce5-36b3-420c-aed8-72bc118c1a8a', 'funktionar'),
+    ('4764a8d2-f046-419a-a304-2cee2f458d6f', 'aventyrare'),
+    ('4764a8d2-f046-419a-a304-2cee2f458d6f', 'utmanare'),
+    ('4764a8d2-f046-419a-a304-2cee2f458d6f', 'rover'),
+    ('ef014fa6-941d-4da3-9b9f-26f72651c1b0', 'upptackare'),
+    ('ef014fa6-941d-4da3-9b9f-26f72651c1b0', 'aventyrare'),
+    ('ef014fa6-941d-4da3-9b9f-26f72651c1b0', 'utmanare'),
+    ('ef014fa6-941d-4da3-9b9f-26f72651c1b0', 'rover'),
+    ('ef014fa6-941d-4da3-9b9f-26f72651c1b0', 'ledare'),
+    ('ef014fa6-941d-4da3-9b9f-26f72651c1b0', 'funktionar'),
+    ('1fe33eba-6faf-4a74-8eda-76a60e87136a', 'upptackare'),
+    ('1fe33eba-6faf-4a74-8eda-76a60e87136a', 'aventyrare'),
+    ('1fe33eba-6faf-4a74-8eda-76a60e87136a', 'utmanare'),
+    ('1fe33eba-6faf-4a74-8eda-76a60e87136a', 'rover'),
+    ('1fe33eba-6faf-4a74-8eda-76a60e87136a', 'ledare'),
+    ('1fe33eba-6faf-4a74-8eda-76a60e87136a', 'funktionar'),
+    ('9408beb7-68ff-49fb-bee1-eff7c1c61e84', 'upptackare'),
+    ('9408beb7-68ff-49fb-bee1-eff7c1c61e84', 'aventyrare'),
+    ('9408beb7-68ff-49fb-bee1-eff7c1c61e84', 'utmanare'),
+    ('9408beb7-68ff-49fb-bee1-eff7c1c61e84', 'rover'),
+    ('9408beb7-68ff-49fb-bee1-eff7c1c61e84', 'ledare'),
+    ('9408beb7-68ff-49fb-bee1-eff7c1c61e84', 'funktionar'),
+    ('2134139f-c63a-4fc6-af29-283e3de947a5', 'upptackare'),
+    ('2134139f-c63a-4fc6-af29-283e3de947a5', 'aventyrare'),
+    ('2134139f-c63a-4fc6-af29-283e3de947a5', 'utmanare'),
+    ('2134139f-c63a-4fc6-af29-283e3de947a5', 'rover'),
+    ('2134139f-c63a-4fc6-af29-283e3de947a5', 'ledare'),
+    ('2134139f-c63a-4fc6-af29-283e3de947a5', 'funktionar'),
+    ('14f82806-421c-467a-a662-8970b4561bee', 'upptackare'),
+    ('14f82806-421c-467a-a662-8970b4561bee', 'aventyrare'),
+    ('14f82806-421c-467a-a662-8970b4561bee', 'utmanare'),
+    ('14f82806-421c-467a-a662-8970b4561bee', 'rover'),
+    ('6d96c115-9642-47a2-afa8-62d145bdef8a', 'aventyrare'),
+    ('6d96c115-9642-47a2-afa8-62d145bdef8a', 'utmanare'),
+    ('6d96c115-9642-47a2-afa8-62d145bdef8a', 'rover'),
+    ('6d96c115-9642-47a2-afa8-62d145bdef8a', 'ledare'),
+    ('6d96c115-9642-47a2-afa8-62d145bdef8a', 'funktionar'),
+    ('03a6ea28-1d81-4da6-bcc4-936a97e2ac66', 'utmanare'),
+    ('03a6ea28-1d81-4da6-bcc4-936a97e2ac66', 'rover'),
+    ('03a6ea28-1d81-4da6-bcc4-936a97e2ac66', 'ledare'),
+    ('03a6ea28-1d81-4da6-bcc4-936a97e2ac66', 'funktionar'),
+    ('cabccabc-2dcc-4559-8f58-588089bf46e3', 'upptackare'),
+    ('cabccabc-2dcc-4559-8f58-588089bf46e3', 'aventyrare'),
+    ('cabccabc-2dcc-4559-8f58-588089bf46e3', 'utmanare'),
+    ('cabccabc-2dcc-4559-8f58-588089bf46e3', 'rover'),
+    ('cabccabc-2dcc-4559-8f58-588089bf46e3', 'ledare'),
+    ('cabccabc-2dcc-4559-8f58-588089bf46e3', 'funktionar'),
+    ('019e2f99-ef7b-4673-972f-a5d2d8020fbd', 'aventyrare'),
+    ('019e2f99-ef7b-4673-972f-a5d2d8020fbd', 'utmanare'),
+    ('019e2f99-ef7b-4673-972f-a5d2d8020fbd', 'rover'),
+    ('019e2f99-ef7b-4673-972f-a5d2d8020fbd', 'ledare'),
+    ('019e2f99-ef7b-4673-972f-a5d2d8020fbd', 'funktionar'),
+    ('a6943d80-186e-4f7e-a69e-00be95b90d68', 'aventyrare'),
+    ('a6943d80-186e-4f7e-a69e-00be95b90d68', 'utmanare'),
+    ('a6943d80-186e-4f7e-a69e-00be95b90d68', 'rover'),
+    ('0f8093d6-655e-418e-9408-162ebc6646d1', 'aventyrare'),
+    ('0f8093d6-655e-418e-9408-162ebc6646d1', 'utmanare'),
+    ('0f8093d6-655e-418e-9408-162ebc6646d1', 'rover'),
+    ('0f8093d6-655e-418e-9408-162ebc6646d1', 'ledare'),
+    ('0f8093d6-655e-418e-9408-162ebc6646d1', 'funktionar'),
+    ('d0e2eaad-36ea-484c-a848-4888fc23e824', 'upptackare'),
+    ('d0e2eaad-36ea-484c-a848-4888fc23e824', 'aventyrare'),
+    ('d0e2eaad-36ea-484c-a848-4888fc23e824', 'utmanare'),
+    ('d0e2eaad-36ea-484c-a848-4888fc23e824', 'rover'),
+    ('d0e2eaad-36ea-484c-a848-4888fc23e824', 'ledare'),
+    ('d0e2eaad-36ea-484c-a848-4888fc23e824', 'funktionar'),
+    ('00645e6f-efc1-4a17-86ec-c43602cacc50', 'rover'),
+    ('00645e6f-efc1-4a17-86ec-c43602cacc50', 'ledare'),
+    ('00645e6f-efc1-4a17-86ec-c43602cacc50', 'funktionar'),
+    ('0a33b254-528c-4489-aac0-3aacd291ef4b', 'rover'),
+    ('0a33b254-528c-4489-aac0-3aacd291ef4b', 'ledare'),
+    ('0a33b254-528c-4489-aac0-3aacd291ef4b', 'funktionar'),
+    ('f9286a48-999f-4e8e-bcd7-2edb3c817fe5', 'upptackare'),
+    ('f9286a48-999f-4e8e-bcd7-2edb3c817fe5', 'aventyrare'),
+    ('f9286a48-999f-4e8e-bcd7-2edb3c817fe5', 'utmanare'),
+    ('f9286a48-999f-4e8e-bcd7-2edb3c817fe5', 'rover'),
+    ('f9286a48-999f-4e8e-bcd7-2edb3c817fe5', 'ledare'),
+    ('f9286a48-999f-4e8e-bcd7-2edb3c817fe5', 'funktionar'),
+    ('1c3d1ae8-ad2c-43cf-8620-50078d564eca', 'utmanare'),
+    ('1c3d1ae8-ad2c-43cf-8620-50078d564eca', 'rover'),
+    ('1c3d1ae8-ad2c-43cf-8620-50078d564eca', 'ledare'),
+    ('1c3d1ae8-ad2c-43cf-8620-50078d564eca', 'funktionar'),
+    ('c15f7c24-f049-44b8-868a-f2ffa6fa5043', 'rover'),
+    ('c15f7c24-f049-44b8-868a-f2ffa6fa5043', 'ledare'),
+    ('c15f7c24-f049-44b8-868a-f2ffa6fa5043', 'funktionar'),
+    ('8326ca21-6991-4048-bb01-620f6aa073b9', 'rover'),
+    ('8326ca21-6991-4048-bb01-620f6aa073b9', 'ledare'),
+    ('8326ca21-6991-4048-bb01-620f6aa073b9', 'funktionar'),
+    ('8b9e6a6d-f316-4442-83a1-54159b48aa15', 'rover'),
+    ('8b9e6a6d-f316-4442-83a1-54159b48aa15', 'ledare'),
+    ('8b9e6a6d-f316-4442-83a1-54159b48aa15', 'funktionar'),
+    ('b3917552-911c-479f-86e4-98a33f4f5193', 'rover'),
+    ('31cfb400-0333-4a86-83f7-df0004e61e63', 'rover'),
+    ('281972b8-b1e3-4e52-8c89-97ef91775914', 'funktionar'),
+    ('e4535f74-9f42-4b56-acac-e770bb71fcc5', 'rover'),
+    ('cf4c8448-ccb3-4a64-83ea-8e96482fca98', 'rover'),
+    ('32f9c69a-d135-480b-81e6-7a06b48b98b4', 'rover'),
+    ('37ed0401-ee00-4a19-92fd-529ff40364d0', 'rover'),
+    ('b9738c36-3172-44a7-a3c7-8bc9c0b7adb1', 'upptackare'),
+    ('b9738c36-3172-44a7-a3c7-8bc9c0b7adb1', 'aventyrare'),
+    ('b9738c36-3172-44a7-a3c7-8bc9c0b7adb1', 'utmanare'),
+    ('b9738c36-3172-44a7-a3c7-8bc9c0b7adb1', 'rover'),
+    ('b9738c36-3172-44a7-a3c7-8bc9c0b7adb1', 'ledare'),
+    ('b9738c36-3172-44a7-a3c7-8bc9c0b7adb1', 'funktionar'),
+    ('1f088112-e57a-4a9f-b209-38a215e0ffc7', 'upptackare'),
+    ('1f088112-e57a-4a9f-b209-38a215e0ffc7', 'aventyrare'),
+    ('1f088112-e57a-4a9f-b209-38a215e0ffc7', 'utmanare'),
+    ('1f088112-e57a-4a9f-b209-38a215e0ffc7', 'rover'),
+    ('1f088112-e57a-4a9f-b209-38a215e0ffc7', 'ledare'),
+    ('1f088112-e57a-4a9f-b209-38a215e0ffc7', 'funktionar'),
+    ('be7c5544-b9e3-4470-9f97-a3f662b21f3a', 'upptackare'),
+    ('be7c5544-b9e3-4470-9f97-a3f662b21f3a', 'aventyrare'),
+    ('be7c5544-b9e3-4470-9f97-a3f662b21f3a', 'utmanare'),
+    ('be7c5544-b9e3-4470-9f97-a3f662b21f3a', 'rover'),
+    ('be7c5544-b9e3-4470-9f97-a3f662b21f3a', 'ledare'),
+    ('be7c5544-b9e3-4470-9f97-a3f662b21f3a', 'funktionar'),
+    ('df43e1d7-3f5d-453c-84a7-54e1d98cd416', 'upptackare'),
+    ('fd42f21b-77ee-468b-9425-23ecb25e72f4', 'upptackare'),
+    ('15a12ec3-8171-476d-b29b-f3e7fe6d7c56', 'upptackare'),
+    ('5cc8feb5-0dae-46e8-908b-07d77929d193', 'upptackare'),
+    ('58a2df20-60d3-4500-8e8a-3d5a3576f355', 'upptackare'),
+    ('92ddcb49-62cd-48ce-85ac-73b25bf140cb', 'upptackare'),
+    ('d333aaea-5dfe-4c1f-997c-546d766fdea2', 'upptackare'),
+    ('596cef8f-fc7e-402e-8810-c6986f1d4206', 'upptackare'),
+    ('5fdbfc65-f34d-44b4-ac00-8e73f6070b1c', 'upptackare'),
+    ('031f22d5-c73a-442f-996f-6ad1db69c629', 'upptackare'),
+    ('14c4c378-94f4-462d-af93-31bdcdf38469', 'upptackare'),
+    ('b60370e5-d0f5-4ae3-a1ba-9b76e2f5633f', 'upptackare'),
+    ('06045bc6-046a-4b14-a9d4-ec54e1a5d545', 'upptackare'),
+    ('8804198b-88c2-4d22-9cf7-002915cb0d82', 'upptackare'),
+    ('e610c3ab-2a5b-4377-a763-bf368fd5bf13', 'upptackare'),
+    ('ba6bf12e-b11a-4505-99b0-27b4f9c7c0a4', 'upptackare'),
+    ('8fa45844-175e-4c54-b0e6-47e2b8586280', 'upptackare'),
+    ('19f03ccd-74a5-416b-8f26-996261a6a050', 'upptackare'),
+    ('4aa5c09c-4fa4-4aba-bab8-4443af50cd0e', 'upptackare'),
+    ('51e246d5-c984-4872-a5a2-2ad33a69b915', 'upptackare'),
+    ('f659dce6-bec8-4170-863e-7190d2ade0e5', 'upptackare'),
+    ('d4c3688f-98ff-4b47-8880-ece11ecdc9e9', 'upptackare'),
+    ('d5cba28b-2cd5-4650-a5ef-fd7cf9852d50', 'upptackare'),
+    ('ba6dda5e-0898-4df8-a932-7bce3086fbfc', 'upptackare'),
+    ('bc37788c-4c7e-4462-96f6-87b406efb988', 'upptackare'),
+    ('99feb579-efc2-4658-a509-7479628f7347', 'upptackare'),
+    ('bc44bf22-3f8b-4ae1-8021-14bdac938b40', 'utmanare'),
+    ('ba6d55b6-c6d8-4fb9-aadc-a066ba68d041', 'utmanare'),
+    ('62b185fb-0e89-49f2-9ae1-61650c3ef918', 'aventyrare'),
+    ('1660a351-737f-4d16-a97a-182d0af79943', 'aventyrare'),
+    ('cc151db7-f5ee-40bd-bea1-f9b9daea2256', 'aventyrare'),
+    ('8d4ccf16-7e0d-4427-b2f2-a431ec8f48f5', 'aventyrare'),
+    ('f940ffbc-4923-4219-8572-1a65b5d2b060', 'aventyrare'),
+    ('6f5541a9-7bea-4739-974e-b927f2338c24', 'aventyrare'),
+    ('7f6c75f3-bf3b-465b-9e21-86fe973e56ad', 'aventyrare'),
+    ('7942051f-2ab3-497d-80c4-da11464da94a', 'aventyrare'),
+    ('118a0abe-7289-44d1-a083-0b1cd93d3d58', 'aventyrare'),
+    ('c9dd9e80-c9bc-4be4-bff7-97aca0d80a1f', 'aventyrare'),
+    ('5aa2f963-4ce7-4583-a9ce-b3e73c73c079', 'utmanare'),
+    ('5aa2f963-4ce7-4583-a9ce-b3e73c73c079', 'rover'),
+    ('5aa2f963-4ce7-4583-a9ce-b3e73c73c079', 'ledare'),
+    ('5aa2f963-4ce7-4583-a9ce-b3e73c73c079', 'funktionar'),
+    ('ba2f3a75-63cc-4d11-8b10-b09b3d8cb77f', 'utmanare'),
+    ('ba2f3a75-63cc-4d11-8b10-b09b3d8cb77f', 'rover'),
+    ('ba2f3a75-63cc-4d11-8b10-b09b3d8cb77f', 'ledare'),
+    ('ba2f3a75-63cc-4d11-8b10-b09b3d8cb77f', 'funktionar'),
+    ('f3f6b1d8-e4ff-43d7-85dc-6547f72325f0', 'utmanare'),
+    ('f3f6b1d8-e4ff-43d7-85dc-6547f72325f0', 'rover'),
+    ('f3f6b1d8-e4ff-43d7-85dc-6547f72325f0', 'ledare'),
+    ('f3f6b1d8-e4ff-43d7-85dc-6547f72325f0', 'funktionar'),
+    ('68ca88e3-f228-4a3c-b155-08a5560c5679', 'utmanare'),
+    ('68ca88e3-f228-4a3c-b155-08a5560c5679', 'rover'),
+    ('68ca88e3-f228-4a3c-b155-08a5560c5679', 'ledare'),
+    ('68ca88e3-f228-4a3c-b155-08a5560c5679', 'funktionar'),
+    ('a93a5ba3-b962-4cf7-baa2-77eb5e0608eb', 'rover'),
+    ('a93a5ba3-b962-4cf7-baa2-77eb5e0608eb', 'ledare'),
+    ('a93a5ba3-b962-4cf7-baa2-77eb5e0608eb', 'funktionar'),
+    ('ad0ab1fb-a534-4316-9079-3913bff81a71', 'rover'),
+    ('ad0ab1fb-a534-4316-9079-3913bff81a71', 'ledare'),
+    ('ad0ab1fb-a534-4316-9079-3913bff81a71', 'funktionar'),
+    ('7a233311-1ff2-4960-ac5b-5c8038fbc4f4', 'rover'),
+    ('7a233311-1ff2-4960-ac5b-5c8038fbc4f4', 'ledare'),
+    ('7a233311-1ff2-4960-ac5b-5c8038fbc4f4', 'funktionar'),
+    ('b3e4332b-0ff0-4fe7-96fb-3172bb87b1ab', 'upptackare'),
+    ('b3e4332b-0ff0-4fe7-96fb-3172bb87b1ab', 'aventyrare'),
+    ('b3e4332b-0ff0-4fe7-96fb-3172bb87b1ab', 'utmanare'),
+    ('b3e4332b-0ff0-4fe7-96fb-3172bb87b1ab', 'rover'),
+    ('b3e4332b-0ff0-4fe7-96fb-3172bb87b1ab', 'ledare'),
+    ('b3e4332b-0ff0-4fe7-96fb-3172bb87b1ab', 'funktionar'),
+    ('b4203be6-a301-4f92-b80b-4ca2aa7ade97', 'ledare'),
+    ('b4203be6-a301-4f92-b80b-4ca2aa7ade97', 'funktionar'),
+    ('199035eb-4ad4-440b-b16a-b16c6c1c5682', 'ledare'),
+    ('199035eb-4ad4-440b-b16a-b16c6c1c5682', 'funktionar'),
+    ('0bdaae55-1001-4b2c-9738-75a9585e3a7c', 'ledare'),
+    ('0bdaae55-1001-4b2c-9738-75a9585e3a7c', 'funktionar'),
+    ('07f6cedf-7131-468d-b112-51b8e0f70ea4', 'ledare'),
+    ('07f6cedf-7131-468d-b112-51b8e0f70ea4', 'funktionar'),
+    ('092d4d58-721e-4f61-8e02-ffe0b7b202bd', 'rover'),
+    ('8e7bb827-623e-4874-9b0d-8a071dd472f2', 'rover'),
+    ('f0187d5a-ec01-4146-9c33-36f8caf14845', 'rover'),
+    ('6b240a4e-97bf-4651-99b4-626816971296', 'rover'),
+    ('f43e187c-c9e7-4f50-a815-8839819423f3', 'rover'),
+    ('d3c3ed22-1ec4-489a-ac02-37f7910578e7', 'upptackare'),
+    ('d3c3ed22-1ec4-489a-ac02-37f7910578e7', 'aventyrare'),
+    ('d3c3ed22-1ec4-489a-ac02-37f7910578e7', 'utmanare'),
+    ('d3c3ed22-1ec4-489a-ac02-37f7910578e7', 'rover'),
+    ('2d6d8ce5-4880-4924-81f5-d63210bdad55', 'upptackare'),
+    ('2d6d8ce5-4880-4924-81f5-d63210bdad55', 'aventyrare'),
+    ('2d6d8ce5-4880-4924-81f5-d63210bdad55', 'utmanare'),
+    ('2d6d8ce5-4880-4924-81f5-d63210bdad55', 'rover'),
+    ('ad0637af-13bd-4354-9a83-155cd5755b39', 'utmanare'),
+    ('1d9e6314-92c7-4a60-82f6-26e1ad0f5b0e', 'utmanare'),
+    ('67b39f3a-689b-4aa1-875d-5e9a80d51889', 'rover'),
+    ('143b7c9b-7e06-4f99-bdb0-1b3188241420', 'upptackare'),
+    ('667bcd75-f0be-47f8-b039-a4b5d6a9507e', 'upptackare'),
+    ('a004b010-b46c-4657-9dab-2801f3ec1c47', 'upptackare'),
+    ('221752e6-e007-4004-be66-82cfc8f357e4', 'upptackare'),
+    ('20ae0f07-5ed9-4249-b4b5-7b84c1d402b8', 'upptackare'),
+    ('cee2ef15-1613-4982-96ae-7e04215c6d49', 'aventyrare'),
+    ('64459137-360b-4067-a1f2-1cd37c1cc9a7', 'upptackare'),
+    ('1b68f980-7857-46f3-9b8d-67bd24b48a17', 'upptackare'),
+    ('3085277e-0bc7-487e-afa1-3cc54f62db75', 'upptackare'),
+    ('e0c8bbf4-57d2-4924-bd51-27fa81318e0e', 'upptackare'),
+    ('00ad8bfe-14dc-4301-a7e6-50efeb190efb', 'upptackare'),
+    ('cd28fcef-0d5f-426d-951d-ccabbf1c6bef', 'upptackare'),
+    ('fac5e258-d674-45df-ad43-f8a40a27a200', 'upptackare'),
+    ('e8ddd901-0743-4499-80e0-aada4c455f33', 'upptackare'),
+    ('4b144211-f3f2-47bb-bab0-e8b128b4324e', 'upptackare'),
+    ('68f4dbd7-ff66-45a0-abf7-9076ef4abe6e', 'upptackare'),
+    ('68f4dbd7-ff66-45a0-abf7-9076ef4abe6e', 'aventyrare'),
+    ('68f4dbd7-ff66-45a0-abf7-9076ef4abe6e', 'utmanare'),
+    ('68f4dbd7-ff66-45a0-abf7-9076ef4abe6e', 'rover'),
+    ('68f4dbd7-ff66-45a0-abf7-9076ef4abe6e', 'ledare'),
+    ('68f4dbd7-ff66-45a0-abf7-9076ef4abe6e', 'funktionar'),
+    ('8c1513c9-7345-4595-b3d0-538fba63fae1', 'upptackare'),
+    ('8c1513c9-7345-4595-b3d0-538fba63fae1', 'aventyrare'),
+    ('8c1513c9-7345-4595-b3d0-538fba63fae1', 'utmanare'),
+    ('8c1513c9-7345-4595-b3d0-538fba63fae1', 'rover'),
+    ('8c1513c9-7345-4595-b3d0-538fba63fae1', 'ledare'),
+    ('8c1513c9-7345-4595-b3d0-538fba63fae1', 'funktionar'),
+    ('b36e6339-0a77-4a7c-829f-48df1684478e', 'upptackare'),
+    ('b36e6339-0a77-4a7c-829f-48df1684478e', 'aventyrare'),
+    ('b36e6339-0a77-4a7c-829f-48df1684478e', 'utmanare'),
+    ('b36e6339-0a77-4a7c-829f-48df1684478e', 'rover'),
+    ('b36e6339-0a77-4a7c-829f-48df1684478e', 'ledare'),
+    ('b36e6339-0a77-4a7c-829f-48df1684478e', 'funktionar'),
+    ('152fb4f0-3cbf-4939-aeb9-0c40c658cf26', 'upptackare'),
+    ('152fb4f0-3cbf-4939-aeb9-0c40c658cf26', 'aventyrare'),
+    ('152fb4f0-3cbf-4939-aeb9-0c40c658cf26', 'utmanare'),
+    ('152fb4f0-3cbf-4939-aeb9-0c40c658cf26', 'rover'),
+    ('152fb4f0-3cbf-4939-aeb9-0c40c658cf26', 'ledare'),
+    ('152fb4f0-3cbf-4939-aeb9-0c40c658cf26', 'funktionar'),
+    ('701c590b-41b9-425f-8b78-48084c519a4b', 'upptackare'),
+    ('701c590b-41b9-425f-8b78-48084c519a4b', 'aventyrare'),
+    ('701c590b-41b9-425f-8b78-48084c519a4b', 'utmanare'),
+    ('701c590b-41b9-425f-8b78-48084c519a4b', 'rover'),
+    ('701c590b-41b9-425f-8b78-48084c519a4b', 'ledare'),
+    ('701c590b-41b9-425f-8b78-48084c519a4b', 'funktionar'),
+    ('a4c6ba1b-801a-4cc9-943d-8c1aa5f74ad3', 'upptackare'),
+    ('a4c6ba1b-801a-4cc9-943d-8c1aa5f74ad3', 'aventyrare'),
+    ('a4c6ba1b-801a-4cc9-943d-8c1aa5f74ad3', 'utmanare'),
+    ('a4c6ba1b-801a-4cc9-943d-8c1aa5f74ad3', 'rover'),
+    ('a4c6ba1b-801a-4cc9-943d-8c1aa5f74ad3', 'ledare'),
+    ('a4c6ba1b-801a-4cc9-943d-8c1aa5f74ad3', 'funktionar'),
+    ('f3e1096e-a0cd-407b-a36c-9c7a74cda61f', 'upptackare'),
+    ('f3e1096e-a0cd-407b-a36c-9c7a74cda61f', 'aventyrare'),
+    ('f3e1096e-a0cd-407b-a36c-9c7a74cda61f', 'utmanare'),
+    ('f3e1096e-a0cd-407b-a36c-9c7a74cda61f', 'rover'),
+    ('280528d1-efee-4bf0-b0c4-5e36dd15048b', 'aventyrare'),
+    ('d8e0a495-1f71-4664-91e6-cc58a87ab5b2', 'aventyrare'),
+    ('818357ce-0808-4012-9afa-fc8266fcaf3e', 'aventyrare'),
+    ('b787e054-ca8a-4b60-a45c-a9d47c4d608a', 'utmanare'),
+    ('b787e054-ca8a-4b60-a45c-a9d47c4d608a', 'rover'),
+    ('b787e054-ca8a-4b60-a45c-a9d47c4d608a', 'ledare'),
+    ('b787e054-ca8a-4b60-a45c-a9d47c4d608a', 'funktionar'),
+    ('f7544371-06ed-4e2d-85a9-11be1d5d48d2', 'utmanare'),
+    ('196b36eb-250b-450f-b221-6eeabc0d5226', 'utmanare'),
+    ('21662608-7405-494d-8b93-fbb813a5934d', 'utmanare'),
+    ('8880b1dd-5c9c-4097-8c90-077f62c9c40f', 'utmanare'),
+    ('af766f77-5794-4068-8726-046b86905429', 'utmanare'),
+    ('8530f868-ef6a-4ce0-bae9-528990e615bc', 'aventyrare'),
+    ('8530f868-ef6a-4ce0-bae9-528990e615bc', 'utmanare'),
+    ('8530f868-ef6a-4ce0-bae9-528990e615bc', 'rover'),
+    ('c9ecc253-7ec5-4deb-919a-f996e8bff302', 'aventyrare'),
+    ('c9ecc253-7ec5-4deb-919a-f996e8bff302', 'utmanare'),
+    ('c9ecc253-7ec5-4deb-919a-f996e8bff302', 'rover'),
+    ('b3071d7b-b34b-40a0-a3d8-9cc741d5b801', 'aventyrare'),
+    ('b3071d7b-b34b-40a0-a3d8-9cc741d5b801', 'utmanare'),
+    ('b3071d7b-b34b-40a0-a3d8-9cc741d5b801', 'rover'),
+    ('7a559089-e0be-4077-9fe9-912cdcb55545', 'aventyrare'),
+    ('7a559089-e0be-4077-9fe9-912cdcb55545', 'utmanare'),
+    ('7a559089-e0be-4077-9fe9-912cdcb55545', 'rover'),
+    ('1b9184a3-4a8f-4522-b267-3ed723140085', 'rover'),
+    ('1b9184a3-4a8f-4522-b267-3ed723140085', 'ledare'),
+    ('128b213b-c87d-42b4-b3a7-749f9a3974cf', 'upptackare'),
+    ('128b213b-c87d-42b4-b3a7-749f9a3974cf', 'aventyrare'),
+    ('128b213b-c87d-42b4-b3a7-749f9a3974cf', 'utmanare'),
+    ('128b213b-c87d-42b4-b3a7-749f9a3974cf', 'rover'),
+    ('128b213b-c87d-42b4-b3a7-749f9a3974cf', 'ledare'),
+    ('128b213b-c87d-42b4-b3a7-749f9a3974cf', 'funktionar'),
+    ('e193f63b-d3c4-486a-b796-17e241d649aa', 'upptackare'),
+    ('e193f63b-d3c4-486a-b796-17e241d649aa', 'aventyrare'),
+    ('e193f63b-d3c4-486a-b796-17e241d649aa', 'utmanare'),
+    ('e193f63b-d3c4-486a-b796-17e241d649aa', 'rover'),
+    ('e193f63b-d3c4-486a-b796-17e241d649aa', 'ledare'),
+    ('e193f63b-d3c4-486a-b796-17e241d649aa', 'funktionar'),
+    ('3298e437-e099-4b39-935d-425170e4bbf4', 'utmanare'),
+    ('6c6af510-ea32-46bf-be5d-b152bc6d2beb', 'utmanare'),
+    ('8ee307bb-737e-4297-8958-dfcdfbcbe592', 'utmanare'),
+    ('1a579b2e-f81e-4759-ad44-c1d88f8da3c7', 'rover'),
+    ('006503f9-8638-46e9-86be-a71a812111f7', 'ledare'),
+    ('006503f9-8638-46e9-86be-a71a812111f7', 'funktionar'),
+    ('ba86b43a-9d35-4b5f-8286-f8f5eb0bba95', 'upptackare'),
+    ('ba86b43a-9d35-4b5f-8286-f8f5eb0bba95', 'aventyrare'),
+    ('ba86b43a-9d35-4b5f-8286-f8f5eb0bba95', 'utmanare'),
+    ('ba86b43a-9d35-4b5f-8286-f8f5eb0bba95', 'rover'),
+    ('ba86b43a-9d35-4b5f-8286-f8f5eb0bba95', 'ledare'),
+    ('ba86b43a-9d35-4b5f-8286-f8f5eb0bba95', 'funktionar'),
+    ('70dfd9ff-9ac8-4813-b1ae-8c307c296309', 'upptackare'),
+    ('958a18dc-80bc-4d7d-a22c-40e0b3606b56', 'upptackare'),
+    ('686eb54a-6dd3-4b99-bcc7-3ded099bfa26', 'upptackare'),
+    ('b8132e38-6e99-4007-a5a5-912fbba478c0', 'upptackare'),
+    ('008d008d-5347-4428-84c2-c4a560c521ab', 'upptackare'),
+    ('2f4fc74b-844e-4dd3-9a48-66286aa5c1cc', 'upptackare'),
+    ('a5ec1a04-8a68-4586-b1ea-768118d1293d', 'upptackare'),
+    ('c659dec6-df19-4564-b968-2e405ea5551e', 'upptackare'),
+    ('8e64f0f1-99fd-4288-b504-36b226fedf9f', 'upptackare'),
+    ('c6e6bacf-3316-49a6-a4b5-72c10672b565', 'upptackare'),
+    ('cbd2ad67-8872-40fe-9017-a0fa1c5d8f7a', 'upptackare'),
+    ('cbd2ad67-8872-40fe-9017-a0fa1c5d8f7a', 'aventyrare'),
+    ('cbd2ad67-8872-40fe-9017-a0fa1c5d8f7a', 'utmanare'),
+    ('cbd2ad67-8872-40fe-9017-a0fa1c5d8f7a', 'rover'),
+    ('cbd2ad67-8872-40fe-9017-a0fa1c5d8f7a', 'ledare'),
+    ('cbd2ad67-8872-40fe-9017-a0fa1c5d8f7a', 'funktionar'),
+    ('ce3820f0-aa75-4b05-a01d-b01ac1ad324b', 'upptackare'),
+    ('98c85397-679b-47e6-9e9f-0a8cc3ca485c', 'aventyrare'),
+    ('98c85397-679b-47e6-9e9f-0a8cc3ca485c', 'utmanare'),
+    ('98c85397-679b-47e6-9e9f-0a8cc3ca485c', 'rover'),
+    ('2bf0d388-d046-4a87-b3d3-dafb316a6bb0', 'aventyrare'),
+    ('e43dc241-bfa8-4386-9112-4d31cbc26e1c', 'upptackare'),
+    ('e43dc241-bfa8-4386-9112-4d31cbc26e1c', 'aventyrare'),
+    ('e43dc241-bfa8-4386-9112-4d31cbc26e1c', 'utmanare'),
+    ('e43dc241-bfa8-4386-9112-4d31cbc26e1c', 'rover'),
+    ('aa98977b-adae-4094-b7f2-e255595691b6', 'aventyrare'),
+    ('aa98977b-adae-4094-b7f2-e255595691b6', 'utmanare'),
+    ('aa98977b-adae-4094-b7f2-e255595691b6', 'rover'),
+    ('aa98977b-adae-4094-b7f2-e255595691b6', 'ledare'),
+    ('aa98977b-adae-4094-b7f2-e255595691b6', 'funktionar'),
+    ('79371432-fa0d-495c-825b-fd49b8bdadf0', 'utmanare'),
+    ('79371432-fa0d-495c-825b-fd49b8bdadf0', 'rover'),
+    ('79371432-fa0d-495c-825b-fd49b8bdadf0', 'ledare'),
+    ('79371432-fa0d-495c-825b-fd49b8bdadf0', 'funktionar'),
+    ('90cb7a52-6568-4f70-9ded-17a0975fb448', 'upptackare'),
+    ('90cb7a52-6568-4f70-9ded-17a0975fb448', 'aventyrare'),
+    ('90cb7a52-6568-4f70-9ded-17a0975fb448', 'utmanare'),
+    ('90cb7a52-6568-4f70-9ded-17a0975fb448', 'rover'),
+    ('90cb7a52-6568-4f70-9ded-17a0975fb448', 'ledare'),
+    ('90cb7a52-6568-4f70-9ded-17a0975fb448', 'funktionar'),
+    ('c5073efb-b4e4-4637-861f-9942b3d00c3e', 'aventyrare'),
+    ('c5073efb-b4e4-4637-861f-9942b3d00c3e', 'utmanare'),
+    ('c5073efb-b4e4-4637-861f-9942b3d00c3e', 'rover'),
+    ('c5073efb-b4e4-4637-861f-9942b3d00c3e', 'ledare'),
+    ('c5073efb-b4e4-4637-861f-9942b3d00c3e', 'funktionar'),
+    ('74c5c963-952a-43b9-9e40-79bb34856eab', 'aventyrare'),
+    ('74c5c963-952a-43b9-9e40-79bb34856eab', 'utmanare'),
+    ('74c5c963-952a-43b9-9e40-79bb34856eab', 'rover'),
+    ('b09c15c1-c3f5-4eb8-b01f-73856f31b321', 'aventyrare'),
+    ('b09c15c1-c3f5-4eb8-b01f-73856f31b321', 'utmanare'),
+    ('b09c15c1-c3f5-4eb8-b01f-73856f31b321', 'rover'),
+    ('b09c15c1-c3f5-4eb8-b01f-73856f31b321', 'ledare'),
+    ('b09c15c1-c3f5-4eb8-b01f-73856f31b321', 'funktionar'),
+    ('458ecd6d-d5f8-4d6c-9519-e5c6e7eb6c69', 'upptackare'),
+    ('458ecd6d-d5f8-4d6c-9519-e5c6e7eb6c69', 'aventyrare'),
+    ('458ecd6d-d5f8-4d6c-9519-e5c6e7eb6c69', 'utmanare'),
+    ('458ecd6d-d5f8-4d6c-9519-e5c6e7eb6c69', 'rover'),
+    ('458ecd6d-d5f8-4d6c-9519-e5c6e7eb6c69', 'ledare'),
+    ('458ecd6d-d5f8-4d6c-9519-e5c6e7eb6c69', 'funktionar'),
+    ('88dafed7-5451-4b8d-a822-a6a10953da84', 'upptackare'),
+    ('88dafed7-5451-4b8d-a822-a6a10953da84', 'aventyrare'),
+    ('88dafed7-5451-4b8d-a822-a6a10953da84', 'utmanare'),
+    ('88dafed7-5451-4b8d-a822-a6a10953da84', 'rover'),
+    ('88dafed7-5451-4b8d-a822-a6a10953da84', 'ledare'),
+    ('88dafed7-5451-4b8d-a822-a6a10953da84', 'funktionar'),
+    ('f6de8395-2378-45a1-a9b9-31962d542ec8', 'upptackare'),
+    ('f6de8395-2378-45a1-a9b9-31962d542ec8', 'aventyrare'),
+    ('f6de8395-2378-45a1-a9b9-31962d542ec8', 'utmanare'),
+    ('f6de8395-2378-45a1-a9b9-31962d542ec8', 'rover'),
+    ('f6de8395-2378-45a1-a9b9-31962d542ec8', 'ledare'),
+    ('f6de8395-2378-45a1-a9b9-31962d542ec8', 'funktionar'),
+    ('bf4efcfb-b627-4028-8967-4717119c0292', 'upptackare'),
+    ('bf4efcfb-b627-4028-8967-4717119c0292', 'aventyrare'),
+    ('bf4efcfb-b627-4028-8967-4717119c0292', 'utmanare'),
+    ('bf4efcfb-b627-4028-8967-4717119c0292', 'rover'),
+    ('bf4efcfb-b627-4028-8967-4717119c0292', 'ledare'),
+    ('bf4efcfb-b627-4028-8967-4717119c0292', 'funktionar'),
+    ('c997c4ad-5f8b-46a5-8cd0-577534a1d91f', 'aventyrare'),
+    ('c997c4ad-5f8b-46a5-8cd0-577534a1d91f', 'utmanare'),
+    ('c997c4ad-5f8b-46a5-8cd0-577534a1d91f', 'rover'),
+    ('07496c81-cc44-4eb9-ae39-8ab7cb13635f', 'rover'),
+    ('07496c81-cc44-4eb9-ae39-8ab7cb13635f', 'ledare'),
+    ('07496c81-cc44-4eb9-ae39-8ab7cb13635f', 'funktionar'),
+    ('5834a215-066c-40f1-9813-7e0f9026d8db', 'ledare'),
+    ('5834a215-066c-40f1-9813-7e0f9026d8db', 'funktionar'),
+    ('cfaf69b8-eac8-4b8e-beaf-f26e6f6f014a', 'aventyrare'),
+    ('cfaf69b8-eac8-4b8e-beaf-f26e6f6f014a', 'utmanare'),
+    ('cfaf69b8-eac8-4b8e-beaf-f26e6f6f014a', 'rover'),
+    ('6a9d9ffd-9e3c-4953-8dbe-d044ba867fed', 'aventyrare'),
+    ('6a9d9ffd-9e3c-4953-8dbe-d044ba867fed', 'utmanare'),
+    ('6a9d9ffd-9e3c-4953-8dbe-d044ba867fed', 'rover'),
+    ('fcbff6f2-7d53-48d5-baef-cce935123b44', 'aventyrare'),
+    ('fcbff6f2-7d53-48d5-baef-cce935123b44', 'utmanare'),
+    ('a874b267-1976-4a05-945a-183dfbf789bc', 'aventyrare'),
+    ('a874b267-1976-4a05-945a-183dfbf789bc', 'utmanare'),
+    ('a874b267-1976-4a05-945a-183dfbf789bc', 'rover'),
+    ('92475b9d-7360-480d-946e-fd8e8c5c1737', 'rover'),
+    ('92475b9d-7360-480d-946e-fd8e8c5c1737', 'ledare'),
+    ('e06a48f6-c190-4f24-84fe-0d0038e5847a', 'utmanare'),
+    ('e06a48f6-c190-4f24-84fe-0d0038e5847a', 'rover'),
+    ('e06a48f6-c190-4f24-84fe-0d0038e5847a', 'ledare'),
+    ('e06a48f6-c190-4f24-84fe-0d0038e5847a', 'funktionar'),
+    ('569c9050-252c-4c20-9f37-1fcb48a81b62', 'rover'),
+    ('569c9050-252c-4c20-9f37-1fcb48a81b62', 'ledare'),
+    ('569c9050-252c-4c20-9f37-1fcb48a81b62', 'funktionar'),
+    ('1cd039de-0dcd-4b84-85fe-f8300154c903', 'rover'),
+    ('1cd039de-0dcd-4b84-85fe-f8300154c903', 'ledare'),
+    ('1cd039de-0dcd-4b84-85fe-f8300154c903', 'funktionar'),
+    ('b1e54368-b5a9-4c26-b368-f279c0462bab', 'upptackare'),
+    ('b1e54368-b5a9-4c26-b368-f279c0462bab', 'aventyrare'),
+    ('b1e54368-b5a9-4c26-b368-f279c0462bab', 'utmanare'),
+    ('b1e54368-b5a9-4c26-b368-f279c0462bab', 'rover'),
+    ('b1e54368-b5a9-4c26-b368-f279c0462bab', 'ledare'),
+    ('b1e54368-b5a9-4c26-b368-f279c0462bab', 'funktionar'),
+    ('630dd325-8c88-40eb-b535-6235563a4edd', 'upptackare'),
+    ('630dd325-8c88-40eb-b535-6235563a4edd', 'aventyrare'),
+    ('630dd325-8c88-40eb-b535-6235563a4edd', 'utmanare'),
+    ('630dd325-8c88-40eb-b535-6235563a4edd', 'rover'),
+    ('630dd325-8c88-40eb-b535-6235563a4edd', 'ledare'),
+    ('630dd325-8c88-40eb-b535-6235563a4edd', 'funktionar'),
+    ('e2e8443a-6666-42ff-bbc0-94f01daa9b3b', 'upptackare'),
+    ('e2e8443a-6666-42ff-bbc0-94f01daa9b3b', 'aventyrare'),
+    ('e2e8443a-6666-42ff-bbc0-94f01daa9b3b', 'utmanare'),
+    ('e2e8443a-6666-42ff-bbc0-94f01daa9b3b', 'rover'),
+    ('e2e8443a-6666-42ff-bbc0-94f01daa9b3b', 'ledare'),
+    ('e2e8443a-6666-42ff-bbc0-94f01daa9b3b', 'funktionar'),
+    ('0fd99969-ac1a-433c-be79-5e66221f9c63', 'ledare'),
+    ('354fc4c2-2572-4a5f-95b7-32a49e693db6', 'rover'),
+    ('354fc4c2-2572-4a5f-95b7-32a49e693db6', 'ledare'),
+    ('354fc4c2-2572-4a5f-95b7-32a49e693db6', 'funktionar'),
+    ('1e6e1722-3036-45f0-b690-b15efa64954d', 'rover'),
+    ('1e6e1722-3036-45f0-b690-b15efa64954d', 'ledare'),
+    ('1e6e1722-3036-45f0-b690-b15efa64954d', 'funktionar'),
+    ('d07cba18-9cf4-4f1e-80fa-928531c2841b', 'rover'),
+    ('d07cba18-9cf4-4f1e-80fa-928531c2841b', 'ledare'),
+    ('d07cba18-9cf4-4f1e-80fa-928531c2841b', 'funktionar'),
+    ('c4dada3e-6912-45c0-82ff-4b5ee75770f4', 'upptackare'),
+    ('c4dada3e-6912-45c0-82ff-4b5ee75770f4', 'aventyrare'),
+    ('c4dada3e-6912-45c0-82ff-4b5ee75770f4', 'utmanare'),
+    ('c4dada3e-6912-45c0-82ff-4b5ee75770f4', 'rover'),
+    ('c4dada3e-6912-45c0-82ff-4b5ee75770f4', 'ledare'),
+    ('c4dada3e-6912-45c0-82ff-4b5ee75770f4', 'funktionar'),
+    ('d705582c-12f5-4322-89e4-76318aea60e2', 'upptackare'),
+    ('d705582c-12f5-4322-89e4-76318aea60e2', 'aventyrare'),
+    ('d705582c-12f5-4322-89e4-76318aea60e2', 'utmanare'),
+    ('d705582c-12f5-4322-89e4-76318aea60e2', 'rover'),
+    ('d705582c-12f5-4322-89e4-76318aea60e2', 'ledare'),
+    ('d705582c-12f5-4322-89e4-76318aea60e2', 'funktionar'),
+    ('cad5d92a-781d-4eed-adac-78f176a1959f', 'upptackare'),
+    ('cad5d92a-781d-4eed-adac-78f176a1959f', 'aventyrare'),
+    ('cad5d92a-781d-4eed-adac-78f176a1959f', 'utmanare'),
+    ('cad5d92a-781d-4eed-adac-78f176a1959f', 'rover'),
+    ('cad5d92a-781d-4eed-adac-78f176a1959f', 'ledare'),
+    ('cad5d92a-781d-4eed-adac-78f176a1959f', 'funktionar'),
+    ('95f6cc23-5c72-4b55-a769-25c4df4d7a98', 'upptackare'),
+    ('95f6cc23-5c72-4b55-a769-25c4df4d7a98', 'aventyrare'),
+    ('95f6cc23-5c72-4b55-a769-25c4df4d7a98', 'utmanare'),
+    ('95f6cc23-5c72-4b55-a769-25c4df4d7a98', 'rover'),
+    ('95f6cc23-5c72-4b55-a769-25c4df4d7a98', 'ledare'),
+    ('95f6cc23-5c72-4b55-a769-25c4df4d7a98', 'funktionar'),
+    ('2c4c6fa6-3319-4786-ba6e-3bf7788047b9', 'upptackare'),
+    ('2c4c6fa6-3319-4786-ba6e-3bf7788047b9', 'aventyrare'),
+    ('2c4c6fa6-3319-4786-ba6e-3bf7788047b9', 'utmanare'),
+    ('2c4c6fa6-3319-4786-ba6e-3bf7788047b9', 'rover'),
+    ('2c4c6fa6-3319-4786-ba6e-3bf7788047b9', 'ledare'),
+    ('2c4c6fa6-3319-4786-ba6e-3bf7788047b9', 'funktionar'),
+    ('644e4d62-57a8-4066-bb89-3ef8ec28ee8e', 'rover'),
+    ('6528dfff-eba9-4aee-8fe8-1126ee095151', 'rover'),
+    ('6528dfff-eba9-4aee-8fe8-1126ee095151', 'ledare'),
+    ('6528dfff-eba9-4aee-8fe8-1126ee095151', 'funktionar'),
+    ('5d0c4f87-f936-4b90-95b3-d309c37bd4fd', 'rover'),
+    ('5d0c4f87-f936-4b90-95b3-d309c37bd4fd', 'ledare'),
+    ('5d0c4f87-f936-4b90-95b3-d309c37bd4fd', 'funktionar'),
+    ('94831226-348d-4dd9-a619-2123eeaebbf9', 'rover'),
+    ('6600556f-22f8-4a6c-ad28-c940bbe97b7a', 'rover'),
+    ('df635123-451b-40b6-b376-6ff8284d11e4', 'rover'),
+    ('feb013ab-10fe-4771-9861-bc7656e647a5', 'rover'),
+    ('dec562d5-a3ea-4b67-9efe-3e56ad6827b1', 'rover'),
+    ('b01f0309-fab4-4e8e-b750-03a385835da4', 'upptackare'),
+    ('b01f0309-fab4-4e8e-b750-03a385835da4', 'aventyrare'),
+    ('b01f0309-fab4-4e8e-b750-03a385835da4', 'utmanare'),
+    ('b01f0309-fab4-4e8e-b750-03a385835da4', 'rover'),
+    ('b01f0309-fab4-4e8e-b750-03a385835da4', 'ledare'),
+    ('b01f0309-fab4-4e8e-b750-03a385835da4', 'funktionar'),
+    ('90d7fc9b-f613-4651-b9cf-35e4b00921ca', 'upptackare'),
+    ('90d7fc9b-f613-4651-b9cf-35e4b00921ca', 'aventyrare'),
+    ('90d7fc9b-f613-4651-b9cf-35e4b00921ca', 'utmanare'),
+    ('90d7fc9b-f613-4651-b9cf-35e4b00921ca', 'rover'),
+    ('90d7fc9b-f613-4651-b9cf-35e4b00921ca', 'ledare'),
+    ('90d7fc9b-f613-4651-b9cf-35e4b00921ca', 'funktionar'),
+    ('bf88162b-09e3-4aaf-884f-482624afdb76', 'upptackare'),
+    ('bf88162b-09e3-4aaf-884f-482624afdb76', 'aventyrare'),
+    ('bf88162b-09e3-4aaf-884f-482624afdb76', 'utmanare'),
+    ('bf88162b-09e3-4aaf-884f-482624afdb76', 'rover'),
+    ('bf88162b-09e3-4aaf-884f-482624afdb76', 'ledare'),
+    ('bf88162b-09e3-4aaf-884f-482624afdb76', 'funktionar'),
+    ('1f68d280-73e4-40c0-a5f0-e4d74c9c61d1', 'upptackare'),
+    ('1f68d280-73e4-40c0-a5f0-e4d74c9c61d1', 'aventyrare'),
+    ('1f68d280-73e4-40c0-a5f0-e4d74c9c61d1', 'utmanare'),
+    ('1f68d280-73e4-40c0-a5f0-e4d74c9c61d1', 'rover'),
+    ('1f68d280-73e4-40c0-a5f0-e4d74c9c61d1', 'ledare'),
+    ('1f68d280-73e4-40c0-a5f0-e4d74c9c61d1', 'funktionar'),
+    ('a2f1d2aa-7add-41f2-925b-d5569b4fc586', 'upptackare'),
+    ('a2f1d2aa-7add-41f2-925b-d5569b4fc586', 'aventyrare'),
+    ('a2f1d2aa-7add-41f2-925b-d5569b4fc586', 'utmanare'),
+    ('a2f1d2aa-7add-41f2-925b-d5569b4fc586', 'rover'),
+    ('a2f1d2aa-7add-41f2-925b-d5569b4fc586', 'ledare'),
+    ('a2f1d2aa-7add-41f2-925b-d5569b4fc586', 'funktionar'),
+    ('ec180877-6bc7-4150-b024-95597e34fe12', 'upptackare'),
+    ('ec180877-6bc7-4150-b024-95597e34fe12', 'aventyrare'),
+    ('ec180877-6bc7-4150-b024-95597e34fe12', 'utmanare'),
+    ('ec180877-6bc7-4150-b024-95597e34fe12', 'rover'),
+    ('ec180877-6bc7-4150-b024-95597e34fe12', 'ledare'),
+    ('ec180877-6bc7-4150-b024-95597e34fe12', 'funktionar'),
+    ('40ad1dc7-5df0-4319-8b86-75c32a53a669', 'upptackare'),
+    ('40ad1dc7-5df0-4319-8b86-75c32a53a669', 'aventyrare'),
+    ('40ad1dc7-5df0-4319-8b86-75c32a53a669', 'utmanare'),
+    ('40ad1dc7-5df0-4319-8b86-75c32a53a669', 'rover'),
+    ('c69cb7ea-4e94-443d-8e3d-7d1e7b4f83e4', 'upptackare'),
+    ('c69cb7ea-4e94-443d-8e3d-7d1e7b4f83e4', 'aventyrare'),
+    ('c69cb7ea-4e94-443d-8e3d-7d1e7b4f83e4', 'utmanare'),
+    ('c69cb7ea-4e94-443d-8e3d-7d1e7b4f83e4', 'rover'),
+    ('a9aa2bcd-4b6c-442b-b15f-821d04c57f26', 'upptackare'),
+    ('a9aa2bcd-4b6c-442b-b15f-821d04c57f26', 'aventyrare'),
+    ('a9aa2bcd-4b6c-442b-b15f-821d04c57f26', 'utmanare'),
+    ('a9aa2bcd-4b6c-442b-b15f-821d04c57f26', 'rover'),
+    ('93e91f06-a2d8-49d6-a4e4-1761e35ed479', 'upptackare'),
+    ('93e91f06-a2d8-49d6-a4e4-1761e35ed479', 'aventyrare'),
+    ('93e91f06-a2d8-49d6-a4e4-1761e35ed479', 'utmanare'),
+    ('93e91f06-a2d8-49d6-a4e4-1761e35ed479', 'rover'),
+    ('2d6cca53-5b3f-42f1-85be-a42220ac0793', 'upptackare'),
+    ('485dd83b-fec5-48b6-a887-7c7fc861309d', 'upptackare'),
+    ('114f33ec-e104-4ef9-a282-c8251f39072f', 'upptackare'),
+    ('94c86cb6-fd1d-4e58-83c0-026d6892dd3e', 'upptackare'),
+    ('4e6b1072-a431-4cbe-857d-14cb470c5017', 'upptackare'),
+    ('93927737-f647-4e60-ab4a-0bc9f8309d79', 'upptackare'),
+    ('0392b5f0-d984-47fc-a269-fb8e7f44d340', 'upptackare'),
+    ('2f3557e4-93f2-4583-9e32-8e4b375daf85', 'upptackare'),
+    ('7f07552c-1609-49dc-bb35-83eb323cf138', 'upptackare'),
+    ('ca62a353-7daf-41dd-96dd-7d8d08b78454', 'upptackare'),
+    ('107d6f60-d1ec-4244-b983-dc3d2d104255', 'upptackare'),
+    ('4fa20a23-68e5-407a-9929-d6fd3c840b1c', 'upptackare'),
+    ('f9249978-c55c-47e9-aceb-1546f4d49fd4', 'upptackare'),
+    ('7002d383-a8ce-4393-b55a-d74ae8a04fd4', 'upptackare'),
+    ('0c969ef8-ca71-4e77-9422-b70ec1e7c8e9', 'upptackare'),
+    ('3abf076c-520f-497f-8650-aec7e6cc4f22', 'upptackare'),
+    ('c63e4360-0582-4d6e-8a95-81c3f39be2e9', 'upptackare'),
+    ('e314140c-4ea8-4cbb-a005-81dd5dd72b28', 'upptackare'),
+    ('43da840e-b0b5-48b7-8aa4-81e5989ce12a', 'utmanare'),
+    ('952f5056-fb58-4ac5-bfd7-9669d6ce70e8', 'utmanare'),
+    ('7a065ec1-baa6-4d4d-8204-1755b53897f7', 'utmanare'),
+    ('6a725e1b-560d-4bb0-8799-aff35e6224e5', 'utmanare'),
+    ('587ae839-b2ec-4512-bf76-5066a7c23565', 'utmanare'),
+    ('2a74bda0-71b9-4bcb-b686-3b006c2db059', 'utmanare'),
+    ('12dd8879-fdd5-4565-bdc7-ff0281af665f', 'aventyrare'),
+    ('3d123ac6-2cf0-4371-8f8a-324c768c732d', 'aventyrare'),
+    ('3b008ad1-8980-4a9f-936d-10b50d6504ac', 'aventyrare'),
+    ('a049faed-ec9b-42ea-a2f4-e2e497a42e30', 'aventyrare'),
+    ('89bbc9d9-d3d1-481b-8657-cffbc9beb53d', 'aventyrare'),
+    ('fb5a34cc-b1a6-49af-85ff-8d5c6011745a', 'aventyrare'),
+    ('8f85c68b-d9f6-4571-a32a-8f3fe8858e01', 'aventyrare'),
+    ('88b54da4-0551-4d7d-9793-35e997bc49db', 'aventyrare'),
+    ('2cd8e0b7-802b-4836-9898-1d32ee984009', 'aventyrare'),
+    ('0ea0f5ba-74fe-4a41-bb42-559a45925173', 'aventyrare'),
+    ('f3dee379-997c-4ef0-989d-8180b0c9670f', 'aventyrare'),
+    ('84e15b7b-2b0a-48b0-9b0f-ec17d053b80e', 'upptackare'),
+    ('84e15b7b-2b0a-48b0-9b0f-ec17d053b80e', 'aventyrare'),
+    ('84e15b7b-2b0a-48b0-9b0f-ec17d053b80e', 'utmanare'),
+    ('84e15b7b-2b0a-48b0-9b0f-ec17d053b80e', 'rover'),
+    ('84e15b7b-2b0a-48b0-9b0f-ec17d053b80e', 'ledare'),
+    ('84e15b7b-2b0a-48b0-9b0f-ec17d053b80e', 'funktionar'),
+    ('aac6f435-eefd-41ae-bb00-309cbb1e52a0', 'rover'),
+    ('aac6f435-eefd-41ae-bb00-309cbb1e52a0', 'ledare'),
+    ('aac6f435-eefd-41ae-bb00-309cbb1e52a0', 'funktionar'),
+    ('a3098ae9-9d06-49f9-b5e9-9bdbe64d07d6', 'upptackare'),
+    ('2cd9b150-be5c-435f-bec4-d018c114892b', 'aventyrare'),
+    ('2cd9b150-be5c-435f-bec4-d018c114892b', 'utmanare'),
+    ('2cd9b150-be5c-435f-bec4-d018c114892b', 'rover'),
+    ('ee6ed2c4-a90b-498f-bb6d-d024c3ddfd5c', 'upptackare'),
+    ('ee6ed2c4-a90b-498f-bb6d-d024c3ddfd5c', 'aventyrare'),
+    ('ee6ed2c4-a90b-498f-bb6d-d024c3ddfd5c', 'utmanare'),
+    ('ee6ed2c4-a90b-498f-bb6d-d024c3ddfd5c', 'rover'),
+    ('1a575b9c-4e04-422a-bf53-2585e3457325', 'aventyrare'),
+    ('1a575b9c-4e04-422a-bf53-2585e3457325', 'utmanare'),
+    ('1a575b9c-4e04-422a-bf53-2585e3457325', 'rover'),
+    ('1a575b9c-4e04-422a-bf53-2585e3457325', 'ledare'),
+    ('1a575b9c-4e04-422a-bf53-2585e3457325', 'funktionar'),
+    ('5d78a4b5-6b0e-4394-90fc-ff8c81e35cbb', 'utmanare'),
+    ('5d78a4b5-6b0e-4394-90fc-ff8c81e35cbb', 'rover'),
+    ('5d78a4b5-6b0e-4394-90fc-ff8c81e35cbb', 'ledare'),
+    ('5d78a4b5-6b0e-4394-90fc-ff8c81e35cbb', 'funktionar'),
+    ('4cf92843-4968-4597-a63e-8a625e881a7a', 'upptackare'),
+    ('4cf92843-4968-4597-a63e-8a625e881a7a', 'aventyrare'),
+    ('4cf92843-4968-4597-a63e-8a625e881a7a', 'utmanare'),
+    ('4cf92843-4968-4597-a63e-8a625e881a7a', 'rover'),
+    ('4cf92843-4968-4597-a63e-8a625e881a7a', 'ledare'),
+    ('4cf92843-4968-4597-a63e-8a625e881a7a', 'funktionar'),
+    ('f59a3a68-82bf-4d84-84a7-410ce2db717f', 'aventyrare'),
+    ('f59a3a68-82bf-4d84-84a7-410ce2db717f', 'utmanare'),
+    ('f59a3a68-82bf-4d84-84a7-410ce2db717f', 'rover'),
+    ('f59a3a68-82bf-4d84-84a7-410ce2db717f', 'ledare'),
+    ('f59a3a68-82bf-4d84-84a7-410ce2db717f', 'funktionar'),
+    ('a77e79d3-5274-4fab-9329-93a1c2cd02b1', 'aventyrare'),
+    ('a77e79d3-5274-4fab-9329-93a1c2cd02b1', 'utmanare'),
+    ('a77e79d3-5274-4fab-9329-93a1c2cd02b1', 'rover'),
+    ('82722ea9-5963-4305-815d-17c0be80d29a', 'aventyrare'),
+    ('82722ea9-5963-4305-815d-17c0be80d29a', 'utmanare'),
+    ('82722ea9-5963-4305-815d-17c0be80d29a', 'rover'),
+    ('82722ea9-5963-4305-815d-17c0be80d29a', 'ledare'),
+    ('82722ea9-5963-4305-815d-17c0be80d29a', 'funktionar'),
+    ('7ed06668-641f-492d-9f80-df72ac95b3dd', 'upptackare'),
+    ('7ed06668-641f-492d-9f80-df72ac95b3dd', 'aventyrare'),
+    ('7ed06668-641f-492d-9f80-df72ac95b3dd', 'utmanare'),
+    ('7ed06668-641f-492d-9f80-df72ac95b3dd', 'rover'),
+    ('7ed06668-641f-492d-9f80-df72ac95b3dd', 'ledare'),
+    ('7ed06668-641f-492d-9f80-df72ac95b3dd', 'funktionar'),
+    ('f3139682-2286-48e4-9a17-8c6fc56f8489', 'aventyrare'),
+    ('f3139682-2286-48e4-9a17-8c6fc56f8489', 'utmanare'),
+    ('f3139682-2286-48e4-9a17-8c6fc56f8489', 'rover'),
+    ('f3139682-2286-48e4-9a17-8c6fc56f8489', 'ledare'),
+    ('f3139682-2286-48e4-9a17-8c6fc56f8489', 'funktionar'),
+    ('977a7b4b-c1a6-476d-9918-9bf7bb637011', 'upptackare'),
+    ('977a7b4b-c1a6-476d-9918-9bf7bb637011', 'aventyrare'),
+    ('977a7b4b-c1a6-476d-9918-9bf7bb637011', 'utmanare'),
+    ('977a7b4b-c1a6-476d-9918-9bf7bb637011', 'rover'),
+    ('977a7b4b-c1a6-476d-9918-9bf7bb637011', 'ledare'),
+    ('977a7b4b-c1a6-476d-9918-9bf7bb637011', 'funktionar'),
+    ('b677df86-5805-4ab5-b9dd-8c4723ba3311', 'rover'),
+    ('b677df86-5805-4ab5-b9dd-8c4723ba3311', 'ledare'),
+    ('b677df86-5805-4ab5-b9dd-8c4723ba3311', 'funktionar'),
+    ('19918ead-6d4b-46ef-9716-150a998b1070', 'aventyrare'),
+    ('19918ead-6d4b-46ef-9716-150a998b1070', 'utmanare'),
+    ('19918ead-6d4b-46ef-9716-150a998b1070', 'rover'),
+    ('65fb0d8a-01f7-4d1b-83f1-2e4e98275995', 'upptackare'),
+    ('65fb0d8a-01f7-4d1b-83f1-2e4e98275995', 'aventyrare'),
+    ('65fb0d8a-01f7-4d1b-83f1-2e4e98275995', 'utmanare'),
+    ('65fb0d8a-01f7-4d1b-83f1-2e4e98275995', 'rover'),
+    ('65fb0d8a-01f7-4d1b-83f1-2e4e98275995', 'ledare'),
+    ('65fb0d8a-01f7-4d1b-83f1-2e4e98275995', 'funktionar'),
+    ('37c77ebd-830d-49dc-909e-22486bd1c047', 'aventyrare'),
+    ('37c77ebd-830d-49dc-909e-22486bd1c047', 'utmanare'),
+    ('37c77ebd-830d-49dc-909e-22486bd1c047', 'rover'),
+    ('a7a5438c-33b9-48bc-a46d-b712a09cd380', 'upptackare'),
+    ('a7a5438c-33b9-48bc-a46d-b712a09cd380', 'aventyrare'),
+    ('a7a5438c-33b9-48bc-a46d-b712a09cd380', 'utmanare'),
+    ('a7a5438c-33b9-48bc-a46d-b712a09cd380', 'rover'),
+    ('a7a5438c-33b9-48bc-a46d-b712a09cd380', 'ledare'),
+    ('a7a5438c-33b9-48bc-a46d-b712a09cd380', 'funktionar'),
+    ('92dee66d-5575-437e-a5e0-23d6537c6f43', 'upptackare'),
+    ('92dee66d-5575-437e-a5e0-23d6537c6f43', 'aventyrare'),
+    ('92dee66d-5575-437e-a5e0-23d6537c6f43', 'utmanare'),
+    ('92dee66d-5575-437e-a5e0-23d6537c6f43', 'rover'),
+    ('92dee66d-5575-437e-a5e0-23d6537c6f43', 'ledare'),
+    ('92dee66d-5575-437e-a5e0-23d6537c6f43', 'funktionar'),
+    ('22afd73f-b923-4f94-a2d2-03a5e63b5539', 'upptackare'),
+    ('22afd73f-b923-4f94-a2d2-03a5e63b5539', 'aventyrare'),
+    ('22afd73f-b923-4f94-a2d2-03a5e63b5539', 'utmanare'),
+    ('22afd73f-b923-4f94-a2d2-03a5e63b5539', 'rover'),
+    ('1b76c0c3-784d-4f46-920f-b07cfc7c8281', 'aventyrare'),
+    ('1b76c0c3-784d-4f46-920f-b07cfc7c8281', 'utmanare'),
+    ('1b76c0c3-784d-4f46-920f-b07cfc7c8281', 'rover'),
+    ('1b76c0c3-784d-4f46-920f-b07cfc7c8281', 'ledare'),
+    ('1b76c0c3-784d-4f46-920f-b07cfc7c8281', 'funktionar'),
+    ('e3b7bb1b-6778-4c94-8a7d-17b15ca964f9', 'utmanare'),
+    ('e3b7bb1b-6778-4c94-8a7d-17b15ca964f9', 'rover'),
+    ('e3b7bb1b-6778-4c94-8a7d-17b15ca964f9', 'ledare'),
+    ('e3b7bb1b-6778-4c94-8a7d-17b15ca964f9', 'funktionar'),
+    ('dcb42a57-614b-4367-9236-01537832c080', 'upptackare'),
+    ('dcb42a57-614b-4367-9236-01537832c080', 'aventyrare'),
+    ('dcb42a57-614b-4367-9236-01537832c080', 'utmanare'),
+    ('dcb42a57-614b-4367-9236-01537832c080', 'rover'),
+    ('dcb42a57-614b-4367-9236-01537832c080', 'ledare'),
+    ('dcb42a57-614b-4367-9236-01537832c080', 'funktionar'),
+    ('7e224978-9e58-4856-9e30-937ca6e87543', 'aventyrare'),
+    ('7e224978-9e58-4856-9e30-937ca6e87543', 'utmanare'),
+    ('7e224978-9e58-4856-9e30-937ca6e87543', 'rover'),
+    ('7e224978-9e58-4856-9e30-937ca6e87543', 'ledare'),
+    ('7e224978-9e58-4856-9e30-937ca6e87543', 'funktionar'),
+    ('4d364bc0-748d-461a-ac01-1764e161d1a5', 'aventyrare'),
+    ('4d364bc0-748d-461a-ac01-1764e161d1a5', 'utmanare'),
+    ('4d364bc0-748d-461a-ac01-1764e161d1a5', 'rover'),
+    ('8fb16a5b-6944-474b-9c5d-5365e9b14a49', 'aventyrare'),
+    ('8fb16a5b-6944-474b-9c5d-5365e9b14a49', 'utmanare'),
+    ('8fb16a5b-6944-474b-9c5d-5365e9b14a49', 'rover'),
+    ('8fb16a5b-6944-474b-9c5d-5365e9b14a49', 'ledare'),
+    ('8fb16a5b-6944-474b-9c5d-5365e9b14a49', 'funktionar'),
+    ('c34d133b-b932-46e3-8fdb-ebc099e3dae8', 'upptackare'),
+    ('c34d133b-b932-46e3-8fdb-ebc099e3dae8', 'aventyrare'),
+    ('c34d133b-b932-46e3-8fdb-ebc099e3dae8', 'utmanare'),
+    ('c34d133b-b932-46e3-8fdb-ebc099e3dae8', 'rover'),
+    ('c34d133b-b932-46e3-8fdb-ebc099e3dae8', 'ledare'),
+    ('c34d133b-b932-46e3-8fdb-ebc099e3dae8', 'funktionar'),
+    ('830a8df4-057f-42ef-82a8-1e5d309816ac', 'rover'),
+    ('830a8df4-057f-42ef-82a8-1e5d309816ac', 'ledare'),
+    ('830a8df4-057f-42ef-82a8-1e5d309816ac', 'funktionar'),
+    ('6a85d945-41d3-4316-9681-339ec7450822', 'rover'),
+    ('6a85d945-41d3-4316-9681-339ec7450822', 'ledare'),
+    ('6a85d945-41d3-4316-9681-339ec7450822', 'funktionar'),
+    ('687bb09f-11a3-4be9-a131-333616d20667', 'upptackare'),
+    ('687bb09f-11a3-4be9-a131-333616d20667', 'aventyrare'),
+    ('687bb09f-11a3-4be9-a131-333616d20667', 'utmanare'),
+    ('687bb09f-11a3-4be9-a131-333616d20667', 'rover'),
+    ('687bb09f-11a3-4be9-a131-333616d20667', 'ledare'),
+    ('687bb09f-11a3-4be9-a131-333616d20667', 'funktionar'),
+    ('97c44248-db79-47d7-9b23-1a854912e63e', 'utmanare'),
+    ('97c44248-db79-47d7-9b23-1a854912e63e', 'rover'),
+    ('97c44248-db79-47d7-9b23-1a854912e63e', 'ledare'),
+    ('97c44248-db79-47d7-9b23-1a854912e63e', 'funktionar'),
+    ('c4ccc29e-ef82-4f68-8329-55de7e99327d', 'utmanare'),
+    ('c4ccc29e-ef82-4f68-8329-55de7e99327d', 'rover'),
+    ('c4ccc29e-ef82-4f68-8329-55de7e99327d', 'ledare'),
+    ('c4ccc29e-ef82-4f68-8329-55de7e99327d', 'funktionar'),
+    ('76641cb3-61d2-4be6-abdc-430b70d6a925', 'upptackare'),
+    ('76641cb3-61d2-4be6-abdc-430b70d6a925', 'aventyrare'),
+    ('76641cb3-61d2-4be6-abdc-430b70d6a925', 'utmanare'),
+    ('76641cb3-61d2-4be6-abdc-430b70d6a925', 'rover'),
+    ('76641cb3-61d2-4be6-abdc-430b70d6a925', 'ledare'),
+    ('76641cb3-61d2-4be6-abdc-430b70d6a925', 'funktionar'),
+    ('e83c6ecb-92f0-4e6a-98a2-28a89fda8ac8', 'upptackare'),
+    ('e83c6ecb-92f0-4e6a-98a2-28a89fda8ac8', 'aventyrare'),
+    ('e83c6ecb-92f0-4e6a-98a2-28a89fda8ac8', 'utmanare'),
+    ('e83c6ecb-92f0-4e6a-98a2-28a89fda8ac8', 'rover'),
+    ('e83c6ecb-92f0-4e6a-98a2-28a89fda8ac8', 'ledare'),
+    ('e83c6ecb-92f0-4e6a-98a2-28a89fda8ac8', 'funktionar'),
+    ('eea74c1e-2c95-40fa-a8df-8513559c76e8', 'rover'),
+    ('eea74c1e-2c95-40fa-a8df-8513559c76e8', 'ledare'),
+    ('eea74c1e-2c95-40fa-a8df-8513559c76e8', 'funktionar'),
+    ('e155e34f-99e6-460d-8b93-c5acb65154a4', 'rover'),
+    ('e155e34f-99e6-460d-8b93-c5acb65154a4', 'ledare'),
+    ('e155e34f-99e6-460d-8b93-c5acb65154a4', 'funktionar'),
+    ('46cd642b-a63c-4a65-a65e-2204dad0d682', 'rover'),
+    ('c614ba7c-5bef-4971-937f-cdbf9541a446', 'rover'),
+    ('c566e010-4a19-40a4-a030-d51135b33b27', 'rover'),
+    ('dd581d69-02e4-413b-8754-94d0eeabde32', 'upptackare'),
+    ('dd581d69-02e4-413b-8754-94d0eeabde32', 'aventyrare'),
+    ('dd581d69-02e4-413b-8754-94d0eeabde32', 'utmanare'),
+    ('dd581d69-02e4-413b-8754-94d0eeabde32', 'rover'),
+    ('dd581d69-02e4-413b-8754-94d0eeabde32', 'ledare'),
+    ('dd581d69-02e4-413b-8754-94d0eeabde32', 'funktionar'),
+    ('46c73b06-f6e2-4a49-bbfc-b56beb642815', 'upptackare'),
+    ('46c73b06-f6e2-4a49-bbfc-b56beb642815', 'aventyrare'),
+    ('46c73b06-f6e2-4a49-bbfc-b56beb642815', 'utmanare'),
+    ('46c73b06-f6e2-4a49-bbfc-b56beb642815', 'rover'),
+    ('46c73b06-f6e2-4a49-bbfc-b56beb642815', 'ledare'),
+    ('46c73b06-f6e2-4a49-bbfc-b56beb642815', 'funktionar'),
+    ('9751b425-47ec-4c54-a45f-d293dea318c3', 'upptackare'),
+    ('9751b425-47ec-4c54-a45f-d293dea318c3', 'aventyrare'),
+    ('9751b425-47ec-4c54-a45f-d293dea318c3', 'utmanare'),
+    ('9751b425-47ec-4c54-a45f-d293dea318c3', 'rover'),
+    ('9751b425-47ec-4c54-a45f-d293dea318c3', 'ledare'),
+    ('9751b425-47ec-4c54-a45f-d293dea318c3', 'funktionar'),
+    ('eb04ee41-ee7c-4c01-95d4-f04fbd5ab989', 'upptackare'),
+    ('eb04ee41-ee7c-4c01-95d4-f04fbd5ab989', 'aventyrare'),
+    ('eb04ee41-ee7c-4c01-95d4-f04fbd5ab989', 'utmanare'),
+    ('eb04ee41-ee7c-4c01-95d4-f04fbd5ab989', 'rover'),
+    ('eb04ee41-ee7c-4c01-95d4-f04fbd5ab989', 'ledare'),
+    ('eb04ee41-ee7c-4c01-95d4-f04fbd5ab989', 'funktionar'),
+    ('1bf6c681-fcf4-481c-b9f1-7a09dc98a49e', 'upptackare'),
+    ('1bf6c681-fcf4-481c-b9f1-7a09dc98a49e', 'aventyrare'),
+    ('1bf6c681-fcf4-481c-b9f1-7a09dc98a49e', 'utmanare'),
+    ('1bf6c681-fcf4-481c-b9f1-7a09dc98a49e', 'rover'),
+    ('1bf6c681-fcf4-481c-b9f1-7a09dc98a49e', 'ledare'),
+    ('1bf6c681-fcf4-481c-b9f1-7a09dc98a49e', 'funktionar'),
+    ('a118249a-60fc-4778-b202-9852b4c1517f', 'upptackare'),
+    ('a118249a-60fc-4778-b202-9852b4c1517f', 'aventyrare'),
+    ('a118249a-60fc-4778-b202-9852b4c1517f', 'utmanare'),
+    ('a118249a-60fc-4778-b202-9852b4c1517f', 'rover'),
+    ('a118249a-60fc-4778-b202-9852b4c1517f', 'ledare'),
+    ('a118249a-60fc-4778-b202-9852b4c1517f', 'funktionar'),
+    ('0aa23bad-24eb-4577-b743-c27f4745f960', 'upptackare'),
+    ('0aa23bad-24eb-4577-b743-c27f4745f960', 'aventyrare'),
+    ('0aa23bad-24eb-4577-b743-c27f4745f960', 'utmanare'),
+    ('0aa23bad-24eb-4577-b743-c27f4745f960', 'rover'),
+    ('0aa23bad-24eb-4577-b743-c27f4745f960', 'ledare'),
+    ('0aa23bad-24eb-4577-b743-c27f4745f960', 'funktionar'),
+    ('6e78fb83-48fe-43d0-8fee-29c1ad011b02', 'upptackare'),
+    ('6e78fb83-48fe-43d0-8fee-29c1ad011b02', 'aventyrare'),
+    ('6e78fb83-48fe-43d0-8fee-29c1ad011b02', 'utmanare'),
+    ('6e78fb83-48fe-43d0-8fee-29c1ad011b02', 'rover'),
+    ('28b05cc5-20c9-47d6-b776-762a5db0a2cd', 'upptackare'),
+    ('28b05cc5-20c9-47d6-b776-762a5db0a2cd', 'aventyrare'),
+    ('28b05cc5-20c9-47d6-b776-762a5db0a2cd', 'utmanare'),
+    ('28b05cc5-20c9-47d6-b776-762a5db0a2cd', 'rover'),
+    ('f343c8cc-3ed7-4b93-a2e4-4a121bf91345', 'upptackare'),
+    ('40eb1883-3683-4f14-bf6a-8cb7e585beae', 'upptackare'),
+    ('cb716991-b6a4-432c-9698-b7598d28db91', 'upptackare'),
+    ('e3847f08-17af-4b18-8017-57be5e1b450e', 'upptackare'),
+    ('dc098373-84f3-4039-96ac-f78cbc4914df', 'upptackare'),
+    ('df1eef92-232f-41e2-a006-495817188985', 'upptackare'),
+    ('ee41132a-9c60-466a-a36b-dd0625be4b64', 'upptackare'),
+    ('60738342-4e5b-46ae-9d62-6870e2000b1f', 'upptackare'),
+    ('9f957e42-e396-4252-acd8-3d88df2089c5', 'upptackare'),
+    ('0c41210d-0ba6-4ccc-9148-f57340a59859', 'upptackare'),
+    ('ab9a7ffc-d33d-4345-ac61-083f057324d3', 'rover'),
+    ('98cbb676-3110-4f81-ac86-e59a0d7d488e', 'rover'),
+    ('40cce802-3d3f-432a-ab99-40bd7febf64f', 'utmanare'),
+    ('eaa07ad9-0667-4a58-979c-50faf03baa77', 'aventyrare'),
+    ('712c87ab-1374-40b6-86f7-f1792c474ed1', 'aventyrare'),
+    ('1943eadf-2f9a-40d3-bfcc-cd6fa88bb92a', 'aventyrare'),
+    ('e4611336-6b09-40a0-babe-fa5cf8a54722', 'aventyrare'),
+    ('e132cbb2-2fd6-43cd-9052-1234293dff8b', 'aventyrare'),
+    ('6abcaa88-527d-4148-ad48-6764d1ed3637', 'aventyrare'),
+    ('4d3d3696-b382-45d2-ba60-5888d28ac73b', 'aventyrare'),
+    ('8e2665e1-672a-4c8c-b0c6-8cda32a306c9', 'upptackare'),
+    ('e138951e-759f-4a78-a944-636f605dceee', 'upptackare'),
+    ('40c701db-2c07-47ad-9690-65a481c7a144', 'upptackare'),
+    ('66b13a38-36a8-4444-b938-717a61d08217', 'upptackare'),
+    ('d6fa9ff3-abda-4e87-9f1a-14cec9b29610', 'rover'),
+    ('8029aa74-77a1-4b06-9829-5c9f35a4381d', 'upptackare'),
+    ('8029aa74-77a1-4b06-9829-5c9f35a4381d', 'aventyrare'),
+    ('8029aa74-77a1-4b06-9829-5c9f35a4381d', 'utmanare'),
+    ('8029aa74-77a1-4b06-9829-5c9f35a4381d', 'rover'),
+    ('8029aa74-77a1-4b06-9829-5c9f35a4381d', 'ledare'),
+    ('8029aa74-77a1-4b06-9829-5c9f35a4381d', 'funktionar');
