@@ -68,6 +68,7 @@ The application will be available at http://localhost:8000
 | `DB_POOL_SIZE` | 15 | Connection pool size |
 | `SECRET_KEY_BASE` | (random) | Secret key for sessions (required in production) |
 | `OPEN_ID_CONFIGURATION_URL` | https://app.dev.j26.se/auth/... | OpenID Connect discovery URL |
+| `BOOKING_OPENS_AT` | 2026-07-25T00:00:00+02:00 | Global date booking opens (RFC 3339), defaulting to the start of the camp. An invalid value fails startup. Activities can override this per row. |
 | `DEV_AUTH_ROLES` | (unset) | **Local dev only.** Comma-separated roles (e.g. `admin` or `bookings:self:create,bookings:read`). When set, requests without an access token authenticate as the seeded dev user with these roles. Never set in production. |
 
 **Note:** The base path `/_services/booking` is hardcoded as `web.base_path` (not an environment variable). All routes are served under this prefix.
