@@ -301,6 +301,7 @@ pub fn string_to_role_test() {
   assert web.string_to_role("bookings:read") == Ok(web.BookingsRead)
   assert web.string_to_role("bookings:self:create")
     == Ok(web.BookingsSelfCreate)
+  assert web.string_to_role("locations:manage") == Ok(web.LocationsManage)
   assert web.string_to_role("admin") == Ok(web.Admin)
   assert web.string_to_role("default-roles-jamboree26") == Error(Nil)
 }
