@@ -204,6 +204,7 @@ fn english_translations() -> g18n.Translations {
     "No activities match the filters.",
   )
   |> g18n.add_translation("list.empty", "No activities yet.")
+  |> g18n.add_translation("list.empty_day", "No activities this day.")
   |> g18n.add_translation(
     "list.partial_days_failed",
     "Some days could not be loaded, so the list may be incomplete.",
@@ -402,6 +403,7 @@ fn swedish_translations() -> g18n.Translations {
     "Inga aktiviteter matchar filtren.",
   )
   |> g18n.add_translation("list.empty", "Inga aktiviteter än.")
+  |> g18n.add_translation("list.empty_day", "Inga aktiviteter den här dagen.")
   |> g18n.add_translation(
     "list.partial_days_failed",
     "Vissa dagar kunde inte laddas, så listan kan vara ofullständig.",
@@ -4556,10 +4558,22 @@ fn view_activities_list(
               ],
             ),
           ])
-        ListLoaded([], []) ->
+        ListLoaded([], []) -> {
+          // Browse tabs are day-windowed server-side, so an empty load with a
+          // specific day picked means that day has no activities — "yet"
+          // would wrongly suggest more are coming. "All days", Favourites
+          // (nothing favourited) and the manage list keep the generic copy.
+          let empty_key = case page, filters.tab, browse_day {
+            ActivitiesListPage(_), TabActivities, Some(_)
+            | ActivitiesListPage(_), TabBeachBus, Some(_)
+            | ActivitiesListPage(_), TabClimbingWall, Some(_)
+            -> "list.empty_day"
+            _, _, _ -> "list.empty"
+          }
           html.div([attribute.class("py-6 text-center flex flex-col gap-3")], [
-            html.p([], [element.text(t("list.empty"))]),
+            html.p([], [element.text(t(empty_key))]),
           ])
+        }
         ListLoaded(items, failed_days) ->
           html.div([attribute.class("flex flex-col gap-3")], [
             // Some (but not all) day windows of an "Alla dagar" view failed:
