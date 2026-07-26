@@ -1241,6 +1241,88 @@ fn set_list_filters(page: Page, filters: ListFilters) -> Page {
   }
 }
 
+/// Carry the view state that is deliberately *not* in the URL across a rebuild
+/// of the same list page: the advanced-filter panel's open state and the manage
+/// list's form drawer. Without this a filter change — which round-trips through
+/// `modem.replace` and `uri_to_page` — would slam both shut. Any other pair of
+/// pages is a real navigation, where dropping them is the point.
+fn inherit_view_state(before: Page, after: Page) -> Page {
+  case before, after {
+    ActivitiesListPage(old), ActivitiesListPage(new) ->
+      ActivitiesListPage(ListFilters(..new, more_open: old.more_open))
+    ManageActivitiesPage(old, activity_form), ManageActivitiesPage(new, _) ->
+      ManageActivitiesPage(
+        ListFilters(..new, more_open: old.more_open),
+        activity_form,
+      )
+    _, _ -> after
+  }
+}
+
+/// Whether a route change keeps the same list *view* — the same list page, tab
+/// and resolved day — and so is not a fresh attempt at loading it. A filter-only
+/// URL update qualifies; switching tab or day does not.
+fn same_list_view(model: Model, page: Page, day_query: DayQuery) -> Bool {
+  case list_filters(model.page), list_filters(page) {
+    Ok(before), Ok(after) ->
+      before.tab == after.tab
+      && same_list_variant(model.page, page)
+      && case day_query {
+        DayUnset -> True
+        DayAll -> effective_day(model, after.tab) == None
+        DayOn(day) -> effective_day(model, after.tab) == Some(day)
+      }
+    _, _ -> False
+  }
+}
+
+fn same_list_variant(before: Page, after: Page) -> Bool {
+  case before, after {
+    ActivitiesListPage(_), ActivitiesListPage(_) -> True
+    ManageActivitiesPage(_, _), ManageActivitiesPage(_, _) -> True
+    _, _ -> False
+  }
+}
+
+/// Apply a URL `day` parameter to the Model's per-view day fields. The day lives
+/// on the Model (not just the page) so it also survives a *paramless*
+/// navigation — a nav-bar link back to the list remembers the picked day
+/// (issue #40) — while the URL pins it for Back. A no-op off a list page: the
+/// overview pages carry their day in the page itself.
+fn apply_day_query(model: Model, page: Page, day_query: DayQuery) -> Model {
+  case list_filters(page) {
+    Error(_) -> model
+    Ok(filters) ->
+      case day_query, filters.tab {
+        // "Alla dagar" is transient: with no day in the URL, re-entering a list
+        // page snaps the browse day back to today, so users don't unknowingly
+        // stay in the whole-week eight-window mode. A picked concrete day still
+        // persists, and an explicit `day=all` (a Back into an all-days view)
+        // keeps it.
+        DayUnset, _ ->
+          case model.browse_day_filter {
+            None ->
+              Model(
+                ..model,
+                browse_day_filter: Some(event_dates.clamp_to_event(today())),
+              )
+            Some(_) -> model
+          }
+        DayAll, TabFavourites -> Model(..model, favourites_day_filter: None)
+        DayAll, _ -> Model(..model, browse_day_filter: None)
+        // A concrete day on Favourites also moves the browse day there, so
+        // switching back to a browse tab lands on the same day (plan 12).
+        DayOn(day), TabFavourites ->
+          Model(
+            ..model,
+            favourites_day_filter: Some(day),
+            browse_day_filter: Some(day),
+          )
+        DayOn(day), _ -> Model(..model, browse_day_filter: Some(day))
+      }
+  }
+}
+
 /// Revalidate the current activities list's windows (browse or manage) in
 /// place; a no-op off a list page.
 fn revalidate_current_list(model: Model) -> #(Model, Effect(Msg)) {
@@ -1451,6 +1533,21 @@ pub fn effective_day(
   }
 }
 
+/// The day a tab switch pins in the URL: the tab's own remembered day, except
+/// that the recurring tabs have no "Alla dagar" option — switching to one while
+/// the shared browse day is all-days snaps it to today (all-days is transient
+/// anyway; it also resets on navigation).
+pub fn tab_switch_day(
+  model: Model,
+  tab: ActivitiesFilterTab,
+) -> Option(calendar.Date) {
+  case tab, effective_day(model, tab) {
+    TabBeachBus, None | TabClimbingWall, None ->
+      Some(event_dates.clamp_to_event(today()))
+    _, day -> day
+  }
+}
+
 /// Show-then-revalidate a window: an unfetched window flips to `Loading` and
 /// fetches; an already-loaded window refetches conditionally in the background
 /// (a `304` keeps what's shown), so revisiting a tab/day/page is cheap and stays
@@ -1510,7 +1607,7 @@ fn retry_window(model: Model, key: WindowKey) -> #(Model, Effect(Msg)) {
 }
 
 /// The `RemoteData` cached for an overview key (`NotAsked` if never fetched).
-fn recurring_remote(
+pub fn recurring_remote(
   model: Model,
   key: RecurringKey,
 ) -> RemoteData(List(BookingSlot)) {
@@ -2108,23 +2205,28 @@ fn app_bar_title(translator: Translator, page: Page) -> Option(String) {
 fn init(_flags) -> #(Model, Effect(Msg)) {
   let translator = translator_for(get_html_lang())
 
-  let #(page, page_effect) = case modem.initial_uri() {
-    Ok(uri) -> uri_to_page(uri, dict.new())
-    Error(_) -> #(ActivitiesListPage(default_filters()), effect.none())
+  // The initial URL carries the filters (plan 26), so a reload or a deep link
+  // starts on the view it describes — `day_query` seeds the day fields below.
+  let #(page, page_effect, day_query) = case modem.initial_uri() {
+    Ok(uri) -> {
+      let #(page, page_effect) = uri_to_page(uri, dict.new())
+      #(page, page_effect, day_from_query(uri))
+    }
+    Error(_) -> #(
+      ActivitiesListPage(default_filters()),
+      effect.none(),
+      DayUnset,
+    )
   }
 
   let today = event_dates.clamp_to_event(today())
-  // The default Activities window (today, non-manager view) loads immediately;
-  // every other tab/day loads lazily on first open. Roles are empty here, so a
-  // manager's call-off superset (a distinct key) loads once /api/me returns.
-  let initial_key = #(SourceActivities, Some(today), False)
 
   let model =
     Model(
       page:,
       translator:,
       activities: dict.new(),
-      windows: dict.from_list([#(initial_key, Loading)]),
+      windows: dict.new(),
       etags: dict.new(),
       recurring_windows: dict.new(),
       recurring_etags: dict.new(),
@@ -2156,9 +2258,16 @@ fn init(_flags) -> #(Model, Effect(Msg)) {
     None -> effect.none()
   }
 
-  // Booting straight onto an overview route: `modem.init` doesn't fire for the
-  // initial URI (the default Activities window is fetched explicitly below), so
-  // load the open overview day here too. A no-op on any other initial page.
+  // The URL's day overrides the seeded defaults above (a deep link or a reload
+  // of a filtered view), so the windows loaded below are the right ones.
+  let model = apply_day_query(model, page, day_query)
+
+  // `modem.init` doesn't fire for the initial URI, so the initial page's data is
+  // loaded here: the open list's windows (today's Activities window by default;
+  // every other tab/day loads lazily on first open) or the open overview day.
+  // Roles are empty at this point, so a manager's call-off superset (a distinct
+  // window key) loads once /api/me returns.
+  let #(model, list_effect) = revalidate_current_list(model)
   let #(model, overview_effect) = revalidate_current_overview(model)
 
   #(
@@ -2167,7 +2276,7 @@ fn init(_flags) -> #(Model, Effect(Msg)) {
       modem.init(OnRouteChange),
       observe_lang(),
       start_refresh_timer(),
-      fetch_window(model, initial_key),
+      list_effect,
       fetch_spots(),
       fetch_activity_tags(),
       fetch_locations(),
@@ -2281,31 +2390,30 @@ pub type Msg {
 
 pub fn update(model: Model, msg: Msg) -> #(Model, Effect(Msg)) {
   case msg {
+    // Fires for real navigations *and* for the `modem.replace` a filter change
+    // emits — the URL is the source of truth for the filters, so this one
+    // handler applies both (plan 26).
     OnRouteChange(uri) -> {
       let #(page, page_effect) = uri_to_page(uri, model.details)
+      // Pure view state (the filter panel, the manage form drawer) is not in the
+      // URL, so carry it across a filter-only rebuild of the same list. A real
+      // navigation to another screen still drops it — a stale form can't linger.
+      let page = inherit_view_state(model.page, page)
       let details = seed_detail_loading(model.details, page)
       let title_effect = case app_bar_title(model.translator, page) {
         Some(title) -> set_app_bar_title(title)
         None -> effect.none()
       }
       let nav_effect = notify_navigation(uri)
-      // The form overlay is `ManageActivitiesPage` state, so a route change to any
-      // other page drops it automatically — a stale form can't linger. A
-      // dismissed list warning likewise resets, so returning to a
-      // still-broken list warns again.
-      let model = Model(..model, page:, details:, list_warning_dismissed: False)
-      // "Alla dagar" is transient: re-entering a list page snaps the browse
-      // day back to today, so users don't unknowingly stay in the whole-week
-      // eight-window mode. A picked concrete day still persists (issue #40).
-      // Runs before the revalidation below so it loads today's window.
-      let model = case page, model.browse_day_filter {
-        ActivitiesListPage(_), None | ManageActivitiesPage(_, _), None ->
-          Model(
-            ..model,
-            browse_day_filter: Some(event_dates.clamp_to_event(today())),
-          )
-        _, _ -> model
-      }
+      let day_query = day_from_query(uri)
+      // A dismissed list warning is per view: leaving the list, or changing the
+      // tab or day, is a fresh attempt and warns again, while a filter-only URL
+      // update (typing in the search field) keeps the dismissal.
+      let list_warning_dismissed =
+        model.list_warning_dismissed && same_list_view(model, page, day_query)
+      let model = Model(..model, page:, details:, list_warning_dismissed:)
+      // Runs before the revalidation below so it loads the resolved day's window.
+      let model = apply_day_query(model, page, day_query)
       // Entering a list page revalidates the active tab (cheap 304 when
       // unchanged), so a returning view stays fresh without a blocking reload;
       // entering an overview page does the same for its day.
@@ -2902,70 +3010,35 @@ pub fn update(model: Model, msg: Msg) -> #(Model, Effect(Msg)) {
       }
 
     UserSearchedActivities(value) ->
-      update_filters(model, fn(f) { ListFilters(..f, search: value) })
+      replace_filters(model, fn(f) { ListFilters(..f, search: value) })
 
-    UserSelectedTab(index) ->
+    // Switching tab only writes the tab (and its day) to the URL; the route
+    // change applies it and revalidates that tab's windows. Each tab reads its
+    // own persistent day — browse tabs share `browse_day_filter`, Favourites
+    // has its own — so the new tab's day is what gets pinned.
+    UserSelectedTab(index) -> {
+      let tab = tab_from_index(model.session, index)
       case list_filters(model.page) {
-        Ok(filters) -> {
-          let tab = tab_from_index(model.session, index)
-          // Each tab reads its own persistent day (browse tabs share
-          // `browse_day_filter`, Favourites its own), so switching tabs just
-          // changes the tab and revalidates that tab's resolved windows.
-          let filters = ListFilters(..filters, tab:)
-          // A new view is a fresh attempt — un-dismiss the list warning.
-          let model = Model(..model, list_warning_dismissed: False)
-          // The recurring tabs have no "Alla dagar" option: switching to one
-          // while the shared browse day is all-days snaps it to today
-          // (all-days is transient anyway — it also resets on navigation).
-          let model = case tab, model.browse_day_filter {
-            TabBeachBus, None | TabClimbingWall, None ->
-              Model(
-                ..model,
-                browse_day_filter: Some(event_dates.clamp_to_event(today())),
-              )
-            _, _ -> model
-          }
-          let #(model, fetch_effect) =
-            load_or_revalidate_all(
-              model,
-              window_keys_for(model, tab_source(tab)),
-            )
-          #(
-            Model(..model, page: set_list_filters(model.page, filters)),
-            fetch_effect,
+        Ok(filters) ->
+          replace_list_url(
+            model,
+            ListFilters(..filters, tab:),
+            tab_switch_day(model, tab),
           )
-        }
         Error(_) -> #(model, effect.none())
       }
+    }
 
-    // Picking a day persists it to the current tab's own day field (so it
-    // survives navigation and stays independent per view), then revalidates.
-    // On a browse tab that fetches the newly-selected window — a single day's,
-    // or the whole event's when "all days" (`None`) is picked (instant from
-    // cache + background revalidate); on Favourites the day only narrows the
-    // rendered list client-side, so this just revalidates the all-days window.
-    UserSelectedDay(d) ->
+    // Picking a day pins it in the URL; the route change persists it to the
+    // current tab's own day field (so it survives navigation and stays
+    // independent per view) and revalidates. On a browse tab that fetches the
+    // newly-selected window — a single day's, or the whole event's when "all
+    // days" (`None`) is picked (instant from cache + background revalidate); on
+    // Favourites the day only narrows the rendered list client-side, so it just
+    // revalidates the all-days window.
+    UserSelectedDay(day) ->
       case list_filters(model.page) {
-        Ok(filters) -> {
-          // A new day pick refetches — un-dismiss the list warning.
-          let model = Model(..model, list_warning_dismissed: False)
-          let model = case filters.tab {
-            // Picking a concrete day on Favourites also moves the browse day
-            // there, so switching back to a browse tab lands on the same day;
-            // "all days" (`None`) leaves the browse day untouched.
-            TabFavourites ->
-              case d {
-                Some(_) ->
-                  Model(..model, favourites_day_filter: d, browse_day_filter: d)
-                None -> Model(..model, favourites_day_filter: d)
-              }
-            _ -> Model(..model, browse_day_filter: d)
-          }
-          load_or_revalidate_all(
-            model,
-            window_keys_for(model, tab_source(filters.tab)),
-          )
-        }
+        Ok(filters) -> replace_list_url(model, filters, day)
         Error(_) -> #(model, effect.none())
       }
 
@@ -3003,7 +3076,7 @@ pub fn update(model: Model, msg: Msg) -> #(Model, Effect(Msg)) {
           effect.none(),
         )
         _ ->
-          update_filters(model, fn(f) {
+          replace_filters(model, fn(f) {
             ListFilters(
               ..f,
               target_groups: toggle_member(f.target_groups, target_group),
@@ -3036,7 +3109,7 @@ pub fn update(model: Model, msg: Msg) -> #(Model, Effect(Msg)) {
           effect.none(),
         )
         _ ->
-          update_filters(model, fn(f) {
+          replace_filters(model, fn(f) {
             ListFilters(..f, tags: toggle_member(f.tags, tag_id))
           })
       }
@@ -3101,7 +3174,7 @@ pub fn update(model: Model, msg: Msg) -> #(Model, Effect(Msg)) {
     // more can be picked. Mirrors `UserToggledTag`, but there is no activity-form
     // branch — the form's location picker is the separate single-select above.
     UserToggledLocationFilter(location_id) ->
-      update_filters(model, fn(f) {
+      replace_filters(model, fn(f) {
         ListFilters(..f, locations: toggle_member(f.locations, location_id))
       })
 
@@ -3349,15 +3422,16 @@ pub fn update(model: Model, msg: Msg) -> #(Model, Effect(Msg)) {
         )
       }
 
-    // Change the selected day. `None` (an unparseable option) is ignored so the
-    // current day sticks. A concrete day shows-then-revalidates its cached slots.
+    // Change the selected day by pinning it in the URL, so opening a slot and
+    // pressing Back returns to the same day; the route change rebuilds the page
+    // and shows-then-revalidates that day's cached slots. `None` (an unparseable
+    // option) is ignored so the current day sticks.
     UserSelectedOverviewDay(maybe_day) ->
       case model.page, maybe_day {
-        RecurringBookingsPage(kind, _), Some(day) -> {
-          let #(model, effect) =
-            load_or_revalidate_recurring(model, #(kind, day))
-          #(Model(..model, page: RecurringBookingsPage(kind, day)), effect)
-        }
+        RecurringBookingsPage(kind, _), Some(day) -> #(
+          model,
+          modem.replace(recurring_path(kind), Some(overview_query(day)), None),
+        )
         _, _ -> #(model, effect.none())
       }
 
@@ -3806,6 +3880,9 @@ pub fn update(model: Model, msg: Msg) -> #(Model, Effect(Msg)) {
   }
 }
 
+/// Update the *view* state of the current list's filters (only `more_open`: the
+/// real filters go through the URL, see `replace_filters`). Kept off the URL
+/// because a same-URL `modem.replace` couldn't express a toggle.
 fn update_filters(
   model: Model,
   f: fn(ListFilters) -> ListFilters,
@@ -3814,6 +3891,39 @@ fn update_filters(
     Ok(filters) -> #(
       Model(..model, page: set_list_filters(model.page, f(filters))),
       effect.none(),
+    )
+    Error(_) -> #(model, effect.none())
+  }
+}
+
+/// Apply a filter change by writing it into the URL, keeping the day the current
+/// tab already resolves to.
+fn replace_filters(
+  model: Model,
+  f: fn(ListFilters) -> ListFilters,
+) -> #(Model, Effect(Msg)) {
+  case list_filters(model.page) {
+    Ok(filters) -> {
+      let filters = f(filters)
+      replace_list_url(model, filters, effective_day(model, filters.tab))
+    }
+    Error(_) -> #(model, effect.none())
+  }
+}
+
+/// Write a list view's filters into the current history entry
+/// (`replace`, not `push`: a filter tweak must not cost a Back press) and let
+/// the resulting `OnRouteChange` apply them to the Model and refetch. A no-op
+/// off a list page.
+fn replace_list_url(
+  model: Model,
+  filters: ListFilters,
+  day: Option(calendar.Date),
+) -> #(Model, Effect(Msg)) {
+  case filterable_path(model.page) {
+    Ok(path) -> #(
+      model,
+      modem.replace(path, Some(list_query(filters, day)), None),
     )
     Error(_) -> #(model, effect.none())
   }
@@ -4425,13 +4535,179 @@ fn activity_form_to_json(
 
 // ROUTING ---------------------------------------------------------------------
 
+/// The list filters live in the URL's query string, so the history entry the
+/// browser's Back button returns to carries them and the view is restored
+/// exactly as it was left (plan 26). This is the `day` parameter of a list or
+/// overview URL — the one filter that also lives on the `Model` (plan 12), which
+/// is why "absent" is a meaningful third case: it means "keep the day the Model
+/// already remembers" rather than any concrete day.
+pub type DayQuery {
+  /// No `day` parameter in the URL.
+  DayUnset
+  /// `day=all` — "Alla dagar".
+  DayAll
+  /// `day=YYYY-MM-DD`.
+  DayOn(day: calendar.Date)
+}
+
+fn tab_to_slug(tab: ActivitiesFilterTab) -> String {
+  case tab {
+    TabActivities -> "activities"
+    TabBeachBus -> "beach-bus"
+    TabClimbingWall -> "climbing-wall"
+    TabFavourites -> "favourites"
+  }
+}
+
+/// Unknown slugs fall back to the default tab: a hand-edited URL should still
+/// show a list rather than a 404.
+fn tab_from_slug(slug: String) -> ActivitiesFilterTab {
+  case slug {
+    "beach-bus" -> TabBeachBus
+    "climbing-wall" -> TabClimbingWall
+    "favourites" -> TabFavourites
+    _ -> TabActivities
+  }
+}
+
+/// The query string encoding a list view's filters. `tab` and `day` are always
+/// written — `day`'s default ("today") moves with the clock, so pinning it is
+/// what keeps a restored view identical — while the rest are omitted when empty
+/// to keep the URL readable. `None` is "all days".
+pub fn list_query(filters: ListFilters, day: Option(calendar.Date)) -> String {
+  [
+    #("tab", tab_to_slug(filters.tab)),
+    #("day", day_to_param(day)),
+    #("q", filters.search),
+    #(
+      "audience",
+      filters.target_groups
+        |> list.map(model.target_group_to_string)
+        |> string.join(","),
+    ),
+    #("tags", ids_to_param(filters.tags)),
+    #("locations", ids_to_param(filters.locations)),
+  ]
+  |> list.filter(fn(param) { param.1 != "" })
+  |> uri.query_to_string
+}
+
+/// The query string of an overview page (Badbuss / Klättervägg): its day is the
+/// only state it holds.
+pub fn overview_query(day: calendar.Date) -> String {
+  uri.query_to_string([#("day", date_to_iso(day))])
+}
+
+fn day_to_param(day: Option(calendar.Date)) -> String {
+  case day {
+    Some(date) -> date_to_iso(date)
+    None -> "all"
+  }
+}
+
+fn ids_to_param(ids: List(Uuid)) -> String {
+  ids |> list.map(uuid.to_string) |> string.join(",")
+}
+
+fn query_params(u: Uri) -> List(#(String, String)) {
+  case u.query {
+    Some(query) -> uri.parse_query(query) |> result.unwrap([])
+    None -> []
+  }
+}
+
+/// The value of a query parameter, or `""` when absent.
+fn query_param(params: List(#(String, String)), key: String) -> String {
+  case list.key_find(params, key) {
+    Ok(value) -> value
+    Error(_) -> ""
+  }
+}
+
+/// Split a comma-joined parameter, dropping empties so a stray comma is
+/// harmless.
+fn split_param(raw: String) -> List(String) {
+  string.split(raw, ",") |> list.filter(fn(part) { part != "" })
+}
+
+/// Read a list view's filters out of the URL. Unparseable values are dropped
+/// (rather than failing the route), so a mangled URL degrades to a wider list.
+pub fn filters_from_query(u: Uri) -> ListFilters {
+  let params = query_params(u)
+  let target_groups =
+    query_param(params, "audience")
+    |> split_param
+    |> list.filter_map(model.target_group_from_string)
+  let tags =
+    query_param(params, "tags")
+    |> split_param
+    |> list.filter_map(uuid.from_string)
+  let locations =
+    query_param(params, "locations")
+    |> split_param
+    |> list.filter_map(uuid.from_string)
+  ListFilters(
+    search: query_param(params, "q"),
+    tab: tab_from_slug(query_param(params, "tab")),
+    // Not URL state: the panel opens itself when the restored filters need it,
+    // so a narrowed list always shows what narrowed it. Manual toggles survive
+    // a filter change via `inherit_view_state`.
+    more_open: target_groups != [] || tags != [] || locations != [],
+    target_groups:,
+    tags:,
+    locations:,
+  )
+}
+
+/// Read the `day` parameter. An unparseable date is treated as absent, so the
+/// remembered day (or today) stands.
+pub fn day_from_query(u: Uri) -> DayQuery {
+  case query_param(query_params(u), "day") {
+    "" -> DayUnset
+    "all" -> DayAll
+    iso ->
+      case parse_date_iso(iso) {
+        Some(date) -> DayOn(date)
+        None -> DayUnset
+      }
+  }
+}
+
+/// The overview pages have no "Alla dagar" option, so their day is always
+/// concrete: the URL's day, else today clamped into the event range.
+fn overview_day_from_query(u: Uri) -> calendar.Date {
+  case day_from_query(u) {
+    DayOn(day) -> day
+    DayAll | DayUnset -> event_dates.clamp_to_event(today())
+  }
+}
+
+/// The path of a page whose filters belong in its query string; `Error(Nil)`
+/// for every other page (nothing to sync there).
+pub fn filterable_path(page: Page) -> Result(String, Nil) {
+  case page {
+    ActivitiesListPage(_) -> Ok(api_prefix <> "/activities")
+    ManageActivitiesPage(_, _) -> Ok(api_prefix <> "/activities/manage")
+    _ -> Error(Nil)
+  }
+}
+
+fn recurring_path(kind: RecurringKind) -> String {
+  case kind {
+    BeachBus -> api_prefix <> "/beach-bus"
+    ClimbingWall -> api_prefix <> "/climbing-wall"
+  }
+}
+
 pub fn uri_to_page(
   uri: Uri,
   details: Dict(Uuid, RemoteData(ActivityDetail)),
 ) -> #(Page, Effect(Msg)) {
   case uri.path_segments(uri.path) |> list.drop(2) {
+    // The filters come from the query string, so a Back that lands here
+    // restores the view that was left (plan 26).
     ["activities"] | [] -> #(
-      ActivitiesListPage(default_filters()),
+      ActivitiesListPage(filters_from_query(uri)),
       effect.none(),
     )
     // The management copy of the activities list. Cards open the edit form in a
@@ -4439,19 +4715,20 @@ pub fn uri_to_page(
     // (server-gated in app-config), and edits are enforced server-side regardless
     // of who reaches this route.
     ["activities", "manage"] -> #(
-      ManageActivitiesPage(default_filters(), ActivityFormClosed),
+      ManageActivitiesPage(filters_from_query(uri), ActivityFormClosed),
       effect.none(),
     )
-    // The Badbuss / Klättervägg booking-overview pages, defaulting to today
-    // clamped into the event range so it matches one of the static day options.
-    // Loading the day's slots is driven by `revalidate_current_overview` on the
-    // route change (it needs the model cache), like the browse list windows.
+    // The Badbuss / Klättervägg booking-overview pages: the day comes from the
+    // query string, defaulting to today clamped into the event range so it
+    // matches one of the static day options. Loading the day's slots is driven
+    // by `revalidate_current_overview` on the route change (it needs the model
+    // cache), like the browse list windows.
     ["beach-bus"] -> #(
-      RecurringBookingsPage(BeachBus, event_dates.clamp_to_event(today())),
+      RecurringBookingsPage(BeachBus, overview_day_from_query(uri)),
       effect.none(),
     )
     ["climbing-wall"] -> #(
-      RecurringBookingsPage(ClimbingWall, event_dates.clamp_to_event(today())),
+      RecurringBookingsPage(ClimbingWall, overview_day_from_query(uri)),
       effect.none(),
     )
     ["activities", id_str, "bookings"] ->
@@ -5448,10 +5725,7 @@ fn card_status(
 
 /// Localized validation error messages for the activity form (formal's built-in
 /// messages are English only). Applied via `form.language` in the form view.
-fn form_error_message(
-  translator: Translator,
-  error: form.FieldError,
-) -> String {
+fn form_error_message(translator: Translator, error: form.FieldError) -> String {
   let t = fn(key) { g18n.translate(translator, key) }
   case error {
     form.MustBePresent -> t("form.error.required")

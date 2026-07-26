@@ -190,6 +190,27 @@ fn parse_uri(path: String) -> uri.Uri {
   u
 }
 
+/// Render a URL the way the browser hands it to the app. The filters live in the
+/// URL (plan 26) and `modem` dispatches `OnRouteChange` for its own `replace`s
+/// too, so this is both a navigation *and* what a filter change amounts to: the
+/// filter messages only write the URL, and this handler applies it.
+fn route(model_: client.Model, url: String) -> client.Model {
+  let #(next, _) = client.update(model_, client.OnRouteChange(parse_uri(url)))
+  next
+}
+
+/// The URL a list-filter change writes into the current history entry — the
+/// page's path plus the encoded filters, exactly as `replace_list_url` builds it
+/// (the `modem.replace` effect itself is opaque, so tests drive the two halves).
+fn filter_url(
+  page: client.Page,
+  filters: client.ListFilters,
+  day: Option(calendar.Date),
+) -> String {
+  let assert Ok(path) = client.filterable_path(page)
+  path <> "?" <> client.list_query(filters, day)
+}
+
 // PURE HELPERS: relative_url ---------------------------------------------------
 
 pub fn relative_url_strips_scheme_and_host_test() {
@@ -797,6 +818,204 @@ pub fn uri_to_page_manage_lists_activities_in_manage_mode_test() {
       client.default_filters(),
       client.ActivityFormClosed,
     )
+}
+
+// ROUTING: filters in the URL (plan 26) ----------------------------------------
+
+/// Every filter set at once, for the encode/decode round trip.
+fn busy_filters() -> client.ListFilters {
+  client.ListFilters(
+    search: "kanot",
+    tab: client.TabFavourites,
+    // Not URL state — derived on the way back in.
+    more_open: False,
+    target_groups: [model.Aventyrare, model.Ledare],
+    tags: [id_a(), id_b()],
+    locations: [id_c()],
+  )
+}
+
+pub fn list_query_encodes_every_active_filter_test() {
+  assert client.list_query(busy_filters(), Some(other_day()))
+    == "tab=favourites&day=2026-07-27&q=kanot&audience=aventyrare%2Cledare"
+    <> "&tags=00000000-0000-0000-0000-00000000000a%2C"
+    <> "00000000-0000-0000-0000-00000000000b"
+    <> "&locations=00000000-0000-0000-0000-00000000000c"
+}
+
+pub fn list_query_keeps_the_tab_and_day_but_omits_empty_filters_test() {
+  // The day is always pinned: its default ("today") moves with the clock, so
+  // leaving it out would restore a different view tomorrow.
+  assert client.list_query(client.default_filters(), Some(test_today()))
+    == "tab=activities&day=2026-07-25"
+  assert client.list_query(client.default_filters(), None)
+    == "tab=activities&day=all"
+}
+
+pub fn filters_from_query_round_trips_list_query_test() {
+  let url =
+    "/_services/booking/activities?"
+    <> client.list_query(busy_filters(), Some(other_day()))
+  assert client.filters_from_query(parse_uri(url))
+    // `more_open` is view state, not URL state: it comes back derived from the
+    // restored advanced filters.
+    == client.ListFilters(..busy_filters(), more_open: True)
+  assert client.day_from_query(parse_uri(url)) == client.DayOn(other_day())
+}
+
+pub fn filters_from_query_drops_unparseable_values_test() {
+  // A hand-edited or truncated URL degrades to a wider list rather than an error.
+  let u =
+    parse_uri(
+      "/_services/booking/activities?tab=nope&day=yesterday&audience=,bogus,"
+      <> "&tags=not-a-uuid&locations=",
+    )
+  assert client.filters_from_query(u) == client.default_filters()
+  assert client.day_from_query(u) == client.DayUnset
+}
+
+pub fn day_from_query_reads_all_days_and_absence_test() {
+  assert client.day_from_query(parse_uri(
+      "/_services/booking/activities?day=all",
+    ))
+    == client.DayAll
+  assert client.day_from_query(parse_uri("/_services/booking/activities"))
+    == client.DayUnset
+}
+
+pub fn uri_to_page_reads_the_filters_from_the_query_test() {
+  let #(page, _) =
+    client.uri_to_page(
+      parse_uri(
+        "/_services/booking/activities?"
+        <> client.list_query(busy_filters(), Some(other_day())),
+      ),
+      dict.new(),
+    )
+  assert page
+    == client.ActivitiesListPage(
+      client.ListFilters(..busy_filters(), more_open: True),
+    )
+}
+
+pub fn back_to_the_filtered_list_restores_every_filter_test() {
+  // The point of the whole plan: filter, open an activity, press Back. The
+  // browser returns to the entry the filters were written into, so the list
+  // comes back exactly as it was left — including the day's window.
+  let list_url =
+    filter_url(
+      base_model().page,
+      client.ListFilters(..busy_filters(), tab: client.TabActivities),
+      Some(other_day()),
+    )
+  let filtered = route(base_model(), list_url)
+  let detail =
+    route(filtered, "/_services/booking/activities/" <> uuid.to_string(id_a()))
+  let back = route(detail, list_url)
+  let assert client.ActivitiesListPage(filters) = back.page
+  assert filters.search == "kanot"
+  assert filters.target_groups == [model.Aventyrare, model.Ledare]
+  assert filters.tags == [id_a(), id_b()]
+  assert filters.locations == [id_c()]
+  assert back.browse_day_filter == Some(other_day())
+  assert client.window_remote(back, day_window(other_day())) == client.Loading
+}
+
+pub fn restored_advanced_filters_open_the_more_panel_test() {
+  // Coming back to a narrowed list (from an activity, so there is no panel state
+  // to inherit) shows what narrowed it.
+  let detail =
+    route(
+      base_model(),
+      "/_services/booking/activities/" <> uuid.to_string(id_a()),
+    )
+  let back =
+    route(
+      detail,
+      filter_url(
+        base_model().page,
+        client.ListFilters(..client.default_filters(), tags: [id_a()]),
+        Some(test_today()),
+      ),
+    )
+  let assert client.ActivitiesListPage(filters) = back.page
+  assert filters.more_open == True
+}
+
+pub fn more_panel_state_survives_a_filter_change_test() {
+  // `more_open` is view state, so a filter change — which round-trips through
+  // the URL — must not slam the panel shut. A manual open with no filters set
+  // has nothing in the URL to derive it from, so it can only survive by being
+  // inherited.
+  let #(opened, _) = client.update(base_model(), client.UserToggledMoreFilters)
+  let assert client.ActivitiesListPage(filters) = opened.page
+  assert filters.more_open == True
+  let searched =
+    route(
+      opened,
+      filter_url(
+        opened.page,
+        client.ListFilters(..filters_for(client.TabActivities), search: "kanot"),
+        Some(test_today()),
+      ),
+    )
+  let assert client.ActivitiesListPage(filters) = searched.page
+  assert filters.more_open == True
+}
+
+pub fn manage_form_drawer_survives_a_filter_change_test() {
+  // Same for the manage list's form overlay: a URL-driven rebuild of the same
+  // page keeps it (a real navigation elsewhere still drops it).
+  let manage = manage_model(client.ActivityFormEdit(id_a(), client.EditLoading))
+  let searched =
+    route(
+      manage,
+      filter_url(
+        manage.page,
+        client.ListFilters(..filters_for(client.TabActivities), search: "kanot"),
+        Some(test_today()),
+      ),
+    )
+  assert client.activity_form_of(searched)
+    == client.ActivityFormEdit(id_a(), client.EditLoading)
+  // Navigating away is a real navigation: the overlay goes.
+  let detail =
+    route(manage, "/_services/booking/activities/" <> uuid.to_string(id_a()))
+  assert client.activity_form_of(detail) == client.ActivityFormClosed
+}
+
+pub fn uri_to_page_reads_the_overview_day_from_the_query_test() {
+  let #(page, _) =
+    client.uri_to_page(
+      parse_uri(
+        "/_services/booking/beach-bus?" <> client.overview_query(other_day()),
+      ),
+      dict.new(),
+    )
+  assert page == client.RecurringBookingsPage(client.BeachBus, other_day())
+}
+
+pub fn overview_day_defaults_to_today_without_a_query_test() {
+  // Recomputed from the clock (clamped into the event), so assert it resolves to
+  // a page at all rather than a specific date.
+  let #(page, _) =
+    client.uri_to_page(
+      parse_uri("/_services/booking/climbing-wall"),
+      dict.new(),
+    )
+  let assert client.RecurringBookingsPage(kind, _) = page
+  assert kind == client.ClimbingWall
+}
+
+pub fn back_to_the_overview_restores_the_day_and_loads_its_slots_test() {
+  let overview_url =
+    "/_services/booking/beach-bus?" <> client.overview_query(other_day())
+  let picked = route(base_model(), overview_url)
+  assert picked.page
+    == client.RecurringBookingsPage(client.BeachBus, other_day())
+  // The day's slots load on the route change (the same path a Back takes).
+  assert client.recurring_remote(picked, #(client.BeachBus, other_day()))
+    == client.Loading
 }
 
 // UPDATE: favourite toggle (optimistic) ----------------------------------------
@@ -1709,9 +1928,26 @@ pub fn deleted_activity_purges_caches_and_all_windows_test() {
 
 // UPDATE: list filters & tabs --------------------------------------------------
 
-pub fn selecting_tab_updates_filter_and_lazily_loads_source_test() {
-  // index 1 == TabBeachBus, whose window starts absent in base_model.
+pub fn selecting_tab_only_writes_the_url_test() {
+  // The filter messages don't touch the Model: they write the URL, and the
+  // `OnRouteChange` that `modem.replace` dispatches applies it. Outside a
+  // browser `modem` effects are inert, so the Model is left as it was.
   let #(next, _) = client.update(base_model(), client.UserSelectedTab(1))
+  assert next.page == base_model().page
+}
+
+pub fn selecting_tab_updates_filter_and_lazily_loads_source_test() {
+  // TabBeachBus's window starts absent in base_model, so the route change that
+  // applies the tab is what flips it to Loading.
+  let next =
+    route(
+      base_model(),
+      filter_url(
+        base_model().page,
+        filters_for(client.TabBeachBus),
+        Some(test_today()),
+      ),
+    )
   let assert client.ActivitiesListPage(filters) = next.page
   assert filters.tab == client.TabBeachBus
   assert client.window_remote(next, beach_bus_window()) == client.Loading
@@ -1719,9 +1955,18 @@ pub fn selecting_tab_updates_filter_and_lazily_loads_source_test() {
 
 pub fn selecting_tab_stays_on_manage_page_test() {
   // The manage list reuses the whole browse view, so switching tabs must keep
-  // the page a `ManageActivitiesPage` (cards keep opening the edit drawer).
+  // the page a `ManageActivitiesPage` (cards keep opening the edit drawer) —
+  // the tab rides in the query string of the manage path.
   let manage = manage_model(client.ActivityFormClosed)
-  let #(next, _) = client.update(manage, client.UserSelectedTab(1))
+  let next =
+    route(
+      manage,
+      filter_url(
+        manage.page,
+        filters_for(client.TabBeachBus),
+        Some(test_today()),
+      ),
+    )
   let assert client.ManageActivitiesPage(filters, _) = next.page
   assert filters.tab == client.TabBeachBus
 }
@@ -1748,8 +1993,15 @@ fn other_day() -> calendar.Date {
 pub fn selecting_day_on_browse_sets_browse_day_and_fetches_window_test() {
   // On a browse tab, picking a day persists it to `browse_day_filter` (leaving
   // Favourites' own day untouched) and fetches that day's window.
-  let #(next, _) =
-    client.update(base_model(), client.UserSelectedDay(Some(other_day())))
+  let next =
+    route(
+      base_model(),
+      filter_url(
+        base_model().page,
+        filters_for(client.TabActivities),
+        Some(other_day()),
+      ),
+    )
   assert next.browse_day_filter == Some(other_day())
   assert next.favourites_day_filter == None
   let day_window = #(client.SourceActivities, Some(other_day()), True)
@@ -1766,39 +2018,50 @@ fn favourites_model() -> client.Model {
 pub fn selecting_concrete_day_on_favourites_also_moves_browse_day_test() {
   // Picking a concrete day on Favourites carries the browse day along, so
   // switching back to a browse tab lands on the same day.
-  let #(next, _) =
-    client.update(favourites_model(), client.UserSelectedDay(Some(other_day())))
+  let next =
+    route(
+      favourites_model(),
+      filter_url(
+        favourites_model().page,
+        filters_for(client.TabFavourites),
+        Some(other_day()),
+      ),
+    )
   assert next.favourites_day_filter == Some(other_day())
   assert next.browse_day_filter == Some(other_day())
 }
 
 pub fn selecting_all_days_on_favourites_leaves_browse_day_untouched_test() {
-  // "All days" (`None`) on Favourites must not clobber a browse day the user set.
+  // "All days" (`day=all`) on Favourites must not clobber a browse day the user
+  // set.
   let model_ =
     client.Model(..favourites_model(), browse_day_filter: Some(other_day()))
-  let #(next, _) = client.update(model_, client.UserSelectedDay(None))
+  let next =
+    route(
+      model_,
+      filter_url(model_.page, filters_for(client.TabFavourites), None),
+    )
   assert next.favourites_day_filter == None
   assert next.browse_day_filter == Some(other_day())
 }
 
 pub fn browse_day_survives_page_rebuild_via_route_change_test() {
   // The core of issue #40: after picking a day, navigating away and back must
-  // keep it. The day now lives on the Model, not the (rebuilt) page filters, so
-  // the window key resolved after the round-trip still targets the chosen day.
-  let #(picked, _) =
-    client.update(base_model(), client.UserSelectedDay(Some(other_day())))
-  let #(detail, _) =
-    client.update(
-      picked,
-      client.OnRouteChange(parse_uri(
-        "/_services/booking/activities/" <> uuid.to_string(id_a()),
-      )),
+  // keep it. The day lives on the Model (not the rebuilt page filters) *and* in
+  // the URL, so it survives either way — here via a paramless return to the
+  // list, as a nav-bar link does.
+  let picked =
+    route(
+      base_model(),
+      filter_url(
+        base_model().page,
+        filters_for(client.TabActivities),
+        Some(other_day()),
+      ),
     )
-  let #(back, _) =
-    client.update(
-      detail,
-      client.OnRouteChange(parse_uri("/_services/booking/activities")),
-    )
+  let detail =
+    route(picked, "/_services/booking/activities/" <> uuid.to_string(id_a()))
+  let back = route(detail, "/_services/booking/activities")
   assert back.browse_day_filter == Some(other_day())
   let day_window = #(client.SourceActivities, Some(other_day()), True)
   assert client.window_remote(back, day_window) == client.Loading
@@ -1836,7 +2099,11 @@ fn day_window(day: calendar.Date) -> client.WindowKey {
 pub fn selecting_all_days_on_browse_loads_every_day_window_test() {
   // Picking "Alla dagar" clears the browse day and fetches all eight per-day
   // windows (the API stays per-day; the client unions the responses).
-  let #(next, _) = client.update(base_model(), client.UserSelectedDay(None))
+  let next =
+    route(
+      base_model(),
+      filter_url(base_model().page, filters_for(client.TabActivities), None),
+    )
   assert next.browse_day_filter == None
   assert list.length(client.window_keys_for(next, client.SourceActivities)) == 8
   list.each(event_dates.event_days(), fn(day) {
@@ -1953,10 +2220,16 @@ pub fn retry_on_all_days_refetches_failed_and_keeps_loaded_test() {
 
 pub fn switching_to_recurring_tab_snaps_all_days_to_a_day_test() {
   // Badbuss / Klättervägg have no "Alla dagar" option, so switching to one
-  // while the shared browse day is all-days snaps it to a concrete day
-  // (today, recomputed from the clock — so assert the mode, not the date)
-  // and loads a single window rather than fanning out.
-  let #(next, _) = client.update(all_days_model(), client.UserSelectedTab(1))
+  // while the shared browse day is all-days pins a concrete day in the URL
+  // (today, recomputed from the clock — so assert the mode, not the date) and
+  // loads a single window rather than fanning out.
+  let day = client.tab_switch_day(all_days_model(), client.TabBeachBus)
+  assert day != None
+  let next =
+    route(
+      all_days_model(),
+      filter_url(all_days_model().page, filters_for(client.TabBeachBus), day),
+    )
   assert next.browse_day_filter != None
   assert list.length(client.window_keys_for(next, client.SourceBeachBus)) == 1
 }
@@ -1970,12 +2243,43 @@ pub fn dismissing_list_warning_hides_it_until_next_fetch_test() {
   assert dismissed.list_warning_dismissed == True
   let #(after_retry, _) = client.update(dismissed, client.UserClickedRetryLoad)
   assert after_retry.list_warning_dismissed == False
-  let #(after_day_pick, _) =
-    client.update(dismissed, client.UserSelectedDay(Some(other_day())))
+  let after_day_pick =
+    route(
+      dismissed,
+      filter_url(
+        dismissed.page,
+        filters_for(client.TabActivities),
+        Some(other_day()),
+      ),
+    )
   assert after_day_pick.list_warning_dismissed == False
-  let #(after_tab_switch, _) =
-    client.update(dismissed, client.UserSelectedTab(1))
+  let after_tab_switch =
+    route(
+      dismissed,
+      filter_url(
+        dismissed.page,
+        filters_for(client.TabBeachBus),
+        Some(test_today()),
+      ),
+    )
   assert after_tab_switch.list_warning_dismissed == False
+}
+
+pub fn dismissed_list_warning_survives_a_search_test() {
+  // Typing in the search field also round-trips through the URL, but it is the
+  // same view and the same fetch — the dismissal must stick.
+  let #(dismissed, _) =
+    client.update(base_model(), client.UserDismissedListWarning)
+  let searched =
+    route(
+      dismissed,
+      filter_url(
+        dismissed.page,
+        client.ListFilters(..filters_for(client.TabActivities), search: "kanot"),
+        Some(test_today()),
+      ),
+    )
+  assert searched.list_warning_dismissed == True
 }
 
 pub fn all_days_resets_to_today_on_reentering_the_list_test() {
@@ -2001,8 +2305,15 @@ pub fn all_days_resets_to_today_on_reentering_the_list_test() {
 }
 
 pub fn searching_updates_filters_on_list_page_test() {
-  let #(next, _) =
-    client.update(base_model(), client.UserSearchedActivities("bad"))
+  let next =
+    route(
+      base_model(),
+      filter_url(
+        base_model().page,
+        client.ListFilters(..filters_for(client.TabActivities), search: "bad"),
+        Some(test_today()),
+      ),
+    )
   let assert client.ActivitiesListPage(filters) = next.page
   assert filters.search == "bad"
 }

@@ -51,3 +51,4 @@ When you create, finish, or touch a plan here, keep the folder consistent:
 | 23 | [Anonymous browsing: activities load without login (issue #20)](23-anonymous-browse.md) | ✅ Done 2026-07-20 |
 | 24 | [Bulk edit beach bus & climbing wall shared fields (issue #31)](24-bulk-edit-recurring-activities.md) | ✅ Done 2026-07-20 |
 | 25 | [Filter the activity list by location](25-filter-activities-by-location.md) | ✅ Done 2026-07-26 |
+| 26 | [Activity-list filters live in the URL (Back restores them)](26-filters-in-the-url.md) | ✅ Done 2026-07-26 |
