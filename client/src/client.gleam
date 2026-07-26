@@ -1429,16 +1429,6 @@ pub fn tab_source(tab: ActivitiesFilterTab) -> ActivityListSource {
   }
 }
 
-/// The recurring kind a browse tab lists, for the tabs that list one — the
-/// gate for the manage page's bulk-edit affordance.
-fn tab_recurring_kind(tab: ActivitiesFilterTab) -> Result(RecurringKind, Nil) {
-  case tab {
-    TabBeachBus -> Ok(BeachBus)
-    TabClimbingWall -> Ok(ClimbingWall)
-    TabActivities | TabFavourites -> Error(Nil)
-  }
-}
-
 /// The browse-list source whose windows hold a recurring kind's slots.
 fn recurring_kind_source(kind: RecurringKind) -> ActivityListSource {
   case kind {
@@ -4895,15 +4885,6 @@ fn view_activities_list(
       False -> element.none()
     },
     html.div([attribute.class("flex flex-col gap-3 mt-3")], [
-      // The manage page's recurring tabs offer a kind-wide bulk edit of the
-      // shared fields (issue #31). It seeds from the first listed slot, so it
-      // only shows when the list has one — on an empty day there is nothing to
-      // seed from (pick a day with slots; the fields are shared anyway).
-      case page, tab_recurring_kind(filters.tab), load {
-        ManageActivitiesPage(..), Ok(kind), ListLoaded([first, ..], _) ->
-          view_bulk_edit_button(translator, kind, first.id)
-        _, _, _ -> element.none()
-      },
       case load {
         ListLoading -> component.scout_loader(t("activity.loading"))
         ListFailed(err) ->
@@ -5084,36 +5065,6 @@ fn view_new_activity_button(translator: Translator) -> Element(Msg) {
     ],
     [element.text(g18n.translate(translator, "manage.new_activity"))],
   )
-}
-
-/// The manage page's kind-wide bulk edit affordance, shown on the recurring
-/// tabs. Carries the first listed slot's id as the seed the form is filled
-/// from.
-fn view_bulk_edit_button(
-  translator: Translator,
-  kind: RecurringKind,
-  seed: Uuid,
-) -> Element(Msg) {
-  let label = case kind {
-    BeachBus -> g18n.translate(translator, "manage.bulk_edit.beach_bus")
-    ClimbingWall -> g18n.translate(translator, "manage.bulk_edit.climbing_wall")
-  }
-  html.div([attribute.class("px-3 w-full max-w-lg mx-auto")], [
-    element.element(
-      "scout-button",
-      [
-        attribute.attribute("variant", "outlined"),
-        attribute.attribute("icon", icons.pencil),
-        attribute.attribute("icon-position", "before"),
-        attribute.class("w-full"),
-        event.on(
-          "scoutClick",
-          decode.success(UserClickedBulkEditRecurring(kind, seed)),
-        ),
-      ],
-      [element.text(label)],
-    ),
-  ])
 }
 
 fn tab_label(translator: Translator, tab: ActivitiesFilterTab) -> String {

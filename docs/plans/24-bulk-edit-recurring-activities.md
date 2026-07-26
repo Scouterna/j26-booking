@@ -4,6 +4,13 @@
 > verified end-to-end — API set/clear/403/404 paths curl-tested, UI flow
 > driven in the browser)
 >
+> **UI removed 2026-07-26**: the "edit all slots" button is gone from the manage
+> page (`view_bulk_edit_button` and its `tab_recurring_kind` gate deleted), so
+> the flow is no longer reachable. Everything behind it is untouched and still
+> works — the `UserClickedBulkEditRecurring` message, the `ActivityFormBulkEdit`
+> drawer, and `PUT /api/{beach-bus,climbing-wall}-activities` — so re-adding the
+> button is all it takes to bring it back.
+>
 > **Reworked 2026-07-20** (the commit carrying this note): the bulk edit no
 > longer has its own `PUT /api/recurring-activities/:kind` path — it moved to
 > `PUT` on the existing per-kind list endpoints (`/api/beach-bus-activities`,
