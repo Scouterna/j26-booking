@@ -184,14 +184,17 @@ booking {
   uuid user_id FK "_booker_"
   uuid activity_id FK
   text booker_name "Bokarens namn"
-  int[null] booker_group_id "Bokarens kår id
-  _Kopierat från Scoutnet_"
-  text[null] booker_group_name "Bokarens kårnamn
-  _Kopierat från Scoutnet_"
+  int[null] booker_group_id "Bokarens kårnummer
+  _Kopierat från Scoutnet; no FK — unregistered kårnummer are allowed_"
   text group_free_text "Kår, Patrull"
   text responsible_name "Ansvarig vuxen"
   text phone_number "Till ansvarig vuxen"
   int participant_count
+}
+
+scout_group {
+  int id PK "Scoutnet kårnummer"
+  text name "Kårnamn, from the anmälda-kårer export"
 }
 
 activity_user {
@@ -237,6 +240,8 @@ user ||--o{ activity_user : organizes
 
 booking }o--|| activity : reserves
 user ||--o{ booking : places
+
+booking }o..o| scout_group : "booker_group_id (name joined, no FK)"
 ```
 
 #### Non MVP Scout Group feature

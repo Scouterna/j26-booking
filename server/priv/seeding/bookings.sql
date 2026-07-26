@@ -5,6 +5,25 @@ VALUES ('a1b2c3d4-e5f6-4a90-abcd-ef1234567890'),
     ('c3d4e5f6-a7b8-4c12-8def-123456789012')
 ON CONFLICT (id) DO NOTHING;
 
+-- The demo kårer referenced below. Real kårnummer already exist in
+-- scout_group (seeded by migration) and are skipped; this only adds the
+-- fictional ones so seeded bookings show a kår name. Kårnummer 1386 is
+-- deliberately left out: its bookings exercise the unknown-kår fallback
+-- ('Kår 1386').
+INSERT INTO scout_group (id, name)
+VALUES
+    (101, 'Sjöscoutkåren Dansen'),
+    (202, 'Scoutkåren Vansen'),
+    (303, 'Scoutkåren Norrsken'),
+    (404, 'Fjällscouterna'),
+    (505, 'Scoutkåren Eken'),
+    (606, 'Scoutkåren Kompassen'),
+    (1102, 'Adolf Fredriks Scoutkår'),
+    (1124, 'Scoutkåren Vikingarna'),
+    (1310, 'Tullinge Scoutkår'),
+    (2007, 'Huddinge Scoutkår')
+ON CONFLICT (id) DO NOTHING;
+
 -- Seed bookings (references activities from activities.sql)
 INSERT INTO booking (
         id,
@@ -12,7 +31,6 @@ INSERT INTO booking (
         activity_id,
         booker_name,
         booker_group_id,
-        booker_group_name,
         group_free_text,
         responsible_name,
         phone_number,
@@ -24,7 +42,6 @@ VALUES (
         '6f5e1d46-5f58-4e23-9a9d-8c2bfc2d22a0',
         'Anna Svensson',
         101,
-        'Sjöscoutkåren Dansen',
         'Patrull Örnarna',
         'Anna Svensson',
         '+46701234567',
@@ -36,7 +53,6 @@ VALUES (
         '6f5e1d46-5f58-4e23-9a9d-8c2bfc2d22a0',
         'Erik Johansson',
         202,
-        'Scoutkåren Vansen',
         'Patrull Falkarna',
         'Erik Johansson',
         '+46709876543',
@@ -48,7 +64,6 @@ VALUES (
         'b4219a53-4746-4a09-8b4e-3e2ac0c3df11',
         'Anna Svensson',
         101,
-        'Sjöscoutkåren Dansen',
         'Patrull Örnarna',
         'Anna Svensson',
         '+46701234567',
@@ -60,7 +75,6 @@ VALUES (
         'fa3825ab-8bc1-4f59-9100-2cc6aeb3d219',
         'Maria Lindström',
         202,
-        'Scoutkåren Vansen',
         'Patrull Hökarna',
         'Maria Lindström',
         '+46701122334',
@@ -72,7 +86,6 @@ VALUES (
         'd923f1ae-8f8e-45f2-8e7d-89e7d7b4cb75',
         'Anna Svensson',
         101,
-        'Sjöscoutkåren Dansen',
         'Hela kåren',
         'Anna Svensson',
         '+46701234567',
@@ -89,7 +102,6 @@ INSERT INTO booking (
         activity_id,
         booker_name,
         booker_group_id,
-        booker_group_name,
         group_free_text,
         responsible_name,
         phone_number,
@@ -102,7 +114,6 @@ VALUES (
         '6f5e1d46-5f58-4e23-9a9d-8c2bfc2d22a0',
         'Erik Johansson',
         1102,
-        'Adolf Fredriks Scoutkår',
         'Patrull Ugglan',
         'Karin Berg',
         '+46705556677',
@@ -115,7 +126,6 @@ VALUES (
         'b4219a53-4746-4a09-8b4e-3e2ac0c3df11',
         'Erik Johansson',
         1124,
-        'Scoutkåren Vikingarna',
         'Patrull Björnen',
         'Lars Ek',
         '+46704445566',
@@ -168,7 +178,6 @@ INSERT INTO booking (
         activity_id,
         booker_name,
         booker_group_id,
-        booker_group_name,
         group_free_text,
         responsible_name,
         phone_number,
@@ -181,7 +190,6 @@ VALUES
         'a6b93ca9-1418-5ac3-b668-6429c1023514', -- Quiz: Musikquiz, det som varit och det som är 2026-07-25
         'Anna Svensson',
         101,
-        'Sjöscoutkåren Dansen',
         'Patrull Räven',
         'Anna Svensson',
         '+46701234567',
@@ -193,7 +201,6 @@ VALUES
         'b208a2a7-08dd-58c5-bd88-3084dbeb9436', -- Arrivo 2026-07-25
         'Erik Johansson',
         202,
-        'Scoutkåren Vansen',
         'Patrull Vargen',
         'Erik Johansson',
         '+46709876543',
@@ -205,7 +212,6 @@ VALUES
         'b208a2a7-08dd-58c5-bd88-3084dbeb9436', -- Arrivo 2026-07-25
         'Sara Öberg',
         404,
-        'Fjällscouterna',
         'Patrull Lodjuret',
         'Sara Öberg',
         '+46706667788',
@@ -217,7 +223,6 @@ VALUES
         'e5d2c766-cc40-5a2f-8488-f05fc8820572', -- Godnattsaga 2026-07-25
         'Petra Vikström',
         606,
-        'Scoutkåren Kompassen',
         'Patrull Lodjuret',
         'Petra Vikström',
         '+46702223344',
@@ -229,7 +234,6 @@ VALUES
         'e5d2c766-cc40-5a2f-8488-f05fc8820572', -- Godnattsaga 2026-07-25
         'Lena Holm',
         505,
-        'Scoutkåren Eken',
         'Patrull Bävern',
         'Lena Holm',
         '+46708889900',
@@ -241,7 +245,6 @@ VALUES
         'e5d2c766-cc40-5a2f-8488-f05fc8820572', -- Godnattsaga 2026-07-25
         'Markus Test Ledare',
         1386,
-        'Kår 1386',
         'Patrull Ugglan',
         'Markus Test Ledare',
         '+46700000003',
@@ -253,7 +256,6 @@ VALUES
         '37c3e713-0561-55fd-9900-4bc20f8899e5', -- Öppet hus - Känn Pulsen 2026-07-25
         'Johan Nilsson',
         303,
-        'Scoutkåren Norrsken',
         'Patrull Bävern',
         'Johan Nilsson',
         '+46703334455',
@@ -264,7 +266,6 @@ VALUES
         '2c378f10-bbf5-4a32-b8f4-050dd552a447',
         'a5cd670d-4c43-5400-8f5f-bf4da7113ac8', -- Speed date - vad vill du förändra i samhället? 2026-07-25
         'Markus Test Funktionär',
-        NULL,
         NULL,
         'Hela avdelningen',
         'Markus Test Funktionär',
@@ -277,7 +278,6 @@ VALUES
         'd6394f2b-7a4b-53ac-9287-aef7f65359aa', -- Deeptalk: Nya ideal, gamla mönster - vad händer med jämställdheten 2026? 2026-07-25
         'Lena Holm',
         505,
-        'Scoutkåren Eken',
         'Hela avdelningen',
         'Lena Holm',
         '+46708889900',
@@ -289,7 +289,6 @@ VALUES
         'd6394f2b-7a4b-53ac-9287-aef7f65359aa', -- Deeptalk: Nya ideal, gamla mönster - vad händer med jämställdheten 2026? 2026-07-25
         'Markus Test Ledare',
         1386,
-        'Kår 1386',
         'Patrull Räven',
         'Markus Test Ledare',
         '+46700000003',
@@ -301,7 +300,6 @@ VALUES
         'd6394f2b-7a4b-53ac-9287-aef7f65359aa', -- Deeptalk: Nya ideal, gamla mönster - vad händer med jämställdheten 2026? 2026-07-25
         'Petra Vikström',
         606,
-        'Scoutkåren Kompassen',
         'Patrull Vargen',
         'Petra Vikström',
         '+46702223344',
@@ -312,7 +310,6 @@ VALUES
         '006e3fdd-dc54-43a0-9a2a-4232335c07bc',
         'ce006bf2-571c-5af3-acb1-9b09812bfe7d', -- Kåsan 2026-07-25
         'Markus Test Planeringsfunktionär',
-        NULL,
         NULL,
         'Patrull Räven',
         'Markus Test Planeringsfunktionär',
@@ -325,7 +322,6 @@ VALUES
         'c1addd1a-13ff-5c26-b804-be51a43dd6e1', -- Känslokartan 2026-07-25
         'Markus Test Funktionär',
         NULL,
-        NULL,
         'Patrull Vargen',
         'Markus Test Funktionär',
         '+46700000002',
@@ -337,7 +333,6 @@ VALUES
         'c1addd1a-13ff-5c26-b804-be51a43dd6e1', -- Känslokartan 2026-07-25
         'Erik Johansson',
         202,
-        'Scoutkåren Vansen',
         'Patrull Lodjuret',
         'Erik Johansson',
         '+46709876543',
@@ -349,7 +344,6 @@ VALUES
         'b2bac4bb-2eac-5205-9326-f21c7701cae2', -- Brädspel 2026-07-25
         'Petra Vikström',
         606,
-        'Scoutkåren Kompassen',
         'Patrull Bävern',
         'Petra Vikström',
         '+46702223344',
@@ -361,7 +355,6 @@ VALUES
         'b2bac4bb-2eac-5205-9326-f21c7701cae2', -- Brädspel 2026-07-25
         'Lena Holm',
         505,
-        'Scoutkåren Eken',
         'Patrull Ugglan',
         'Lena Holm',
         '+46708889900',
@@ -373,7 +366,6 @@ VALUES
         'f81290e7-83ef-5704-96e7-c312916f3658', -- Lekaktiviteter 2026-07-25
         'Anna Svensson',
         101,
-        'Sjöscoutkåren Dansen',
         'Patrull Bävern',
         'Anna Svensson',
         '+46701234567',
@@ -385,7 +377,6 @@ VALUES
         '678980c6-bcec-54df-868d-dee8cb79c7f8', -- Bubbelballs 2026-07-25
         'Erik Johansson',
         202,
-        'Scoutkåren Vansen',
         'Patrull Ugglan',
         'Erik Johansson',
         '+46709876543',
@@ -397,7 +388,6 @@ VALUES
         '678980c6-bcec-54df-868d-dee8cb79c7f8', -- Bubbelballs 2026-07-25
         'Sara Öberg',
         404,
-        'Fjällscouterna',
         'Hela avdelningen',
         'Sara Öberg',
         '+46706667788',
@@ -409,7 +399,6 @@ VALUES
         '1b0ad30f-07f7-599f-b0ed-f52358c885e2', -- Cybersäkerhet med Unga forskare 2026-07-25
         'Petra Vikström',
         606,
-        'Scoutkåren Kompassen',
         'Hela avdelningen',
         'Petra Vikström',
         '+46702223344',
@@ -421,7 +410,6 @@ VALUES
         '1b0ad30f-07f7-599f-b0ed-f52358c885e2', -- Cybersäkerhet med Unga forskare 2026-07-25
         'Lena Holm',
         505,
-        'Scoutkåren Eken',
         'Patrull Räven',
         'Lena Holm',
         '+46708889900',
@@ -433,7 +421,6 @@ VALUES
         'd28215c6-a981-5223-a703-3d7156437d79', -- Halmpool 2026-07-25
         'Johan Nilsson',
         303,
-        'Scoutkåren Norrsken',
         'Patrull Räven',
         'Johan Nilsson',
         '+46703334455',
@@ -445,7 +432,6 @@ VALUES
         '4f3dd97a-571d-515c-8e73-f7a0ca192da9', -- Slankaruseller 2026-07-25
         'Sara Öberg',
         404,
-        'Fjällscouterna',
         'Patrull Vargen',
         'Sara Öberg',
         '+46706667788',
@@ -456,7 +442,6 @@ VALUES
         '2c378f10-bbf5-4a32-b8f4-050dd552a447',
         '4f3dd97a-571d-515c-8e73-f7a0ca192da9', -- Slankaruseller 2026-07-25
         'Markus Test Funktionär',
-        NULL,
         NULL,
         'Patrull Lodjuret',
         'Markus Test Funktionär',
@@ -469,7 +454,6 @@ VALUES
         'f123cd57-0cd6-5e71-8993-fe631c0ae9e3', -- Knoprep 2026-07-25
         'Lena Holm',
         505,
-        'Scoutkåren Eken',
         'Patrull Lodjuret',
         'Lena Holm',
         '+46708889900',
@@ -481,7 +465,6 @@ VALUES
         'f123cd57-0cd6-5e71-8993-fe631c0ae9e3', -- Knoprep 2026-07-25
         'Markus Test Ledare',
         1386,
-        'Kår 1386',
         'Patrull Bävern',
         'Markus Test Ledare',
         '+46700000003',
@@ -493,7 +476,6 @@ VALUES
         'f123cd57-0cd6-5e71-8993-fe631c0ae9e3', -- Knoprep 2026-07-25
         'Petra Vikström',
         606,
-        'Scoutkåren Kompassen',
         'Patrull Ugglan',
         'Petra Vikström',
         '+46702223344',
@@ -504,7 +486,6 @@ VALUES
         '006e3fdd-dc54-43a0-9a2a-4232335c07bc',
         '2c9884a6-d823-5905-b717-d54d9ae3bd6e', -- Tillsammans målning 2026-07-25
         'Markus Test Planeringsfunktionär',
-        NULL,
         NULL,
         'Patrull Bävern',
         'Markus Test Planeringsfunktionär',
@@ -517,7 +498,6 @@ VALUES
         '49f455f9-9b5c-5bc2-8db3-b80189e30a26', -- Våga lyssna fördjupning 2026-07-26
         'Erik Johansson',
         202,
-        'Scoutkåren Vansen',
         'Hela avdelningen',
         'Erik Johansson',
         '+46709876543',
@@ -529,7 +509,6 @@ VALUES
         '0c73e5da-a930-528b-9b49-95a22f35655c', -- Påverka på riktigt: när de vanliga vägarna inte räcker 2026-07-26
         'Markus Test Ledare',
         1386,
-        'Kår 1386',
         'Hela avdelningen',
         'Markus Test Ledare',
         '+46700000003',
@@ -541,7 +520,6 @@ VALUES
         '0c73e5da-a930-528b-9b49-95a22f35655c', -- Påverka på riktigt: när de vanliga vägarna inte räcker 2026-07-26
         'Petra Vikström',
         606,
-        'Scoutkåren Kompassen',
         'Patrull Räven',
         'Petra Vikström',
         '+46702223344',
@@ -553,7 +531,6 @@ VALUES
         '0c73e5da-a930-528b-9b49-95a22f35655c', -- Påverka på riktigt: när de vanliga vägarna inte räcker 2026-07-26
         'Lena Holm',
         505,
-        'Scoutkåren Eken',
         'Patrull Vargen',
         'Lena Holm',
         '+46708889900',
@@ -565,7 +542,6 @@ VALUES
         '86f8c015-5b80-584c-b685-f5a9dfaa9a20', -- Quiz 2026-07-26
         'Anna Svensson',
         101,
-        'Sjöscoutkåren Dansen',
         'Patrull Räven',
         'Anna Svensson',
         '+46701234567',
@@ -577,7 +553,6 @@ VALUES
         '9abfb6d5-fa00-5280-8715-fb53fa0c6c1f', -- Hinderbanerace upptäckare 2026-07-26
         'Erik Johansson',
         202,
-        'Scoutkåren Vansen',
         'Patrull Vargen',
         'Erik Johansson',
         '+46709876543',
@@ -589,7 +564,6 @@ VALUES
         '9abfb6d5-fa00-5280-8715-fb53fa0c6c1f', -- Hinderbanerace upptäckare 2026-07-26
         'Sara Öberg',
         404,
-        'Fjällscouterna',
         'Patrull Lodjuret',
         'Sara Öberg',
         '+46706667788',
@@ -601,7 +575,6 @@ VALUES
         'fd6b5c43-abd1-54da-8012-c4eba92dea0b', -- Upptäckarsamtal 2026-07-26
         'Lena Holm',
         505,
-        'Scoutkåren Eken',
         'Patrull Bävern',
         'Lena Holm',
         '+46708889900',
@@ -613,7 +586,6 @@ VALUES
         'fd6b5c43-abd1-54da-8012-c4eba92dea0b', -- Upptäckarsamtal 2026-07-26
         'Markus Test Ledare',
         1386,
-        'Kår 1386',
         'Patrull Ugglan',
         'Markus Test Ledare',
         '+46700000003',
@@ -625,7 +597,6 @@ VALUES
         '73ca9e93-b4e0-5bf2-80c8-5b6448b9bb3f', -- Äventyrararsamtal 2026-07-26
         'Johan Nilsson',
         303,
-        'Scoutkåren Norrsken',
         'Patrull Bävern',
         'Johan Nilsson',
         '+46703334455',
@@ -637,7 +608,6 @@ VALUES
         '481c9c0a-07c9-5a8b-a45b-d5622bfe5c09', -- Leda Scouting - Spork del 1 2026-07-26
         'Sara Öberg',
         404,
-        'Fjällscouterna',
         'Patrull Ugglan',
         'Sara Öberg',
         '+46706667788',
@@ -649,7 +619,6 @@ VALUES
         'afa104af-7392-57ba-b646-75279a3b5d77', -- Leda Scouting - Tamoj del 1 2026-07-26
         'Lena Holm',
         505,
-        'Scoutkåren Eken',
         'Hela avdelningen',
         'Lena Holm',
         '+46708889900',
@@ -661,7 +630,6 @@ VALUES
         'afa104af-7392-57ba-b646-75279a3b5d77', -- Leda Scouting - Tamoj del 1 2026-07-26
         'Markus Test Ledare',
         1386,
-        'Kår 1386',
         'Patrull Räven',
         'Markus Test Ledare',
         '+46700000003',
@@ -672,7 +640,6 @@ VALUES
         '006e3fdd-dc54-43a0-9a2a-4232335c07bc',
         '078a02ed-a35c-5d31-9381-6bd61542ec9b', -- Klubb BANGERS 2026-07-26
         'Markus Test Planeringsfunktionär',
-        NULL,
         NULL,
         'Patrull Räven',
         'Markus Test Planeringsfunktionär',
@@ -685,7 +652,6 @@ VALUES
         '09f413be-effc-51c9-93b9-edefb32ab4c3', -- Karaoke! 2026-07-26
         'Markus Test Funktionär',
         NULL,
-        NULL,
         'Patrull Vargen',
         'Markus Test Funktionär',
         '+46700000002',
@@ -697,7 +663,6 @@ VALUES
         '09f413be-effc-51c9-93b9-edefb32ab4c3', -- Karaoke! 2026-07-26
         'Erik Johansson',
         202,
-        'Scoutkåren Vansen',
         'Patrull Lodjuret',
         'Erik Johansson',
         '+46709876543',
@@ -709,7 +674,6 @@ VALUES
         '82dcf744-eed3-5e77-acda-c48b509fd9e2', -- Masterclass i knoplära 2026-07-26
         'Markus Test Ledare',
         1386,
-        'Kår 1386',
         'Patrull Lodjuret',
         'Markus Test Ledare',
         '+46700000003',
@@ -721,7 +685,6 @@ VALUES
         '82dcf744-eed3-5e77-acda-c48b509fd9e2', -- Masterclass i knoplära 2026-07-26
         'Petra Vikström',
         606,
-        'Scoutkåren Kompassen',
         'Patrull Bävern',
         'Petra Vikström',
         '+46702223344',
@@ -733,7 +696,6 @@ VALUES
         '82dcf744-eed3-5e77-acda-c48b509fd9e2', -- Masterclass i knoplära 2026-07-26
         'Lena Holm',
         505,
-        'Scoutkåren Eken',
         'Patrull Ugglan',
         'Lena Holm',
         '+46708889900',
@@ -745,7 +707,6 @@ VALUES
         '126a1410-5896-5224-833c-28b5b9a0fd38', -- Sagostund 2026-07-26
         'Anna Svensson',
         101,
-        'Sjöscoutkåren Dansen',
         'Patrull Bävern',
         'Anna Svensson',
         '+46701234567',
@@ -757,7 +718,6 @@ VALUES
         'c97167ff-5519-5965-a8dc-3113c9f52289', -- Kvällsbön 2026-07-26
         'Sara Öberg',
         404,
-        'Fjällscouterna',
         'Hela avdelningen',
         'Sara Öberg',
         '+46706667788',
@@ -769,7 +729,6 @@ VALUES
         '7986095f-e2ca-515a-b331-42eecc9a6daf', -- 26/7 – Påsk 🐣 2026-07-26
         'Petra Vikström',
         606,
-        'Scoutkåren Kompassen',
         'Hela avdelningen',
         'Petra Vikström',
         '+46702223344',
@@ -781,7 +740,6 @@ VALUES
         '7986095f-e2ca-515a-b331-42eecc9a6daf', -- 26/7 – Påsk 🐣 2026-07-26
         'Lena Holm',
         505,
-        'Scoutkåren Eken',
         'Patrull Räven',
         'Lena Holm',
         '+46708889900',
@@ -793,7 +751,6 @@ VALUES
         '7986095f-e2ca-515a-b331-42eecc9a6daf', -- 26/7 – Påsk 🐣 2026-07-26
         'Markus Test Ledare',
         1386,
-        'Kår 1386',
         'Patrull Vargen',
         'Markus Test Ledare',
         '+46700000003',
@@ -805,7 +762,6 @@ VALUES
         '58969b83-d19a-5feb-aa0a-ab79ed50dd95', -- Dagens lek 2026-07-26
         'Johan Nilsson',
         303,
-        'Scoutkåren Norrsken',
         'Patrull Räven',
         'Johan Nilsson',
         '+46703334455',
@@ -817,7 +773,6 @@ VALUES
         '5086036b-0cfc-5c68-8806-3fbd222e70f6', -- Speed friendning 2026-07-26
         'Sara Öberg',
         404,
-        'Fjällscouterna',
         'Patrull Vargen',
         'Sara Öberg',
         '+46706667788',
@@ -828,7 +783,6 @@ VALUES
         '2c378f10-bbf5-4a32-b8f4-050dd552a447',
         '5086036b-0cfc-5c68-8806-3fbd222e70f6', -- Speed friendning 2026-07-26
         'Markus Test Funktionär',
-        NULL,
         NULL,
         'Patrull Lodjuret',
         'Markus Test Funktionär',
@@ -841,7 +795,6 @@ VALUES
         '55a02dd6-aa42-57ba-b881-40f6f6187613', -- Speed friendning 2026-07-26
         'Markus Test Ledare',
         1386,
-        'Kår 1386',
         'Patrull Bävern',
         'Markus Test Ledare',
         '+46700000003',
@@ -853,7 +806,6 @@ VALUES
         '55a02dd6-aa42-57ba-b881-40f6f6187613', -- Speed friendning 2026-07-26
         'Petra Vikström',
         606,
-        'Scoutkåren Kompassen',
         'Patrull Ugglan',
         'Petra Vikström',
         '+46702223344',
@@ -864,7 +816,6 @@ VALUES
         '006e3fdd-dc54-43a0-9a2a-4232335c07bc',
         '5f85b46c-f9b2-50e8-b8fb-04b42d02d27b', -- Speed friendning 2026-07-26
         'Markus Test Planeringsfunktionär',
-        NULL,
         NULL,
         'Patrull Bävern',
         'Markus Test Planeringsfunktionär',
@@ -877,7 +828,6 @@ VALUES
         'a6c40518-a47f-5846-8fbe-9deca32f61a7', -- Speed friendning 2026-07-26
         'Markus Test Funktionär',
         NULL,
-        NULL,
         'Patrull Ugglan',
         'Markus Test Funktionär',
         '+46700000002',
@@ -889,7 +839,6 @@ VALUES
         'a6c40518-a47f-5846-8fbe-9deca32f61a7', -- Speed friendning 2026-07-26
         'Erik Johansson',
         202,
-        'Scoutkåren Vansen',
         'Hela avdelningen',
         'Erik Johansson',
         '+46709876543',
@@ -901,7 +850,6 @@ VALUES
         'a8ada774-7cc9-5c31-8ce4-f5b97367d89b', -- Lekaktiviteter 2026-07-26
         'Markus Test Ledare',
         1386,
-        'Kår 1386',
         'Hela avdelningen',
         'Markus Test Ledare',
         '+46700000003',
@@ -913,7 +861,6 @@ VALUES
         'a8ada774-7cc9-5c31-8ce4-f5b97367d89b', -- Lekaktiviteter 2026-07-26
         'Petra Vikström',
         606,
-        'Scoutkåren Kompassen',
         'Patrull Räven',
         'Petra Vikström',
         '+46702223344',
@@ -925,7 +872,6 @@ VALUES
         'b518a741-3087-5e95-87ce-92a7576252eb', -- Bubbelballs 2026-07-26
         'Anna Svensson',
         101,
-        'Sjöscoutkåren Dansen',
         'Patrull Räven',
         'Anna Svensson',
         '+46701234567',
@@ -937,7 +883,6 @@ VALUES
         'a82c89e0-c1a7-5dd4-94ea-4822a33d8c1e', -- Kåsan 2026-07-26
         'Erik Johansson',
         202,
-        'Scoutkåren Vansen',
         'Patrull Vargen',
         'Erik Johansson',
         '+46709876543',
@@ -949,7 +894,6 @@ VALUES
         'a82c89e0-c1a7-5dd4-94ea-4822a33d8c1e', -- Kåsan 2026-07-26
         'Sara Öberg',
         404,
-        'Fjällscouterna',
         'Patrull Lodjuret',
         'Sara Öberg',
         '+46706667788',
@@ -961,7 +905,6 @@ VALUES
         '71e5768c-7fb5-5bbf-9fdb-c68c208a443c', -- Känslokartan 2026-07-26
         'Petra Vikström',
         606,
-        'Scoutkåren Kompassen',
         'Patrull Lodjuret',
         'Petra Vikström',
         '+46702223344',
@@ -973,7 +916,6 @@ VALUES
         '71e5768c-7fb5-5bbf-9fdb-c68c208a443c', -- Känslokartan 2026-07-26
         'Lena Holm',
         505,
-        'Scoutkåren Eken',
         'Patrull Bävern',
         'Lena Holm',
         '+46708889900',
@@ -985,7 +927,6 @@ VALUES
         '71e5768c-7fb5-5bbf-9fdb-c68c208a443c', -- Känslokartan 2026-07-26
         'Markus Test Ledare',
         1386,
-        'Kår 1386',
         'Patrull Ugglan',
         'Markus Test Ledare',
         '+46700000003',
@@ -997,7 +938,6 @@ VALUES
         '713733d3-32d9-5ea1-833b-3886d0c554ec', -- Brädspel 2026-07-26
         'Johan Nilsson',
         303,
-        'Scoutkåren Norrsken',
         'Patrull Bävern',
         'Johan Nilsson',
         '+46703334455',
@@ -1008,7 +948,6 @@ VALUES
         '2c378f10-bbf5-4a32-b8f4-050dd552a447',
         'f0640f56-7792-5307-ba6d-6cec88b13c70', -- Cybersäkerhet med Unga forskare 2026-07-26
         'Markus Test Funktionär',
-        NULL,
         NULL,
         'Hela avdelningen',
         'Markus Test Funktionär',
@@ -1021,7 +960,6 @@ VALUES
         '37764be9-d7ba-58c8-b2f9-21497bd0a997', -- Hantverksfokus: Läder 2026-07-26
         'Lena Holm',
         505,
-        'Scoutkåren Eken',
         'Hela avdelningen',
         'Lena Holm',
         '+46708889900',
@@ -1033,7 +971,6 @@ VALUES
         '37764be9-d7ba-58c8-b2f9-21497bd0a997', -- Hantverksfokus: Läder 2026-07-26
         'Markus Test Ledare',
         1386,
-        'Kår 1386',
         'Patrull Räven',
         'Markus Test Ledare',
         '+46700000003',
@@ -1045,7 +982,6 @@ VALUES
         '37764be9-d7ba-58c8-b2f9-21497bd0a997', -- Hantverksfokus: Läder 2026-07-26
         'Petra Vikström',
         606,
-        'Scoutkåren Kompassen',
         'Patrull Vargen',
         'Petra Vikström',
         '+46702223344',
@@ -1056,7 +992,6 @@ VALUES
         '006e3fdd-dc54-43a0-9a2a-4232335c07bc',
         '9ddf4439-267d-5f4c-9b9e-1ef7c400800d', -- Knoprep 2026-07-26
         'Markus Test Planeringsfunktionär',
-        NULL,
         NULL,
         'Patrull Räven',
         'Markus Test Planeringsfunktionär',
@@ -1069,7 +1004,6 @@ VALUES
         '94ba81dd-0877-5b6a-a074-4c0739ce6d19', -- Tillsammans målning 2026-07-26
         'Markus Test Funktionär',
         NULL,
-        NULL,
         'Patrull Vargen',
         'Markus Test Funktionär',
         '+46700000002',
@@ -1081,7 +1015,6 @@ VALUES
         '94ba81dd-0877-5b6a-a074-4c0739ce6d19', -- Tillsammans målning 2026-07-26
         'Erik Johansson',
         202,
-        'Scoutkåren Vansen',
         'Patrull Lodjuret',
         'Erik Johansson',
         '+46709876543',
@@ -1093,7 +1026,6 @@ VALUES
         '7a7c0e31-d225-57a6-b418-d3c0a7c045c7', -- Halmpool 2026-07-26
         'Petra Vikström',
         606,
-        'Scoutkåren Kompassen',
         'Patrull Bävern',
         'Petra Vikström',
         '+46702223344',
@@ -1105,7 +1037,6 @@ VALUES
         '7a7c0e31-d225-57a6-b418-d3c0a7c045c7', -- Halmpool 2026-07-26
         'Lena Holm',
         505,
-        'Scoutkåren Eken',
         'Patrull Ugglan',
         'Lena Holm',
         '+46708889900',
@@ -1117,7 +1048,6 @@ VALUES
         'f00f9619-668b-5af6-8b49-08b5247c50fe', -- Slankaruseller 2026-07-26
         'Anna Svensson',
         101,
-        'Sjöscoutkåren Dansen',
         'Patrull Bävern',
         'Anna Svensson',
         '+46701234567',
@@ -1129,7 +1059,6 @@ VALUES
         'ee79360a-a81d-5f70-a42e-64f1ed0310cf', -- Psykologisk beredskap 2026-07-26
         'Erik Johansson',
         202,
-        'Scoutkåren Vansen',
         'Patrull Ugglan',
         'Erik Johansson',
         '+46709876543',
@@ -1141,7 +1070,6 @@ VALUES
         'ee79360a-a81d-5f70-a42e-64f1ed0310cf', -- Psykologisk beredskap 2026-07-26
         'Sara Öberg',
         404,
-        'Fjällscouterna',
         'Hela avdelningen',
         'Sara Öberg',
         '+46706667788',
@@ -1153,7 +1081,6 @@ VALUES
         'e7e035d4-ad8b-55da-a308-532d5a9bbafb', -- Psykologisk beredskap 2026-07-26
         'Petra Vikström',
         606,
-        'Scoutkåren Kompassen',
         'Hela avdelningen',
         'Petra Vikström',
         '+46702223344',
@@ -1165,7 +1092,6 @@ VALUES
         'e7e035d4-ad8b-55da-a308-532d5a9bbafb', -- Psykologisk beredskap 2026-07-26
         'Lena Holm',
         505,
-        'Scoutkåren Eken',
         'Patrull Räven',
         'Lena Holm',
         '+46708889900',
@@ -1177,7 +1103,6 @@ VALUES
         'a25e5238-61a2-5523-95b3-2aea9004e56c', -- Mekanisk tjur 2026-07-26
         'Johan Nilsson',
         303,
-        'Scoutkåren Norrsken',
         'Patrull Räven',
         'Johan Nilsson',
         '+46703334455',
@@ -1189,7 +1114,6 @@ VALUES
         '4bc7bc39-ae07-537a-909d-916a292f7da9', -- Unga forskare 2026-07-26
         'Sara Öberg',
         404,
-        'Fjällscouterna',
         'Patrull Vargen',
         'Sara Öberg',
         '+46706667788',
@@ -1200,7 +1124,6 @@ VALUES
         '2c378f10-bbf5-4a32-b8f4-050dd552a447',
         '4bc7bc39-ae07-537a-909d-916a292f7da9', -- Unga forskare 2026-07-26
         'Markus Test Funktionär',
-        NULL,
         NULL,
         'Patrull Lodjuret',
         'Markus Test Funktionär',
@@ -1213,7 +1136,6 @@ VALUES
         '94e0e7e2-dab6-5457-8ab5-5fe45151ecb0', -- Speedfriending 2026-07-26
         'Lena Holm',
         505,
-        'Scoutkåren Eken',
         'Patrull Lodjuret',
         'Lena Holm',
         '+46708889900',
@@ -1225,7 +1147,6 @@ VALUES
         '94e0e7e2-dab6-5457-8ab5-5fe45151ecb0', -- Speedfriending 2026-07-26
         'Markus Test Ledare',
         1386,
-        'Kår 1386',
         'Patrull Bävern',
         'Markus Test Ledare',
         '+46700000003',
@@ -1237,7 +1158,6 @@ VALUES
         '94e0e7e2-dab6-5457-8ab5-5fe45151ecb0', -- Speedfriending 2026-07-26
         'Petra Vikström',
         606,
-        'Scoutkåren Kompassen',
         'Patrull Ugglan',
         'Petra Vikström',
         '+46702223344',
@@ -1248,7 +1168,6 @@ VALUES
         '006e3fdd-dc54-43a0-9a2a-4232335c07bc',
         '8839a2d8-5ded-531d-866e-a15a7c66f66e', -- Lokal trubadur 2026-07-26
         'Markus Test Planeringsfunktionär',
-        NULL,
         NULL,
         'Patrull Bävern',
         'Markus Test Planeringsfunktionär',
@@ -1261,7 +1180,6 @@ VALUES
         'cef3019f-0305-56a0-8b32-d930994ef82f', -- Lokal trubadur 2026-07-26
         'Erik Johansson',
         202,
-        'Scoutkåren Vansen',
         'Hela avdelningen',
         'Erik Johansson',
         '+46709876543',
@@ -1273,7 +1191,6 @@ VALUES
         '76bbce09-a748-51b2-9bdc-abd08d3865f5', -- Trygga möten fördjupning 2026-07-27
         'Markus Test Ledare',
         1386,
-        'Kår 1386',
         'Hela avdelningen',
         'Markus Test Ledare',
         '+46700000003',
@@ -1285,7 +1202,6 @@ VALUES
         '76bbce09-a748-51b2-9bdc-abd08d3865f5', -- Trygga möten fördjupning 2026-07-27
         'Petra Vikström',
         606,
-        'Scoutkåren Kompassen',
         'Patrull Räven',
         'Petra Vikström',
         '+46702223344',
@@ -1297,7 +1213,6 @@ VALUES
         '76bbce09-a748-51b2-9bdc-abd08d3865f5', -- Trygga möten fördjupning 2026-07-27
         'Lena Holm',
         505,
-        'Scoutkåren Eken',
         'Patrull Vargen',
         'Lena Holm',
         '+46708889900',
@@ -1309,7 +1224,6 @@ VALUES
         'fe69870d-9e76-5b79-bdf9-3dee3b81a968', -- Mind: Delaktighet som friskfaktor 2026-07-27
         'Anna Svensson',
         101,
-        'Sjöscoutkåren Dansen',
         'Patrull Räven',
         'Anna Svensson',
         '+46701234567',
@@ -1321,7 +1235,6 @@ VALUES
         'f3b00d8d-268d-5aaf-93c7-4167fda6d4a0', -- Treskablinoll: Trygga scouter - nytt material med fokus på integritet 2026-07-27
         'Erik Johansson',
         202,
-        'Scoutkåren Vansen',
         'Patrull Vargen',
         'Erik Johansson',
         '+46709876543',
@@ -1333,7 +1246,6 @@ VALUES
         'f3b00d8d-268d-5aaf-93c7-4167fda6d4a0', -- Treskablinoll: Trygga scouter - nytt material med fokus på integritet 2026-07-27
         'Sara Öberg',
         404,
-        'Fjällscouterna',
         'Patrull Lodjuret',
         'Sara Öberg',
         '+46706667788',
@@ -1345,7 +1257,6 @@ VALUES
         'fb2e9a02-0605-52ff-bee5-cb82c8b61312', -- Säker verksamhet 2026-07-27
         'Lena Holm',
         505,
-        'Scoutkåren Eken',
         'Patrull Bävern',
         'Lena Holm',
         '+46708889900',
@@ -1357,7 +1268,6 @@ VALUES
         'fb2e9a02-0605-52ff-bee5-cb82c8b61312', -- Säker verksamhet 2026-07-27
         'Markus Test Ledare',
         1386,
-        'Kår 1386',
         'Patrull Ugglan',
         'Markus Test Ledare',
         '+46700000003',
@@ -1369,7 +1279,6 @@ VALUES
         '90db323c-56d0-5fa9-9826-9b1cc6e2eab5', -- Trauma dumping - vilka problem ser du i din scoutkår? 2026-07-27
         'Johan Nilsson',
         303,
-        'Scoutkåren Norrsken',
         'Patrull Bävern',
         'Johan Nilsson',
         '+46703334455',
@@ -1381,7 +1290,6 @@ VALUES
         '17786f13-ca1b-5efe-acf4-e633f2dfac3b', -- Mind & Tim Bergling Foundation: Så jobbar vi med ungdomsinflytande 2026-07-27
         'Sara Öberg',
         404,
-        'Fjällscouterna',
         'Patrull Ugglan',
         'Sara Öberg',
         '+46706667788',
@@ -1392,7 +1300,6 @@ VALUES
         '2c378f10-bbf5-4a32-b8f4-050dd552a447',
         '17786f13-ca1b-5efe-acf4-e633f2dfac3b', -- Mind & Tim Bergling Foundation: Så jobbar vi med ungdomsinflytande 2026-07-27
         'Markus Test Funktionär',
-        NULL,
         NULL,
         'Hela avdelningen',
         'Markus Test Funktionär',
@@ -1405,7 +1312,6 @@ VALUES
         'ab44ffae-97b5-5311-9d76-5b96e79ba50e', -- Mind & Tim Bergling Foundation: Träffa våra ungdomsambassadörer! 2026-07-27
         'Lena Holm',
         505,
-        'Scoutkåren Eken',
         'Hela avdelningen',
         'Lena Holm',
         '+46708889900',
@@ -1417,7 +1323,6 @@ VALUES
         'ab44ffae-97b5-5311-9d76-5b96e79ba50e', -- Mind & Tim Bergling Foundation: Träffa våra ungdomsambassadörer! 2026-07-27
         'Markus Test Ledare',
         1386,
-        'Kår 1386',
         'Patrull Räven',
         'Markus Test Ledare',
         '+46700000003',
@@ -1428,7 +1333,6 @@ VALUES
         '006e3fdd-dc54-43a0-9a2a-4232335c07bc',
         '17af255f-d728-5c22-b076-8daae5474bde', -- WAGGGS & WOSM på besök – hitta din plats i världsscoutingen! 2026-07-27
         'Markus Test Planeringsfunktionär',
-        NULL,
         NULL,
         'Patrull Räven',
         'Markus Test Planeringsfunktionär',
@@ -1441,7 +1345,6 @@ VALUES
         '272ef6c8-ac23-5c2c-ba08-6b401086f499', -- En organisation av och för unga, med stöd av vuxna. Eller? 2026-07-27
         'Markus Test Funktionär',
         NULL,
-        NULL,
         'Patrull Vargen',
         'Markus Test Funktionär',
         '+46700000002',
@@ -1453,7 +1356,6 @@ VALUES
         '272ef6c8-ac23-5c2c-ba08-6b401086f499', -- En organisation av och för unga, med stöd av vuxna. Eller? 2026-07-27
         'Erik Johansson',
         202,
-        'Scoutkåren Vansen',
         'Patrull Lodjuret',
         'Erik Johansson',
         '+46709876543',
@@ -1465,7 +1367,6 @@ VALUES
         '5699fdf0-232b-5511-a0c9-aaaf232dd936', -- Deep-talk: Borde jag göra slut med min scoutkår? 2026-07-27
         'Markus Test Ledare',
         1386,
-        'Kår 1386',
         'Patrull Lodjuret',
         'Markus Test Ledare',
         '+46700000003',
@@ -1477,7 +1378,6 @@ VALUES
         '5699fdf0-232b-5511-a0c9-aaaf232dd936', -- Deep-talk: Borde jag göra slut med min scoutkår? 2026-07-27
         'Petra Vikström',
         606,
-        'Scoutkåren Kompassen',
         'Patrull Bävern',
         'Petra Vikström',
         '+46702223344',
@@ -1489,7 +1389,6 @@ VALUES
         '5699fdf0-232b-5511-a0c9-aaaf232dd936', -- Deep-talk: Borde jag göra slut med min scoutkår? 2026-07-27
         'Lena Holm',
         505,
-        'Scoutkåren Eken',
         'Patrull Ugglan',
         'Lena Holm',
         '+46708889900',
@@ -1501,7 +1400,6 @@ VALUES
         'fe751b3a-b3f9-502e-9c5d-dc79d7cf9127', -- Återträff Blå hajken 2026-07-27
         'Anna Svensson',
         101,
-        'Sjöscoutkåren Dansen',
         'Patrull Bävern',
         'Anna Svensson',
         '+46701234567',
@@ -1513,7 +1411,6 @@ VALUES
         '734e4cf4-1485-5454-b7fe-ecbb03977bd2', -- Återträff Go Global 2026-07-27
         'Sara Öberg',
         404,
-        'Fjällscouterna',
         'Hela avdelningen',
         'Sara Öberg',
         '+46706667788',
@@ -1525,7 +1422,6 @@ VALUES
         '647fd0b0-c417-51e0-a2ee-5e712e2d22a9', -- Återträff Ung i Norden 2026-07-27
         'Petra Vikström',
         606,
-        'Scoutkåren Kompassen',
         'Hela avdelningen',
         'Petra Vikström',
         '+46702223344',
@@ -1537,7 +1433,6 @@ VALUES
         '647fd0b0-c417-51e0-a2ee-5e712e2d22a9', -- Återträff Ung i Norden 2026-07-27
         'Lena Holm',
         505,
-        'Scoutkåren Eken',
         'Patrull Räven',
         'Lena Holm',
         '+46708889900',
@@ -1549,7 +1444,6 @@ VALUES
         '647fd0b0-c417-51e0-a2ee-5e712e2d22a9', -- Återträff Ung i Norden 2026-07-27
         'Markus Test Ledare',
         1386,
-        'Kår 1386',
         'Patrull Vargen',
         'Markus Test Ledare',
         '+46700000003',
@@ -1561,7 +1455,6 @@ VALUES
         '4aa4dd5c-2187-530b-a0c9-e006024efeb6', -- Återträff NAR - Nordic Adeventure Race 2026-07-27
         'Johan Nilsson',
         303,
-        'Scoutkåren Norrsken',
         'Patrull Räven',
         'Johan Nilsson',
         '+46703334455',
@@ -1573,7 +1466,6 @@ VALUES
         'b881e453-dc15-5666-8710-604f137374f4', -- Återträff Destination 2026-07-27
         'Sara Öberg',
         404,
-        'Fjällscouterna',
         'Patrull Vargen',
         'Sara Öberg',
         '+46706667788',
@@ -1584,7 +1476,6 @@ VALUES
         '2c378f10-bbf5-4a32-b8f4-050dd552a447',
         'b881e453-dc15-5666-8710-604f137374f4', -- Återträff Destination 2026-07-27
         'Markus Test Funktionär',
-        NULL,
         NULL,
         'Patrull Lodjuret',
         'Markus Test Funktionär',
@@ -1597,7 +1488,6 @@ VALUES
         '8905edbc-6fdb-52fd-96d1-c72ab1c30911', -- Återträff Upplev 2026-07-27
         'Markus Test Ledare',
         1386,
-        'Kår 1386',
         'Patrull Bävern',
         'Markus Test Ledare',
         '+46700000003',
@@ -1609,7 +1499,6 @@ VALUES
         '8905edbc-6fdb-52fd-96d1-c72ab1c30911', -- Återträff Upplev 2026-07-27
         'Petra Vikström',
         606,
-        'Scoutkåren Kompassen',
         'Patrull Ugglan',
         'Petra Vikström',
         '+46702223344',
@@ -1620,7 +1509,6 @@ VALUES
         '006e3fdd-dc54-43a0-9a2a-4232335c07bc',
         'bf3c8d00-859a-5c2e-a139-0485003a95c9', -- Quiz 2026-07-27
         'Markus Test Planeringsfunktionär',
-        NULL,
         NULL,
         'Patrull Bävern',
         'Markus Test Planeringsfunktionär',
@@ -1633,7 +1521,6 @@ VALUES
         'b7235adc-a125-5e79-ad36-3d28925747fa', -- Karaoke 2026-07-27
         'Markus Test Funktionär',
         NULL,
-        NULL,
         'Patrull Ugglan',
         'Markus Test Funktionär',
         '+46700000002',
@@ -1645,7 +1532,6 @@ VALUES
         'b7235adc-a125-5e79-ad36-3d28925747fa', -- Karaoke 2026-07-27
         'Erik Johansson',
         202,
-        'Scoutkåren Vansen',
         'Hela avdelningen',
         'Erik Johansson',
         '+46709876543',
@@ -1657,7 +1543,6 @@ VALUES
         'cf73f516-7167-513d-ab05-5ad6f958d69e', -- Spelkväll! 2026-07-27
         'Markus Test Ledare',
         1386,
-        'Kår 1386',
         'Hela avdelningen',
         'Markus Test Ledare',
         '+46700000003',
@@ -1669,7 +1554,6 @@ VALUES
         'cf73f516-7167-513d-ab05-5ad6f958d69e', -- Spelkväll! 2026-07-27
         'Petra Vikström',
         606,
-        'Scoutkåren Kompassen',
         'Patrull Räven',
         'Petra Vikström',
         '+46702223344',
@@ -1681,7 +1565,6 @@ VALUES
         'c743dad2-75e2-5870-8367-389485d79ea5', -- Folkhögskolan tar över ledarhänget 2026-07-27
         'Anna Svensson',
         101,
-        'Sjöscoutkåren Dansen',
         'Patrull Räven',
         'Anna Svensson',
         '+46701234567',
@@ -1693,7 +1576,6 @@ VALUES
         'ba62753e-ace6-5ea7-815c-5355dca33497', -- Gospel Gudtjänst 2026-07-27
         'Erik Johansson',
         202,
-        'Scoutkåren Vansen',
         'Patrull Vargen',
         'Erik Johansson',
         '+46709876543',
@@ -1705,7 +1587,6 @@ VALUES
         'ba62753e-ace6-5ea7-815c-5355dca33497', -- Gospel Gudtjänst 2026-07-27
         'Sara Öberg',
         404,
-        'Fjällscouterna',
         'Patrull Lodjuret',
         'Sara Öberg',
         '+46706667788',
@@ -1717,7 +1598,6 @@ VALUES
         '81fd232c-9acd-5f53-9f59-d4c4d22918b4', -- Gudstjänst 2026-07-27
         'Petra Vikström',
         606,
-        'Scoutkåren Kompassen',
         'Patrull Lodjuret',
         'Petra Vikström',
         '+46702223344',
@@ -1729,7 +1609,6 @@ VALUES
         '81fd232c-9acd-5f53-9f59-d4c4d22918b4', -- Gudstjänst 2026-07-27
         'Lena Holm',
         505,
-        'Scoutkåren Eken',
         'Patrull Bävern',
         'Lena Holm',
         '+46708889900',
@@ -1741,7 +1620,6 @@ VALUES
         '81fd232c-9acd-5f53-9f59-d4c4d22918b4', -- Gudstjänst 2026-07-27
         'Markus Test Ledare',
         1386,
-        'Kår 1386',
         'Patrull Ugglan',
         'Markus Test Ledare',
         '+46700000003',
@@ -1753,7 +1631,6 @@ VALUES
         '751041eb-638b-58d8-b8b1-073554dac7c0', -- Familjescoutsamtal 2026-07-27
         'Johan Nilsson',
         303,
-        'Scoutkåren Norrsken',
         'Patrull Bävern',
         'Johan Nilsson',
         '+46703334455',
@@ -1764,7 +1641,6 @@ VALUES
         '2c378f10-bbf5-4a32-b8f4-050dd552a447',
         '928bac10-8819-5e75-887e-c412e38e8a1b', -- Spårarsamtal 2026-07-27
         'Markus Test Funktionär',
-        NULL,
         NULL,
         'Hela avdelningen',
         'Markus Test Funktionär',
@@ -1777,7 +1653,6 @@ VALUES
         'd61cc0ed-dde9-5a95-874f-6a394d470fb7', -- Utmanarsamtal 2026-07-27
         'Lena Holm',
         505,
-        'Scoutkåren Eken',
         'Hela avdelningen',
         'Lena Holm',
         '+46708889900',
@@ -1789,7 +1664,6 @@ VALUES
         'd61cc0ed-dde9-5a95-874f-6a394d470fb7', -- Utmanarsamtal 2026-07-27
         'Markus Test Ledare',
         1386,
-        'Kår 1386',
         'Patrull Räven',
         'Markus Test Ledare',
         '+46700000003',
@@ -1801,7 +1675,6 @@ VALUES
         'd61cc0ed-dde9-5a95-874f-6a394d470fb7', -- Utmanarsamtal 2026-07-27
         'Petra Vikström',
         606,
-        'Scoutkåren Kompassen',
         'Patrull Vargen',
         'Petra Vikström',
         '+46702223344',
@@ -1812,7 +1685,6 @@ VALUES
         '006e3fdd-dc54-43a0-9a2a-4232335c07bc',
         'a9f73bb3-1833-59c7-b061-cc71f236a1a4', -- RUNCLUB 2026-07-27
         'Markus Test Planeringsfunktionär',
-        NULL,
         NULL,
         'Patrull Räven',
         'Markus Test Planeringsfunktionär',
@@ -1825,7 +1697,6 @@ VALUES
         '1377d746-b0c3-5ec7-b903-81903fd3ca55', -- Leda Scouting - Kåsa del 1 2026-07-27
         'Markus Test Funktionär',
         NULL,
-        NULL,
         'Patrull Vargen',
         'Markus Test Funktionär',
         '+46700000002',
@@ -1837,7 +1708,6 @@ VALUES
         '1377d746-b0c3-5ec7-b903-81903fd3ca55', -- Leda Scouting - Kåsa del 1 2026-07-27
         'Erik Johansson',
         202,
-        'Scoutkåren Vansen',
         'Patrull Lodjuret',
         'Erik Johansson',
         '+46709876543',
@@ -1849,7 +1719,6 @@ VALUES
         'd5380b5b-9d81-54b7-b3cf-054603ee33cd', -- Speedfriending 2026-07-27
         'Petra Vikström',
         606,
-        'Scoutkåren Kompassen',
         'Patrull Bävern',
         'Petra Vikström',
         '+46702223344',
@@ -1861,7 +1730,6 @@ VALUES
         'd5380b5b-9d81-54b7-b3cf-054603ee33cd', -- Speedfriending 2026-07-27
         'Lena Holm',
         505,
-        'Scoutkåren Eken',
         'Patrull Ugglan',
         'Lena Holm',
         '+46708889900',
@@ -1873,7 +1741,6 @@ VALUES
         '471e7101-bac5-54a5-93ab-1c57addf4105', -- DJ Lingon Groove 2026-07-27
         'Anna Svensson',
         101,
-        'Sjöscoutkåren Dansen',
         'Patrull Bävern',
         'Anna Svensson',
         '+46701234567',
@@ -1885,7 +1752,6 @@ VALUES
         '27793f1c-f0cf-582f-a2cc-984ccd421417', -- Roverpoängjakt med de regionala roverarrangemangsutskotten! 2026-07-27
         'Erik Johansson',
         202,
-        'Scoutkåren Vansen',
         'Patrull Ugglan',
         'Erik Johansson',
         '+46709876543',
@@ -1897,7 +1763,6 @@ VALUES
         '27793f1c-f0cf-582f-a2cc-984ccd421417', -- Roverpoängjakt med de regionala roverarrangemangsutskotten! 2026-07-27
         'Sara Öberg',
         404,
-        'Fjällscouterna',
         'Hela avdelningen',
         'Sara Öberg',
         '+46706667788',
@@ -1909,7 +1774,6 @@ VALUES
         'a98b2543-6025-5462-b449-bf810ebce753', -- Projektledning för roverscouter 2026-07-27
         'Petra Vikström',
         606,
-        'Scoutkåren Kompassen',
         'Hela avdelningen',
         'Petra Vikström',
         '+46702223344',
@@ -1921,7 +1785,6 @@ VALUES
         'a98b2543-6025-5462-b449-bf810ebce753', -- Projektledning för roverscouter 2026-07-27
         'Lena Holm',
         505,
-        'Scoutkåren Eken',
         'Patrull Räven',
         'Lena Holm',
         '+46708889900',
@@ -1933,7 +1796,6 @@ VALUES
         'b5eb6a48-0a1f-5e2b-8848-f6880c4a7d55', -- Stand-up kväll! 2026-07-27
         'Johan Nilsson',
         303,
-        'Scoutkåren Norrsken',
         'Patrull Räven',
         'Johan Nilsson',
         '+46703334455',
@@ -1945,7 +1807,6 @@ VALUES
         'b8961dd7-94d3-5faa-8539-28d23be901a1', -- Quiz: Om scouter, Skåne och lägerskoj 2026-07-27
         'Sara Öberg',
         404,
-        'Fjällscouterna',
         'Patrull Vargen',
         'Sara Öberg',
         '+46706667788',
@@ -1956,7 +1817,6 @@ VALUES
         '2c378f10-bbf5-4a32-b8f4-050dd552a447',
         'b8961dd7-94d3-5faa-8539-28d23be901a1', -- Quiz: Om scouter, Skåne och lägerskoj 2026-07-27
         'Markus Test Funktionär',
-        NULL,
         NULL,
         'Patrull Lodjuret',
         'Markus Test Funktionär',
@@ -1969,7 +1829,6 @@ VALUES
         '93cb71c7-13b9-5a05-8112-161e8c30c1e1', -- Roverhinderbana 2026-07-27
         'Lena Holm',
         505,
-        'Scoutkåren Eken',
         'Patrull Lodjuret',
         'Lena Holm',
         '+46708889900',
@@ -1981,7 +1840,6 @@ VALUES
         '93cb71c7-13b9-5a05-8112-161e8c30c1e1', -- Roverhinderbana 2026-07-27
         'Markus Test Ledare',
         1386,
-        'Kår 1386',
         'Patrull Bävern',
         'Markus Test Ledare',
         '+46700000003',
@@ -1993,7 +1851,6 @@ VALUES
         '93cb71c7-13b9-5a05-8112-161e8c30c1e1', -- Roverhinderbana 2026-07-27
         'Petra Vikström',
         606,
-        'Scoutkåren Kompassen',
         'Patrull Ugglan',
         'Petra Vikström',
         '+46702223344',
@@ -2004,7 +1861,6 @@ VALUES
         '006e3fdd-dc54-43a0-9a2a-4232335c07bc',
         'dcbe3520-35fd-5bf1-bc01-3bf4420c7f3a', -- Roverhinderbana 2026-07-27
         'Markus Test Planeringsfunktionär',
-        NULL,
         NULL,
         'Patrull Bävern',
         'Markus Test Planeringsfunktionär',
@@ -2017,7 +1873,6 @@ VALUES
         '7272a920-5a32-5747-ad7f-3878aeece0ad', -- Sagostund 2026-07-27
         'Erik Johansson',
         202,
-        'Scoutkåren Vansen',
         'Hela avdelningen',
         'Erik Johansson',
         '+46709876543',
@@ -2029,7 +1884,6 @@ VALUES
         'a371cfb1-38a6-5be9-a02d-0e5d373d5012', -- Kvällsbön 2026-07-27
         'Markus Test Ledare',
         1386,
-        'Kår 1386',
         'Hela avdelningen',
         'Markus Test Ledare',
         '+46700000003',
@@ -2041,7 +1895,6 @@ VALUES
         'a371cfb1-38a6-5be9-a02d-0e5d373d5012', -- Kvällsbön 2026-07-27
         'Petra Vikström',
         606,
-        'Scoutkåren Kompassen',
         'Patrull Räven',
         'Petra Vikström',
         '+46702223344',
@@ -2053,7 +1906,6 @@ VALUES
         'a371cfb1-38a6-5be9-a02d-0e5d373d5012', -- Kvällsbön 2026-07-27
         'Lena Holm',
         505,
-        'Scoutkåren Eken',
         'Patrull Vargen',
         'Lena Holm',
         '+46708889900',
@@ -2065,7 +1917,6 @@ VALUES
         'ffcc33c5-3e99-52ea-924b-56e7269e3a4b', -- 27/7 – Midsommar 🌼 2026-07-27
         'Anna Svensson',
         101,
-        'Sjöscoutkåren Dansen',
         'Patrull Räven',
         'Anna Svensson',
         '+46701234567',
@@ -2077,7 +1928,6 @@ VALUES
         'f04f2856-0477-53a0-9e44-0e2ad5fbb70d', -- Dagens lek 2026-07-27
         'Erik Johansson',
         202,
-        'Scoutkåren Vansen',
         'Patrull Vargen',
         'Erik Johansson',
         '+46709876543',
@@ -2089,7 +1939,6 @@ VALUES
         'f04f2856-0477-53a0-9e44-0e2ad5fbb70d', -- Dagens lek 2026-07-27
         'Sara Öberg',
         404,
-        'Fjällscouterna',
         'Patrull Lodjuret',
         'Sara Öberg',
         '+46706667788',
@@ -2101,7 +1950,6 @@ VALUES
         '419a5558-d525-5f10-a9f3-467c8d860321', -- Hand the Ball 2026-07-27
         'Lena Holm',
         505,
-        'Scoutkåren Eken',
         'Patrull Bävern',
         'Lena Holm',
         '+46708889900',
@@ -2113,7 +1961,6 @@ VALUES
         '419a5558-d525-5f10-a9f3-467c8d860321', -- Hand the Ball 2026-07-27
         'Markus Test Ledare',
         1386,
-        'Kår 1386',
         'Patrull Ugglan',
         'Markus Test Ledare',
         '+46700000003',
@@ -2125,7 +1972,6 @@ VALUES
         'b327ec08-141c-5c24-8e0c-6c57cbe914a9', -- Kubbturnering 2026-07-27
         'Johan Nilsson',
         303,
-        'Scoutkåren Norrsken',
         'Patrull Bävern',
         'Johan Nilsson',
         '+46703334455',
@@ -2137,7 +1983,6 @@ VALUES
         '340bf173-a87f-5fc4-8101-06d9ffcdf112', -- Kubbturnering 2026-07-27
         'Sara Öberg',
         404,
-        'Fjällscouterna',
         'Patrull Ugglan',
         'Sara Öberg',
         '+46706667788',
@@ -2148,7 +1993,6 @@ VALUES
         '2c378f10-bbf5-4a32-b8f4-050dd552a447',
         '340bf173-a87f-5fc4-8101-06d9ffcdf112', -- Kubbturnering 2026-07-27
         'Markus Test Funktionär',
-        NULL,
         NULL,
         'Hela avdelningen',
         'Markus Test Funktionär',
@@ -2161,7 +2005,6 @@ VALUES
         'bd47dc77-2923-5247-8d41-6f2988fc9d42', -- Disko! 2026-07-27
         'Lena Holm',
         505,
-        'Scoutkåren Eken',
         'Hela avdelningen',
         'Lena Holm',
         '+46708889900',
@@ -2173,7 +2016,6 @@ VALUES
         'bd47dc77-2923-5247-8d41-6f2988fc9d42', -- Disko! 2026-07-27
         'Markus Test Ledare',
         1386,
-        'Kår 1386',
         'Patrull Räven',
         'Markus Test Ledare',
         '+46700000003',
@@ -2184,7 +2026,6 @@ VALUES
         '006e3fdd-dc54-43a0-9a2a-4232335c07bc',
         'ab7e0f8c-d271-51c9-8f20-144f2b28fd6c', -- Lekaktiviteter 2026-07-27
         'Markus Test Planeringsfunktionär',
-        NULL,
         NULL,
         'Patrull Räven',
         'Markus Test Planeringsfunktionär',
@@ -2197,7 +2038,6 @@ VALUES
         '697113d8-32f1-5248-acd9-5d4f21d2b815', -- Bubbelballs 2026-07-27
         'Markus Test Funktionär',
         NULL,
-        NULL,
         'Patrull Vargen',
         'Markus Test Funktionär',
         '+46700000002',
@@ -2209,7 +2049,6 @@ VALUES
         '697113d8-32f1-5248-acd9-5d4f21d2b815', -- Bubbelballs 2026-07-27
         'Erik Johansson',
         202,
-        'Scoutkåren Vansen',
         'Patrull Lodjuret',
         'Erik Johansson',
         '+46709876543',
@@ -2221,7 +2060,6 @@ VALUES
         '8cf6c9a5-0572-5fb7-97e8-f2a0b86f970f', -- Godnattsaga 2026-07-27
         'Markus Test Ledare',
         1386,
-        'Kår 1386',
         'Patrull Lodjuret',
         'Markus Test Ledare',
         '+46700000003',
@@ -2233,7 +2071,6 @@ VALUES
         '8cf6c9a5-0572-5fb7-97e8-f2a0b86f970f', -- Godnattsaga 2026-07-27
         'Petra Vikström',
         606,
-        'Scoutkåren Kompassen',
         'Patrull Bävern',
         'Petra Vikström',
         '+46702223344',
@@ -2245,7 +2082,6 @@ VALUES
         '8cf6c9a5-0572-5fb7-97e8-f2a0b86f970f', -- Godnattsaga 2026-07-27
         'Lena Holm',
         505,
-        'Scoutkåren Eken',
         'Patrull Ugglan',
         'Lena Holm',
         '+46708889900',
@@ -2257,7 +2093,6 @@ VALUES
         'a15d66d0-7cca-50de-a4b0-717651865798', -- Kåsan 2026-07-27
         'Anna Svensson',
         101,
-        'Sjöscoutkåren Dansen',
         'Patrull Bävern',
         'Anna Svensson',
         '+46701234567',
@@ -2269,7 +2104,6 @@ VALUES
         '610885be-25c9-51f7-b3aa-4abb9f1a4b73', -- Känslokartan 2026-07-27
         'Sara Öberg',
         404,
-        'Fjällscouterna',
         'Hela avdelningen',
         'Sara Öberg',
         '+46706667788',
@@ -2281,7 +2115,6 @@ VALUES
         'c7dce563-ead5-5d00-ade9-cc7796b5f2b3', -- Brädspel 2026-07-27
         'Petra Vikström',
         606,
-        'Scoutkåren Kompassen',
         'Hela avdelningen',
         'Petra Vikström',
         '+46702223344',
@@ -2293,7 +2126,6 @@ VALUES
         'c7dce563-ead5-5d00-ade9-cc7796b5f2b3', -- Brädspel 2026-07-27
         'Lena Holm',
         505,
-        'Scoutkåren Eken',
         'Patrull Räven',
         'Lena Holm',
         '+46708889900',
@@ -2305,7 +2137,6 @@ VALUES
         'c7dce563-ead5-5d00-ade9-cc7796b5f2b3', -- Brädspel 2026-07-27
         'Markus Test Ledare',
         1386,
-        'Kår 1386',
         'Patrull Vargen',
         'Markus Test Ledare',
         '+46700000003',
@@ -2317,7 +2148,6 @@ VALUES
         'e392b8e1-350c-5a6b-87c9-bd98f96558f3', -- Cybersäkerhet med Unga forskare 2026-07-27
         'Johan Nilsson',
         303,
-        'Scoutkåren Norrsken',
         'Patrull Räven',
         'Johan Nilsson',
         '+46703334455',
@@ -2329,7 +2159,6 @@ VALUES
         '87e1b1cb-9009-546b-955a-c1756d87737f', -- Hantverksfokus: Täljning 2026-07-27
         'Sara Öberg',
         404,
-        'Fjällscouterna',
         'Patrull Vargen',
         'Sara Öberg',
         '+46706667788',
@@ -2340,7 +2169,6 @@ VALUES
         '2c378f10-bbf5-4a32-b8f4-050dd552a447',
         '87e1b1cb-9009-546b-955a-c1756d87737f', -- Hantverksfokus: Täljning 2026-07-27
         'Markus Test Funktionär',
-        NULL,
         NULL,
         'Patrull Lodjuret',
         'Markus Test Funktionär',
@@ -2353,7 +2181,6 @@ VALUES
         '9e60857a-fe9c-56b0-95da-eac7249b4d07', -- Knoprep 2026-07-27
         'Markus Test Ledare',
         1386,
-        'Kår 1386',
         'Patrull Bävern',
         'Markus Test Ledare',
         '+46700000003',
@@ -2365,7 +2192,6 @@ VALUES
         '9e60857a-fe9c-56b0-95da-eac7249b4d07', -- Knoprep 2026-07-27
         'Petra Vikström',
         606,
-        'Scoutkåren Kompassen',
         'Patrull Ugglan',
         'Petra Vikström',
         '+46702223344',
@@ -2376,7 +2202,6 @@ VALUES
         '006e3fdd-dc54-43a0-9a2a-4232335c07bc',
         '973ad700-673a-5f3a-b186-3bb43e890bb3', -- Tillsammans målning 2026-07-27
         'Markus Test Planeringsfunktionär',
-        NULL,
         NULL,
         'Patrull Bävern',
         'Markus Test Planeringsfunktionär',
@@ -2389,7 +2214,6 @@ VALUES
         'e8084f74-02e6-52b8-83c3-3919e0701795', -- Halmpool 2026-07-27
         'Markus Test Funktionär',
         NULL,
-        NULL,
         'Patrull Ugglan',
         'Markus Test Funktionär',
         '+46700000002',
@@ -2401,7 +2225,6 @@ VALUES
         'e8084f74-02e6-52b8-83c3-3919e0701795', -- Halmpool 2026-07-27
         'Erik Johansson',
         202,
-        'Scoutkåren Vansen',
         'Hela avdelningen',
         'Erik Johansson',
         '+46709876543',
@@ -2413,7 +2236,6 @@ VALUES
         'bc6ab101-53ed-5514-a44e-bdf5ddd57962', -- Slankaruseller 2026-07-27
         'Markus Test Ledare',
         1386,
-        'Kår 1386',
         'Hela avdelningen',
         'Markus Test Ledare',
         '+46700000003',
@@ -2425,7 +2247,6 @@ VALUES
         'bc6ab101-53ed-5514-a44e-bdf5ddd57962', -- Slankaruseller 2026-07-27
         'Petra Vikström',
         606,
-        'Scoutkåren Kompassen',
         'Patrull Räven',
         'Petra Vikström',
         '+46702223344',
@@ -2437,7 +2258,6 @@ VALUES
         '9cf4dfd8-d2d6-58aa-be42-2bffdc4488ac', -- Svensk klassiker 2026-07-27
         'Anna Svensson',
         101,
-        'Sjöscoutkåren Dansen',
         'Patrull Räven',
         'Anna Svensson',
         '+46701234567',
@@ -2449,7 +2269,6 @@ VALUES
         '2250b265-08b5-5ada-ac0c-d982c9a4a0e4', -- Svensk klassiker 2026-07-27
         'Erik Johansson',
         202,
-        'Scoutkåren Vansen',
         'Patrull Vargen',
         'Erik Johansson',
         '+46709876543',
@@ -2461,7 +2280,6 @@ VALUES
         '2250b265-08b5-5ada-ac0c-d982c9a4a0e4', -- Svensk klassiker 2026-07-27
         'Sara Öberg',
         404,
-        'Fjällscouterna',
         'Patrull Lodjuret',
         'Sara Öberg',
         '+46706667788',
@@ -2473,7 +2291,6 @@ VALUES
         '894b794e-82be-510f-ace5-f7ada9983f04', -- Våga utmana normerna 2026-07-27
         'Petra Vikström',
         606,
-        'Scoutkåren Kompassen',
         'Patrull Lodjuret',
         'Petra Vikström',
         '+46702223344',
@@ -2485,7 +2302,6 @@ VALUES
         '894b794e-82be-510f-ace5-f7ada9983f04', -- Våga utmana normerna 2026-07-27
         'Lena Holm',
         505,
-        'Scoutkåren Eken',
         'Patrull Bävern',
         'Lena Holm',
         '+46708889900',
@@ -2497,7 +2313,6 @@ VALUES
         '894b794e-82be-510f-ace5-f7ada9983f04', -- Våga utmana normerna 2026-07-27
         'Markus Test Ledare',
         1386,
-        'Kår 1386',
         'Patrull Ugglan',
         'Markus Test Ledare',
         '+46700000003',
@@ -2509,7 +2324,6 @@ VALUES
         '0d878812-5868-5f0a-bab4-2001c0fafcdc', -- Hand the Ball 2026-07-27
         'Johan Nilsson',
         303,
-        'Scoutkåren Norrsken',
         'Patrull Bävern',
         'Johan Nilsson',
         '+46703334455',
@@ -2520,7 +2334,6 @@ VALUES
         '2c378f10-bbf5-4a32-b8f4-050dd552a447',
         '4e3821d7-8615-5f3e-8829-7000f05c9711', -- Våga utmana normerna 2026-07-27
         'Markus Test Funktionär',
-        NULL,
         NULL,
         'Hela avdelningen',
         'Markus Test Funktionär',
@@ -2533,7 +2346,6 @@ VALUES
         'a6700f46-99c8-57f6-b195-df8de00b2a99', -- Trygghetsspelet 2026-07-27
         'Lena Holm',
         505,
-        'Scoutkåren Eken',
         'Hela avdelningen',
         'Lena Holm',
         '+46708889900',
@@ -2545,7 +2357,6 @@ VALUES
         'a6700f46-99c8-57f6-b195-df8de00b2a99', -- Trygghetsspelet 2026-07-27
         'Markus Test Ledare',
         1386,
-        'Kår 1386',
         'Patrull Räven',
         'Markus Test Ledare',
         '+46700000003',
@@ -2557,7 +2368,6 @@ VALUES
         'a6700f46-99c8-57f6-b195-df8de00b2a99', -- Trygghetsspelet 2026-07-27
         'Petra Vikström',
         606,
-        'Scoutkåren Kompassen',
         'Patrull Vargen',
         'Petra Vikström',
         '+46702223344',
@@ -2568,7 +2378,6 @@ VALUES
         '006e3fdd-dc54-43a0-9a2a-4232335c07bc',
         '9e29c220-5584-5735-b757-27f5f9b5d57e', -- Musikquiz 2026-07-27
         'Markus Test Planeringsfunktionär',
-        NULL,
         NULL,
         'Patrull Räven',
         'Markus Test Planeringsfunktionär',
@@ -2581,7 +2390,6 @@ VALUES
         '6da1cb24-e376-514e-a5d5-7da3c4c45660', -- Musikquiz 2026-07-27
         'Markus Test Funktionär',
         NULL,
-        NULL,
         'Patrull Vargen',
         'Markus Test Funktionär',
         '+46700000002',
@@ -2593,7 +2401,6 @@ VALUES
         '6da1cb24-e376-514e-a5d5-7da3c4c45660', -- Musikquiz 2026-07-27
         'Erik Johansson',
         202,
-        'Scoutkåren Vansen',
         'Patrull Lodjuret',
         'Erik Johansson',
         '+46709876543',
@@ -2605,7 +2412,6 @@ VALUES
         '9c14b462-2c71-5f6d-8b04-59300e848a77', -- Mekanisk tjur 2026-07-27
         'Petra Vikström',
         606,
-        'Scoutkåren Kompassen',
         'Patrull Bävern',
         'Petra Vikström',
         '+46702223344',
@@ -2617,7 +2423,6 @@ VALUES
         '9c14b462-2c71-5f6d-8b04-59300e848a77', -- Mekanisk tjur 2026-07-27
         'Lena Holm',
         505,
-        'Scoutkåren Eken',
         'Patrull Ugglan',
         'Lena Holm',
         '+46708889900',
@@ -2629,7 +2434,6 @@ VALUES
         'f9be63fd-339d-559e-9591-0c9ef66e9e2a', -- Femkamp 2026-07-27
         'Anna Svensson',
         101,
-        'Sjöscoutkåren Dansen',
         'Patrull Bävern',
         'Anna Svensson',
         '+46701234567',
@@ -2641,7 +2445,6 @@ VALUES
         'a32d19c5-987d-5fca-a48a-39d55d8bdc16', -- Unga forskare 2026-07-27
         'Erik Johansson',
         202,
-        'Scoutkåren Vansen',
         'Patrull Ugglan',
         'Erik Johansson',
         '+46709876543',
@@ -2653,7 +2456,6 @@ VALUES
         'a32d19c5-987d-5fca-a48a-39d55d8bdc16', -- Unga forskare 2026-07-27
         'Sara Öberg',
         404,
-        'Fjällscouterna',
         'Hela avdelningen',
         'Sara Öberg',
         '+46706667788',
@@ -2665,7 +2467,6 @@ VALUES
         '5e5bd9f4-bd09-5802-9d8b-5cf077f5332a', -- Hand the Ball 2026-07-27
         'Petra Vikström',
         606,
-        'Scoutkåren Kompassen',
         'Hela avdelningen',
         'Petra Vikström',
         '+46702223344',
@@ -2677,7 +2478,6 @@ VALUES
         '5e5bd9f4-bd09-5802-9d8b-5cf077f5332a', -- Hand the Ball 2026-07-27
         'Lena Holm',
         505,
-        'Scoutkåren Eken',
         'Patrull Räven',
         'Lena Holm',
         '+46708889900',
@@ -2689,7 +2489,6 @@ VALUES
         'fbc1da73-3032-5b07-81c3-834b369cdbb4', -- The Great Migration of Birds with THE HERDS 2026-07-28
         'Johan Nilsson',
         303,
-        'Scoutkåren Norrsken',
         'Patrull Räven',
         'Johan Nilsson',
         '+46703334455',
@@ -2701,7 +2500,6 @@ VALUES
         '4c9b890c-63bb-55b1-89e4-6935d327a556', -- Henrik Wahlström – Uppochner: Att leva med och tala om psykisk ohälsa 2026-07-28
         'Sara Öberg',
         404,
-        'Fjällscouterna',
         'Patrull Vargen',
         'Sara Öberg',
         '+46706667788',
@@ -2712,7 +2510,6 @@ VALUES
         '2c378f10-bbf5-4a32-b8f4-050dd552a447',
         '4c9b890c-63bb-55b1-89e4-6935d327a556', -- Henrik Wahlström – Uppochner: Att leva med och tala om psykisk ohälsa 2026-07-28
         'Markus Test Funktionär',
-        NULL,
         NULL,
         'Patrull Lodjuret',
         'Markus Test Funktionär',
@@ -2725,7 +2522,6 @@ VALUES
         '9677d2d0-534a-5834-bb70-8357fe094083', -- En organsation av och för unga, med stöd av vuxna. Eller? 2026-07-28
         'Lena Holm',
         505,
-        'Scoutkåren Eken',
         'Patrull Lodjuret',
         'Lena Holm',
         '+46708889900',
@@ -2737,7 +2533,6 @@ VALUES
         '9677d2d0-534a-5834-bb70-8357fe094083', -- En organsation av och för unga, med stöd av vuxna. Eller? 2026-07-28
         'Markus Test Ledare',
         1386,
-        'Kår 1386',
         'Patrull Bävern',
         'Markus Test Ledare',
         '+46700000003',
@@ -2749,7 +2544,6 @@ VALUES
         '9677d2d0-534a-5834-bb70-8357fe094083', -- En organsation av och för unga, med stöd av vuxna. Eller? 2026-07-28
         'Petra Vikström',
         606,
-        'Scoutkåren Kompassen',
         'Patrull Ugglan',
         'Petra Vikström',
         '+46702223344',
@@ -2760,7 +2554,6 @@ VALUES
         '006e3fdd-dc54-43a0-9a2a-4232335c07bc',
         '58e738bf-54ce-553f-8c01-9322a4f60b11', -- Vad tycker makten om dig som ung? KFUM har svaret! 2026-07-28
         'Markus Test Planeringsfunktionär',
-        NULL,
         NULL,
         'Patrull Bävern',
         'Markus Test Planeringsfunktionär',
@@ -2773,7 +2566,6 @@ VALUES
         'f492b12d-c637-5616-85bb-2a5eed4ad3a3', -- Desinformation, demokrati och sköldpaddor 2026-07-28
         'Erik Johansson',
         202,
-        'Scoutkåren Vansen',
         'Hela avdelningen',
         'Erik Johansson',
         '+46709876543',
@@ -2785,7 +2577,6 @@ VALUES
         '7ca65d9b-1b5a-57c5-8b9f-af5689290f07', -- Treskablinoll: Små beteenden, stor skillnad – om normer och att skapa ett tryggare klimat 2026-07-28
         'Markus Test Ledare',
         1386,
-        'Kår 1386',
         'Hela avdelningen',
         'Markus Test Ledare',
         '+46700000003',
@@ -2797,7 +2588,6 @@ VALUES
         '7ca65d9b-1b5a-57c5-8b9f-af5689290f07', -- Treskablinoll: Små beteenden, stor skillnad – om normer och att skapa ett tryggare klimat 2026-07-28
         'Petra Vikström',
         606,
-        'Scoutkåren Kompassen',
         'Patrull Räven',
         'Petra Vikström',
         '+46702223344',
@@ -2809,7 +2599,6 @@ VALUES
         '7ca65d9b-1b5a-57c5-8b9f-af5689290f07', -- Treskablinoll: Små beteenden, stor skillnad – om normer och att skapa ett tryggare klimat 2026-07-28
         'Lena Holm',
         505,
-        'Scoutkåren Eken',
         'Patrull Vargen',
         'Lena Holm',
         '+46708889900',
@@ -2821,7 +2610,6 @@ VALUES
         'ea9ade84-ef31-5f6e-830c-93008709c11a', -- Quiz 2026-07-28
         'Anna Svensson',
         101,
-        'Sjöscoutkåren Dansen',
         'Patrull Räven',
         'Anna Svensson',
         '+46701234567',
@@ -2833,7 +2621,6 @@ VALUES
         'c9eb6f09-a37c-50b9-abb7-1dd54c98a49f', -- Äventyrararsamtal 2026-07-28
         'Erik Johansson',
         202,
-        'Scoutkåren Vansen',
         'Patrull Vargen',
         'Erik Johansson',
         '+46709876543',
@@ -2845,7 +2632,6 @@ VALUES
         'c9eb6f09-a37c-50b9-abb7-1dd54c98a49f', -- Äventyrararsamtal 2026-07-28
         'Sara Öberg',
         404,
-        'Fjällscouterna',
         'Patrull Lodjuret',
         'Sara Öberg',
         '+46706667788',
@@ -2857,7 +2643,6 @@ VALUES
         '43550c20-55bc-5f9a-a8fd-a260997e1759', -- Upptäckarsamtal 2026-07-28
         'Lena Holm',
         505,
-        'Scoutkåren Eken',
         'Patrull Bävern',
         'Lena Holm',
         '+46708889900',
@@ -2869,7 +2654,6 @@ VALUES
         '43550c20-55bc-5f9a-a8fd-a260997e1759', -- Upptäckarsamtal 2026-07-28
         'Markus Test Ledare',
         1386,
-        'Kår 1386',
         'Patrull Ugglan',
         'Markus Test Ledare',
         '+46700000003',
@@ -2881,7 +2665,6 @@ VALUES
         '76fd5ec7-3097-52af-a625-fdbc403797d9', -- Leda Scouting - Kåsa del 2 2026-07-28
         'Johan Nilsson',
         303,
-        'Scoutkåren Norrsken',
         'Patrull Bävern',
         'Johan Nilsson',
         '+46703334455',
@@ -2893,7 +2676,6 @@ VALUES
         '24d1ae2b-6f15-5b63-92fe-3c01cf5151e5', -- Svenska Freds 2026-07-28
         'Sara Öberg',
         404,
-        'Fjällscouterna',
         'Patrull Ugglan',
         'Sara Öberg',
         '+46706667788',
@@ -2904,7 +2686,6 @@ VALUES
         '2c378f10-bbf5-4a32-b8f4-050dd552a447',
         '24d1ae2b-6f15-5b63-92fe-3c01cf5151e5', -- Svenska Freds 2026-07-28
         'Markus Test Funktionär',
-        NULL,
         NULL,
         'Hela avdelningen',
         'Markus Test Funktionär',
@@ -2917,7 +2698,6 @@ VALUES
         '35249f33-50d1-57b2-8f12-fd99ce64cf47', -- Bris 2026-07-28
         'Lena Holm',
         505,
-        'Scoutkåren Eken',
         'Hela avdelningen',
         'Lena Holm',
         '+46708889900',
@@ -2929,7 +2709,6 @@ VALUES
         '35249f33-50d1-57b2-8f12-fd99ce64cf47', -- Bris 2026-07-28
         'Markus Test Ledare',
         1386,
-        'Kår 1386',
         'Patrull Räven',
         'Markus Test Ledare',
         '+46700000003',
@@ -2940,7 +2719,6 @@ VALUES
         '006e3fdd-dc54-43a0-9a2a-4232335c07bc',
         '82cc345e-54ce-569a-9c23-73dab334769a', -- Kan vi vara scouter och aktivister samtidigt? 2026-07-28
         'Markus Test Planeringsfunktionär',
-        NULL,
         NULL,
         'Patrull Räven',
         'Markus Test Planeringsfunktionär',
@@ -2953,7 +2731,6 @@ VALUES
         '784116ea-ea92-5a89-b5b4-1c9060b8b157', -- Certifierad kurs i kramande 2026-07-28
         'Markus Test Funktionär',
         NULL,
-        NULL,
         'Patrull Vargen',
         'Markus Test Funktionär',
         '+46700000002',
@@ -2965,7 +2742,6 @@ VALUES
         '784116ea-ea92-5a89-b5b4-1c9060b8b157', -- Certifierad kurs i kramande 2026-07-28
         'Erik Johansson',
         202,
-        'Scoutkåren Vansen',
         'Patrull Lodjuret',
         'Erik Johansson',
         '+46709876543',
@@ -2977,7 +2753,6 @@ VALUES
         'f40c0dff-d0e6-5b3a-aa19-a445c03d54e1', -- Speedfriending 2026-07-28
         'Markus Test Ledare',
         1386,
-        'Kår 1386',
         'Patrull Lodjuret',
         'Markus Test Ledare',
         '+46700000003',
@@ -2989,7 +2764,6 @@ VALUES
         'f40c0dff-d0e6-5b3a-aa19-a445c03d54e1', -- Speedfriending 2026-07-28
         'Petra Vikström',
         606,
-        'Scoutkåren Kompassen',
         'Patrull Bävern',
         'Petra Vikström',
         '+46702223344',
@@ -3001,7 +2775,6 @@ VALUES
         'f40c0dff-d0e6-5b3a-aa19-a445c03d54e1', -- Speedfriending 2026-07-28
         'Lena Holm',
         505,
-        'Scoutkåren Eken',
         'Patrull Ugglan',
         'Lena Holm',
         '+46708889900',
@@ -3013,7 +2786,6 @@ VALUES
         'a62f1b5d-e3c4-5038-bf8c-20ac8cd32658', -- Speeddejting 2026-07-28
         'Anna Svensson',
         101,
-        'Sjöscoutkåren Dansen',
         'Patrull Bävern',
         'Anna Svensson',
         '+46701234567',
@@ -3025,7 +2797,6 @@ VALUES
         'efa3894a-48c1-5122-a5dd-1fb9d38caa76', -- Tillsammans bygger vi Sverige 2026-07-28
         'Sara Öberg',
         404,
-        'Fjällscouterna',
         'Hela avdelningen',
         'Sara Öberg',
         '+46706667788',
@@ -3037,7 +2808,6 @@ VALUES
         '1afdb52a-3c28-5aa6-88f3-87c059d4d6f4', -- Tillsammans bygger vi Sverige 2026-07-28
         'Petra Vikström',
         606,
-        'Scoutkåren Kompassen',
         'Hela avdelningen',
         'Petra Vikström',
         '+46702223344',
@@ -3049,7 +2819,6 @@ VALUES
         '1afdb52a-3c28-5aa6-88f3-87c059d4d6f4', -- Tillsammans bygger vi Sverige 2026-07-28
         'Lena Holm',
         505,
-        'Scoutkåren Eken',
         'Patrull Räven',
         'Lena Holm',
         '+46708889900',
@@ -3061,7 +2830,6 @@ VALUES
         '1afdb52a-3c28-5aa6-88f3-87c059d4d6f4', -- Tillsammans bygger vi Sverige 2026-07-28
         'Markus Test Ledare',
         1386,
-        'Kår 1386',
         'Patrull Vargen',
         'Markus Test Ledare',
         '+46700000003',
@@ -3073,7 +2841,6 @@ VALUES
         '145c51dd-fb96-5a8a-8f2b-0a83aa4ee067', -- Tillsammans bygger vi Sverige 2026-07-28
         'Johan Nilsson',
         303,
-        'Scoutkåren Norrsken',
         'Patrull Räven',
         'Johan Nilsson',
         '+46703334455',
@@ -3085,7 +2852,6 @@ VALUES
         'ef6cff35-bb58-58d6-9ad5-74d373d01035', -- Tillsammans bygger vi Sverige 2026-07-28
         'Sara Öberg',
         404,
-        'Fjällscouterna',
         'Patrull Vargen',
         'Sara Öberg',
         '+46706667788',
@@ -3096,7 +2862,6 @@ VALUES
         '2c378f10-bbf5-4a32-b8f4-050dd552a447',
         'ef6cff35-bb58-58d6-9ad5-74d373d01035', -- Tillsammans bygger vi Sverige 2026-07-28
         'Markus Test Funktionär',
-        NULL,
         NULL,
         'Patrull Lodjuret',
         'Markus Test Funktionär',
@@ -3109,7 +2874,6 @@ VALUES
         'fbae3f1c-2b9a-55c4-9a46-43f90201c1d1', -- Sagostund 2026-07-28
         'Markus Test Ledare',
         1386,
-        'Kår 1386',
         'Patrull Bävern',
         'Markus Test Ledare',
         '+46700000003',
@@ -3121,7 +2885,6 @@ VALUES
         'fbae3f1c-2b9a-55c4-9a46-43f90201c1d1', -- Sagostund 2026-07-28
         'Petra Vikström',
         606,
-        'Scoutkåren Kompassen',
         'Patrull Ugglan',
         'Petra Vikström',
         '+46702223344',
@@ -3132,7 +2895,6 @@ VALUES
         '006e3fdd-dc54-43a0-9a2a-4232335c07bc',
         '6b0a98a1-1c86-5fb8-a5c0-d2a1b40510a2', -- Kvällsbön 2026-07-28
         'Markus Test Planeringsfunktionär',
-        NULL,
         NULL,
         'Patrull Bävern',
         'Markus Test Planeringsfunktionär',
@@ -3145,7 +2907,6 @@ VALUES
         '4c41a1ac-f0cf-5f7a-b87c-41dd760c976b', -- 28/7 – Kräftskiva 🦞 2026-07-28
         'Markus Test Funktionär',
         NULL,
-        NULL,
         'Patrull Ugglan',
         'Markus Test Funktionär',
         '+46700000002',
@@ -3157,7 +2918,6 @@ VALUES
         '4c41a1ac-f0cf-5f7a-b87c-41dd760c976b', -- 28/7 – Kräftskiva 🦞 2026-07-28
         'Erik Johansson',
         202,
-        'Scoutkåren Vansen',
         'Hela avdelningen',
         'Erik Johansson',
         '+46709876543',
@@ -3169,7 +2929,6 @@ VALUES
         'c65ebccd-58df-5af6-9536-7bace9994258', -- Parad till lägerbål 2026-07-28
         'Markus Test Ledare',
         1386,
-        'Kår 1386',
         'Hela avdelningen',
         'Markus Test Ledare',
         '+46700000003',
@@ -3181,7 +2940,6 @@ VALUES
         'e188aa7c-da5f-505a-96b4-f169416df98d', -- Dagens lek 2026-07-28
         'Anna Svensson',
         101,
-        'Sjöscoutkåren Dansen',
         'Patrull Räven',
         'Anna Svensson',
         '+46701234567',
@@ -3193,7 +2951,6 @@ VALUES
         '3e0bd307-6448-5c91-9ae5-f434a64a9247', -- Brottning 2026-07-28
         'Erik Johansson',
         202,
-        'Scoutkåren Vansen',
         'Patrull Vargen',
         'Erik Johansson',
         '+46709876543',
@@ -3205,7 +2962,6 @@ VALUES
         '3e0bd307-6448-5c91-9ae5-f434a64a9247', -- Brottning 2026-07-28
         'Sara Öberg',
         404,
-        'Fjällscouterna',
         'Patrull Lodjuret',
         'Sara Öberg',
         '+46706667788',
@@ -3217,7 +2973,6 @@ VALUES
         '619ef56a-a375-5507-83e0-b3d7433492e5', -- Brottning 2026-07-28
         'Petra Vikström',
         606,
-        'Scoutkåren Kompassen',
         'Patrull Lodjuret',
         'Petra Vikström',
         '+46702223344',
@@ -3229,7 +2984,6 @@ VALUES
         '619ef56a-a375-5507-83e0-b3d7433492e5', -- Brottning 2026-07-28
         'Lena Holm',
         505,
-        'Scoutkåren Eken',
         'Patrull Bävern',
         'Lena Holm',
         '+46708889900',
@@ -3241,7 +2995,6 @@ VALUES
         '619ef56a-a375-5507-83e0-b3d7433492e5', -- Brottning 2026-07-28
         'Markus Test Ledare',
         1386,
-        'Kår 1386',
         'Patrull Ugglan',
         'Markus Test Ledare',
         '+46700000003',
@@ -3253,7 +3006,6 @@ VALUES
         'f8d327b2-b0fc-551c-a985-22e3469b4315', -- Brottning 2026-07-28
         'Johan Nilsson',
         303,
-        'Scoutkåren Norrsken',
         'Patrull Bävern',
         'Johan Nilsson',
         '+46703334455',
@@ -3264,7 +3016,6 @@ VALUES
         '2c378f10-bbf5-4a32-b8f4-050dd552a447',
         'f9dde14c-4518-5ba5-9b6b-79f5b75d5799', -- Brottning 2026-07-28
         'Markus Test Funktionär',
-        NULL,
         NULL,
         'Hela avdelningen',
         'Markus Test Funktionär',
@@ -3277,7 +3028,6 @@ VALUES
         '8e8ba3a7-bedb-5473-97ac-a8e34f6a3b2a', -- Brottning 2026-07-28
         'Lena Holm',
         505,
-        'Scoutkåren Eken',
         'Hela avdelningen',
         'Lena Holm',
         '+46708889900',
@@ -3289,7 +3039,6 @@ VALUES
         '8e8ba3a7-bedb-5473-97ac-a8e34f6a3b2a', -- Brottning 2026-07-28
         'Markus Test Ledare',
         1386,
-        'Kår 1386',
         'Patrull Räven',
         'Markus Test Ledare',
         '+46700000003',
@@ -3301,7 +3050,6 @@ VALUES
         '8e8ba3a7-bedb-5473-97ac-a8e34f6a3b2a', -- Brottning 2026-07-28
         'Petra Vikström',
         606,
-        'Scoutkåren Kompassen',
         'Patrull Vargen',
         'Petra Vikström',
         '+46702223344',
@@ -3312,7 +3060,6 @@ VALUES
         '006e3fdd-dc54-43a0-9a2a-4232335c07bc',
         'c3b747f0-650f-5322-a010-e7b4853d91a6', -- Brottning 2026-07-28
         'Markus Test Planeringsfunktionär',
-        NULL,
         NULL,
         'Patrull Räven',
         'Markus Test Planeringsfunktionär',
@@ -3325,7 +3072,6 @@ VALUES
         '2343ac25-6632-5756-9f35-54cb001e1ecf', -- Lekaktiviteter 2026-07-28
         'Markus Test Funktionär',
         NULL,
-        NULL,
         'Patrull Vargen',
         'Markus Test Funktionär',
         '+46700000002',
@@ -3337,7 +3083,6 @@ VALUES
         '2343ac25-6632-5756-9f35-54cb001e1ecf', -- Lekaktiviteter 2026-07-28
         'Erik Johansson',
         202,
-        'Scoutkåren Vansen',
         'Patrull Lodjuret',
         'Erik Johansson',
         '+46709876543',
@@ -3349,7 +3094,6 @@ VALUES
         '70b9d463-b701-51a2-8dfc-bc9cd4960320', -- Bubbelballs 2026-07-28
         'Petra Vikström',
         606,
-        'Scoutkåren Kompassen',
         'Patrull Bävern',
         'Petra Vikström',
         '+46702223344',
@@ -3361,7 +3105,6 @@ VALUES
         '70b9d463-b701-51a2-8dfc-bc9cd4960320', -- Bubbelballs 2026-07-28
         'Lena Holm',
         505,
-        'Scoutkåren Eken',
         'Patrull Ugglan',
         'Lena Holm',
         '+46708889900',
@@ -3373,7 +3116,6 @@ VALUES
         '380d1a87-c218-54de-9786-798274eb5886', -- Kåsan 2026-07-28
         'Anna Svensson',
         101,
-        'Sjöscoutkåren Dansen',
         'Patrull Bävern',
         'Anna Svensson',
         '+46701234567',
@@ -3385,7 +3127,6 @@ VALUES
         'd62cbeb2-5c7b-5973-9d04-582e7c9ddfaa', -- Känslokartan 2026-07-28
         'Erik Johansson',
         202,
-        'Scoutkåren Vansen',
         'Patrull Ugglan',
         'Erik Johansson',
         '+46709876543',
@@ -3397,7 +3138,6 @@ VALUES
         'd62cbeb2-5c7b-5973-9d04-582e7c9ddfaa', -- Känslokartan 2026-07-28
         'Sara Öberg',
         404,
-        'Fjällscouterna',
         'Hela avdelningen',
         'Sara Öberg',
         '+46706667788',
@@ -3409,7 +3149,6 @@ VALUES
         'c03d4b03-d5bd-5390-bff7-67ee16b7504b', -- Brädspel 2026-07-28
         'Petra Vikström',
         606,
-        'Scoutkåren Kompassen',
         'Hela avdelningen',
         'Petra Vikström',
         '+46702223344',
@@ -3421,7 +3160,6 @@ VALUES
         'c03d4b03-d5bd-5390-bff7-67ee16b7504b', -- Brädspel 2026-07-28
         'Lena Holm',
         505,
-        'Scoutkåren Eken',
         'Patrull Räven',
         'Lena Holm',
         '+46708889900',
@@ -3433,7 +3171,6 @@ VALUES
         'c647db8f-e85b-5c1d-baf6-1d32df54ca96', -- Cybersäkerhet med Unga forskare 2026-07-28
         'Johan Nilsson',
         303,
-        'Scoutkåren Norrsken',
         'Patrull Räven',
         'Johan Nilsson',
         '+46703334455',
@@ -3445,7 +3182,6 @@ VALUES
         'bfef2b35-d06e-5cf5-8e9e-bf1d12faa9bb', -- Pyssla med BRIS 2026-07-28
         'Sara Öberg',
         404,
-        'Fjällscouterna',
         'Patrull Vargen',
         'Sara Öberg',
         '+46706667788',
@@ -3456,7 +3192,6 @@ VALUES
         '2c378f10-bbf5-4a32-b8f4-050dd552a447',
         'bfef2b35-d06e-5cf5-8e9e-bf1d12faa9bb', -- Pyssla med BRIS 2026-07-28
         'Markus Test Funktionär',
-        NULL,
         NULL,
         'Patrull Lodjuret',
         'Markus Test Funktionär',
@@ -3469,7 +3204,6 @@ VALUES
         '7cd36315-ac11-5140-8246-001bbf59a88e', -- Hantverksfokus: Paracord 2026-07-28
         'Lena Holm',
         505,
-        'Scoutkåren Eken',
         'Patrull Lodjuret',
         'Lena Holm',
         '+46708889900',
@@ -3481,7 +3215,6 @@ VALUES
         '7cd36315-ac11-5140-8246-001bbf59a88e', -- Hantverksfokus: Paracord 2026-07-28
         'Markus Test Ledare',
         1386,
-        'Kår 1386',
         'Patrull Bävern',
         'Markus Test Ledare',
         '+46700000003',
@@ -3493,7 +3226,6 @@ VALUES
         '7cd36315-ac11-5140-8246-001bbf59a88e', -- Hantverksfokus: Paracord 2026-07-28
         'Petra Vikström',
         606,
-        'Scoutkåren Kompassen',
         'Patrull Ugglan',
         'Petra Vikström',
         '+46702223344',
@@ -3504,7 +3236,6 @@ VALUES
         '006e3fdd-dc54-43a0-9a2a-4232335c07bc',
         '7637587e-3fd0-56a5-a50f-3ac0dbe9782d', -- Knoprep 2026-07-28
         'Markus Test Planeringsfunktionär',
-        NULL,
         NULL,
         'Patrull Bävern',
         'Markus Test Planeringsfunktionär',
@@ -3517,7 +3248,6 @@ VALUES
         '909fa919-6960-51dd-89a8-40c634e2402d', -- Tillsammans målning 2026-07-28
         'Erik Johansson',
         202,
-        'Scoutkåren Vansen',
         'Hela avdelningen',
         'Erik Johansson',
         '+46709876543',
@@ -3529,7 +3259,6 @@ VALUES
         '073013fb-eefa-5d10-8b29-9c9a2d5db212', -- Live musik på hubben 2026-07-28
         'Markus Test Ledare',
         1386,
-        'Kår 1386',
         'Hela avdelningen',
         'Markus Test Ledare',
         '+46700000003',
@@ -3541,7 +3270,6 @@ VALUES
         '073013fb-eefa-5d10-8b29-9c9a2d5db212', -- Live musik på hubben 2026-07-28
         'Petra Vikström',
         606,
-        'Scoutkåren Kompassen',
         'Patrull Räven',
         'Petra Vikström',
         '+46702223344',
@@ -3553,7 +3281,6 @@ VALUES
         '073013fb-eefa-5d10-8b29-9c9a2d5db212', -- Live musik på hubben 2026-07-28
         'Lena Holm',
         505,
-        'Scoutkåren Eken',
         'Patrull Vargen',
         'Lena Holm',
         '+46708889900',
@@ -3565,7 +3292,6 @@ VALUES
         '33bc3fdc-c019-5662-94cb-ba847f705003', -- Live musik på hubben 2026-07-28
         'Anna Svensson',
         101,
-        'Sjöscoutkåren Dansen',
         'Patrull Räven',
         'Anna Svensson',
         '+46701234567',
@@ -3577,7 +3303,6 @@ VALUES
         '08227519-604d-5213-b662-d0c9078d6a13', -- Bubbligt pyssel 2026-07-28
         'Erik Johansson',
         202,
-        'Scoutkåren Vansen',
         'Patrull Vargen',
         'Erik Johansson',
         '+46709876543',
@@ -3589,7 +3314,6 @@ VALUES
         '08227519-604d-5213-b662-d0c9078d6a13', -- Bubbligt pyssel 2026-07-28
         'Sara Öberg',
         404,
-        'Fjällscouterna',
         'Patrull Lodjuret',
         'Sara Öberg',
         '+46706667788',
@@ -3601,7 +3325,6 @@ VALUES
         'bc01d960-a456-526f-8a09-2bb217741930', -- Bubbligt pyssel 2026-07-28
         'Lena Holm',
         505,
-        'Scoutkåren Eken',
         'Patrull Bävern',
         'Lena Holm',
         '+46708889900',
@@ -3613,7 +3336,6 @@ VALUES
         'bc01d960-a456-526f-8a09-2bb217741930', -- Bubbligt pyssel 2026-07-28
         'Markus Test Ledare',
         1386,
-        'Kår 1386',
         'Patrull Ugglan',
         'Markus Test Ledare',
         '+46700000003',
@@ -3625,7 +3347,6 @@ VALUES
         'e0dd114e-6e53-5a2e-b89a-9fc8501a83af', -- Halmpool 2026-07-28
         'Johan Nilsson',
         303,
-        'Scoutkåren Norrsken',
         'Patrull Bävern',
         'Johan Nilsson',
         '+46703334455',
@@ -3637,7 +3358,6 @@ VALUES
         'a57d9076-80c7-57bf-9c21-7d47bf7b6990', -- Slankaruseller 2026-07-28
         'Sara Öberg',
         404,
-        'Fjällscouterna',
         'Patrull Ugglan',
         'Sara Öberg',
         '+46706667788',
@@ -3648,7 +3368,6 @@ VALUES
         '2c378f10-bbf5-4a32-b8f4-050dd552a447',
         'a57d9076-80c7-57bf-9c21-7d47bf7b6990', -- Slankaruseller 2026-07-28
         'Markus Test Funktionär',
-        NULL,
         NULL,
         'Hela avdelningen',
         'Markus Test Funktionär',
@@ -3661,7 +3380,6 @@ VALUES
         'c260a43e-e518-5808-9eea-6251e4dd2065', -- Hand the Ball 2026-07-28
         'Lena Holm',
         505,
-        'Scoutkåren Eken',
         'Hela avdelningen',
         'Lena Holm',
         '+46708889900',
@@ -3673,7 +3391,6 @@ VALUES
         'c260a43e-e518-5808-9eea-6251e4dd2065', -- Hand the Ball 2026-07-28
         'Markus Test Ledare',
         1386,
-        'Kår 1386',
         'Patrull Räven',
         'Markus Test Ledare',
         '+46700000003',
@@ -3684,7 +3401,6 @@ VALUES
         '006e3fdd-dc54-43a0-9a2a-4232335c07bc',
         'e0585eff-e1cd-5169-93ee-6b224f613663', -- Knopmästerskap 2026-07-28
         'Markus Test Planeringsfunktionär',
-        NULL,
         NULL,
         'Patrull Räven',
         'Markus Test Planeringsfunktionär',
@@ -3697,7 +3413,6 @@ VALUES
         '276b27f4-f554-5dcc-b9fa-d384dae614fe', -- Knopmästerskap 2026-07-28
         'Markus Test Funktionär',
         NULL,
-        NULL,
         'Patrull Vargen',
         'Markus Test Funktionär',
         '+46700000002',
@@ -3709,7 +3424,6 @@ VALUES
         '276b27f4-f554-5dcc-b9fa-d384dae614fe', -- Knopmästerskap 2026-07-28
         'Erik Johansson',
         202,
-        'Scoutkåren Vansen',
         'Patrull Lodjuret',
         'Erik Johansson',
         '+46709876543',
@@ -3721,7 +3435,6 @@ VALUES
         '90a098a3-be20-50a4-b5e7-5bfa026b5e77', -- Mekanisk tjur 2026-07-28
         'Markus Test Ledare',
         1386,
-        'Kår 1386',
         'Patrull Lodjuret',
         'Markus Test Ledare',
         '+46700000003',
@@ -3733,7 +3446,6 @@ VALUES
         '90a098a3-be20-50a4-b5e7-5bfa026b5e77', -- Mekanisk tjur 2026-07-28
         'Petra Vikström',
         606,
-        'Scoutkåren Kompassen',
         'Patrull Bävern',
         'Petra Vikström',
         '+46702223344',
@@ -3745,7 +3457,6 @@ VALUES
         '90a098a3-be20-50a4-b5e7-5bfa026b5e77', -- Mekanisk tjur 2026-07-28
         'Lena Holm',
         505,
-        'Scoutkåren Eken',
         'Patrull Ugglan',
         'Lena Holm',
         '+46708889900',
@@ -3757,7 +3468,6 @@ VALUES
         'b24d3224-214e-5f79-885b-9cf85acb4841', -- Femkamp 2026-07-28
         'Anna Svensson',
         101,
-        'Sjöscoutkåren Dansen',
         'Patrull Bävern',
         'Anna Svensson',
         '+46701234567',
@@ -3769,7 +3479,6 @@ VALUES
         '32569674-216f-531f-b365-64759879094f', -- Unga forskare 2026-07-28
         'Sara Öberg',
         404,
-        'Fjällscouterna',
         'Hela avdelningen',
         'Sara Öberg',
         '+46706667788',
@@ -3781,7 +3490,6 @@ VALUES
         '53774fe1-7833-5af2-9252-6c605c05ed8e', -- Trygghetsspelet med Treskablinoll 2026-07-28
         'Petra Vikström',
         606,
-        'Scoutkåren Kompassen',
         'Hela avdelningen',
         'Petra Vikström',
         '+46702223344',
@@ -3793,7 +3501,6 @@ VALUES
         '53774fe1-7833-5af2-9252-6c605c05ed8e', -- Trygghetsspelet med Treskablinoll 2026-07-28
         'Lena Holm',
         505,
-        'Scoutkåren Eken',
         'Patrull Räven',
         'Lena Holm',
         '+46708889900',
@@ -3805,7 +3512,6 @@ VALUES
         '53774fe1-7833-5af2-9252-6c605c05ed8e', -- Trygghetsspelet med Treskablinoll 2026-07-28
         'Markus Test Ledare',
         1386,
-        'Kår 1386',
         'Patrull Vargen',
         'Markus Test Ledare',
         '+46700000003',
@@ -3817,7 +3523,6 @@ VALUES
         'a90af9f6-1ed7-5ca0-b78f-7881802014e7', -- Trygghetsspelet med Treskablinoll 2026-07-28
         'Johan Nilsson',
         303,
-        'Scoutkåren Norrsken',
         'Patrull Räven',
         'Johan Nilsson',
         '+46703334455',
@@ -3829,7 +3534,6 @@ VALUES
         '1138b934-57c6-5be0-8a3c-c81e7f830f5d', -- Hand the Ball 2026-07-28
         'Sara Öberg',
         404,
-        'Fjällscouterna',
         'Patrull Vargen',
         'Sara Öberg',
         '+46706667788',
@@ -3840,7 +3544,6 @@ VALUES
         '2c378f10-bbf5-4a32-b8f4-050dd552a447',
         '1138b934-57c6-5be0-8a3c-c81e7f830f5d', -- Hand the Ball 2026-07-28
         'Markus Test Funktionär',
-        NULL,
         NULL,
         'Patrull Lodjuret',
         'Markus Test Funktionär',
@@ -3853,7 +3556,6 @@ VALUES
         '1248befb-2ca1-5015-af90-cf1fc04ee2b7', -- Uppdrag Självkänsla 2026-07-28
         'Markus Test Ledare',
         1386,
-        'Kår 1386',
         'Patrull Bävern',
         'Markus Test Ledare',
         '+46700000003',
@@ -3865,7 +3567,6 @@ VALUES
         '1248befb-2ca1-5015-af90-cf1fc04ee2b7', -- Uppdrag Självkänsla 2026-07-28
         'Petra Vikström',
         606,
-        'Scoutkåren Kompassen',
         'Patrull Ugglan',
         'Petra Vikström',
         '+46702223344',
@@ -3876,7 +3577,6 @@ VALUES
         '006e3fdd-dc54-43a0-9a2a-4232335c07bc',
         '10cd9866-3857-57cf-8aca-07ca36dffa21', -- Uppdrag Självkänsla 2026-07-28
         'Markus Test Planeringsfunktionär',
-        NULL,
         NULL,
         'Patrull Bävern',
         'Markus Test Planeringsfunktionär',
@@ -3889,7 +3589,6 @@ VALUES
         '9d875675-f251-509e-92d5-4ccc462477a3', -- Äventyrare berättar: Henrik Wahlström 2026-07-28
         'Markus Test Funktionär',
         NULL,
-        NULL,
         'Patrull Ugglan',
         'Markus Test Funktionär',
         '+46700000002',
@@ -3901,7 +3600,6 @@ VALUES
         '9d875675-f251-509e-92d5-4ccc462477a3', -- Äventyrare berättar: Henrik Wahlström 2026-07-28
         'Erik Johansson',
         202,
-        'Scoutkåren Vansen',
         'Hela avdelningen',
         'Erik Johansson',
         '+46709876543',
@@ -3913,7 +3611,6 @@ VALUES
         '3b7a85a7-cf33-518a-8032-638a56a534db', -- Disco 2026-07-29
         'Markus Test Ledare',
         1386,
-        'Kår 1386',
         'Hela avdelningen',
         'Markus Test Ledare',
         '+46700000003',
@@ -3925,7 +3622,6 @@ VALUES
         '3b7a85a7-cf33-518a-8032-638a56a534db', -- Disco 2026-07-29
         'Petra Vikström',
         606,
-        'Scoutkåren Kompassen',
         'Patrull Räven',
         'Petra Vikström',
         '+46702223344',
@@ -3937,7 +3633,6 @@ VALUES
         'd35950e9-41a4-5468-ae1b-dafc93d3bf2f', -- Återträff Explorer Belt 2026-07-29
         'Anna Svensson',
         101,
-        'Sjöscoutkåren Dansen',
         'Patrull Räven',
         'Anna Svensson',
         '+46701234567',
@@ -3949,7 +3644,6 @@ VALUES
         '75ee78d9-01f9-5863-bae4-9be72bf86405', -- Återträff för Världscenter (volontär & funktionär) 2026-07-29
         'Erik Johansson',
         202,
-        'Scoutkåren Vansen',
         'Patrull Vargen',
         'Erik Johansson',
         '+46709876543',
@@ -3961,7 +3655,6 @@ VALUES
         '75ee78d9-01f9-5863-bae4-9be72bf86405', -- Återträff för Världscenter (volontär & funktionär) 2026-07-29
         'Sara Öberg',
         404,
-        'Fjällscouterna',
         'Patrull Lodjuret',
         'Sara Öberg',
         '+46706667788',
@@ -3973,7 +3666,6 @@ VALUES
         '6b81f3fa-9d1a-50a4-9e81-1f38f2de5c89', -- Återträff Världskonferenser 2026-07-29
         'Petra Vikström',
         606,
-        'Scoutkåren Kompassen',
         'Patrull Lodjuret',
         'Petra Vikström',
         '+46702223344',
@@ -3985,7 +3677,6 @@ VALUES
         '6b81f3fa-9d1a-50a4-9e81-1f38f2de5c89', -- Återträff Världskonferenser 2026-07-29
         'Lena Holm',
         505,
-        'Scoutkåren Eken',
         'Patrull Bävern',
         'Lena Holm',
         '+46708889900',
@@ -3997,7 +3688,6 @@ VALUES
         '6b81f3fa-9d1a-50a4-9e81-1f38f2de5c89', -- Återträff Världskonferenser 2026-07-29
         'Markus Test Ledare',
         1386,
-        'Kår 1386',
         'Patrull Ugglan',
         'Markus Test Ledare',
         '+46700000003',
@@ -4009,7 +3699,6 @@ VALUES
         '68194d4b-0e01-5e3f-93be-ae88cb1935a2', -- Återträff Europakonferenser 2026-07-29
         'Johan Nilsson',
         303,
-        'Scoutkåren Norrsken',
         'Patrull Bävern',
         'Johan Nilsson',
         '+46703334455',
@@ -4020,7 +3709,6 @@ VALUES
         '2c378f10-bbf5-4a32-b8f4-050dd552a447',
         'a328db88-45f5-5d3d-ad31-da470eacac3c', -- Äventyrararsamtal 2026-07-29
         'Markus Test Funktionär',
-        NULL,
         NULL,
         'Hela avdelningen',
         'Markus Test Funktionär',
@@ -4033,7 +3721,6 @@ VALUES
         'fb72df50-3d9e-54d6-b0ff-40a16c6c4816', -- Utmanarsamtal 2026-07-29
         'Lena Holm',
         505,
-        'Scoutkåren Eken',
         'Hela avdelningen',
         'Lena Holm',
         '+46708889900',
@@ -4045,7 +3732,6 @@ VALUES
         'fb72df50-3d9e-54d6-b0ff-40a16c6c4816', -- Utmanarsamtal 2026-07-29
         'Markus Test Ledare',
         1386,
-        'Kår 1386',
         'Patrull Räven',
         'Markus Test Ledare',
         '+46700000003',
@@ -4057,7 +3743,6 @@ VALUES
         'fb72df50-3d9e-54d6-b0ff-40a16c6c4816', -- Utmanarsamtal 2026-07-29
         'Petra Vikström',
         606,
-        'Scoutkåren Kompassen',
         'Patrull Vargen',
         'Petra Vikström',
         '+46702223344',
@@ -4068,7 +3753,6 @@ VALUES
         '006e3fdd-dc54-43a0-9a2a-4232335c07bc',
         '2db5db3b-b409-5d32-bc8d-1f83bb0e32a4', -- Ledarsamtal 2026-07-29
         'Markus Test Planeringsfunktionär',
-        NULL,
         NULL,
         'Patrull Räven',
         'Markus Test Planeringsfunktionär',
@@ -4081,7 +3765,6 @@ VALUES
         '94eb5680-d26f-5005-8b5f-abd600188086', -- Utbildarträff 2026-07-29
         'Markus Test Funktionär',
         NULL,
-        NULL,
         'Patrull Vargen',
         'Markus Test Funktionär',
         '+46700000002',
@@ -4093,7 +3776,6 @@ VALUES
         '94eb5680-d26f-5005-8b5f-abd600188086', -- Utbildarträff 2026-07-29
         'Erik Johansson',
         202,
-        'Scoutkåren Vansen',
         'Patrull Lodjuret',
         'Erik Johansson',
         '+46709876543',
@@ -4105,7 +3787,6 @@ VALUES
         '8531aec5-e2af-570f-9862-f47ff334b16a', -- Nyfiken på Treklöver Gilwell 2026-07-29
         'Petra Vikström',
         606,
-        'Scoutkåren Kompassen',
         'Patrull Bävern',
         'Petra Vikström',
         '+46702223344',
@@ -4117,7 +3798,6 @@ VALUES
         '8531aec5-e2af-570f-9862-f47ff334b16a', -- Nyfiken på Treklöver Gilwell 2026-07-29
         'Lena Holm',
         505,
-        'Scoutkåren Eken',
         'Patrull Ugglan',
         'Lena Holm',
         '+46708889900',
@@ -4129,7 +3809,6 @@ VALUES
         'b2fabd42-6e29-501e-9eed-8466de08d564', -- Treklöver Gilwell Reunion 2026-07-29
         'Anna Svensson',
         101,
-        'Sjöscoutkåren Dansen',
         'Patrull Bävern',
         'Anna Svensson',
         '+46701234567',
@@ -4141,7 +3820,6 @@ VALUES
         '50d8a427-22aa-5b2e-ab5a-75dec3f92898', -- Mingelträff för avdelningsledare till WSJ 2026-07-29
         'Erik Johansson',
         202,
-        'Scoutkåren Vansen',
         'Patrull Ugglan',
         'Erik Johansson',
         '+46709876543',
@@ -4153,7 +3831,6 @@ VALUES
         '50d8a427-22aa-5b2e-ab5a-75dec3f92898', -- Mingelträff för avdelningsledare till WSJ 2026-07-29
         'Sara Öberg',
         404,
-        'Fjällscouterna',
         'Hela avdelningen',
         'Sara Öberg',
         '+46706667788',
@@ -4165,7 +3842,6 @@ VALUES
         '9f92c566-bb26-583a-a238-7664cbdb0be5', -- Upptäck dina värderingar: Testa på Värdebaserat ledarskap 2026-07-29
         'Petra Vikström',
         606,
-        'Scoutkåren Kompassen',
         'Hela avdelningen',
         'Petra Vikström',
         '+46702223344',
@@ -4177,7 +3853,6 @@ VALUES
         '9f92c566-bb26-583a-a238-7664cbdb0be5', -- Upptäck dina värderingar: Testa på Värdebaserat ledarskap 2026-07-29
         'Lena Holm',
         505,
-        'Scoutkåren Eken',
         'Patrull Räven',
         'Lena Holm',
         '+46708889900',
@@ -4189,7 +3864,6 @@ VALUES
         'f0483b2a-3524-595e-9786-03b393d3ed2e', -- Frisk och fri 2026-07-29
         'Johan Nilsson',
         303,
-        'Scoutkåren Norrsken',
         'Patrull Räven',
         'Johan Nilsson',
         '+46703334455',
@@ -4201,7 +3875,6 @@ VALUES
         'ee4826a1-73cd-5516-a7a3-4f92df69f119', -- Upp-och-ner med Henrik Wahlström 2026-07-29
         'Sara Öberg',
         404,
-        'Fjällscouterna',
         'Patrull Vargen',
         'Sara Öberg',
         '+46706667788',
@@ -4212,7 +3885,6 @@ VALUES
         '2c378f10-bbf5-4a32-b8f4-050dd552a447',
         'ee4826a1-73cd-5516-a7a3-4f92df69f119', -- Upp-och-ner med Henrik Wahlström 2026-07-29
         'Markus Test Funktionär',
-        NULL,
         NULL,
         'Patrull Lodjuret',
         'Markus Test Funktionär',
@@ -4225,7 +3897,6 @@ VALUES
         '64e66343-8863-595d-940e-382b0d6d67c0', -- Karaoke 2026-07-29
         'Lena Holm',
         505,
-        'Scoutkåren Eken',
         'Patrull Lodjuret',
         'Lena Holm',
         '+46708889900',
@@ -4237,7 +3908,6 @@ VALUES
         '64e66343-8863-595d-940e-382b0d6d67c0', -- Karaoke 2026-07-29
         'Markus Test Ledare',
         1386,
-        'Kår 1386',
         'Patrull Bävern',
         'Markus Test Ledare',
         '+46700000003',
@@ -4249,7 +3919,6 @@ VALUES
         '64e66343-8863-595d-940e-382b0d6d67c0', -- Karaoke 2026-07-29
         'Petra Vikström',
         606,
-        'Scoutkåren Kompassen',
         'Patrull Ugglan',
         'Petra Vikström',
         '+46702223344',
@@ -4260,7 +3929,6 @@ VALUES
         '006e3fdd-dc54-43a0-9a2a-4232335c07bc',
         'ac7bdad8-2c9a-5cd4-894b-1ac3b0f23ae1', -- Volleybollturnering 2026-07-29
         'Markus Test Planeringsfunktionär',
-        NULL,
         NULL,
         'Patrull Bävern',
         'Markus Test Planeringsfunktionär',
@@ -4273,7 +3941,6 @@ VALUES
         'b3a5cfde-4ef9-5798-a797-7d4da88bfc60', -- The HERDS 2026-07-29
         'Erik Johansson',
         202,
-        'Scoutkåren Vansen',
         'Hela avdelningen',
         'Erik Johansson',
         '+46709876543',
@@ -4285,7 +3952,6 @@ VALUES
         '81a0dbf5-a073-5253-9e66-6c6b2290e57d', -- The HERDS 2026-07-29
         'Markus Test Ledare',
         1386,
-        'Kår 1386',
         'Hela avdelningen',
         'Markus Test Ledare',
         '+46700000003',
@@ -4297,7 +3963,6 @@ VALUES
         '81a0dbf5-a073-5253-9e66-6c6b2290e57d', -- The HERDS 2026-07-29
         'Petra Vikström',
         606,
-        'Scoutkåren Kompassen',
         'Patrull Räven',
         'Petra Vikström',
         '+46702223344',
@@ -4309,7 +3974,6 @@ VALUES
         '81a0dbf5-a073-5253-9e66-6c6b2290e57d', -- The HERDS 2026-07-29
         'Lena Holm',
         505,
-        'Scoutkåren Eken',
         'Patrull Vargen',
         'Lena Holm',
         '+46708889900',
@@ -4321,7 +3985,6 @@ VALUES
         'e08132d4-7c5c-55de-8cba-9950dbc24b6f', -- The HERDS 2026-07-29
         'Anna Svensson',
         101,
-        'Sjöscoutkåren Dansen',
         'Patrull Räven',
         'Anna Svensson',
         '+46701234567',
@@ -4333,7 +3996,6 @@ VALUES
         'fa638d98-af78-5ba2-ab0d-93a97de9cd24', -- The HERDS 2026-07-29
         'Erik Johansson',
         202,
-        'Scoutkåren Vansen',
         'Patrull Vargen',
         'Erik Johansson',
         '+46709876543',
@@ -4345,7 +4007,6 @@ VALUES
         'fa638d98-af78-5ba2-ab0d-93a97de9cd24', -- The HERDS 2026-07-29
         'Sara Öberg',
         404,
-        'Fjällscouterna',
         'Patrull Lodjuret',
         'Sara Öberg',
         '+46706667788',
@@ -4357,7 +4018,6 @@ VALUES
         '5f3cc3b0-092f-5ef5-b8e8-2ed141bbd017', -- Slappna av som Linné 2026-07-29
         'Lena Holm',
         505,
-        'Scoutkåren Eken',
         'Patrull Bävern',
         'Lena Holm',
         '+46708889900',
@@ -4369,7 +4029,6 @@ VALUES
         '5f3cc3b0-092f-5ef5-b8e8-2ed141bbd017', -- Slappna av som Linné 2026-07-29
         'Markus Test Ledare',
         1386,
-        'Kår 1386',
         'Patrull Ugglan',
         'Markus Test Ledare',
         '+46700000003',
@@ -4381,7 +4040,6 @@ VALUES
         '99d7c656-ce54-53b4-bb3f-d182f80be36d', -- Lägerbålspepp 2026-07-29
         'Johan Nilsson',
         303,
-        'Scoutkåren Norrsken',
         'Patrull Bävern',
         'Johan Nilsson',
         '+46703334455',
@@ -4393,7 +4051,6 @@ VALUES
         '87f009ea-2475-5721-a86e-6c4558b5af89', -- Pyssla med BRIS 2026-07-29
         'Sara Öberg',
         404,
-        'Fjällscouterna',
         'Patrull Ugglan',
         'Sara Öberg',
         '+46706667788',
@@ -4404,7 +4061,6 @@ VALUES
         '2c378f10-bbf5-4a32-b8f4-050dd552a447',
         '87f009ea-2475-5721-a86e-6c4558b5af89', -- Pyssla med BRIS 2026-07-29
         'Markus Test Funktionär',
-        NULL,
         NULL,
         'Hela avdelningen',
         'Markus Test Funktionär',
@@ -4417,7 +4073,6 @@ VALUES
         '79e1275a-b7f3-5681-91b4-76568de7d94b', -- Hantverksfokus: Banderoller/vimplar 2026-07-29
         'Lena Holm',
         505,
-        'Scoutkåren Eken',
         'Hela avdelningen',
         'Lena Holm',
         '+46708889900',
@@ -4429,7 +4084,6 @@ VALUES
         '79e1275a-b7f3-5681-91b4-76568de7d94b', -- Hantverksfokus: Banderoller/vimplar 2026-07-29
         'Markus Test Ledare',
         1386,
-        'Kår 1386',
         'Patrull Räven',
         'Markus Test Ledare',
         '+46700000003',
@@ -4440,7 +4094,6 @@ VALUES
         '006e3fdd-dc54-43a0-9a2a-4232335c07bc',
         'dd628ebd-59b3-5ef9-89a4-9d33b9196bb8', -- Lägerbålsparad 2026-07-29
         'Markus Test Planeringsfunktionär',
-        NULL,
         NULL,
         'Patrull Räven',
         'Markus Test Planeringsfunktionär',
@@ -4453,7 +4106,6 @@ VALUES
         '41e6f075-60f6-5052-9207-113fab7b7fb2', -- Dagens lek: Kom alla djur 2026-07-29
         'Markus Test Funktionär',
         NULL,
-        NULL,
         'Patrull Vargen',
         'Markus Test Funktionär',
         '+46700000002',
@@ -4465,7 +4117,6 @@ VALUES
         '41e6f075-60f6-5052-9207-113fab7b7fb2', -- Dagens lek: Kom alla djur 2026-07-29
         'Erik Johansson',
         202,
-        'Scoutkåren Vansen',
         'Patrull Lodjuret',
         'Erik Johansson',
         '+46709876543',
@@ -4477,7 +4128,6 @@ VALUES
         '3e76f15b-bcf7-5323-a2c4-754d743d0dc4', -- Mekanisk tjur 2026-07-29
         'Markus Test Ledare',
         1386,
-        'Kår 1386',
         'Patrull Lodjuret',
         'Markus Test Ledare',
         '+46700000003',
@@ -4489,7 +4139,6 @@ VALUES
         '3e76f15b-bcf7-5323-a2c4-754d743d0dc4', -- Mekanisk tjur 2026-07-29
         'Petra Vikström',
         606,
-        'Scoutkåren Kompassen',
         'Patrull Bävern',
         'Petra Vikström',
         '+46702223344',
@@ -4501,7 +4150,6 @@ VALUES
         '3e76f15b-bcf7-5323-a2c4-754d743d0dc4', -- Mekanisk tjur 2026-07-29
         'Lena Holm',
         505,
-        'Scoutkåren Eken',
         'Patrull Ugglan',
         'Lena Holm',
         '+46708889900',
@@ -4513,7 +4161,6 @@ VALUES
         '8614f89b-7841-57b4-b93c-b200a05cf8ec', -- Brottning 2026-07-29
         'Anna Svensson',
         101,
-        'Sjöscoutkåren Dansen',
         'Patrull Bävern',
         'Anna Svensson',
         '+46701234567',
@@ -4525,7 +4172,6 @@ VALUES
         '81118bd1-7e58-5f07-8c45-6aa9d688b8de', -- Brottning 2026-07-29
         'Sara Öberg',
         404,
-        'Fjällscouterna',
         'Hela avdelningen',
         'Sara Öberg',
         '+46706667788',
@@ -4537,7 +4183,6 @@ VALUES
         '6abcca52-a574-56cd-9608-0d415bd1de32', -- Brottning 2026-07-29
         'Petra Vikström',
         606,
-        'Scoutkåren Kompassen',
         'Hela avdelningen',
         'Petra Vikström',
         '+46702223344',
@@ -4549,7 +4194,6 @@ VALUES
         '674e1c40-cfc0-5caa-962d-9036998468cf', -- Brottning 2026-07-29
         'Johan Nilsson',
         303,
-        'Scoutkåren Norrsken',
         'Patrull Räven',
         'Johan Nilsson',
         '+46703334455',
@@ -4561,7 +4205,6 @@ VALUES
         'fbc1df7c-38e8-598c-a997-1d65a8e7c8da', -- Brottning 2026-07-29
         'Sara Öberg',
         404,
-        'Fjällscouterna',
         'Patrull Vargen',
         'Sara Öberg',
         '+46706667788',
@@ -4572,7 +4215,6 @@ VALUES
         '2c378f10-bbf5-4a32-b8f4-050dd552a447',
         'fbc1df7c-38e8-598c-a997-1d65a8e7c8da', -- Brottning 2026-07-29
         'Markus Test Funktionär',
-        NULL,
         NULL,
         'Patrull Lodjuret',
         'Markus Test Funktionär',
@@ -4585,7 +4227,6 @@ VALUES
         '09a0eaa2-2077-5847-b154-01bb25840b93', -- Brottning 2026-07-29
         'Markus Test Ledare',
         1386,
-        'Kår 1386',
         'Patrull Bävern',
         'Markus Test Ledare',
         '+46700000003',
@@ -4597,7 +4238,6 @@ VALUES
         '09a0eaa2-2077-5847-b154-01bb25840b93', -- Brottning 2026-07-29
         'Petra Vikström',
         606,
-        'Scoutkåren Kompassen',
         'Patrull Ugglan',
         'Petra Vikström',
         '+46702223344',
@@ -4608,7 +4248,6 @@ VALUES
         '006e3fdd-dc54-43a0-9a2a-4232335c07bc',
         '565af28c-9f99-54db-a882-011358f07ef6', -- Brottning 2026-07-29
         'Markus Test Planeringsfunktionär',
-        NULL,
         NULL,
         'Patrull Bävern',
         'Markus Test Planeringsfunktionär',
@@ -4621,7 +4260,6 @@ VALUES
         'd0b88c03-dc38-5da4-b2cf-a2512546d498', -- Brottning 2026-07-29
         'Markus Test Funktionär',
         NULL,
-        NULL,
         'Patrull Ugglan',
         'Markus Test Funktionär',
         '+46700000002',
@@ -4633,7 +4271,6 @@ VALUES
         'd0b88c03-dc38-5da4-b2cf-a2512546d498', -- Brottning 2026-07-29
         'Erik Johansson',
         202,
-        'Scoutkåren Vansen',
         'Hela avdelningen',
         'Erik Johansson',
         '+46709876543',
@@ -4645,7 +4282,6 @@ VALUES
         '06e7491d-377b-5a3b-bfca-20755677c656', -- Godnattsaga 2026-07-29
         'Markus Test Ledare',
         1386,
-        'Kår 1386',
         'Hela avdelningen',
         'Markus Test Ledare',
         '+46700000003',
@@ -4657,7 +4293,6 @@ VALUES
         '06e7491d-377b-5a3b-bfca-20755677c656', -- Godnattsaga 2026-07-29
         'Petra Vikström',
         606,
-        'Scoutkåren Kompassen',
         'Patrull Räven',
         'Petra Vikström',
         '+46702223344',
@@ -4669,7 +4304,6 @@ VALUES
         '23bb111a-592f-59cb-85a9-6fdf62534a63', -- Sagostund 2026-07-29
         'Anna Svensson',
         101,
-        'Sjöscoutkåren Dansen',
         'Patrull Räven',
         'Anna Svensson',
         '+46701234567',
@@ -4681,7 +4315,6 @@ VALUES
         '0b90f227-37ab-5e86-94da-e2863a470917', -- Kvällsbön 2026-07-29
         'Erik Johansson',
         202,
-        'Scoutkåren Vansen',
         'Patrull Vargen',
         'Erik Johansson',
         '+46709876543',
@@ -4693,7 +4326,6 @@ VALUES
         '0b90f227-37ab-5e86-94da-e2863a470917', -- Kvällsbön 2026-07-29
         'Sara Öberg',
         404,
-        'Fjällscouterna',
         'Patrull Lodjuret',
         'Sara Öberg',
         '+46706667788',
@@ -4705,7 +4337,6 @@ VALUES
         'af6d8ec5-8916-5714-aa67-0fa9b9925312', -- Existens - Maria Hammar 2026-07-29
         'Petra Vikström',
         606,
-        'Scoutkåren Kompassen',
         'Patrull Lodjuret',
         'Petra Vikström',
         '+46702223344',
@@ -4717,7 +4348,6 @@ VALUES
         'af6d8ec5-8916-5714-aa67-0fa9b9925312', -- Existens - Maria Hammar 2026-07-29
         'Lena Holm',
         505,
-        'Scoutkåren Eken',
         'Patrull Bävern',
         'Lena Holm',
         '+46708889900',
@@ -4729,7 +4359,6 @@ VALUES
         'af6d8ec5-8916-5714-aa67-0fa9b9925312', -- Existens - Maria Hammar 2026-07-29
         'Markus Test Ledare',
         1386,
-        'Kår 1386',
         'Patrull Ugglan',
         'Markus Test Ledare',
         '+46700000003',
@@ -4741,7 +4370,6 @@ VALUES
         '5cb3bcd2-f8c2-51d2-9261-f7ad3c0000c2', -- Bröllop - Vigsel 2026-07-29
         'Johan Nilsson',
         303,
-        'Scoutkåren Norrsken',
         'Patrull Bävern',
         'Johan Nilsson',
         '+46703334455',
@@ -4752,7 +4380,6 @@ VALUES
         '2c378f10-bbf5-4a32-b8f4-050dd552a447',
         'e5fb15f7-1844-513d-943f-2450746da7f9', -- Poetry Slam 2026-07-29
         'Markus Test Funktionär',
-        NULL,
         NULL,
         'Hela avdelningen',
         'Markus Test Funktionär',
@@ -4765,7 +4392,6 @@ VALUES
         '149851bf-369e-525c-8824-7597c22174f0', -- RUNCLUB 2026-07-29
         'Lena Holm',
         505,
-        'Scoutkåren Eken',
         'Hela avdelningen',
         'Lena Holm',
         '+46708889900',
@@ -4777,7 +4403,6 @@ VALUES
         '149851bf-369e-525c-8824-7597c22174f0', -- RUNCLUB 2026-07-29
         'Markus Test Ledare',
         1386,
-        'Kår 1386',
         'Patrull Räven',
         'Markus Test Ledare',
         '+46700000003',
@@ -4789,7 +4414,6 @@ VALUES
         '149851bf-369e-525c-8824-7597c22174f0', -- RUNCLUB 2026-07-29
         'Petra Vikström',
         606,
-        'Scoutkåren Kompassen',
         'Patrull Vargen',
         'Petra Vikström',
         '+46702223344',
@@ -4800,7 +4424,6 @@ VALUES
         '006e3fdd-dc54-43a0-9a2a-4232335c07bc',
         'cc04bc2c-ab64-5c1d-bb44-b975e0505e22', -- Frisk och Fri – Riksföreningen mot ätstörningar 2026-07-29
         'Markus Test Planeringsfunktionär',
-        NULL,
         NULL,
         'Patrull Räven',
         'Markus Test Planeringsfunktionär',
@@ -4813,7 +4436,6 @@ VALUES
         '948a4833-877a-5b55-bfa5-45726bddd1a4', -- Välkomna internationella scoutgäster! 2026-07-29
         'Markus Test Funktionär',
         NULL,
-        NULL,
         'Patrull Vargen',
         'Markus Test Funktionär',
         '+46700000002',
@@ -4825,7 +4447,6 @@ VALUES
         '948a4833-877a-5b55-bfa5-45726bddd1a4', -- Välkomna internationella scoutgäster! 2026-07-29
         'Erik Johansson',
         202,
-        'Scoutkåren Vansen',
         'Patrull Lodjuret',
         'Erik Johansson',
         '+46709876543',
@@ -4837,7 +4458,6 @@ VALUES
         'e6895bcd-a245-5aa8-a3ca-218c70574d59', -- Lasse Berg 2026-07-29
         'Petra Vikström',
         606,
-        'Scoutkåren Kompassen',
         'Patrull Bävern',
         'Petra Vikström',
         '+46702223344',
@@ -4849,7 +4469,6 @@ VALUES
         'e6895bcd-a245-5aa8-a3ca-218c70574d59', -- Lasse Berg 2026-07-29
         'Lena Holm',
         505,
-        'Scoutkåren Eken',
         'Patrull Ugglan',
         'Lena Holm',
         '+46708889900',
@@ -4861,7 +4480,6 @@ VALUES
         '48fa8c42-11fb-5cf3-b2b9-2d02fe281ec7', -- Bildstödspinne - anpassat ledarskap 2026-07-29
         'Anna Svensson',
         101,
-        'Sjöscoutkåren Dansen',
         'Patrull Bävern',
         'Anna Svensson',
         '+46701234567',
@@ -4873,7 +4491,6 @@ VALUES
         'b392ad26-4118-5fe3-999b-21e5a7733f7c', -- MOOT 2026-07-29
         'Erik Johansson',
         202,
-        'Scoutkåren Vansen',
         'Patrull Ugglan',
         'Erik Johansson',
         '+46709876543',
@@ -4885,7 +4502,6 @@ VALUES
         'b392ad26-4118-5fe3-999b-21e5a7733f7c', -- MOOT 2026-07-29
         'Sara Öberg',
         404,
-        'Fjällscouterna',
         'Hela avdelningen',
         'Sara Öberg',
         '+46706667788',
@@ -4897,7 +4513,6 @@ VALUES
         '7cf2fff2-3b9d-5b29-89df-4877d83e7015', -- Linedance 2026-07-29
         'Petra Vikström',
         606,
-        'Scoutkåren Kompassen',
         'Hela avdelningen',
         'Petra Vikström',
         '+46702223344',
@@ -4909,7 +4524,6 @@ VALUES
         '7cf2fff2-3b9d-5b29-89df-4877d83e7015', -- Linedance 2026-07-29
         'Lena Holm',
         505,
-        'Scoutkåren Eken',
         'Patrull Räven',
         'Lena Holm',
         '+46708889900',
@@ -4921,7 +4535,6 @@ VALUES
         'acbcca83-ac2d-5fed-b550-f75ceb39dee8', -- Bugg 2026-07-29
         'Johan Nilsson',
         303,
-        'Scoutkåren Norrsken',
         'Patrull Räven',
         'Johan Nilsson',
         '+46703334455',
@@ -4933,7 +4546,6 @@ VALUES
         '5e4dc1bc-b8f9-5159-b8c9-9c883e895dc7', -- Treskablinoll: Trygga scouter - nytt materiaö med fokus på inegritet 2026-07-29
         'Sara Öberg',
         404,
-        'Fjällscouterna',
         'Patrull Vargen',
         'Sara Öberg',
         '+46706667788',
@@ -4944,7 +4556,6 @@ VALUES
         '2c378f10-bbf5-4a32-b8f4-050dd552a447',
         '5e4dc1bc-b8f9-5159-b8c9-9c883e895dc7', -- Treskablinoll: Trygga scouter - nytt materiaö med fokus på inegritet 2026-07-29
         'Markus Test Funktionär',
-        NULL,
         NULL,
         'Patrull Lodjuret',
         'Markus Test Funktionär',
@@ -4957,7 +4568,6 @@ VALUES
         '8af18041-d1ff-5d91-8f12-de04f9840d2a', -- Internationella Strategin 2026-07-29
         'Lena Holm',
         505,
-        'Scoutkåren Eken',
         'Patrull Lodjuret',
         'Lena Holm',
         '+46708889900',
@@ -4969,7 +4579,6 @@ VALUES
         '8af18041-d1ff-5d91-8f12-de04f9840d2a', -- Internationella Strategin 2026-07-29
         'Markus Test Ledare',
         1386,
-        'Kår 1386',
         'Patrull Bävern',
         'Markus Test Ledare',
         '+46700000003',
@@ -4981,7 +4590,6 @@ VALUES
         '8af18041-d1ff-5d91-8f12-de04f9840d2a', -- Internationella Strategin 2026-07-29
         'Petra Vikström',
         606,
-        'Scoutkåren Kompassen',
         'Patrull Ugglan',
         'Petra Vikström',
         '+46702223344',
@@ -4992,7 +4600,6 @@ VALUES
         '006e3fdd-dc54-43a0-9a2a-4232335c07bc',
         '18c52c53-1a29-537e-8525-90827cd5aa6b', -- Samtal mellan partiföreträdare och scouter om frågor som rör ungas framtid 2026-07-29
         'Markus Test Planeringsfunktionär',
-        NULL,
         NULL,
         'Patrull Bävern',
         'Markus Test Planeringsfunktionär',
@@ -5005,7 +4612,6 @@ VALUES
         'fa2cb116-9f29-59aa-a59b-597bec8a9dc5', -- Folkhögskolan workshop 2026-07-29
         'Erik Johansson',
         202,
-        'Scoutkåren Vansen',
         'Hela avdelningen',
         'Erik Johansson',
         '+46709876543',
@@ -5017,7 +4623,6 @@ VALUES
         'd98fdcad-156d-5086-898a-56c4e7d71dbf', -- Äventyrare berättar: Henrik Wahlström 2026-07-29
         'Markus Test Ledare',
         1386,
-        'Kår 1386',
         'Hela avdelningen',
         'Markus Test Ledare',
         '+46700000003',
@@ -5029,7 +4634,6 @@ VALUES
         'd98fdcad-156d-5086-898a-56c4e7d71dbf', -- Äventyrare berättar: Henrik Wahlström 2026-07-29
         'Petra Vikström',
         606,
-        'Scoutkåren Kompassen',
         'Patrull Räven',
         'Petra Vikström',
         '+46702223344',
@@ -5041,7 +4645,6 @@ VALUES
         'd98fdcad-156d-5086-898a-56c4e7d71dbf', -- Äventyrare berättar: Henrik Wahlström 2026-07-29
         'Lena Holm',
         505,
-        'Scoutkåren Eken',
         'Patrull Vargen',
         'Lena Holm',
         '+46708889900',
@@ -5053,7 +4656,6 @@ VALUES
         'e9794be1-af8b-5270-80c2-1271b5490c99', -- Äventyrare berättar: Idun och Nikita 2026-07-29
         'Anna Svensson',
         101,
-        'Sjöscoutkåren Dansen',
         'Patrull Räven',
         'Anna Svensson',
         '+46701234567',
@@ -5065,7 +4667,6 @@ VALUES
         'c8dbd187-cbd0-5365-b090-6b21dd6b76a9', -- Unga forskare 2026-07-29
         'Erik Johansson',
         202,
-        'Scoutkåren Vansen',
         'Patrull Vargen',
         'Erik Johansson',
         '+46709876543',
@@ -5077,7 +4678,6 @@ VALUES
         'c8dbd187-cbd0-5365-b090-6b21dd6b76a9', -- Unga forskare 2026-07-29
         'Sara Öberg',
         404,
-        'Fjällscouterna',
         'Patrull Lodjuret',
         'Sara Öberg',
         '+46706667788',
@@ -5089,7 +4689,6 @@ VALUES
         '2afce3cb-dd2d-57e5-bb4e-e171005f3914', -- Tillsammans i ledarteamet 2026-07-29
         'Lena Holm',
         505,
-        'Scoutkåren Eken',
         'Patrull Bävern',
         'Lena Holm',
         '+46708889900',
@@ -5101,7 +4700,6 @@ VALUES
         '2afce3cb-dd2d-57e5-bb4e-e171005f3914', -- Tillsammans i ledarteamet 2026-07-29
         'Markus Test Ledare',
         1386,
-        'Kår 1386',
         'Patrull Ugglan',
         'Markus Test Ledare',
         '+46700000003',
@@ -5113,7 +4711,6 @@ VALUES
         '61a36783-7dc3-510a-a53f-a2a2f24b35a0', -- Tim Bergling Foundation 2026-07-29
         'Johan Nilsson',
         303,
-        'Scoutkåren Norrsken',
         'Patrull Bävern',
         'Johan Nilsson',
         '+46703334455',
@@ -5125,7 +4722,6 @@ VALUES
         'b519a75c-6406-5102-a671-4098ad6463ef', -- Upp- och nedmärket 2026-07-29
         'Sara Öberg',
         404,
-        'Fjällscouterna',
         'Patrull Ugglan',
         'Sara Öberg',
         '+46706667788',
@@ -5136,7 +4732,6 @@ VALUES
         '2c378f10-bbf5-4a32-b8f4-050dd552a447',
         'b519a75c-6406-5102-a671-4098ad6463ef', -- Upp- och nedmärket 2026-07-29
         'Markus Test Funktionär',
-        NULL,
         NULL,
         'Hela avdelningen',
         'Markus Test Funktionär',
@@ -5149,7 +4744,6 @@ VALUES
         '83ea5ea3-fca8-5dad-80f8-cdedb0efc686', -- Upp- och nedmärket 2026-07-29
         'Lena Holm',
         505,
-        'Scoutkåren Eken',
         'Hela avdelningen',
         'Lena Holm',
         '+46708889900',
@@ -5161,7 +4755,6 @@ VALUES
         '83ea5ea3-fca8-5dad-80f8-cdedb0efc686', -- Upp- och nedmärket 2026-07-29
         'Markus Test Ledare',
         1386,
-        'Kår 1386',
         'Patrull Räven',
         'Markus Test Ledare',
         '+46700000003',
@@ -5172,7 +4765,6 @@ VALUES
         '006e3fdd-dc54-43a0-9a2a-4232335c07bc',
         '721a6e2d-6e74-5fbe-84d4-3172d6129d1d', -- Tim Bergling Foundation 2026-07-29
         'Markus Test Planeringsfunktionär',
-        NULL,
         NULL,
         'Patrull Räven',
         'Markus Test Planeringsfunktionär',
@@ -5185,7 +4777,6 @@ VALUES
         'b8365222-0727-59cf-9fca-f8f256c3aa12', -- Uppdrag Självkänsla 2026-07-29
         'Markus Test Funktionär',
         NULL,
-        NULL,
         'Patrull Vargen',
         'Markus Test Funktionär',
         '+46700000002',
@@ -5197,7 +4788,6 @@ VALUES
         'b8365222-0727-59cf-9fca-f8f256c3aa12', -- Uppdrag Självkänsla 2026-07-29
         'Erik Johansson',
         202,
-        'Scoutkåren Vansen',
         'Patrull Lodjuret',
         'Erik Johansson',
         '+46709876543',
@@ -5209,7 +4799,6 @@ VALUES
         '89f7a5d2-daae-52a4-8834-dc1167ab94db', -- Fladdermussafari 2026-07-29
         'Markus Test Ledare',
         1386,
-        'Kår 1386',
         'Patrull Lodjuret',
         'Markus Test Ledare',
         '+46700000003',
@@ -5221,7 +4810,6 @@ VALUES
         '2bc55212-040d-57a5-8477-bdb7e8d3ece1', -- Frisk & Fri: Stärk din självkänsla - få mod att förändra 2026-07-29
         'Anna Svensson',
         101,
-        'Sjöscoutkåren Dansen',
         'Patrull Bävern',
         'Anna Svensson',
         '+46701234567',
@@ -5233,7 +4821,6 @@ VALUES
         '9c64cbe6-27f8-5c79-af5e-7b903c19ed3e', -- Frisk & Fri: Hur förändrar vi snacket om kropp och utseende? 2026-07-29
         'Sara Öberg',
         404,
-        'Fjällscouterna',
         'Hela avdelningen',
         'Sara Öberg',
         '+46706667788',
@@ -5245,7 +4832,6 @@ VALUES
         '20cb80f6-c27c-51d7-b750-61c62b629800', -- Influencern Henrik Wahlström: Från frustration till förändring 2026-07-29
         'Petra Vikström',
         606,
-        'Scoutkåren Kompassen',
         'Hela avdelningen',
         'Petra Vikström',
         '+46702223344',
@@ -5257,7 +4843,6 @@ VALUES
         '20cb80f6-c27c-51d7-b750-61c62b629800', -- Influencern Henrik Wahlström: Från frustration till förändring 2026-07-29
         'Lena Holm',
         505,
-        'Scoutkåren Eken',
         'Patrull Räven',
         'Lena Holm',
         '+46708889900',
@@ -5269,7 +4854,6 @@ VALUES
         '20cb80f6-c27c-51d7-b750-61c62b629800', -- Influencern Henrik Wahlström: Från frustration till förändring 2026-07-29
         'Markus Test Ledare',
         1386,
-        'Kår 1386',
         'Patrull Vargen',
         'Markus Test Ledare',
         '+46700000003',
@@ -5281,7 +4865,6 @@ VALUES
         'ab29cf58-58fe-51cf-a826-eeefa2e8aead', -- Deep talk: Har AI gått för långt? 2026-07-29
         'Johan Nilsson',
         303,
-        'Scoutkåren Norrsken',
         'Patrull Räven',
         'Johan Nilsson',
         '+46703334455',
@@ -5293,7 +4876,6 @@ VALUES
         '13688a1f-f48c-5ea5-beae-a471c25e907e', -- Ledarskap som lyfter unga 2026-07-29
         'Sara Öberg',
         404,
-        'Fjällscouterna',
         'Patrull Vargen',
         'Sara Öberg',
         '+46706667788',
@@ -5304,7 +4886,6 @@ VALUES
         '2c378f10-bbf5-4a32-b8f4-050dd552a447',
         '13688a1f-f48c-5ea5-beae-a471c25e907e', -- Ledarskap som lyfter unga 2026-07-29
         'Markus Test Funktionär',
-        NULL,
         NULL,
         'Patrull Lodjuret',
         'Markus Test Funktionär',
@@ -5317,7 +4898,6 @@ VALUES
         'c7a54b16-96f0-5eef-a2b0-e3e9923e1175', -- Quiz 2026-07-29
         'Markus Test Ledare',
         1386,
-        'Kår 1386',
         'Patrull Bävern',
         'Markus Test Ledare',
         '+46700000003',
@@ -5329,7 +4909,6 @@ VALUES
         'c7a54b16-96f0-5eef-a2b0-e3e9923e1175', -- Quiz 2026-07-29
         'Petra Vikström',
         606,
-        'Scoutkåren Kompassen',
         'Patrull Ugglan',
         'Petra Vikström',
         '+46702223344',
@@ -5340,7 +4919,6 @@ VALUES
         '006e3fdd-dc54-43a0-9a2a-4232335c07bc',
         '9a276b95-608c-5f7c-bea5-7be1881d6763', -- Stand up 2026-07-29
         'Markus Test Planeringsfunktionär',
-        NULL,
         NULL,
         'Patrull Bävern',
         'Markus Test Planeringsfunktionär',
@@ -5353,7 +4931,6 @@ VALUES
         'db77625e-6ea0-5bf9-a4ac-32a1d00f9b06', -- Quiz: Disney 2026-07-29
         'Markus Test Funktionär',
         NULL,
-        NULL,
         'Patrull Ugglan',
         'Markus Test Funktionär',
         '+46700000002',
@@ -5365,7 +4942,6 @@ VALUES
         'db77625e-6ea0-5bf9-a4ac-32a1d00f9b06', -- Quiz: Disney 2026-07-29
         'Erik Johansson',
         202,
-        'Scoutkåren Vansen',
         'Hela avdelningen',
         'Erik Johansson',
         '+46709876543',
@@ -5377,7 +4953,6 @@ VALUES
         'cc767b60-2cea-594b-be67-4b1e5d0fa504', -- Quiz: Disney 2026-07-29
         'Markus Test Ledare',
         1386,
-        'Kår 1386',
         'Hela avdelningen',
         'Markus Test Ledare',
         '+46700000003',
@@ -5389,7 +4964,6 @@ VALUES
         'cc767b60-2cea-594b-be67-4b1e5d0fa504', -- Quiz: Disney 2026-07-29
         'Petra Vikström',
         606,
-        'Scoutkåren Kompassen',
         'Patrull Räven',
         'Petra Vikström',
         '+46702223344',
@@ -5401,7 +4975,6 @@ VALUES
         '8c4dccb0-861b-5dfc-bb28-31050a9aecde', -- Turnering: Settlers of Catan 2026-07-29
         'Anna Svensson',
         101,
-        'Sjöscoutkåren Dansen',
         'Patrull Räven',
         'Anna Svensson',
         '+46701234567',
@@ -5413,7 +4986,6 @@ VALUES
         'dbf084f0-62ea-51d7-a1fe-07590a0b6094', -- Quiz: The Price is Right - Internationell scouting edition! 2026-07-29
         'Erik Johansson',
         202,
-        'Scoutkåren Vansen',
         'Patrull Vargen',
         'Erik Johansson',
         '+46709876543',
@@ -5425,7 +4997,6 @@ VALUES
         'dbf084f0-62ea-51d7-a1fe-07590a0b6094', -- Quiz: The Price is Right - Internationell scouting edition! 2026-07-29
         'Sara Öberg',
         404,
-        'Fjällscouterna',
         'Patrull Lodjuret',
         'Sara Öberg',
         '+46706667788',
@@ -5437,7 +5008,6 @@ VALUES
         '871e861c-aea4-58bd-abe2-c3a61ed921d2', -- Pyssla bildstödspinne och prata om Anpassat ledarskap 2026-07-29
         'Petra Vikström',
         606,
-        'Scoutkåren Kompassen',
         'Patrull Lodjuret',
         'Petra Vikström',
         '+46702223344',
@@ -5449,7 +5019,6 @@ VALUES
         '871e861c-aea4-58bd-abe2-c3a61ed921d2', -- Pyssla bildstödspinne och prata om Anpassat ledarskap 2026-07-29
         'Lena Holm',
         505,
-        'Scoutkåren Eken',
         'Patrull Bävern',
         'Lena Holm',
         '+46708889900',
@@ -5461,7 +5030,6 @@ VALUES
         '871e861c-aea4-58bd-abe2-c3a61ed921d2', -- Pyssla bildstödspinne och prata om Anpassat ledarskap 2026-07-29
         'Markus Test Ledare',
         1386,
-        'Kår 1386',
         'Patrull Ugglan',
         'Markus Test Ledare',
         '+46700000003',
@@ -5473,7 +5041,6 @@ VALUES
         'cfbcf58c-a1a0-58bc-a50a-17b43ea299e6', -- 29/7 – Lucia 🕯️ 2026-07-29
         'Johan Nilsson',
         303,
-        'Scoutkåren Norrsken',
         'Patrull Bävern',
         'Johan Nilsson',
         '+46703334455',
@@ -5484,7 +5051,6 @@ VALUES
         '2c378f10-bbf5-4a32-b8f4-050dd552a447',
         'ba51e8fe-ce4e-5d9b-8439-08e85efbc63f', -- Lekaktiviteter 2026-07-29
         'Markus Test Funktionär',
-        NULL,
         NULL,
         'Hela avdelningen',
         'Markus Test Funktionär',
@@ -5497,7 +5063,6 @@ VALUES
         'c905335b-63d6-562a-81e6-0d5dbba2ff7e', -- Bubbelballs 2026-07-29
         'Lena Holm',
         505,
-        'Scoutkåren Eken',
         'Hela avdelningen',
         'Lena Holm',
         '+46708889900',
@@ -5509,7 +5074,6 @@ VALUES
         'c905335b-63d6-562a-81e6-0d5dbba2ff7e', -- Bubbelballs 2026-07-29
         'Markus Test Ledare',
         1386,
-        'Kår 1386',
         'Patrull Räven',
         'Markus Test Ledare',
         '+46700000003',
@@ -5521,7 +5085,6 @@ VALUES
         'c905335b-63d6-562a-81e6-0d5dbba2ff7e', -- Bubbelballs 2026-07-29
         'Petra Vikström',
         606,
-        'Scoutkåren Kompassen',
         'Patrull Vargen',
         'Petra Vikström',
         '+46702223344',
@@ -5532,7 +5095,6 @@ VALUES
         '006e3fdd-dc54-43a0-9a2a-4232335c07bc',
         'a03d0ba9-b294-5822-b584-67a47f10cbb1', -- Kåsan 2026-07-29
         'Markus Test Planeringsfunktionär',
-        NULL,
         NULL,
         'Patrull Räven',
         'Markus Test Planeringsfunktionär',
@@ -5545,7 +5107,6 @@ VALUES
         'd0d060b3-20aa-5183-823c-a3f9336a7f45', -- Känslokartan 2026-07-29
         'Markus Test Funktionär',
         NULL,
-        NULL,
         'Patrull Vargen',
         'Markus Test Funktionär',
         '+46700000002',
@@ -5557,7 +5118,6 @@ VALUES
         'd0d060b3-20aa-5183-823c-a3f9336a7f45', -- Känslokartan 2026-07-29
         'Erik Johansson',
         202,
-        'Scoutkåren Vansen',
         'Patrull Lodjuret',
         'Erik Johansson',
         '+46709876543',
@@ -5569,7 +5129,6 @@ VALUES
         '6ee37d9e-29be-55d0-8ea0-4a7455bb23cc', -- Brädspel 2026-07-29
         'Petra Vikström',
         606,
-        'Scoutkåren Kompassen',
         'Patrull Bävern',
         'Petra Vikström',
         '+46702223344',
@@ -5581,7 +5140,6 @@ VALUES
         '6ee37d9e-29be-55d0-8ea0-4a7455bb23cc', -- Brädspel 2026-07-29
         'Lena Holm',
         505,
-        'Scoutkåren Eken',
         'Patrull Ugglan',
         'Lena Holm',
         '+46708889900',
@@ -5593,7 +5151,6 @@ VALUES
         '1cc1fda1-ef8c-5304-ba7e-22b5f717228a', -- Cybersäkerhet med Unga forskare 2026-07-29
         'Anna Svensson',
         101,
-        'Sjöscoutkåren Dansen',
         'Patrull Bävern',
         'Anna Svensson',
         '+46701234567',
@@ -5605,7 +5162,6 @@ VALUES
         'bacd0080-f649-5395-9a58-c19a9d7c00f4', -- Knoprep 2026-07-29
         'Erik Johansson',
         202,
-        'Scoutkåren Vansen',
         'Patrull Ugglan',
         'Erik Johansson',
         '+46709876543',
@@ -5617,7 +5173,6 @@ VALUES
         'bacd0080-f649-5395-9a58-c19a9d7c00f4', -- Knoprep 2026-07-29
         'Sara Öberg',
         404,
-        'Fjällscouterna',
         'Hela avdelningen',
         'Sara Öberg',
         '+46706667788',
@@ -5629,7 +5184,6 @@ VALUES
         '8dcfb880-4593-5c83-8dc3-39334cdadbed', -- Tillsammans målning 2026-07-29
         'Petra Vikström',
         606,
-        'Scoutkåren Kompassen',
         'Hela avdelningen',
         'Petra Vikström',
         '+46702223344',
@@ -5641,7 +5195,6 @@ VALUES
         '8dcfb880-4593-5c83-8dc3-39334cdadbed', -- Tillsammans målning 2026-07-29
         'Lena Holm',
         505,
-        'Scoutkåren Eken',
         'Patrull Räven',
         'Lena Holm',
         '+46708889900',
@@ -5653,7 +5206,6 @@ VALUES
         '42cd3402-33a3-53d7-9b8d-fcf95901bdf3', -- Halmpool 2026-07-29
         'Johan Nilsson',
         303,
-        'Scoutkåren Norrsken',
         'Patrull Räven',
         'Johan Nilsson',
         '+46703334455',
@@ -5665,7 +5217,6 @@ VALUES
         'e97b73f4-4d5a-5b18-a71f-680319e10eef', -- Slankaruseller 2026-07-29
         'Sara Öberg',
         404,
-        'Fjällscouterna',
         'Patrull Vargen',
         'Sara Öberg',
         '+46706667788',
@@ -5676,7 +5227,6 @@ VALUES
         '2c378f10-bbf5-4a32-b8f4-050dd552a447',
         'e97b73f4-4d5a-5b18-a71f-680319e10eef', -- Slankaruseller 2026-07-29
         'Markus Test Funktionär',
-        NULL,
         NULL,
         'Patrull Lodjuret',
         'Markus Test Funktionär',
@@ -5689,7 +5239,6 @@ VALUES
         '83b9605b-6d8f-56c2-8d06-aa8c4948f16d', -- Trygga möten fördjupning 2026-07-30
         'Lena Holm',
         505,
-        'Scoutkåren Eken',
         'Patrull Lodjuret',
         'Lena Holm',
         '+46708889900',
@@ -5701,7 +5250,6 @@ VALUES
         '83b9605b-6d8f-56c2-8d06-aa8c4948f16d', -- Trygga möten fördjupning 2026-07-30
         'Markus Test Ledare',
         1386,
-        'Kår 1386',
         'Patrull Bävern',
         'Markus Test Ledare',
         '+46700000003',
@@ -5713,7 +5261,6 @@ VALUES
         '83b9605b-6d8f-56c2-8d06-aa8c4948f16d', -- Trygga möten fördjupning 2026-07-30
         'Petra Vikström',
         606,
-        'Scoutkåren Kompassen',
         'Patrull Ugglan',
         'Petra Vikström',
         '+46702223344',
@@ -5724,7 +5271,6 @@ VALUES
         '006e3fdd-dc54-43a0-9a2a-4232335c07bc',
         'd1bef4f0-215c-5728-8360-a8bca5bab180', -- Bris 2026-07-30
         'Markus Test Planeringsfunktionär',
-        NULL,
         NULL,
         'Patrull Bävern',
         'Markus Test Planeringsfunktionär',
@@ -5737,7 +5283,6 @@ VALUES
         '87c58b36-0673-56b5-b1bd-3d6fdb36e9c6', -- Inspiration för kårer som vill åka utomlands 2026-07-30
         'Erik Johansson',
         202,
-        'Scoutkåren Vansen',
         'Hela avdelningen',
         'Erik Johansson',
         '+46709876543',
@@ -5749,7 +5294,6 @@ VALUES
         'eead6a68-1f2b-53c5-bc82-f7b928d8beec', -- Folkhögskolan workshop 2026-07-30
         'Markus Test Ledare',
         1386,
-        'Kår 1386',
         'Hela avdelningen',
         'Markus Test Ledare',
         '+46700000003',
@@ -5761,7 +5305,6 @@ VALUES
         'eead6a68-1f2b-53c5-bc82-f7b928d8beec', -- Folkhögskolan workshop 2026-07-30
         'Petra Vikström',
         606,
-        'Scoutkåren Kompassen',
         'Patrull Räven',
         'Petra Vikström',
         '+46702223344',
@@ -5773,7 +5316,6 @@ VALUES
         'eead6a68-1f2b-53c5-bc82-f7b928d8beec', -- Folkhögskolan workshop 2026-07-30
         'Lena Holm',
         505,
-        'Scoutkåren Eken',
         'Patrull Vargen',
         'Lena Holm',
         '+46708889900',
@@ -5785,7 +5327,6 @@ VALUES
         'c0ed0f3b-e9bd-5640-b053-ae5dab461678', -- Nyfiken på Leda Avdelning 2026-07-30
         'Anna Svensson',
         101,
-        'Sjöscoutkåren Dansen',
         'Patrull Räven',
         'Anna Svensson',
         '+46701234567',
@@ -5797,7 +5338,6 @@ VALUES
         '40fab5e2-18ee-5a75-9b37-5dea0d33bc9f', -- Så jobbar en EU-korrespondent 2026-07-30
         'Erik Johansson',
         202,
-        'Scoutkåren Vansen',
         'Patrull Vargen',
         'Erik Johansson',
         '+46709876543',
@@ -5809,7 +5349,6 @@ VALUES
         '40fab5e2-18ee-5a75-9b37-5dea0d33bc9f', -- Så jobbar en EU-korrespondent 2026-07-30
         'Sara Öberg',
         404,
-        'Fjällscouterna',
         'Patrull Lodjuret',
         'Sara Öberg',
         '+46706667788',
@@ -5821,7 +5360,6 @@ VALUES
         '50cd5135-1530-5fb4-b27f-92d48428fd68', -- Nedmontera skiten - hur skapar vi den sämsta möjliga skolan? 2026-07-30
         'Lena Holm',
         505,
-        'Scoutkåren Eken',
         'Patrull Bävern',
         'Lena Holm',
         '+46708889900',
@@ -5833,7 +5371,6 @@ VALUES
         '50cd5135-1530-5fb4-b27f-92d48428fd68', -- Nedmontera skiten - hur skapar vi den sämsta möjliga skolan? 2026-07-30
         'Markus Test Ledare',
         1386,
-        'Kår 1386',
         'Patrull Ugglan',
         'Markus Test Ledare',
         '+46700000003',
@@ -5845,7 +5382,6 @@ VALUES
         '850fe1e2-1a9c-5f27-90ae-e1a188056e6d', -- Bris: Att aldrig riktigt räcka till 2026-07-30
         'Johan Nilsson',
         303,
-        'Scoutkåren Norrsken',
         'Patrull Bävern',
         'Johan Nilsson',
         '+46703334455',
@@ -5857,7 +5393,6 @@ VALUES
         'bd46e4be-166b-53aa-98d6-8c64f006b706', -- Rektorn på besök: Hur mycket kan du egentligen påverka? 2026-07-30
         'Sara Öberg',
         404,
-        'Fjällscouterna',
         'Patrull Ugglan',
         'Sara Öberg',
         '+46706667788',
@@ -5868,7 +5403,6 @@ VALUES
         '2c378f10-bbf5-4a32-b8f4-050dd552a447',
         'bd46e4be-166b-53aa-98d6-8c64f006b706', -- Rektorn på besök: Hur mycket kan du egentligen påverka? 2026-07-30
         'Markus Test Funktionär',
-        NULL,
         NULL,
         'Hela avdelningen',
         'Markus Test Funktionär',
@@ -5881,7 +5415,6 @@ VALUES
         'd9b9d7fb-1634-5580-a328-495883dd5428', -- Deep talk - Rösta i Gnistan på tema! 2026-07-30
         'Lena Holm',
         505,
-        'Scoutkåren Eken',
         'Hela avdelningen',
         'Lena Holm',
         '+46708889900',
@@ -5893,7 +5426,6 @@ VALUES
         'd9b9d7fb-1634-5580-a328-495883dd5428', -- Deep talk - Rösta i Gnistan på tema! 2026-07-30
         'Markus Test Ledare',
         1386,
-        'Kår 1386',
         'Patrull Räven',
         'Markus Test Ledare',
         '+46700000003',
@@ -5904,7 +5436,6 @@ VALUES
         '006e3fdd-dc54-43a0-9a2a-4232335c07bc',
         '0aba5b9b-9b61-52a7-a218-967cf33484f3', -- Ledarskap som lyfter unga 2026-07-30
         'Markus Test Planeringsfunktionär',
-        NULL,
         NULL,
         'Patrull Räven',
         'Markus Test Planeringsfunktionär',
@@ -5917,7 +5448,6 @@ VALUES
         '8ddfc7e3-652f-5d35-8b4e-c2fd9f7b9bd4', -- Återträff WSJ - World Scout Jamboree 2026-07-30
         'Markus Test Funktionär',
         NULL,
-        NULL,
         'Patrull Vargen',
         'Markus Test Funktionär',
         '+46700000002',
@@ -5929,7 +5459,6 @@ VALUES
         '8ddfc7e3-652f-5d35-8b4e-c2fd9f7b9bd4', -- Återträff WSJ - World Scout Jamboree 2026-07-30
         'Erik Johansson',
         202,
-        'Scoutkåren Vansen',
         'Patrull Lodjuret',
         'Erik Johansson',
         '+46709876543',
@@ -5941,7 +5470,6 @@ VALUES
         'dd4bb037-abf9-5b64-a1e9-29cb8e45a1e0', -- Återträff World Scout Moot 2026-07-30
         'Markus Test Ledare',
         1386,
-        'Kår 1386',
         'Patrull Lodjuret',
         'Markus Test Ledare',
         '+46700000003',
@@ -5953,7 +5481,6 @@ VALUES
         'dd4bb037-abf9-5b64-a1e9-29cb8e45a1e0', -- Återträff World Scout Moot 2026-07-30
         'Petra Vikström',
         606,
-        'Scoutkåren Kompassen',
         'Patrull Bävern',
         'Petra Vikström',
         '+46702223344',
@@ -5965,7 +5492,6 @@ VALUES
         'dd4bb037-abf9-5b64-a1e9-29cb8e45a1e0', -- Återträff World Scout Moot 2026-07-30
         'Lena Holm',
         505,
-        'Scoutkåren Eken',
         'Patrull Ugglan',
         'Lena Holm',
         '+46708889900',
@@ -5977,7 +5503,6 @@ VALUES
         'd37bf222-75ed-58d0-b382-449875c35eef', -- Återträff Roverway 2026-07-30
         'Anna Svensson',
         101,
-        'Sjöscoutkåren Dansen',
         'Patrull Bävern',
         'Anna Svensson',
         '+46701234567',
@@ -5989,7 +5514,6 @@ VALUES
         'a10bf42e-79ec-554a-8571-1ab2a3daea1c', -- Quiz 2026-07-30
         'Sara Öberg',
         404,
-        'Fjällscouterna',
         'Hela avdelningen',
         'Sara Öberg',
         '+46706667788',
@@ -6001,7 +5525,6 @@ VALUES
         'a0675bed-8d38-5222-acbf-d9719f19296c', -- Open mic night 2026-07-30
         'Petra Vikström',
         606,
-        'Scoutkåren Kompassen',
         'Hela avdelningen',
         'Petra Vikström',
         '+46702223344',
@@ -6013,7 +5536,6 @@ VALUES
         'a0675bed-8d38-5222-acbf-d9719f19296c', -- Open mic night 2026-07-30
         'Lena Holm',
         505,
-        'Scoutkåren Eken',
         'Patrull Räven',
         'Lena Holm',
         '+46708889900',
@@ -6025,7 +5547,6 @@ VALUES
         'a0675bed-8d38-5222-acbf-d9719f19296c', -- Open mic night 2026-07-30
         'Markus Test Ledare',
         1386,
-        'Kår 1386',
         'Patrull Vargen',
         'Markus Test Ledare',
         '+46700000003',
@@ -6037,7 +5558,6 @@ VALUES
         '5c34806a-8cb6-5ac8-939c-e50667086f37', -- Internationella gruppen tar över ledarhänget 2026-07-30
         'Johan Nilsson',
         303,
-        'Scoutkåren Norrsken',
         'Patrull Räven',
         'Johan Nilsson',
         '+46703334455',
@@ -6049,7 +5569,6 @@ VALUES
         'a7510cf9-536f-54bc-ac43-4e43d4623d67', -- Upptäckarsamtal 2026-07-30
         'Sara Öberg',
         404,
-        'Fjällscouterna',
         'Patrull Vargen',
         'Sara Öberg',
         '+46706667788',
@@ -6060,7 +5579,6 @@ VALUES
         '2c378f10-bbf5-4a32-b8f4-050dd552a447',
         'a7510cf9-536f-54bc-ac43-4e43d4623d67', -- Upptäckarsamtal 2026-07-30
         'Markus Test Funktionär',
-        NULL,
         NULL,
         'Patrull Lodjuret',
         'Markus Test Funktionär',
@@ -6073,7 +5591,6 @@ VALUES
         '065b36e9-4127-5495-9ae3-16cb4a177ef9', -- Familjescoutsamtal 2026-07-30
         'Markus Test Ledare',
         1386,
-        'Kår 1386',
         'Patrull Bävern',
         'Markus Test Ledare',
         '+46700000003',
@@ -6085,7 +5602,6 @@ VALUES
         '065b36e9-4127-5495-9ae3-16cb4a177ef9', -- Familjescoutsamtal 2026-07-30
         'Petra Vikström',
         606,
-        'Scoutkåren Kompassen',
         'Patrull Ugglan',
         'Petra Vikström',
         '+46702223344',
@@ -6096,7 +5612,6 @@ VALUES
         '006e3fdd-dc54-43a0-9a2a-4232335c07bc',
         '87018007-7156-5f30-ab55-74746d60ac5c', -- Spårarsamtal 2026-07-30
         'Markus Test Planeringsfunktionär',
-        NULL,
         NULL,
         'Patrull Bävern',
         'Markus Test Planeringsfunktionär',
@@ -6109,7 +5624,6 @@ VALUES
         'e8f319ab-0851-520a-966e-b3fe63beef09', -- NSF 2026-07-30
         'Markus Test Funktionär',
         NULL,
-        NULL,
         'Patrull Ugglan',
         'Markus Test Funktionär',
         '+46700000002',
@@ -6121,7 +5635,6 @@ VALUES
         'e8f319ab-0851-520a-966e-b3fe63beef09', -- NSF 2026-07-30
         'Erik Johansson',
         202,
-        'Scoutkåren Vansen',
         'Hela avdelningen',
         'Erik Johansson',
         '+46709876543',
@@ -6133,7 +5646,6 @@ VALUES
         '665b6442-3ee5-5064-b728-e07a4f1b8e26', -- Speedfriending 2026-07-30
         'Markus Test Ledare',
         1386,
-        'Kår 1386',
         'Hela avdelningen',
         'Markus Test Ledare',
         '+46700000003',
@@ -6145,7 +5657,6 @@ VALUES
         '665b6442-3ee5-5064-b728-e07a4f1b8e26', -- Speedfriending 2026-07-30
         'Petra Vikström',
         606,
-        'Scoutkåren Kompassen',
         'Patrull Räven',
         'Petra Vikström',
         '+46702223344',
@@ -6157,7 +5668,6 @@ VALUES
         '7669c2c7-538f-5d2b-bc09-3e562a4768de', -- Bildstödspinne - anpassat ledarskap 2026-07-30
         'Anna Svensson',
         101,
-        'Sjöscoutkåren Dansen',
         'Patrull Räven',
         'Anna Svensson',
         '+46701234567',
@@ -6169,7 +5679,6 @@ VALUES
         'cc405766-4f25-5b04-9020-90b1693609e3', -- Bachata 2026-07-30
         'Erik Johansson',
         202,
-        'Scoutkåren Vansen',
         'Patrull Vargen',
         'Erik Johansson',
         '+46709876543',
@@ -6181,7 +5690,6 @@ VALUES
         'cc405766-4f25-5b04-9020-90b1693609e3', -- Bachata 2026-07-30
         'Sara Öberg',
         404,
-        'Fjällscouterna',
         'Patrull Lodjuret',
         'Sara Öberg',
         '+46706667788',
@@ -6193,7 +5701,6 @@ VALUES
         'd600ef16-5a89-51fb-8169-5336aeddc7d4', -- Bachata 2026-07-30
         'Petra Vikström',
         606,
-        'Scoutkåren Kompassen',
         'Patrull Lodjuret',
         'Petra Vikström',
         '+46702223344',
@@ -6205,7 +5712,6 @@ VALUES
         'd600ef16-5a89-51fb-8169-5336aeddc7d4', -- Bachata 2026-07-30
         'Lena Holm',
         505,
-        'Scoutkåren Eken',
         'Patrull Bävern',
         'Lena Holm',
         '+46708889900',
@@ -6217,7 +5723,6 @@ VALUES
         'd600ef16-5a89-51fb-8169-5336aeddc7d4', -- Bachata 2026-07-30
         'Markus Test Ledare',
         1386,
-        'Kår 1386',
         'Patrull Ugglan',
         'Markus Test Ledare',
         '+46700000003',
@@ -6229,7 +5734,6 @@ VALUES
         '6afa33b0-c429-56f1-a7fc-f49f33d2ea7c', -- Bachata 2026-07-30
         'Johan Nilsson',
         303,
-        'Scoutkåren Norrsken',
         'Patrull Bävern',
         'Johan Nilsson',
         '+46703334455',
@@ -6240,7 +5744,6 @@ VALUES
         '2c378f10-bbf5-4a32-b8f4-050dd552a447',
         'aff5625b-7de7-5246-938d-ae374c0a9416', -- Klubb Fiesta med DJ Måns 2026-07-30
         'Markus Test Funktionär',
-        NULL,
         NULL,
         'Hela avdelningen',
         'Markus Test Funktionär',
@@ -6253,7 +5756,6 @@ VALUES
         'fd514c87-6151-50b6-9a28-893a562b7eff', -- Volleybollturnering 2026-07-30
         'Lena Holm',
         505,
-        'Scoutkåren Eken',
         'Hela avdelningen',
         'Lena Holm',
         '+46708889900',
@@ -6265,7 +5767,6 @@ VALUES
         'fd514c87-6151-50b6-9a28-893a562b7eff', -- Volleybollturnering 2026-07-30
         'Markus Test Ledare',
         1386,
-        'Kår 1386',
         'Patrull Räven',
         'Markus Test Ledare',
         '+46700000003',
@@ -6277,7 +5778,6 @@ VALUES
         'fd514c87-6151-50b6-9a28-893a562b7eff', -- Volleybollturnering 2026-07-30
         'Petra Vikström',
         606,
-        'Scoutkåren Kompassen',
         'Patrull Vargen',
         'Petra Vikström',
         '+46702223344',
@@ -6288,7 +5788,6 @@ VALUES
         '006e3fdd-dc54-43a0-9a2a-4232335c07bc',
         '5cf47cfb-215d-5a70-87e1-4944ff4ccd4f', -- Hur bygger vi fred lokalt när det pågår krig globalt? 2026-07-30
         'Markus Test Planeringsfunktionär',
-        NULL,
         NULL,
         'Patrull Räven',
         'Markus Test Planeringsfunktionär',
@@ -6301,7 +5800,6 @@ VALUES
         '6ea2063b-d301-5d16-975c-9c7f2f176408', -- På Spåret: Internationell scouting edition! 2026-07-30
         'Markus Test Funktionär',
         NULL,
-        NULL,
         'Patrull Vargen',
         'Markus Test Funktionär',
         '+46700000002',
@@ -6313,7 +5811,6 @@ VALUES
         '6ea2063b-d301-5d16-975c-9c7f2f176408', -- På Spåret: Internationell scouting edition! 2026-07-30
         'Erik Johansson',
         202,
-        'Scoutkåren Vansen',
         'Patrull Lodjuret',
         'Erik Johansson',
         '+46709876543',
@@ -6325,7 +5822,6 @@ VALUES
         '8cac8501-366f-5eee-aa6f-5fc63a9a7193', -- Karaoke 2026-07-30
         'Petra Vikström',
         606,
-        'Scoutkåren Kompassen',
         'Patrull Bävern',
         'Petra Vikström',
         '+46702223344',
@@ -6337,7 +5833,6 @@ VALUES
         '8cac8501-366f-5eee-aa6f-5fc63a9a7193', -- Karaoke 2026-07-30
         'Lena Holm',
         505,
-        'Scoutkåren Eken',
         'Patrull Ugglan',
         'Lena Holm',
         '+46708889900',
@@ -6349,7 +5844,6 @@ VALUES
         '412c2b5e-f6dc-5d65-a818-d3a96117c17b', -- Från Frankrike till Korea - på cykel! 2026-07-30
         'Anna Svensson',
         101,
-        'Sjöscoutkåren Dansen',
         'Patrull Bävern',
         'Anna Svensson',
         '+46701234567',
@@ -6361,7 +5855,6 @@ VALUES
         'dc2e47e1-fea3-530a-84eb-5fc7d262767b', -- Tänk Till 2026-07-30
         'Erik Johansson',
         202,
-        'Scoutkåren Vansen',
         'Patrull Ugglan',
         'Erik Johansson',
         '+46709876543',
@@ -6373,7 +5866,6 @@ VALUES
         'dc2e47e1-fea3-530a-84eb-5fc7d262767b', -- Tänk Till 2026-07-30
         'Sara Öberg',
         404,
-        'Fjällscouterna',
         'Hela avdelningen',
         'Sara Öberg',
         '+46706667788',
@@ -6385,7 +5877,6 @@ VALUES
         'f094215c-5ef9-5b56-9750-7b111e25a829', -- Tänk Till 2026-07-30
         'Petra Vikström',
         606,
-        'Scoutkåren Kompassen',
         'Hela avdelningen',
         'Petra Vikström',
         '+46702223344',
@@ -6397,7 +5888,6 @@ VALUES
         'f094215c-5ef9-5b56-9750-7b111e25a829', -- Tänk Till 2026-07-30
         'Lena Holm',
         505,
-        'Scoutkåren Eken',
         'Patrull Räven',
         'Lena Holm',
         '+46708889900',
@@ -6409,7 +5899,6 @@ VALUES
         '334d85ed-df16-5008-ab29-ca9dbb8d8ff6', -- Tänk Till 2026-07-30
         'Johan Nilsson',
         303,
-        'Scoutkåren Norrsken',
         'Patrull Räven',
         'Johan Nilsson',
         '+46703334455',
@@ -6421,7 +5910,6 @@ VALUES
         '622589b9-9fcc-52ca-b040-cb4d7040bbf9', -- Tänk Till 2026-07-30
         'Sara Öberg',
         404,
-        'Fjällscouterna',
         'Patrull Vargen',
         'Sara Öberg',
         '+46706667788',
@@ -6432,7 +5920,6 @@ VALUES
         '2c378f10-bbf5-4a32-b8f4-050dd552a447',
         '622589b9-9fcc-52ca-b040-cb4d7040bbf9', -- Tänk Till 2026-07-30
         'Markus Test Funktionär',
-        NULL,
         NULL,
         'Patrull Lodjuret',
         'Markus Test Funktionär',
@@ -6445,7 +5932,6 @@ VALUES
         'c95183ae-acc1-5ccb-8e68-f934c65cd991', -- Sagostund 2026-07-30
         'Lena Holm',
         505,
-        'Scoutkåren Eken',
         'Patrull Lodjuret',
         'Lena Holm',
         '+46708889900',
@@ -6457,7 +5943,6 @@ VALUES
         'c95183ae-acc1-5ccb-8e68-f934c65cd991', -- Sagostund 2026-07-30
         'Markus Test Ledare',
         1386,
-        'Kår 1386',
         'Patrull Bävern',
         'Markus Test Ledare',
         '+46700000003',
@@ -6469,7 +5954,6 @@ VALUES
         'c95183ae-acc1-5ccb-8e68-f934c65cd991', -- Sagostund 2026-07-30
         'Petra Vikström',
         606,
-        'Scoutkåren Kompassen',
         'Patrull Ugglan',
         'Petra Vikström',
         '+46702223344',
@@ -6480,7 +5964,6 @@ VALUES
         '006e3fdd-dc54-43a0-9a2a-4232335c07bc',
         '6e4327ee-465a-5f57-a90f-5f76b2fb1404', -- Kvällsbön 2026-07-30
         'Markus Test Planeringsfunktionär',
-        NULL,
         NULL,
         'Patrull Bävern',
         'Markus Test Planeringsfunktionär',
@@ -6493,7 +5976,6 @@ VALUES
         'd527706a-43de-5b01-8a48-7a2f819268f5', -- Meningen med mig 2026-07-30
         'Erik Johansson',
         202,
-        'Scoutkåren Vansen',
         'Hela avdelningen',
         'Erik Johansson',
         '+46709876543',
@@ -6505,7 +5987,6 @@ VALUES
         '2b21ad81-9fec-5838-ae82-7ea271f22d5a', -- Meningen med mig 2026-07-30
         'Markus Test Ledare',
         1386,
-        'Kår 1386',
         'Hela avdelningen',
         'Markus Test Ledare',
         '+46700000003',
@@ -6517,7 +5998,6 @@ VALUES
         '2b21ad81-9fec-5838-ae82-7ea271f22d5a', -- Meningen med mig 2026-07-30
         'Petra Vikström',
         606,
-        'Scoutkåren Kompassen',
         'Patrull Räven',
         'Petra Vikström',
         '+46702223344',
@@ -6529,7 +6009,6 @@ VALUES
         '2b21ad81-9fec-5838-ae82-7ea271f22d5a', -- Meningen med mig 2026-07-30
         'Lena Holm',
         505,
-        'Scoutkåren Eken',
         'Patrull Vargen',
         'Lena Holm',
         '+46708889900',
@@ -6541,7 +6020,6 @@ VALUES
         '612fb54e-a192-5dc0-97f7-81ab2bd663c3', -- Nattvard 2026-07-30
         'Anna Svensson',
         101,
-        'Sjöscoutkåren Dansen',
         'Patrull Räven',
         'Anna Svensson',
         '+46701234567',
@@ -6553,7 +6031,6 @@ VALUES
         'e424cff2-00d1-5e23-8ac4-16fbfedea28e', -- 30/7 – Julafton 🎄 2026-07-30
         'Erik Johansson',
         202,
-        'Scoutkåren Vansen',
         'Patrull Vargen',
         'Erik Johansson',
         '+46709876543',
@@ -6565,7 +6042,6 @@ VALUES
         'e424cff2-00d1-5e23-8ac4-16fbfedea28e', -- 30/7 – Julafton 🎄 2026-07-30
         'Sara Öberg',
         404,
-        'Fjällscouterna',
         'Patrull Lodjuret',
         'Sara Öberg',
         '+46706667788',
@@ -6577,7 +6053,6 @@ VALUES
         '676d645a-e77b-5c21-b5ef-0081eedc0a6d', -- The HERDS 2026-07-30
         'Johan Nilsson',
         303,
-        'Scoutkåren Norrsken',
         'Patrull Bävern',
         'Johan Nilsson',
         '+46703334455',
@@ -6589,7 +6064,6 @@ VALUES
         'c7a25147-3684-56f2-bdad-81bca271f881', -- The HERDS 2026-07-30
         'Sara Öberg',
         404,
-        'Fjällscouterna',
         'Patrull Ugglan',
         'Sara Öberg',
         '+46706667788',
@@ -6600,7 +6074,6 @@ VALUES
         '2c378f10-bbf5-4a32-b8f4-050dd552a447',
         'c7a25147-3684-56f2-bdad-81bca271f881', -- The HERDS 2026-07-30
         'Markus Test Funktionär',
-        NULL,
         NULL,
         'Hela avdelningen',
         'Markus Test Funktionär',
@@ -6613,7 +6086,6 @@ VALUES
         'adca7be8-03cb-5e68-8fac-288b5599278e', -- The HERDS 2026-07-30
         'Lena Holm',
         505,
-        'Scoutkåren Eken',
         'Hela avdelningen',
         'Lena Holm',
         '+46708889900',
@@ -6625,7 +6097,6 @@ VALUES
         'adca7be8-03cb-5e68-8fac-288b5599278e', -- The HERDS 2026-07-30
         'Markus Test Ledare',
         1386,
-        'Kår 1386',
         'Patrull Räven',
         'Markus Test Ledare',
         '+46700000003',
@@ -6636,7 +6107,6 @@ VALUES
         '006e3fdd-dc54-43a0-9a2a-4232335c07bc',
         '166dfba6-7cdf-5ae4-8a27-755d8617fee2', -- Kubbturnering Deltävling 1 2026-07-30
         'Markus Test Planeringsfunktionär',
-        NULL,
         NULL,
         'Patrull Räven',
         'Markus Test Planeringsfunktionär',
@@ -6649,7 +6119,6 @@ VALUES
         '559b3071-76a4-58af-ab71-a6a26ac68f33', -- Dagens lek 2026-07-30
         'Markus Test Funktionär',
         NULL,
-        NULL,
         'Patrull Vargen',
         'Markus Test Funktionär',
         '+46700000002',
@@ -6661,7 +6130,6 @@ VALUES
         '559b3071-76a4-58af-ab71-a6a26ac68f33', -- Dagens lek 2026-07-30
         'Erik Johansson',
         202,
-        'Scoutkåren Vansen',
         'Patrull Lodjuret',
         'Erik Johansson',
         '+46709876543',
@@ -6673,7 +6141,6 @@ VALUES
         'ab9f3402-0a49-5b62-aa5f-c4a7e999280a', -- Fotbollstunering Scouter vs. Ledare 2026-07-30
         'Markus Test Ledare',
         1386,
-        'Kår 1386',
         'Patrull Lodjuret',
         'Markus Test Ledare',
         '+46700000003',
@@ -6685,7 +6152,6 @@ VALUES
         'ab9f3402-0a49-5b62-aa5f-c4a7e999280a', -- Fotbollstunering Scouter vs. Ledare 2026-07-30
         'Petra Vikström',
         606,
-        'Scoutkåren Kompassen',
         'Patrull Bävern',
         'Petra Vikström',
         '+46702223344',
@@ -6697,7 +6163,6 @@ VALUES
         'ab9f3402-0a49-5b62-aa5f-c4a7e999280a', -- Fotbollstunering Scouter vs. Ledare 2026-07-30
         'Lena Holm',
         505,
-        'Scoutkåren Eken',
         'Patrull Ugglan',
         'Lena Holm',
         '+46708889900',
@@ -6709,7 +6174,6 @@ VALUES
         '3680858d-b5f5-5e65-b13f-32de1be4ca3a', -- Fotbollstunering Scouter vs. Ledare 2026-07-30
         'Anna Svensson',
         101,
-        'Sjöscoutkåren Dansen',
         'Patrull Bävern',
         'Anna Svensson',
         '+46701234567',
@@ -6721,7 +6185,6 @@ VALUES
         '67672c4c-9045-5d48-9b85-2ffa9b1038b1', -- Pyjamasparty med talangshow 2026-07-30
         'Sara Öberg',
         404,
-        'Fjällscouterna',
         'Hela avdelningen',
         'Sara Öberg',
         '+46706667788',
@@ -6733,7 +6196,6 @@ VALUES
         'bc750540-bfb8-51e9-b775-cd44556f9b51', -- Lekaktiviteter 2026-07-30
         'Petra Vikström',
         606,
-        'Scoutkåren Kompassen',
         'Hela avdelningen',
         'Petra Vikström',
         '+46702223344',
@@ -6745,7 +6207,6 @@ VALUES
         'bc750540-bfb8-51e9-b775-cd44556f9b51', -- Lekaktiviteter 2026-07-30
         'Lena Holm',
         505,
-        'Scoutkåren Eken',
         'Patrull Räven',
         'Lena Holm',
         '+46708889900',
@@ -6757,7 +6218,6 @@ VALUES
         'bc750540-bfb8-51e9-b775-cd44556f9b51', -- Lekaktiviteter 2026-07-30
         'Markus Test Ledare',
         1386,
-        'Kår 1386',
         'Patrull Vargen',
         'Markus Test Ledare',
         '+46700000003',
@@ -6769,7 +6229,6 @@ VALUES
         'ef7dd134-f00c-5de5-9e0a-af5d5a5046c4', -- Bubbelballs 2026-07-30
         'Johan Nilsson',
         303,
-        'Scoutkåren Norrsken',
         'Patrull Räven',
         'Johan Nilsson',
         '+46703334455',
@@ -6781,7 +6240,6 @@ VALUES
         'aa88395b-2f90-5410-96cb-322ff85d63dc', -- Godnattsaga 2026-07-30
         'Sara Öberg',
         404,
-        'Fjällscouterna',
         'Patrull Vargen',
         'Sara Öberg',
         '+46706667788',
@@ -6792,7 +6250,6 @@ VALUES
         '2c378f10-bbf5-4a32-b8f4-050dd552a447',
         'aa88395b-2f90-5410-96cb-322ff85d63dc', -- Godnattsaga 2026-07-30
         'Markus Test Funktionär',
-        NULL,
         NULL,
         'Patrull Lodjuret',
         'Markus Test Funktionär',
@@ -6805,7 +6262,6 @@ VALUES
         '12c6fd16-9b78-59f8-a2e1-f0ed8d0aeb56', -- Kåsan 2026-07-30
         'Markus Test Ledare',
         1386,
-        'Kår 1386',
         'Patrull Bävern',
         'Markus Test Ledare',
         '+46700000003',
@@ -6817,7 +6273,6 @@ VALUES
         '12c6fd16-9b78-59f8-a2e1-f0ed8d0aeb56', -- Kåsan 2026-07-30
         'Petra Vikström',
         606,
-        'Scoutkåren Kompassen',
         'Patrull Ugglan',
         'Petra Vikström',
         '+46702223344',
@@ -6828,7 +6283,6 @@ VALUES
         '006e3fdd-dc54-43a0-9a2a-4232335c07bc',
         'd9c943cd-395c-505d-9f89-65d47a0333c5', -- Känslokartan 2026-07-30
         'Markus Test Planeringsfunktionär',
-        NULL,
         NULL,
         'Patrull Bävern',
         'Markus Test Planeringsfunktionär',
@@ -6841,7 +6295,6 @@ VALUES
         '5c917534-d54b-5837-ae81-b654d1f01b64', -- Brädspel 2026-07-30
         'Markus Test Funktionär',
         NULL,
-        NULL,
         'Patrull Ugglan',
         'Markus Test Funktionär',
         '+46700000002',
@@ -6853,7 +6306,6 @@ VALUES
         '5c917534-d54b-5837-ae81-b654d1f01b64', -- Brädspel 2026-07-30
         'Erik Johansson',
         202,
-        'Scoutkåren Vansen',
         'Hela avdelningen',
         'Erik Johansson',
         '+46709876543',
@@ -6865,7 +6317,6 @@ VALUES
         '99182452-c33e-5e68-b734-587562646d7e', -- Cybersäkerhet med Unga forskare 2026-07-30
         'Markus Test Ledare',
         1386,
-        'Kår 1386',
         'Hela avdelningen',
         'Markus Test Ledare',
         '+46700000003',
@@ -6877,7 +6328,6 @@ VALUES
         '99182452-c33e-5e68-b734-587562646d7e', -- Cybersäkerhet med Unga forskare 2026-07-30
         'Petra Vikström',
         606,
-        'Scoutkåren Kompassen',
         'Patrull Räven',
         'Petra Vikström',
         '+46702223344',
@@ -6889,7 +6339,6 @@ VALUES
         'b93325a4-6e22-5fab-b75b-e8b89a9b75f6', -- Hantverk fokus: Pärldjur 2026-07-30
         'Anna Svensson',
         101,
-        'Sjöscoutkåren Dansen',
         'Patrull Räven',
         'Anna Svensson',
         '+46701234567',
@@ -6901,7 +6350,6 @@ VALUES
         '6e717191-08a7-5cba-9ae1-b0032d0e6b24', -- The HERDS 2026-07-30
         'Erik Johansson',
         202,
-        'Scoutkåren Vansen',
         'Patrull Vargen',
         'Erik Johansson',
         '+46709876543',
@@ -6913,7 +6361,6 @@ VALUES
         '6e717191-08a7-5cba-9ae1-b0032d0e6b24', -- The HERDS 2026-07-30
         'Sara Öberg',
         404,
-        'Fjällscouterna',
         'Patrull Lodjuret',
         'Sara Öberg',
         '+46706667788',
@@ -6925,7 +6372,6 @@ VALUES
         'ef47c6f3-c408-5dc8-9042-048ea1309885', -- The HERDS 2026-07-30
         'Petra Vikström',
         606,
-        'Scoutkåren Kompassen',
         'Patrull Lodjuret',
         'Petra Vikström',
         '+46702223344',
@@ -6937,7 +6383,6 @@ VALUES
         'ef47c6f3-c408-5dc8-9042-048ea1309885', -- The HERDS 2026-07-30
         'Lena Holm',
         505,
-        'Scoutkåren Eken',
         'Patrull Bävern',
         'Lena Holm',
         '+46708889900',
@@ -6949,7 +6394,6 @@ VALUES
         'ef47c6f3-c408-5dc8-9042-048ea1309885', -- The HERDS 2026-07-30
         'Markus Test Ledare',
         1386,
-        'Kår 1386',
         'Patrull Ugglan',
         'Markus Test Ledare',
         '+46700000003',
@@ -6961,7 +6405,6 @@ VALUES
         'd9d22c58-034e-5412-b8a1-e8cccd4548f4', -- Knoprep 2026-07-30
         'Johan Nilsson',
         303,
-        'Scoutkåren Norrsken',
         'Patrull Bävern',
         'Johan Nilsson',
         '+46703334455',
@@ -6972,7 +6415,6 @@ VALUES
         '2c378f10-bbf5-4a32-b8f4-050dd552a447',
         '27b97594-1254-59e9-b12c-64f108bef1ee', -- Tillsammans målning 2026-07-30
         'Markus Test Funktionär',
-        NULL,
         NULL,
         'Hela avdelningen',
         'Markus Test Funktionär',
@@ -6985,7 +6427,6 @@ VALUES
         '48a0110c-7d2a-520f-9a21-324131dff26b', -- Halmpool 2026-07-30
         'Lena Holm',
         505,
-        'Scoutkåren Eken',
         'Hela avdelningen',
         'Lena Holm',
         '+46708889900',
@@ -6997,7 +6438,6 @@ VALUES
         '48a0110c-7d2a-520f-9a21-324131dff26b', -- Halmpool 2026-07-30
         'Markus Test Ledare',
         1386,
-        'Kår 1386',
         'Patrull Räven',
         'Markus Test Ledare',
         '+46700000003',
@@ -7009,7 +6449,6 @@ VALUES
         '48a0110c-7d2a-520f-9a21-324131dff26b', -- Halmpool 2026-07-30
         'Petra Vikström',
         606,
-        'Scoutkåren Kompassen',
         'Patrull Vargen',
         'Petra Vikström',
         '+46702223344',
@@ -7020,7 +6459,6 @@ VALUES
         '006e3fdd-dc54-43a0-9a2a-4232335c07bc',
         '792f0166-12f7-5bd8-87f7-ea87887712c2', -- Slankaruseller 2026-07-30
         'Markus Test Planeringsfunktionär',
-        NULL,
         NULL,
         'Patrull Räven',
         'Markus Test Planeringsfunktionär',
@@ -7033,7 +6471,6 @@ VALUES
         '22ca920e-e797-507e-9d46-f947b1665fd5', -- Bris 2026-07-30
         'Markus Test Funktionär',
         NULL,
-        NULL,
         'Patrull Vargen',
         'Markus Test Funktionär',
         '+46700000002',
@@ -7045,7 +6482,6 @@ VALUES
         '22ca920e-e797-507e-9d46-f947b1665fd5', -- Bris 2026-07-30
         'Erik Johansson',
         202,
-        'Scoutkåren Vansen',
         'Patrull Lodjuret',
         'Erik Johansson',
         '+46709876543',
@@ -7057,7 +6493,6 @@ VALUES
         'b64b42bd-0008-53c5-ac1b-6a1789fd0f4d', -- Fladdermussafari 2026-07-30
         'Petra Vikström',
         606,
-        'Scoutkåren Kompassen',
         'Patrull Bävern',
         'Petra Vikström',
         '+46702223344',
@@ -7069,7 +6504,6 @@ VALUES
         'b64b42bd-0008-53c5-ac1b-6a1789fd0f4d', -- Fladdermussafari 2026-07-30
         'Lena Holm',
         505,
-        'Scoutkåren Eken',
         'Patrull Ugglan',
         'Lena Holm',
         '+46708889900',
@@ -7081,7 +6515,6 @@ VALUES
         '5c1f2d3f-4e11-5563-9a62-dfcb0e5812a7', -- Tim Bergling Foundation 2026-07-30
         'Anna Svensson',
         101,
-        'Sjöscoutkåren Dansen',
         'Patrull Bävern',
         'Anna Svensson',
         '+46701234567',
@@ -7093,7 +6526,6 @@ VALUES
         '946e9644-2b60-5546-95f2-fbf87dd7abe5', -- Upptäck dina värderingar 2026-07-30
         'Erik Johansson',
         202,
-        'Scoutkåren Vansen',
         'Patrull Ugglan',
         'Erik Johansson',
         '+46709876543',
@@ -7105,7 +6537,6 @@ VALUES
         '946e9644-2b60-5546-95f2-fbf87dd7abe5', -- Upptäck dina värderingar 2026-07-30
         'Sara Öberg',
         404,
-        'Fjällscouterna',
         'Hela avdelningen',
         'Sara Öberg',
         '+46706667788',
@@ -7117,7 +6548,6 @@ VALUES
         '17965407-ce84-5770-8ace-166f630e29b7', -- Upptäck dina värderingar 2026-07-30
         'Petra Vikström',
         606,
-        'Scoutkåren Kompassen',
         'Hela avdelningen',
         'Petra Vikström',
         '+46702223344',
@@ -7129,7 +6559,6 @@ VALUES
         '17965407-ce84-5770-8ace-166f630e29b7', -- Upptäck dina värderingar 2026-07-30
         'Lena Holm',
         505,
-        'Scoutkåren Eken',
         'Patrull Räven',
         'Lena Holm',
         '+46708889900',
@@ -7141,7 +6570,6 @@ VALUES
         'c69e0ddf-996e-511b-ad7e-ec63fa23a452', -- Tim Bergling Foundation 2026-07-30
         'Johan Nilsson',
         303,
-        'Scoutkåren Norrsken',
         'Patrull Räven',
         'Johan Nilsson',
         '+46703334455',
@@ -7153,7 +6581,6 @@ VALUES
         '04bf5403-9b6f-5520-ab76-1db67a0910a7', -- Mekanisk tjur 2026-07-30
         'Sara Öberg',
         404,
-        'Fjällscouterna',
         'Patrull Vargen',
         'Sara Öberg',
         '+46706667788',
@@ -7164,7 +6591,6 @@ VALUES
         '2c378f10-bbf5-4a32-b8f4-050dd552a447',
         '04bf5403-9b6f-5520-ab76-1db67a0910a7', -- Mekanisk tjur 2026-07-30
         'Markus Test Funktionär',
-        NULL,
         NULL,
         'Patrull Lodjuret',
         'Markus Test Funktionär',
@@ -7177,7 +6603,6 @@ VALUES
         '2bb67276-c2c3-5801-9269-0e5f9bc02750', -- Schackturnering 2026-07-30
         'Lena Holm',
         505,
-        'Scoutkåren Eken',
         'Patrull Lodjuret',
         'Lena Holm',
         '+46708889900',
@@ -7189,7 +6614,6 @@ VALUES
         '2bb67276-c2c3-5801-9269-0e5f9bc02750', -- Schackturnering 2026-07-30
         'Markus Test Ledare',
         1386,
-        'Kår 1386',
         'Patrull Bävern',
         'Markus Test Ledare',
         '+46700000003',
@@ -7201,7 +6625,6 @@ VALUES
         '2bb67276-c2c3-5801-9269-0e5f9bc02750', -- Schackturnering 2026-07-30
         'Petra Vikström',
         606,
-        'Scoutkåren Kompassen',
         'Patrull Ugglan',
         'Petra Vikström',
         '+46702223344',
@@ -7212,7 +6635,6 @@ VALUES
         '006e3fdd-dc54-43a0-9a2a-4232335c07bc',
         '17a5e3c0-2db6-5642-87a5-debf030d9532', -- Unga forskare 2026-07-30
         'Markus Test Planeringsfunktionär',
-        NULL,
         NULL,
         'Patrull Bävern',
         'Markus Test Planeringsfunktionär',
@@ -7225,7 +6647,6 @@ VALUES
         'eb07b45f-6915-5bfc-8215-4a095fe75559', -- Äventyrare berättar: Per Eriksson 2026-07-30
         'Erik Johansson',
         202,
-        'Scoutkåren Vansen',
         'Hela avdelningen',
         'Erik Johansson',
         '+46709876543',
@@ -7237,7 +6658,6 @@ VALUES
         'd58d93ed-0497-5eae-88c7-dc12c6d7d8b0', -- Psykologisk beredskap 2026-07-30
         'Markus Test Ledare',
         1386,
-        'Kår 1386',
         'Hela avdelningen',
         'Markus Test Ledare',
         '+46700000003',
@@ -7249,7 +6669,6 @@ VALUES
         'd58d93ed-0497-5eae-88c7-dc12c6d7d8b0', -- Psykologisk beredskap 2026-07-30
         'Petra Vikström',
         606,
-        'Scoutkåren Kompassen',
         'Patrull Räven',
         'Petra Vikström',
         '+46702223344',
@@ -7261,7 +6680,6 @@ VALUES
         'd58d93ed-0497-5eae-88c7-dc12c6d7d8b0', -- Psykologisk beredskap 2026-07-30
         'Lena Holm',
         505,
-        'Scoutkåren Eken',
         'Patrull Vargen',
         'Lena Holm',
         '+46708889900',
@@ -7273,7 +6691,6 @@ VALUES
         '711ba1cb-05ba-55a3-8dfb-b7816e9dd83a', -- Psykologisk beredskap 2026-07-30
         'Anna Svensson',
         101,
-        'Sjöscoutkåren Dansen',
         'Patrull Räven',
         'Anna Svensson',
         '+46701234567',
@@ -7285,7 +6702,6 @@ VALUES
         'dc9d3482-8f0e-5604-9c68-268e7d3bc8b7', -- Äventyrare berättar: Per Eriksson 2026-07-30
         'Erik Johansson',
         202,
-        'Scoutkåren Vansen',
         'Patrull Vargen',
         'Erik Johansson',
         '+46709876543',
@@ -7297,7 +6713,6 @@ VALUES
         'dc9d3482-8f0e-5604-9c68-268e7d3bc8b7', -- Äventyrare berättar: Per Eriksson 2026-07-30
         'Sara Öberg',
         404,
-        'Fjällscouterna',
         'Patrull Lodjuret',
         'Sara Öberg',
         '+46706667788',
@@ -7309,7 +6724,6 @@ VALUES
         '0f4635a3-e4b9-50f8-831a-3c9e5c029489', -- Quiz 2026-07-30
         'Lena Holm',
         505,
-        'Scoutkåren Eken',
         'Patrull Bävern',
         'Lena Holm',
         '+46708889900',
@@ -7321,7 +6735,6 @@ VALUES
         '0f4635a3-e4b9-50f8-831a-3c9e5c029489', -- Quiz 2026-07-30
         'Markus Test Ledare',
         1386,
-        'Kår 1386',
         'Patrull Ugglan',
         'Markus Test Ledare',
         '+46700000003',
@@ -7333,7 +6746,6 @@ VALUES
         'd42b0964-c9cb-5274-b101-f1888cd74205', -- Konsert 2026-07-30
         'Johan Nilsson',
         303,
-        'Scoutkåren Norrsken',
         'Patrull Bävern',
         'Johan Nilsson',
         '+46703334455',
@@ -7345,7 +6757,6 @@ VALUES
         '4b0500f1-ff30-55d8-a816-c70b07f5712d', -- BRIS 2026-07-30
         'Sara Öberg',
         404,
-        'Fjällscouterna',
         'Patrull Ugglan',
         'Sara Öberg',
         '+46706667788',
@@ -7356,7 +6767,6 @@ VALUES
         '2c378f10-bbf5-4a32-b8f4-050dd552a447',
         '4b0500f1-ff30-55d8-a816-c70b07f5712d', -- BRIS 2026-07-30
         'Markus Test Funktionär',
-        NULL,
         NULL,
         'Hela avdelningen',
         'Markus Test Funktionär',
@@ -7369,7 +6779,6 @@ VALUES
         '1d675389-6002-5fb2-805d-e9d8b27c2a33', -- BRIS 2026-07-30
         'Lena Holm',
         505,
-        'Scoutkåren Eken',
         'Hela avdelningen',
         'Lena Holm',
         '+46708889900',
@@ -7381,7 +6790,6 @@ VALUES
         '1d675389-6002-5fb2-805d-e9d8b27c2a33', -- BRIS 2026-07-30
         'Markus Test Ledare',
         1386,
-        'Kår 1386',
         'Patrull Räven',
         'Markus Test Ledare',
         '+46700000003',
@@ -7392,7 +6800,6 @@ VALUES
         '006e3fdd-dc54-43a0-9a2a-4232335c07bc',
         '302d98fa-3b21-556e-9e94-7071c56b6644', -- Ledarsamtal 2026-07-31
         'Markus Test Planeringsfunktionär',
-        NULL,
         NULL,
         'Patrull Räven',
         'Markus Test Planeringsfunktionär',
@@ -7405,7 +6812,6 @@ VALUES
         '786cf71f-5cd2-546b-848f-c8129a41999e', -- Utmanarsamtal 2026-07-31
         'Markus Test Funktionär',
         NULL,
-        NULL,
         'Patrull Vargen',
         'Markus Test Funktionär',
         '+46700000002',
@@ -7417,7 +6823,6 @@ VALUES
         '786cf71f-5cd2-546b-848f-c8129a41999e', -- Utmanarsamtal 2026-07-31
         'Erik Johansson',
         202,
-        'Scoutkåren Vansen',
         'Patrull Lodjuret',
         'Erik Johansson',
         '+46709876543',
@@ -7429,7 +6834,6 @@ VALUES
         'ee755d6d-b4d4-55dc-b588-594ba22a6ca0', -- Leda Scouting - Spork del 2 2026-07-31
         'Markus Test Ledare',
         1386,
-        'Kår 1386',
         'Patrull Lodjuret',
         'Markus Test Ledare',
         '+46700000003',
@@ -7441,7 +6845,6 @@ VALUES
         'ee755d6d-b4d4-55dc-b588-594ba22a6ca0', -- Leda Scouting - Spork del 2 2026-07-31
         'Petra Vikström',
         606,
-        'Scoutkåren Kompassen',
         'Patrull Bävern',
         'Petra Vikström',
         '+46702223344',
@@ -7453,7 +6856,6 @@ VALUES
         'ee755d6d-b4d4-55dc-b588-594ba22a6ca0', -- Leda Scouting - Spork del 2 2026-07-31
         'Lena Holm',
         505,
-        'Scoutkåren Eken',
         'Patrull Ugglan',
         'Lena Holm',
         '+46708889900',
@@ -7465,7 +6867,6 @@ VALUES
         'c57b3ec0-93ce-592d-97b2-d10dbb3de18e', -- Leda Scouting - Tamoj del 2 2026-07-31
         'Anna Svensson',
         101,
-        'Sjöscoutkåren Dansen',
         'Patrull Bävern',
         'Anna Svensson',
         '+46701234567',
@@ -7477,7 +6878,6 @@ VALUES
         '103efe17-3808-53af-9baf-d7ef382f5066', -- Nyfiken på att bli utbildare 2026-07-31
         'Sara Öberg',
         404,
-        'Fjällscouterna',
         'Hela avdelningen',
         'Sara Öberg',
         '+46706667788',
@@ -7489,7 +6889,6 @@ VALUES
         '5587614e-ce37-5a99-947e-151d62df8ad5', -- 31/7 – Nyår 🎉 2026-07-31
         'Petra Vikström',
         606,
-        'Scoutkåren Kompassen',
         'Hela avdelningen',
         'Petra Vikström',
         '+46702223344',
@@ -7501,7 +6900,6 @@ VALUES
         '5587614e-ce37-5a99-947e-151d62df8ad5', -- 31/7 – Nyår 🎉 2026-07-31
         'Lena Holm',
         505,
-        'Scoutkåren Eken',
         'Patrull Räven',
         'Lena Holm',
         '+46708889900',
@@ -7513,7 +6911,6 @@ VALUES
         '5587614e-ce37-5a99-947e-151d62df8ad5', -- 31/7 – Nyår 🎉 2026-07-31
         'Markus Test Ledare',
         1386,
-        'Kår 1386',
         'Patrull Vargen',
         'Markus Test Ledare',
         '+46700000003',
@@ -7525,7 +6922,6 @@ VALUES
         'bc5bfb95-4108-5cfe-abe2-fc0dc97ac7c1', -- Vad kan du göra för EU, och vad kan EU göra för dig? 2026-07-31
         'Johan Nilsson',
         303,
-        'Scoutkåren Norrsken',
         'Patrull Räven',
         'Johan Nilsson',
         '+46703334455',
@@ -7537,7 +6933,6 @@ VALUES
         '47c75641-ce75-54bb-bd02-57155d686087', -- Gör Scouterna skillnad på riktigt? 2026-07-31
         'Sara Öberg',
         404,
-        'Fjällscouterna',
         'Patrull Vargen',
         'Sara Öberg',
         '+46706667788',
@@ -7548,7 +6943,6 @@ VALUES
         '2c378f10-bbf5-4a32-b8f4-050dd552a447',
         '47c75641-ce75-54bb-bd02-57155d686087', -- Gör Scouterna skillnad på riktigt? 2026-07-31
         'Markus Test Funktionär',
-        NULL,
         NULL,
         'Patrull Lodjuret',
         'Markus Test Funktionär',
@@ -7561,7 +6955,6 @@ VALUES
         'bebef6a8-9539-5202-ac37-687a1a8d9b8a', -- Bli arrangemangsledare! 2026-07-31
         'Markus Test Ledare',
         1386,
-        'Kår 1386',
         'Patrull Bävern',
         'Markus Test Ledare',
         '+46700000003',
@@ -7573,7 +6966,6 @@ VALUES
         'bebef6a8-9539-5202-ac37-687a1a8d9b8a', -- Bli arrangemangsledare! 2026-07-31
         'Petra Vikström',
         606,
-        'Scoutkåren Kompassen',
         'Patrull Ugglan',
         'Petra Vikström',
         '+46702223344',
@@ -7584,7 +6976,6 @@ VALUES
         '006e3fdd-dc54-43a0-9a2a-4232335c07bc',
         'e493f60f-1af6-5f49-adc4-6eede44b7888', -- Konsert: Old Carters Memory Lane 2026-07-31
         'Markus Test Planeringsfunktionär',
-        NULL,
         NULL,
         'Patrull Bävern',
         'Markus Test Planeringsfunktionär',
@@ -7597,7 +6988,6 @@ VALUES
         'a3c5bce6-1715-5ce5-a0fb-06ddb9b1b8b5', -- The HERDS 2026-07-31
         'Markus Test Funktionär',
         NULL,
-        NULL,
         'Patrull Ugglan',
         'Markus Test Funktionär',
         '+46700000002',
@@ -7609,7 +6999,6 @@ VALUES
         'a3c5bce6-1715-5ce5-a0fb-06ddb9b1b8b5', -- The HERDS 2026-07-31
         'Erik Johansson',
         202,
-        'Scoutkåren Vansen',
         'Hela avdelningen',
         'Erik Johansson',
         '+46709876543',
@@ -7621,7 +7010,6 @@ VALUES
         '452e7dd7-692d-5fe1-b5f6-31b4a7872e3f', -- The HERDS 2026-07-31
         'Markus Test Ledare',
         1386,
-        'Kår 1386',
         'Hela avdelningen',
         'Markus Test Ledare',
         '+46700000003',
@@ -7633,7 +7021,6 @@ VALUES
         '452e7dd7-692d-5fe1-b5f6-31b4a7872e3f', -- The HERDS 2026-07-31
         'Petra Vikström',
         606,
-        'Scoutkåren Kompassen',
         'Patrull Räven',
         'Petra Vikström',
         '+46702223344',
@@ -7645,7 +7032,6 @@ VALUES
         'b6cc8ecb-95f6-5450-852e-d471f8854c7d', -- Vattenlek 2026-07-31
         'Anna Svensson',
         101,
-        'Sjöscoutkåren Dansen',
         'Patrull Räven',
         'Anna Svensson',
         '+46701234567',
@@ -7657,7 +7043,6 @@ VALUES
         '25defd23-b680-599a-b2a5-9e98deef7c63', -- Hantverk fokus: Kompisminnen 2026-07-31
         'Erik Johansson',
         202,
-        'Scoutkåren Vansen',
         'Patrull Vargen',
         'Erik Johansson',
         '+46709876543',
@@ -7669,7 +7054,6 @@ VALUES
         '25defd23-b680-599a-b2a5-9e98deef7c63', -- Hantverk fokus: Kompisminnen 2026-07-31
         'Sara Öberg',
         404,
-        'Fjällscouterna',
         'Patrull Lodjuret',
         'Sara Öberg',
         '+46706667788',
@@ -7681,7 +7065,6 @@ VALUES
         '92fefeed-9bcb-5bd2-b16b-ea5796468fc6', -- Mekanisk tjur 2026-07-31
         'Petra Vikström',
         606,
-        'Scoutkåren Kompassen',
         'Patrull Lodjuret',
         'Petra Vikström',
         '+46702223344',
@@ -7693,7 +7076,6 @@ VALUES
         '92fefeed-9bcb-5bd2-b16b-ea5796468fc6', -- Mekanisk tjur 2026-07-31
         'Lena Holm',
         505,
-        'Scoutkåren Eken',
         'Patrull Bävern',
         'Lena Holm',
         '+46708889900',
@@ -7705,7 +7087,6 @@ VALUES
         '92fefeed-9bcb-5bd2-b16b-ea5796468fc6', -- Mekanisk tjur 2026-07-31
         'Markus Test Ledare',
         1386,
-        'Kår 1386',
         'Patrull Ugglan',
         'Markus Test Ledare',
         '+46700000003',
@@ -7717,7 +7098,6 @@ VALUES
         '6a2fcf85-7a61-5790-a75a-94f9728d8d74', -- Dagens lek: Svanskull 2026-07-31
         'Johan Nilsson',
         303,
-        'Scoutkåren Norrsken',
         'Patrull Bävern',
         'Johan Nilsson',
         '+46703334455',
@@ -7728,7 +7108,6 @@ VALUES
         '2c378f10-bbf5-4a32-b8f4-050dd552a447',
         'da3847f2-36c9-579f-9761-b33cbd97519f', -- BRIS 2026-07-31
         'Markus Test Funktionär',
-        NULL,
         NULL,
         'Hela avdelningen',
         'Markus Test Funktionär',
@@ -7741,7 +7120,6 @@ VALUES
         'a8b2dad9-a597-5ff5-afb5-a4e6a06e24f7', -- Tim Bergling Foundation 2026-07-31
         'Lena Holm',
         505,
-        'Scoutkåren Eken',
         'Hela avdelningen',
         'Lena Holm',
         '+46708889900',
@@ -7753,7 +7131,6 @@ VALUES
         'a8b2dad9-a597-5ff5-afb5-a4e6a06e24f7', -- Tim Bergling Foundation 2026-07-31
         'Markus Test Ledare',
         1386,
-        'Kår 1386',
         'Patrull Räven',
         'Markus Test Ledare',
         '+46700000003',
@@ -7765,7 +7142,6 @@ VALUES
         'a8b2dad9-a597-5ff5-afb5-a4e6a06e24f7', -- Tim Bergling Foundation 2026-07-31
         'Petra Vikström',
         606,
-        'Scoutkåren Kompassen',
         'Patrull Vargen',
         'Petra Vikström',
         '+46702223344',
@@ -7776,7 +7152,6 @@ VALUES
         '006e3fdd-dc54-43a0-9a2a-4232335c07bc',
         '5cbff712-b8ae-530e-81e0-654ccb636f2e', -- Fäktning 2026-07-31
         'Markus Test Planeringsfunktionär',
-        NULL,
         NULL,
         'Patrull Räven',
         'Markus Test Planeringsfunktionär',
@@ -7789,7 +7164,6 @@ VALUES
         '07c7d628-4b9b-5e8b-92c7-0c618d4c9433', -- Unga forskare 2026-07-31
         'Markus Test Funktionär',
         NULL,
-        NULL,
         'Patrull Vargen',
         'Markus Test Funktionär',
         '+46700000002',
@@ -7801,7 +7175,6 @@ VALUES
         '07c7d628-4b9b-5e8b-92c7-0c618d4c9433', -- Unga forskare 2026-07-31
         'Erik Johansson',
         202,
-        'Scoutkåren Vansen',
         'Patrull Lodjuret',
         'Erik Johansson',
         '+46709876543',
@@ -7813,7 +7186,6 @@ VALUES
         '559d040c-caf3-5c92-bb40-dcedb8ef7f19', -- Sagostund 2026-07-31
         'Petra Vikström',
         606,
-        'Scoutkåren Kompassen',
         'Patrull Bävern',
         'Petra Vikström',
         '+46702223344',
@@ -7825,7 +7197,6 @@ VALUES
         '559d040c-caf3-5c92-bb40-dcedb8ef7f19', -- Sagostund 2026-07-31
         'Lena Holm',
         505,
-        'Scoutkåren Eken',
         'Patrull Ugglan',
         'Lena Holm',
         '+46708889900',
@@ -7837,7 +7208,6 @@ VALUES
         '3bb4fefa-2da3-5f0f-821a-18756c2adf27', -- Kvällsbön 2026-07-31
         'Anna Svensson',
         101,
-        'Sjöscoutkåren Dansen',
         'Patrull Bävern',
         'Anna Svensson',
         '+46701234567',
@@ -7849,7 +7219,6 @@ VALUES
         '851aa737-8b37-5cca-af39-869e5065563c', -- Våga Lyssna fördjupning 2026-07-31
         'Erik Johansson',
         202,
-        'Scoutkåren Vansen',
         'Patrull Ugglan',
         'Erik Johansson',
         '+46709876543',
@@ -7861,7 +7230,6 @@ VALUES
         '851aa737-8b37-5cca-af39-869e5065563c', -- Våga Lyssna fördjupning 2026-07-31
         'Sara Öberg',
         404,
-        'Fjällscouterna',
         'Hela avdelningen',
         'Sara Öberg',
         '+46706667788',
@@ -7873,7 +7241,6 @@ VALUES
         '5818ec53-6260-5cb7-867d-71585a74606b', -- Muslimsk tro - NAMN kommer 2026-07-31
         'Petra Vikström',
         606,
-        'Scoutkåren Kompassen',
         'Hela avdelningen',
         'Petra Vikström',
         '+46702223344',
@@ -7885,7 +7252,6 @@ VALUES
         '5818ec53-6260-5cb7-867d-71585a74606b', -- Muslimsk tro - NAMN kommer 2026-07-31
         'Lena Holm',
         505,
-        'Scoutkåren Eken',
         'Patrull Räven',
         'Lena Holm',
         '+46708889900',
@@ -7897,7 +7263,6 @@ VALUES
         'c1dfe740-cffc-5bc6-8746-fb7b7e49793d', -- Musikmosaik: Öppet Jam 2026-07-31
         'Johan Nilsson',
         303,
-        'Scoutkåren Norrsken',
         'Patrull Räven',
         'Johan Nilsson',
         '+46703334455',
@@ -7909,7 +7274,6 @@ VALUES
         '806abba6-b003-564b-99bf-ebc8ee10e52b', -- Poetry Slam 2026-07-31
         'Sara Öberg',
         404,
-        'Fjällscouterna',
         'Patrull Vargen',
         'Sara Öberg',
         '+46706667788',
@@ -7920,7 +7284,6 @@ VALUES
         '2c378f10-bbf5-4a32-b8f4-050dd552a447',
         '806abba6-b003-564b-99bf-ebc8ee10e52b', -- Poetry Slam 2026-07-31
         'Markus Test Funktionär',
-        NULL,
         NULL,
         'Patrull Lodjuret',
         'Markus Test Funktionär',
@@ -7933,7 +7296,6 @@ VALUES
         'fe469e61-e63f-5229-8abb-0fd8f123594c', -- RUNCLUB 2026-07-31
         'Lena Holm',
         505,
-        'Scoutkåren Eken',
         'Patrull Lodjuret',
         'Lena Holm',
         '+46708889900',
@@ -7945,7 +7307,6 @@ VALUES
         'fe469e61-e63f-5229-8abb-0fd8f123594c', -- RUNCLUB 2026-07-31
         'Markus Test Ledare',
         1386,
-        'Kår 1386',
         'Patrull Bävern',
         'Markus Test Ledare',
         '+46700000003',
@@ -7957,7 +7318,6 @@ VALUES
         'fe469e61-e63f-5229-8abb-0fd8f123594c', -- RUNCLUB 2026-07-31
         'Petra Vikström',
         606,
-        'Scoutkåren Kompassen',
         'Patrull Ugglan',
         'Petra Vikström',
         '+46702223344',
@@ -7968,7 +7328,6 @@ VALUES
         '006e3fdd-dc54-43a0-9a2a-4232335c07bc',
         '74978936-9917-5103-900d-cac3602cbbc0', -- Speedfriending 2026-07-31
         'Markus Test Planeringsfunktionär',
-        NULL,
         NULL,
         'Patrull Bävern',
         'Markus Test Planeringsfunktionär',
@@ -7981,7 +7340,6 @@ VALUES
         '0d3261ea-c2cd-5bbf-ae71-f02609f3c9d0', -- Lounge Solnedgång 2026-07-31
         'Erik Johansson',
         202,
-        'Scoutkåren Vansen',
         'Hela avdelningen',
         'Erik Johansson',
         '+46709876543',
@@ -7993,7 +7351,6 @@ VALUES
         '0fbdeebb-4a80-552d-b133-611139617834', -- BRIS 2026-07-31
         'Markus Test Ledare',
         1386,
-        'Kår 1386',
         'Hela avdelningen',
         'Markus Test Ledare',
         '+46700000003',
@@ -8005,7 +7362,6 @@ VALUES
         '0fbdeebb-4a80-552d-b133-611139617834', -- BRIS 2026-07-31
         'Petra Vikström',
         606,
-        'Scoutkåren Kompassen',
         'Patrull Räven',
         'Petra Vikström',
         '+46702223344',
@@ -8017,7 +7373,6 @@ VALUES
         '0fbdeebb-4a80-552d-b133-611139617834', -- BRIS 2026-07-31
         'Lena Holm',
         505,
-        'Scoutkåren Eken',
         'Patrull Vargen',
         'Lena Holm',
         '+46708889900',
@@ -8029,7 +7384,6 @@ VALUES
         '00f83fef-0443-5dd1-a80f-0b1a9538124d', -- Tim Bergling Foundation 2026-07-31
         'Anna Svensson',
         101,
-        'Sjöscoutkåren Dansen',
         'Patrull Räven',
         'Anna Svensson',
         '+46701234567',
@@ -8041,7 +7395,6 @@ VALUES
         '6db832a3-f7de-5b0f-8adf-f7b0603c14cc', -- En Känsla av Fest 2026-07-31
         'Erik Johansson',
         202,
-        'Scoutkåren Vansen',
         'Patrull Vargen',
         'Erik Johansson',
         '+46709876543',
@@ -8053,7 +7406,6 @@ VALUES
         '6db832a3-f7de-5b0f-8adf-f7b0603c14cc', -- En Känsla av Fest 2026-07-31
         'Sara Öberg',
         404,
-        'Fjällscouterna',
         'Patrull Lodjuret',
         'Sara Öberg',
         '+46706667788',
@@ -8065,7 +7417,6 @@ VALUES
         '40587247-379a-572f-86eb-2460bd6043db', -- En Känsla av Fest 2026-07-31
         'Lena Holm',
         505,
-        'Scoutkåren Eken',
         'Patrull Bävern',
         'Lena Holm',
         '+46708889900',
@@ -8077,7 +7428,6 @@ VALUES
         '40587247-379a-572f-86eb-2460bd6043db', -- En Känsla av Fest 2026-07-31
         'Markus Test Ledare',
         1386,
-        'Kår 1386',
         'Patrull Ugglan',
         'Markus Test Ledare',
         '+46700000003',
@@ -8089,7 +7439,6 @@ VALUES
         '2cbbf2d3-ab65-5e5f-8bb3-847c4265d0fc', -- BRIS 2026-07-31
         'Johan Nilsson',
         303,
-        'Scoutkåren Norrsken',
         'Patrull Bävern',
         'Johan Nilsson',
         '+46703334455',
@@ -8101,7 +7450,6 @@ VALUES
         '2eddc752-7956-5628-aab7-cf4ee261c157', -- Quiz 2026-07-31
         'Sara Öberg',
         404,
-        'Fjällscouterna',
         'Patrull Ugglan',
         'Sara Öberg',
         '+46706667788',
@@ -8112,7 +7460,6 @@ VALUES
         '2c378f10-bbf5-4a32-b8f4-050dd552a447',
         '2eddc752-7956-5628-aab7-cf4ee261c157', -- Quiz 2026-07-31
         'Markus Test Funktionär',
-        NULL,
         NULL,
         'Hela avdelningen',
         'Markus Test Funktionär',
@@ -8125,7 +7472,6 @@ VALUES
         'c01b2c7a-7547-51e7-9d04-74624badbfef', -- Quiz: Film/tvserie 2026-07-31
         'Lena Holm',
         505,
-        'Scoutkåren Eken',
         'Hela avdelningen',
         'Lena Holm',
         '+46708889900',
@@ -8137,7 +7483,6 @@ VALUES
         'c01b2c7a-7547-51e7-9d04-74624badbfef', -- Quiz: Film/tvserie 2026-07-31
         'Markus Test Ledare',
         1386,
-        'Kår 1386',
         'Patrull Räven',
         'Markus Test Ledare',
         '+46700000003',
@@ -8148,7 +7493,6 @@ VALUES
         '006e3fdd-dc54-43a0-9a2a-4232335c07bc',
         '84ebbc31-66aa-5814-948c-5999effba65f', -- Quiz: Film/tvserie 2026-07-31
         'Markus Test Planeringsfunktionär',
-        NULL,
         NULL,
         'Patrull Räven',
         'Markus Test Planeringsfunktionär',
@@ -8161,7 +7505,6 @@ VALUES
         '5543f089-bb63-5f5f-9d3a-ffd924526253', -- Midnattsföreläsning 2026-08-01
         'Markus Test Funktionär',
         NULL,
-        NULL,
         'Patrull Vargen',
         'Markus Test Funktionär',
         '+46700000002',
@@ -8173,7 +7516,6 @@ VALUES
         '5543f089-bb63-5f5f-9d3a-ffd924526253', -- Midnattsföreläsning 2026-08-01
         'Erik Johansson',
         202,
-        'Scoutkåren Vansen',
         'Patrull Lodjuret',
         'Erik Johansson',
         '+46709876543',
@@ -8185,7 +7527,6 @@ VALUES
         '5f1952c0-2ac7-5856-893f-d55bc26d07c9', -- Sagostund 2026-08-01
         'Markus Test Ledare',
         1386,
-        'Kår 1386',
         'Patrull Lodjuret',
         'Markus Test Ledare',
         '+46700000003',
@@ -8197,7 +7538,6 @@ VALUES
         '5f1952c0-2ac7-5856-893f-d55bc26d07c9', -- Sagostund 2026-08-01
         'Petra Vikström',
         606,
-        'Scoutkåren Kompassen',
         'Patrull Bävern',
         'Petra Vikström',
         '+46702223344',
@@ -8209,7 +7549,6 @@ VALUES
         '5f1952c0-2ac7-5856-893f-d55bc26d07c9', -- Sagostund 2026-08-01
         'Lena Holm',
         505,
-        'Scoutkåren Eken',
         'Patrull Ugglan',
         'Lena Holm',
         '+46708889900',
@@ -8225,7 +7564,6 @@ INSERT INTO booking (
         activity_id,
         booker_name,
         booker_group_id,
-        booker_group_name,
         group_free_text,
         responsible_name,
         phone_number,
@@ -8239,7 +7577,6 @@ VALUES
         'a5cd670d-4c43-5400-8f5f-bf4da7113ac8', -- Speed date - vad vill du förändra i samhället? 2026-07-25
         'Markus Test Planeringsfunktionär',
         1102,
-        'Adolf Fredriks Scoutkår',
         'Patrull Ugglan',
         'Karin Berg',
         '+46700000001',
@@ -8252,7 +7589,6 @@ VALUES
         'b2bac4bb-2eac-5205-9326-f21c7701cae2', -- Brädspel 2026-07-25
         'Markus Test Planeringsfunktionär',
         2007,
-        'Huddinge Scoutkår',
         'Patrull Lodjuret',
         'Mona Ström',
         '+46700000001',
@@ -8265,7 +7601,6 @@ VALUES
         '1b0ad30f-07f7-599f-b0ed-f52358c885e2', -- Cybersäkerhet med Unga forskare 2026-07-25
         'Markus Test Planeringsfunktionär',
         1310,
-        'Tullinge Scoutkår',
         'Patrull Vargen',
         'Ali Rezai',
         '+46700000001',
@@ -8278,7 +7613,6 @@ VALUES
         '49f455f9-9b5c-5bc2-8db3-b80189e30a26', -- Våga lyssna fördjupning 2026-07-26
         'Markus Test Planeringsfunktionär',
         1124,
-        'Scoutkåren Vikingarna',
         'Patrull Ugglan',
         'Lars Ek',
         '+46700000001',
@@ -8291,7 +7625,6 @@ VALUES
         'fd6b5c43-abd1-54da-8012-c4eba92dea0b', -- Upptäckarsamtal 2026-07-26
         'Markus Test Planeringsfunktionär',
         1102,
-        'Adolf Fredriks Scoutkår',
         'Patrull Lodjuret',
         'Karin Berg',
         '+46700000001',
@@ -8304,7 +7637,6 @@ VALUES
         'afa104af-7392-57ba-b646-75279a3b5d77', -- Leda Scouting - Tamoj del 1 2026-07-26
         'Markus Test Planeringsfunktionär',
         2007,
-        'Huddinge Scoutkår',
         'Patrull Vargen',
         'Mona Ström',
         '+46700000001',
@@ -8317,7 +7649,6 @@ VALUES
         'c97167ff-5519-5965-a8dc-3113c9f52289', -- Kvällsbön 2026-07-26
         'Markus Test Planeringsfunktionär',
         1310,
-        'Tullinge Scoutkår',
         'Patrull Ugglan',
         'Ali Rezai',
         '+46700000001',
@@ -8330,7 +7661,6 @@ VALUES
         '55a02dd6-aa42-57ba-b881-40f6f6187613', -- Speed friendning 2026-07-26
         'Markus Test Planeringsfunktionär',
         1124,
-        'Scoutkåren Vikingarna',
         'Patrull Lodjuret',
         'Lars Ek',
         '+46700000001',
@@ -8343,7 +7673,6 @@ VALUES
         'a8ada774-7cc9-5c31-8ce4-f5b97367d89b', -- Lekaktiviteter 2026-07-26
         'Markus Test Planeringsfunktionär',
         1102,
-        'Adolf Fredriks Scoutkår',
         'Patrull Vargen',
         'Karin Berg',
         '+46700000001',
@@ -8356,7 +7685,6 @@ VALUES
         'f0640f56-7792-5307-ba6d-6cec88b13c70', -- Cybersäkerhet med Unga forskare 2026-07-26
         'Markus Test Planeringsfunktionär',
         2007,
-        'Huddinge Scoutkår',
         'Patrull Ugglan',
         'Mona Ström',
         '+46700000001',
@@ -8369,7 +7697,6 @@ VALUES
         '7a7c0e31-d225-57a6-b418-d3c0a7c045c7', -- Halmpool 2026-07-26
         'Markus Test Planeringsfunktionär',
         1310,
-        'Tullinge Scoutkår',
         'Patrull Lodjuret',
         'Ali Rezai',
         '+46700000001',
@@ -8382,7 +7709,6 @@ VALUES
         'e7e035d4-ad8b-55da-a308-532d5a9bbafb', -- Psykologisk beredskap 2026-07-26
         'Markus Test Planeringsfunktionär',
         1124,
-        'Scoutkåren Vikingarna',
         'Patrull Vargen',
         'Lars Ek',
         '+46700000001',
@@ -8395,7 +7721,6 @@ VALUES
         'cef3019f-0305-56a0-8b32-d930994ef82f', -- Lokal trubadur 2026-07-26
         'Markus Test Planeringsfunktionär',
         1102,
-        'Adolf Fredriks Scoutkår',
         'Patrull Ugglan',
         'Karin Berg',
         '+46700000001',
@@ -8408,7 +7733,6 @@ VALUES
         'fb2e9a02-0605-52ff-bee5-cb82c8b61312', -- Säker verksamhet 2026-07-27
         'Markus Test Planeringsfunktionär',
         2007,
-        'Huddinge Scoutkår',
         'Patrull Lodjuret',
         'Mona Ström',
         '+46700000001',
@@ -8421,7 +7745,6 @@ VALUES
         'ab44ffae-97b5-5311-9d76-5b96e79ba50e', -- Mind & Tim Bergling Foundation: Träffa våra ungdomsambassadörer! 2026-07-27
         'Markus Test Planeringsfunktionär',
         1310,
-        'Tullinge Scoutkår',
         'Patrull Vargen',
         'Ali Rezai',
         '+46700000001',
@@ -8434,7 +7757,6 @@ VALUES
         '734e4cf4-1485-5454-b7fe-ecbb03977bd2', -- Återträff Go Global 2026-07-27
         'Markus Test Planeringsfunktionär',
         1124,
-        'Scoutkåren Vikingarna',
         'Patrull Ugglan',
         'Lars Ek',
         '+46700000001',
@@ -8447,7 +7769,6 @@ VALUES
         '8905edbc-6fdb-52fd-96d1-c72ab1c30911', -- Återträff Upplev 2026-07-27
         'Markus Test Planeringsfunktionär',
         1102,
-        'Adolf Fredriks Scoutkår',
         'Patrull Lodjuret',
         'Karin Berg',
         '+46700000001',
@@ -8460,7 +7781,6 @@ VALUES
         'cf73f516-7167-513d-ab05-5ad6f958d69e', -- Spelkväll! 2026-07-27
         'Markus Test Planeringsfunktionär',
         2007,
-        'Huddinge Scoutkår',
         'Patrull Vargen',
         'Mona Ström',
         '+46700000001',
@@ -8473,7 +7793,6 @@ VALUES
         '928bac10-8819-5e75-887e-c412e38e8a1b', -- Spårarsamtal 2026-07-27
         'Markus Test Planeringsfunktionär',
         1310,
-        'Tullinge Scoutkår',
         'Patrull Ugglan',
         'Ali Rezai',
         '+46700000001',
@@ -8486,7 +7805,6 @@ VALUES
         'd5380b5b-9d81-54b7-b3cf-054603ee33cd', -- Speedfriending 2026-07-27
         'Markus Test Planeringsfunktionär',
         1124,
-        'Scoutkåren Vikingarna',
         'Patrull Lodjuret',
         'Lars Ek',
         '+46700000001',
@@ -8499,7 +7817,6 @@ VALUES
         'a98b2543-6025-5462-b449-bf810ebce753', -- Projektledning för roverscouter 2026-07-27
         'Markus Test Planeringsfunktionär',
         1102,
-        'Adolf Fredriks Scoutkår',
         'Patrull Vargen',
         'Karin Berg',
         '+46700000001',
@@ -8512,7 +7829,6 @@ VALUES
         '7272a920-5a32-5747-ad7f-3878aeece0ad', -- Sagostund 2026-07-27
         'Markus Test Planeringsfunktionär',
         2007,
-        'Huddinge Scoutkår',
         'Patrull Ugglan',
         'Mona Ström',
         '+46700000001',
@@ -8525,7 +7841,6 @@ VALUES
         '419a5558-d525-5f10-a9f3-467c8d860321', -- Hand the Ball 2026-07-27
         'Markus Test Planeringsfunktionär',
         1310,
-        'Tullinge Scoutkår',
         'Patrull Lodjuret',
         'Ali Rezai',
         '+46700000001',
@@ -8538,7 +7853,6 @@ VALUES
         'bd47dc77-2923-5247-8d41-6f2988fc9d42', -- Disko! 2026-07-27
         'Markus Test Planeringsfunktionär',
         1124,
-        'Scoutkåren Vikingarna',
         'Patrull Vargen',
         'Lars Ek',
         '+46700000001',
@@ -8551,7 +7865,6 @@ VALUES
         '610885be-25c9-51f7-b3aa-4abb9f1a4b73', -- Känslokartan 2026-07-27
         'Markus Test Planeringsfunktionär',
         1102,
-        'Adolf Fredriks Scoutkår',
         'Patrull Ugglan',
         'Karin Berg',
         '+46700000001',
@@ -8564,7 +7877,6 @@ VALUES
         '9e60857a-fe9c-56b0-95da-eac7249b4d07', -- Knoprep 2026-07-27
         'Markus Test Planeringsfunktionär',
         2007,
-        'Huddinge Scoutkår',
         'Patrull Lodjuret',
         'Mona Ström',
         '+46700000001',
@@ -8577,7 +7889,6 @@ VALUES
         'bc6ab101-53ed-5514-a44e-bdf5ddd57962', -- Slankaruseller 2026-07-27
         'Markus Test Planeringsfunktionär',
         1310,
-        'Tullinge Scoutkår',
         'Patrull Vargen',
         'Ali Rezai',
         '+46700000001',
@@ -8590,7 +7901,6 @@ VALUES
         '4e3821d7-8615-5f3e-8829-7000f05c9711', -- Våga utmana normerna 2026-07-27
         'Markus Test Planeringsfunktionär',
         1124,
-        'Scoutkåren Vikingarna',
         'Patrull Ugglan',
         'Lars Ek',
         '+46700000001',
@@ -8603,7 +7913,6 @@ VALUES
         '9c14b462-2c71-5f6d-8b04-59300e848a77', -- Mekanisk tjur 2026-07-27
         'Markus Test Planeringsfunktionär',
         1102,
-        'Adolf Fredriks Scoutkår',
         'Patrull Lodjuret',
         'Karin Berg',
         '+46700000001',
@@ -8616,7 +7925,6 @@ VALUES
         '5e5bd9f4-bd09-5802-9d8b-5cf077f5332a', -- Hand the Ball 2026-07-27
         'Markus Test Planeringsfunktionär',
         2007,
-        'Huddinge Scoutkår',
         'Patrull Vargen',
         'Mona Ström',
         '+46700000001',
@@ -8629,7 +7937,6 @@ VALUES
         'f492b12d-c637-5616-85bb-2a5eed4ad3a3', -- Desinformation, demokrati och sköldpaddor 2026-07-28
         'Markus Test Planeringsfunktionär',
         1310,
-        'Tullinge Scoutkår',
         'Patrull Ugglan',
         'Ali Rezai',
         '+46700000001',
@@ -8642,7 +7949,6 @@ VALUES
         '43550c20-55bc-5f9a-a8fd-a260997e1759', -- Upptäckarsamtal 2026-07-28
         'Markus Test Planeringsfunktionär',
         1124,
-        'Scoutkåren Vikingarna',
         'Patrull Lodjuret',
         'Lars Ek',
         '+46700000001',
@@ -8655,7 +7961,6 @@ VALUES
         '35249f33-50d1-57b2-8f12-fd99ce64cf47', -- Bris 2026-07-28
         'Markus Test Planeringsfunktionär',
         1102,
-        'Adolf Fredriks Scoutkår',
         'Patrull Vargen',
         'Karin Berg',
         '+46700000001',
@@ -8668,7 +7973,6 @@ VALUES
         'efa3894a-48c1-5122-a5dd-1fb9d38caa76', -- Tillsammans bygger vi Sverige 2026-07-28
         'Markus Test Planeringsfunktionär',
         2007,
-        'Huddinge Scoutkår',
         'Patrull Ugglan',
         'Mona Ström',
         '+46700000001',
@@ -8681,7 +7985,6 @@ VALUES
         'fbae3f1c-2b9a-55c4-9a46-43f90201c1d1', -- Sagostund 2026-07-28
         'Markus Test Planeringsfunktionär',
         1310,
-        'Tullinge Scoutkår',
         'Patrull Lodjuret',
         'Ali Rezai',
         '+46700000001',
@@ -8694,7 +7997,6 @@ VALUES
         'f9dde14c-4518-5ba5-9b6b-79f5b75d5799', -- Brottning 2026-07-28
         'Markus Test Planeringsfunktionär',
         1102,
-        'Adolf Fredriks Scoutkår',
         'Patrull Ugglan',
         'Karin Berg',
         '+46700000001',
@@ -8707,7 +8009,6 @@ VALUES
         '70b9d463-b701-51a2-8dfc-bc9cd4960320', -- Bubbelballs 2026-07-28
         'Markus Test Planeringsfunktionär',
         2007,
-        'Huddinge Scoutkår',
         'Patrull Lodjuret',
         'Mona Ström',
         '+46700000001',
@@ -8720,7 +8021,6 @@ VALUES
         'c03d4b03-d5bd-5390-bff7-67ee16b7504b', -- Brädspel 2026-07-28
         'Markus Test Planeringsfunktionär',
         1310,
-        'Tullinge Scoutkår',
         'Patrull Vargen',
         'Ali Rezai',
         '+46700000001',
@@ -8733,7 +8033,6 @@ VALUES
         '909fa919-6960-51dd-89a8-40c634e2402d', -- Tillsammans målning 2026-07-28
         'Markus Test Planeringsfunktionär',
         1124,
-        'Scoutkåren Vikingarna',
         'Patrull Ugglan',
         'Lars Ek',
         '+46700000001',
@@ -8746,7 +8045,6 @@ VALUES
         'bc01d960-a456-526f-8a09-2bb217741930', -- Bubbligt pyssel 2026-07-28
         'Markus Test Planeringsfunktionär',
         1102,
-        'Adolf Fredriks Scoutkår',
         'Patrull Lodjuret',
         'Karin Berg',
         '+46700000001',
@@ -8759,7 +8057,6 @@ VALUES
         'c260a43e-e518-5808-9eea-6251e4dd2065', -- Hand the Ball 2026-07-28
         'Markus Test Planeringsfunktionär',
         2007,
-        'Huddinge Scoutkår',
         'Patrull Vargen',
         'Mona Ström',
         '+46700000001',
@@ -8772,7 +8069,6 @@ VALUES
         '32569674-216f-531f-b365-64759879094f', -- Unga forskare 2026-07-28
         'Markus Test Planeringsfunktionär',
         1310,
-        'Tullinge Scoutkår',
         'Patrull Ugglan',
         'Ali Rezai',
         '+46700000001',
@@ -8785,7 +8081,6 @@ VALUES
         '1248befb-2ca1-5015-af90-cf1fc04ee2b7', -- Uppdrag Självkänsla 2026-07-28
         'Markus Test Planeringsfunktionär',
         1124,
-        'Scoutkåren Vikingarna',
         'Patrull Lodjuret',
         'Lars Ek',
         '+46700000001',
@@ -8798,7 +8093,6 @@ VALUES
         '3b7a85a7-cf33-518a-8032-638a56a534db', -- Disco 2026-07-29
         'Markus Test Planeringsfunktionär',
         1102,
-        'Adolf Fredriks Scoutkår',
         'Patrull Vargen',
         'Karin Berg',
         '+46700000001',
@@ -8811,7 +8105,6 @@ VALUES
         'a328db88-45f5-5d3d-ad31-da470eacac3c', -- Äventyrararsamtal 2026-07-29
         'Markus Test Planeringsfunktionär',
         2007,
-        'Huddinge Scoutkår',
         'Patrull Ugglan',
         'Mona Ström',
         '+46700000001',
@@ -8824,7 +8117,6 @@ VALUES
         '8531aec5-e2af-570f-9862-f47ff334b16a', -- Nyfiken på Treklöver Gilwell 2026-07-29
         'Markus Test Planeringsfunktionär',
         1310,
-        'Tullinge Scoutkår',
         'Patrull Lodjuret',
         'Ali Rezai',
         '+46700000001',
@@ -8837,7 +8129,6 @@ VALUES
         '9f92c566-bb26-583a-a238-7664cbdb0be5', -- Upptäck dina värderingar: Testa på Värdebaserat ledarskap 2026-07-29
         'Markus Test Planeringsfunktionär',
         1124,
-        'Scoutkåren Vikingarna',
         'Patrull Vargen',
         'Lars Ek',
         '+46700000001',
@@ -8850,7 +8141,6 @@ VALUES
         'b3a5cfde-4ef9-5798-a797-7d4da88bfc60', -- The HERDS 2026-07-29
         'Markus Test Planeringsfunktionär',
         1102,
-        'Adolf Fredriks Scoutkår',
         'Patrull Ugglan',
         'Karin Berg',
         '+46700000001',
@@ -8863,7 +8153,6 @@ VALUES
         '5f3cc3b0-092f-5ef5-b8e8-2ed141bbd017', -- Slappna av som Linné 2026-07-29
         'Markus Test Planeringsfunktionär',
         2007,
-        'Huddinge Scoutkår',
         'Patrull Lodjuret',
         'Mona Ström',
         '+46700000001',
@@ -8876,7 +8165,6 @@ VALUES
         '79e1275a-b7f3-5681-91b4-76568de7d94b', -- Hantverksfokus: Banderoller/vimplar 2026-07-29
         'Markus Test Planeringsfunktionär',
         1310,
-        'Tullinge Scoutkår',
         'Patrull Vargen',
         'Ali Rezai',
         '+46700000001',
@@ -8889,7 +8177,6 @@ VALUES
         '81118bd1-7e58-5f07-8c45-6aa9d688b8de', -- Brottning 2026-07-29
         'Markus Test Planeringsfunktionär',
         1124,
-        'Scoutkåren Vikingarna',
         'Patrull Ugglan',
         'Lars Ek',
         '+46700000001',
@@ -8902,7 +8189,6 @@ VALUES
         '09a0eaa2-2077-5847-b154-01bb25840b93', -- Brottning 2026-07-29
         'Markus Test Planeringsfunktionär',
         1102,
-        'Adolf Fredriks Scoutkår',
         'Patrull Lodjuret',
         'Karin Berg',
         '+46700000001',
@@ -8915,7 +8201,6 @@ VALUES
         '06e7491d-377b-5a3b-bfca-20755677c656', -- Godnattsaga 2026-07-29
         'Markus Test Planeringsfunktionär',
         2007,
-        'Huddinge Scoutkår',
         'Patrull Vargen',
         'Mona Ström',
         '+46700000001',
@@ -8928,7 +8213,6 @@ VALUES
         'e5fb15f7-1844-513d-943f-2450746da7f9', -- Poetry Slam 2026-07-29
         'Markus Test Planeringsfunktionär',
         1310,
-        'Tullinge Scoutkår',
         'Patrull Ugglan',
         'Ali Rezai',
         '+46700000001',
@@ -8941,7 +8225,6 @@ VALUES
         'e6895bcd-a245-5aa8-a3ca-218c70574d59', -- Lasse Berg 2026-07-29
         'Markus Test Planeringsfunktionär',
         1124,
-        'Scoutkåren Vikingarna',
         'Patrull Lodjuret',
         'Lars Ek',
         '+46700000001',
@@ -8954,7 +8237,6 @@ VALUES
         '7cf2fff2-3b9d-5b29-89df-4877d83e7015', -- Linedance 2026-07-29
         'Markus Test Planeringsfunktionär',
         1102,
-        'Adolf Fredriks Scoutkår',
         'Patrull Vargen',
         'Karin Berg',
         '+46700000001',
@@ -8967,7 +8249,6 @@ VALUES
         'fa2cb116-9f29-59aa-a59b-597bec8a9dc5', -- Folkhögskolan workshop 2026-07-29
         'Markus Test Planeringsfunktionär',
         2007,
-        'Huddinge Scoutkår',
         'Patrull Ugglan',
         'Mona Ström',
         '+46700000001',
@@ -8980,7 +8261,6 @@ VALUES
         '2afce3cb-dd2d-57e5-bb4e-e171005f3914', -- Tillsammans i ledarteamet 2026-07-29
         'Markus Test Planeringsfunktionär',
         1310,
-        'Tullinge Scoutkår',
         'Patrull Lodjuret',
         'Ali Rezai',
         '+46700000001',
@@ -8993,7 +8273,6 @@ VALUES
         '83ea5ea3-fca8-5dad-80f8-cdedb0efc686', -- Upp- och nedmärket 2026-07-29
         'Markus Test Planeringsfunktionär',
         1124,
-        'Scoutkåren Vikingarna',
         'Patrull Vargen',
         'Lars Ek',
         '+46700000001',
@@ -9006,7 +8285,6 @@ VALUES
         '9c64cbe6-27f8-5c79-af5e-7b903c19ed3e', -- Frisk & Fri: Hur förändrar vi snacket om kropp och utseende? 2026-07-29
         'Markus Test Planeringsfunktionär',
         1102,
-        'Adolf Fredriks Scoutkår',
         'Patrull Ugglan',
         'Karin Berg',
         '+46700000001',
@@ -9019,7 +8297,6 @@ VALUES
         'c7a54b16-96f0-5eef-a2b0-e3e9923e1175', -- Quiz 2026-07-29
         'Markus Test Planeringsfunktionär',
         2007,
-        'Huddinge Scoutkår',
         'Patrull Lodjuret',
         'Mona Ström',
         '+46700000001',
@@ -9032,7 +8309,6 @@ VALUES
         'cc767b60-2cea-594b-be67-4b1e5d0fa504', -- Quiz: Disney 2026-07-29
         'Markus Test Planeringsfunktionär',
         1310,
-        'Tullinge Scoutkår',
         'Patrull Vargen',
         'Ali Rezai',
         '+46700000001',
@@ -9045,7 +8321,6 @@ VALUES
         'ba51e8fe-ce4e-5d9b-8439-08e85efbc63f', -- Lekaktiviteter 2026-07-29
         'Markus Test Planeringsfunktionär',
         1124,
-        'Scoutkåren Vikingarna',
         'Patrull Ugglan',
         'Lars Ek',
         '+46700000001',
@@ -9058,7 +8333,6 @@ VALUES
         '6ee37d9e-29be-55d0-8ea0-4a7455bb23cc', -- Brädspel 2026-07-29
         'Markus Test Planeringsfunktionär',
         1102,
-        'Adolf Fredriks Scoutkår',
         'Patrull Lodjuret',
         'Karin Berg',
         '+46700000001',
@@ -9071,7 +8345,6 @@ VALUES
         '8dcfb880-4593-5c83-8dc3-39334cdadbed', -- Tillsammans målning 2026-07-29
         'Markus Test Planeringsfunktionär',
         2007,
-        'Huddinge Scoutkår',
         'Patrull Vargen',
         'Mona Ström',
         '+46700000001',
@@ -9084,7 +8357,6 @@ VALUES
         '87c58b36-0673-56b5-b1bd-3d6fdb36e9c6', -- Inspiration för kårer som vill åka utomlands 2026-07-30
         'Markus Test Planeringsfunktionär',
         1310,
-        'Tullinge Scoutkår',
         'Patrull Ugglan',
         'Ali Rezai',
         '+46700000001',
@@ -9097,7 +8369,6 @@ VALUES
         '50cd5135-1530-5fb4-b27f-92d48428fd68', -- Nedmontera skiten - hur skapar vi den sämsta möjliga skolan? 2026-07-30
         'Markus Test Planeringsfunktionär',
         1124,
-        'Scoutkåren Vikingarna',
         'Patrull Lodjuret',
         'Lars Ek',
         '+46700000001',
@@ -9110,7 +8381,6 @@ VALUES
         'd9b9d7fb-1634-5580-a328-495883dd5428', -- Deep talk - Rösta i Gnistan på tema! 2026-07-30
         'Markus Test Planeringsfunktionär',
         1102,
-        'Adolf Fredriks Scoutkår',
         'Patrull Vargen',
         'Karin Berg',
         '+46700000001',
@@ -9123,7 +8393,6 @@ VALUES
         'a10bf42e-79ec-554a-8571-1ab2a3daea1c', -- Quiz 2026-07-30
         'Markus Test Planeringsfunktionär',
         2007,
-        'Huddinge Scoutkår',
         'Patrull Ugglan',
         'Mona Ström',
         '+46700000001',
@@ -9136,7 +8405,6 @@ VALUES
         '065b36e9-4127-5495-9ae3-16cb4a177ef9', -- Familjescoutsamtal 2026-07-30
         'Markus Test Planeringsfunktionär',
         1310,
-        'Tullinge Scoutkår',
         'Patrull Lodjuret',
         'Ali Rezai',
         '+46700000001',
@@ -9149,7 +8417,6 @@ VALUES
         '665b6442-3ee5-5064-b728-e07a4f1b8e26', -- Speedfriending 2026-07-30
         'Markus Test Planeringsfunktionär',
         1124,
-        'Scoutkåren Vikingarna',
         'Patrull Vargen',
         'Lars Ek',
         '+46700000001',
@@ -9162,7 +8429,6 @@ VALUES
         'aff5625b-7de7-5246-938d-ae374c0a9416', -- Klubb Fiesta med DJ Måns 2026-07-30
         'Markus Test Planeringsfunktionär',
         1102,
-        'Adolf Fredriks Scoutkår',
         'Patrull Ugglan',
         'Karin Berg',
         '+46700000001',
@@ -9175,7 +8441,6 @@ VALUES
         '8cac8501-366f-5eee-aa6f-5fc63a9a7193', -- Karaoke 2026-07-30
         'Markus Test Planeringsfunktionär',
         2007,
-        'Huddinge Scoutkår',
         'Patrull Lodjuret',
         'Mona Ström',
         '+46700000001',
@@ -9188,7 +8453,6 @@ VALUES
         'f094215c-5ef9-5b56-9750-7b111e25a829', -- Tänk Till 2026-07-30
         'Markus Test Planeringsfunktionär',
         1310,
-        'Tullinge Scoutkår',
         'Patrull Vargen',
         'Ali Rezai',
         '+46700000001',
@@ -9201,7 +8465,6 @@ VALUES
         'd527706a-43de-5b01-8a48-7a2f819268f5', -- Meningen med mig 2026-07-30
         'Markus Test Planeringsfunktionär',
         1124,
-        'Scoutkåren Vikingarna',
         'Patrull Ugglan',
         'Lars Ek',
         '+46700000001',
@@ -9214,7 +8477,6 @@ VALUES
         '68f6ba67-24f0-5c94-8384-99996852c29c', -- The HERDS 2026-07-30
         'Markus Test Planeringsfunktionär',
         1102,
-        'Adolf Fredriks Scoutkår',
         'Patrull Lodjuret',
         'Karin Berg',
         '+46700000001',
@@ -9227,7 +8489,6 @@ VALUES
         'adca7be8-03cb-5e68-8fac-288b5599278e', -- The HERDS 2026-07-30
         'Markus Test Planeringsfunktionär',
         2007,
-        'Huddinge Scoutkår',
         'Patrull Vargen',
         'Mona Ström',
         '+46700000001',
@@ -9240,7 +8501,6 @@ VALUES
         '67672c4c-9045-5d48-9b85-2ffa9b1038b1', -- Pyjamasparty med talangshow 2026-07-30
         'Markus Test Planeringsfunktionär',
         1310,
-        'Tullinge Scoutkår',
         'Patrull Ugglan',
         'Ali Rezai',
         '+46700000001',
@@ -9253,7 +8513,6 @@ VALUES
         '12c6fd16-9b78-59f8-a2e1-f0ed8d0aeb56', -- Kåsan 2026-07-30
         'Markus Test Planeringsfunktionär',
         1124,
-        'Scoutkåren Vikingarna',
         'Patrull Lodjuret',
         'Lars Ek',
         '+46700000001',
@@ -9266,7 +8525,6 @@ VALUES
         '99182452-c33e-5e68-b734-587562646d7e', -- Cybersäkerhet med Unga forskare 2026-07-30
         'Markus Test Planeringsfunktionär',
         1102,
-        'Adolf Fredriks Scoutkår',
         'Patrull Vargen',
         'Karin Berg',
         '+46700000001',
@@ -9279,7 +8537,6 @@ VALUES
         '27b97594-1254-59e9-b12c-64f108bef1ee', -- Tillsammans målning 2026-07-30
         'Markus Test Planeringsfunktionär',
         2007,
-        'Huddinge Scoutkår',
         'Patrull Ugglan',
         'Mona Ström',
         '+46700000001',
@@ -9292,7 +8549,6 @@ VALUES
         'b64b42bd-0008-53c5-ac1b-6a1789fd0f4d', -- Fladdermussafari 2026-07-30
         'Markus Test Planeringsfunktionär',
         1310,
-        'Tullinge Scoutkår',
         'Patrull Lodjuret',
         'Ali Rezai',
         '+46700000001',
@@ -9305,7 +8561,6 @@ VALUES
         '17965407-ce84-5770-8ace-166f630e29b7', -- Upptäck dina värderingar 2026-07-30
         'Markus Test Planeringsfunktionär',
         1124,
-        'Scoutkåren Vikingarna',
         'Patrull Vargen',
         'Lars Ek',
         '+46700000001',
@@ -9318,7 +8573,6 @@ VALUES
         'eb07b45f-6915-5bfc-8215-4a095fe75559', -- Äventyrare berättar: Per Eriksson 2026-07-30
         'Markus Test Planeringsfunktionär',
         1102,
-        'Adolf Fredriks Scoutkår',
         'Patrull Ugglan',
         'Karin Berg',
         '+46700000001',
@@ -9331,7 +8585,6 @@ VALUES
         '0f4635a3-e4b9-50f8-831a-3c9e5c029489', -- Quiz 2026-07-30
         'Markus Test Planeringsfunktionär',
         2007,
-        'Huddinge Scoutkår',
         'Patrull Lodjuret',
         'Mona Ström',
         '+46700000001',
@@ -9344,7 +8597,6 @@ VALUES
         '1d675389-6002-5fb2-805d-e9d8b27c2a33', -- BRIS 2026-07-30
         'Markus Test Planeringsfunktionär',
         1310,
-        'Tullinge Scoutkår',
         'Patrull Vargen',
         'Ali Rezai',
         '+46700000001',
@@ -9357,7 +8609,6 @@ VALUES
         '103efe17-3808-53af-9baf-d7ef382f5066', -- Nyfiken på att bli utbildare 2026-07-31
         'Markus Test Planeringsfunktionär',
         1124,
-        'Scoutkåren Vikingarna',
         'Patrull Ugglan',
         'Lars Ek',
         '+46700000001',
@@ -9370,7 +8621,6 @@ VALUES
         'bebef6a8-9539-5202-ac37-687a1a8d9b8a', -- Bli arrangemangsledare! 2026-07-31
         'Markus Test Planeringsfunktionär',
         1102,
-        'Adolf Fredriks Scoutkår',
         'Patrull Lodjuret',
         'Karin Berg',
         '+46700000001',
@@ -9383,7 +8633,6 @@ VALUES
         '452e7dd7-692d-5fe1-b5f6-31b4a7872e3f', -- The HERDS 2026-07-31
         'Markus Test Planeringsfunktionär',
         2007,
-        'Huddinge Scoutkår',
         'Patrull Vargen',
         'Mona Ström',
         '+46700000001',
@@ -9396,7 +8645,6 @@ VALUES
         'da3847f2-36c9-579f-9761-b33cbd97519f', -- BRIS 2026-07-31
         'Markus Test Planeringsfunktionär',
         1310,
-        'Tullinge Scoutkår',
         'Patrull Ugglan',
         'Ali Rezai',
         '+46700000001',
@@ -9409,7 +8657,6 @@ VALUES
         '559d040c-caf3-5c92-bb40-dcedb8ef7f19', -- Sagostund 2026-07-31
         'Markus Test Planeringsfunktionär',
         1124,
-        'Scoutkåren Vikingarna',
         'Patrull Lodjuret',
         'Lars Ek',
         '+46700000001',
@@ -9422,7 +8669,6 @@ VALUES
         '5818ec53-6260-5cb7-867d-71585a74606b', -- Muslimsk tro - NAMN kommer 2026-07-31
         'Markus Test Planeringsfunktionär',
         1102,
-        'Adolf Fredriks Scoutkår',
         'Patrull Vargen',
         'Karin Berg',
         '+46700000001',
@@ -9435,7 +8681,6 @@ VALUES
         '0d3261ea-c2cd-5bbf-ae71-f02609f3c9d0', -- Lounge Solnedgång 2026-07-31
         'Markus Test Planeringsfunktionär',
         2007,
-        'Huddinge Scoutkår',
         'Patrull Ugglan',
         'Mona Ström',
         '+46700000001',
@@ -9448,7 +8693,6 @@ VALUES
         '40587247-379a-572f-86eb-2460bd6043db', -- En Känsla av Fest 2026-07-31
         'Markus Test Planeringsfunktionär',
         1310,
-        'Tullinge Scoutkår',
         'Patrull Lodjuret',
         'Ali Rezai',
         '+46700000001',
@@ -9461,7 +8705,6 @@ VALUES
         'c01b2c7a-7547-51e7-9d04-74624badbfef', -- Quiz: Film/tvserie 2026-07-31
         'Markus Test Planeringsfunktionär',
         1124,
-        'Scoutkåren Vikingarna',
         'Patrull Vargen',
         'Lars Ek',
         '+46700000001',

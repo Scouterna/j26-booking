@@ -1,11 +1,22 @@
 import gleam/json.{type Json}
 import gleam/list
-import gleam/option.{None}
+import gleam/option.{type Option, None}
 import server/sql
 import shared/model.{
   type Booking, type BookingSlot, Booking, BookingSlot, GroupCount,
 }
 import youid/uuid
+
+/// The booking queries join scout_group and return the kår name as a plain
+/// string — '' when the booking has no kår, since squirrel cannot type SQL
+/// expressions as nullable. The name applies exactly when the kår id is
+/// present, so derive the Option from `booker_group_id`.
+fn booker_group_name(
+  booker_group_id: Option(Int),
+  joined_name: String,
+) -> Option(String) {
+  option.map(booker_group_id, fn(_) { joined_name })
+}
 
 pub fn from_create_booking_with_group_row(
   row: sql.CreateBookingWithGroupRow,
@@ -16,7 +27,10 @@ pub fn from_create_booking_with_group_row(
     activity_id: row.activity_id,
     booker_name: row.booker_name,
     booker_group_id: row.booker_group_id,
-    booker_group_name: row.booker_group_name,
+    booker_group_name: booker_group_name(
+      row.booker_group_id,
+      row.booker_group_name,
+    ),
     group_free_text: row.group_free_text,
     responsible_name: row.responsible_name,
     phone_number: row.phone_number,
@@ -56,7 +70,10 @@ pub fn from_get_booking_row(row: sql.GetBookingRow) -> Booking {
     activity_id: row.activity_id,
     booker_name: row.booker_name,
     booker_group_id: row.booker_group_id,
-    booker_group_name: row.booker_group_name,
+    booker_group_name: booker_group_name(
+      row.booker_group_id,
+      row.booker_group_name,
+    ),
     group_free_text: row.group_free_text,
     responsible_name: row.responsible_name,
     phone_number: row.phone_number,
@@ -75,7 +92,10 @@ pub fn from_get_bookings_by_activity_row(
     activity_id: row.activity_id,
     booker_name: row.booker_name,
     booker_group_id: row.booker_group_id,
-    booker_group_name: row.booker_group_name,
+    booker_group_name: booker_group_name(
+      row.booker_group_id,
+      row.booker_group_name,
+    ),
     group_free_text: row.group_free_text,
     responsible_name: row.responsible_name,
     phone_number: row.phone_number,
@@ -92,7 +112,10 @@ pub fn from_get_bookings_by_user_row(row: sql.GetBookingsByUserRow) -> Booking {
     activity_id: row.activity_id,
     booker_name: row.booker_name,
     booker_group_id: row.booker_group_id,
-    booker_group_name: row.booker_group_name,
+    booker_group_name: booker_group_name(
+      row.booker_group_id,
+      row.booker_group_name,
+    ),
     group_free_text: row.group_free_text,
     responsible_name: row.responsible_name,
     phone_number: row.phone_number,
@@ -109,7 +132,10 @@ pub fn from_update_booking_row(row: sql.UpdateBookingRow) -> Booking {
     activity_id: row.activity_id,
     booker_name: row.booker_name,
     booker_group_id: row.booker_group_id,
-    booker_group_name: row.booker_group_name,
+    booker_group_name: booker_group_name(
+      row.booker_group_id,
+      row.booker_group_name,
+    ),
     group_free_text: row.group_free_text,
     responsible_name: row.responsible_name,
     phone_number: row.phone_number,
@@ -126,7 +152,10 @@ pub fn from_cancel_booking_row(row: sql.CancelBookingRow) -> Booking {
     activity_id: row.activity_id,
     booker_name: row.booker_name,
     booker_group_id: row.booker_group_id,
-    booker_group_name: row.booker_group_name,
+    booker_group_name: booker_group_name(
+      row.booker_group_id,
+      row.booker_group_name,
+    ),
     group_free_text: row.group_free_text,
     responsible_name: row.responsible_name,
     phone_number: row.phone_number,
@@ -143,7 +172,10 @@ pub fn from_restore_booking_row(row: sql.RestoreBookingRow) -> Booking {
     activity_id: row.activity_id,
     booker_name: row.booker_name,
     booker_group_id: row.booker_group_id,
-    booker_group_name: row.booker_group_name,
+    booker_group_name: booker_group_name(
+      row.booker_group_id,
+      row.booker_group_name,
+    ),
     group_free_text: row.group_free_text,
     responsible_name: row.responsible_name,
     phone_number: row.phone_number,
@@ -177,7 +209,10 @@ fn overview_chunk_to_slot(
     |> list.map(fn(row) {
       GroupCount(
         group_id: row.booker_group_id,
-        group_name: row.booker_group_name,
+        group_name: booker_group_name(
+          row.booker_group_id,
+          row.booker_group_name,
+        ),
         count: row.group_count,
       )
     })

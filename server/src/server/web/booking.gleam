@@ -11,7 +11,6 @@ import gleam/string
 import gleam/time/timestamp
 import pog
 import server/model/booking
-import server/scout_group
 import server/sql
 import server/utils
 import server/web
@@ -345,7 +344,6 @@ fn insert_booking(
         activity_id,
         user.name,
         group_id,
-        scout_group.group_id_to_name(group_id),
         input.group_free_text,
         input.responsible_name,
         input.phone_number,

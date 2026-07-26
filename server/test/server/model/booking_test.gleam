@@ -13,7 +13,7 @@ fn parse_uuid(s: String) -> uuid.Uuid {
 fn row(
   activity_id: uuid.Uuid,
   group_id: option.Option(Int),
-  group_name: option.Option(String),
+  group_name: String,
   group_count: Int,
   booking_count: Int,
 ) -> sql.ListRecurringBookingsOverviewRow {
@@ -35,8 +35,8 @@ pub fn groups_a_slot_and_sums_total_test() {
   let id = parse_uuid("6f5e1d46-5f58-4e23-9a9d-8c2bfc2d22a0")
   let slots =
     booking.from_recurring_overview_rows([
-      row(id, Some(1), Some("Abbekås"), 3, 1),
-      row(id, Some(3), Some("Ölagets Scoutkår"), 40, 2),
+      row(id, Some(1), "Abbekås", 3, 1),
+      row(id, Some(3), "Ölagets Scoutkår", 40, 2),
     ])
 
   assert slots
@@ -59,7 +59,7 @@ pub fn groups_a_slot_and_sums_total_test() {
 /// bookings — empty groups and a zero total — rather than a bogus group entry.
 pub fn empty_slot_has_no_groups_test() {
   let id = parse_uuid("00000000-0000-4000-8000-000000000001")
-  let slots = booking.from_recurring_overview_rows([row(id, None, None, 0, 0)])
+  let slots = booking.from_recurring_overview_rows([row(id, None, "", 0, 0)])
 
   assert slots
     == [
@@ -78,7 +78,7 @@ pub fn empty_slot_has_no_groups_test() {
 /// kept as an unknown-group entry, not dropped.
 pub fn unknown_group_booking_is_kept_test() {
   let id = parse_uuid("00000000-0000-4000-8000-000000000002")
-  let slots = booking.from_recurring_overview_rows([row(id, None, None, 5, 1)])
+  let slots = booking.from_recurring_overview_rows([row(id, None, "", 5, 1)])
 
   let assert [model.BookingSlot(groups: groups, total_booked: total, ..)] =
     slots

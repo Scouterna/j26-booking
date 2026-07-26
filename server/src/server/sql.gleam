@@ -24,7 +24,7 @@ pub type CancelBookingRow {
     activity_id: Uuid,
     booker_name: String,
     booker_group_id: Option(Int),
-    booker_group_name: Option(String),
+    booker_group_name: String,
     group_free_text: String,
     responsible_name: String,
     phone_number: String,
@@ -37,7 +37,8 @@ pub type CancelBookingRow {
 /// Soft-cancel a booking: store the reason a bookings:others:create holder
 /// gave. A cancelled booking stops occupying spots (the capacity aggregates
 /// exclude it) but stays visible in booking lists so both the booker and the
-/// staff can see that it was removed and why.
+/// staff can see that it was removed and why. The booker's kår name is derived
+/// by joining scout_group on the returned booking.
 ///
 /// > 🐿️ This function was generated automatically using v4.7.0 of
 /// > the [squirrel package](https://github.com/giacomocavalieri/squirrel).
@@ -53,7 +54,7 @@ pub fn cancel_booking(
     use activity_id <- decode.field(2, uuid_decoder())
     use booker_name <- decode.field(3, decode.string)
     use booker_group_id <- decode.field(4, decode.optional(decode.int))
-    use booker_group_name <- decode.field(5, decode.optional(decode.string))
+    use booker_group_name <- decode.field(5, decode.string)
     use group_free_text <- decode.field(6, decode.string)
     use responsible_name <- decode.field(7, decode.string)
     use phone_number <- decode.field(8, decode.string)
@@ -79,22 +80,38 @@ pub fn cancel_booking(
   "-- Soft-cancel a booking: store the reason a bookings:others:create holder
 -- gave. A cancelled booking stops occupying spots (the capacity aggregates
 -- exclude it) but stays visible in booking lists so both the booker and the
--- staff can see that it was removed and why.
-UPDATE booking
-SET cancellation_reason = $2
-WHERE id = $1
-RETURNING id,
-    user_id,
-    activity_id,
-    booker_name,
-    booker_group_id,
-    booker_group_name,
-    group_free_text,
-    responsible_name,
-    phone_number,
-    participant_count,
-    booked_for_other,
-    cancellation_reason
+-- staff can see that it was removed and why. The booker's kår name is derived
+-- by joining scout_group on the returned booking.
+WITH cancelled AS (
+    UPDATE booking
+    SET cancellation_reason = $2
+    WHERE id = $1
+    RETURNING id,
+        user_id,
+        activity_id,
+        booker_name,
+        booker_group_id,
+        group_free_text,
+        responsible_name,
+        phone_number,
+        participant_count,
+        booked_for_other,
+        cancellation_reason
+)
+SELECT c.id,
+    c.user_id,
+    c.activity_id,
+    c.booker_name,
+    c.booker_group_id,
+    COALESCE(sg.name, 'Kår ' || c.booker_group_id, '') AS booker_group_name,
+    c.group_free_text,
+    c.responsible_name,
+    c.phone_number,
+    c.participant_count,
+    c.booked_for_other,
+    c.cancellation_reason
+FROM cancelled c
+    LEFT JOIN scout_group sg ON sg.id = c.booker_group_id
 "
   |> pog.query
   |> pog.parameter(pog.text(uuid.to_string(id)))
@@ -460,7 +477,7 @@ pub type CreateBookingWithGroupRow {
     activity_id: Uuid,
     booker_name: String,
     booker_group_id: Option(Int),
-    booker_group_name: Option(String),
+    booker_group_name: String,
     group_free_text: String,
     responsible_name: String,
     phone_number: String,
@@ -469,8 +486,9 @@ pub type CreateBookingWithGroupRow {
   )
 }
 
-/// Runs the `create_booking_with_group` query
-/// defined in `./src/server/sql/create_booking_with_group.sql`.
+/// The kår name is not stored on the row — it is derived by joining
+/// scout_group on the returned booking, falling back to 'Kår <id>' for a
+/// kårnummer not among the registered kårer.
 ///
 /// > 🐿️ This function was generated automatically using v4.7.0 of
 /// > the [squirrel package](https://github.com/giacomocavalieri/squirrel).
@@ -485,9 +503,8 @@ pub fn create_booking_with_group(
   arg_6: String,
   arg_7: String,
   arg_8: String,
-  arg_9: String,
-  arg_10: Int,
-  arg_11: Bool,
+  arg_9: Int,
+  arg_10: Bool,
 ) -> Result(pog.Returned(CreateBookingWithGroupRow), pog.QueryError) {
   let decoder = {
     use id <- decode.field(0, uuid_decoder())
@@ -495,7 +512,7 @@ pub fn create_booking_with_group(
     use activity_id <- decode.field(2, uuid_decoder())
     use booker_name <- decode.field(3, decode.string)
     use booker_group_id <- decode.field(4, decode.optional(decode.int))
-    use booker_group_name <- decode.field(5, decode.optional(decode.string))
+    use booker_group_name <- decode.field(5, decode.string)
     use group_free_text <- decode.field(6, decode.string)
     use responsible_name <- decode.field(7, decode.string)
     use phone_number <- decode.field(8, decode.string)
@@ -516,31 +533,47 @@ pub fn create_booking_with_group(
     ))
   }
 
-  "INSERT INTO booking (
-        id,
+  "-- The kår name is not stored on the row — it is derived by joining
+-- scout_group on the returned booking, falling back to 'Kår <id>' for a
+-- kårnummer not among the registered kårer.
+WITH inserted AS (
+    INSERT INTO booking (
+            id,
+            user_id,
+            activity_id,
+            booker_name,
+            booker_group_id,
+            group_free_text,
+            responsible_name,
+            phone_number,
+            participant_count,
+            booked_for_other
+        )
+    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+    RETURNING id,
         user_id,
         activity_id,
         booker_name,
         booker_group_id,
-        booker_group_name,
         group_free_text,
         responsible_name,
         phone_number,
         participant_count,
         booked_for_other
-    )
-VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
-RETURNING id,
-    user_id,
-    activity_id,
-    booker_name,
-    booker_group_id,
-    booker_group_name,
-    group_free_text,
-    responsible_name,
-    phone_number,
-    participant_count,
-    booked_for_other
+)
+SELECT i.id,
+    i.user_id,
+    i.activity_id,
+    i.booker_name,
+    i.booker_group_id,
+    COALESCE(sg.name, 'Kår ' || i.booker_group_id, '') AS booker_group_name,
+    i.group_free_text,
+    i.responsible_name,
+    i.phone_number,
+    i.participant_count,
+    i.booked_for_other
+FROM inserted i
+    LEFT JOIN scout_group sg ON sg.id = i.booker_group_id
 "
   |> pog.query
   |> pog.parameter(pog.text(uuid.to_string(arg_1)))
@@ -551,9 +584,8 @@ RETURNING id,
   |> pog.parameter(pog.text(arg_6))
   |> pog.parameter(pog.text(arg_7))
   |> pog.parameter(pog.text(arg_8))
-  |> pog.parameter(pog.text(arg_9))
-  |> pog.parameter(pog.int(arg_10))
-  |> pog.parameter(pog.bool(arg_11))
+  |> pog.parameter(pog.int(arg_9))
+  |> pog.parameter(pog.bool(arg_10))
   |> pog.returning(decoder)
   |> pog.execute(db)
 }
@@ -621,13 +653,12 @@ pub fn create_booking_without_group(
         activity_id,
         booker_name,
         booker_group_id,
-        booker_group_name,
         group_free_text,
         responsible_name,
         phone_number,
         participant_count
     )
-VALUES ($1, $2, $3, $4, NULL, NULL, $5, $6, $7, $8)
+VALUES ($1, $2, $3, $4, NULL, $5, $6, $7, $8)
 RETURNING id,
     user_id,
     activity_id,
@@ -1677,7 +1708,7 @@ pub type GetBookingRow {
     activity_id: Uuid,
     booker_name: String,
     booker_group_id: Option(Int),
-    booker_group_name: Option(String),
+    booker_group_name: String,
     group_free_text: String,
     responsible_name: String,
     phone_number: String,
@@ -1687,15 +1718,17 @@ pub type GetBookingRow {
   )
 }
 
-/// Runs the `get_booking` query
-/// defined in `./src/server/sql/get_booking.sql`.
+/// The booker's kår name is derived by joining scout_group; a kårnummer not
+/// among the registered kårer renders as 'Kår <id>'. A booking without a kår
+/// yields '' (squirrel cannot type expressions as nullable) — the model layer
+/// derives the Option from booker_group_id.
 ///
 /// > 🐿️ This function was generated automatically using v4.7.0 of
 /// > the [squirrel package](https://github.com/giacomocavalieri/squirrel).
 ///
 pub fn get_booking(
   db: pog.Connection,
-  id: Uuid,
+  b_id: Uuid,
 ) -> Result(pog.Returned(GetBookingRow), pog.QueryError) {
   let decoder = {
     use id <- decode.field(0, uuid_decoder())
@@ -1703,7 +1736,7 @@ pub fn get_booking(
     use activity_id <- decode.field(2, uuid_decoder())
     use booker_name <- decode.field(3, decode.string)
     use booker_group_id <- decode.field(4, decode.optional(decode.int))
-    use booker_group_name <- decode.field(5, decode.optional(decode.string))
+    use booker_group_name <- decode.field(5, decode.string)
     use group_free_text <- decode.field(6, decode.string)
     use responsible_name <- decode.field(7, decode.string)
     use phone_number <- decode.field(8, decode.string)
@@ -1726,23 +1759,28 @@ pub fn get_booking(
     ))
   }
 
-  "SELECT id,
-    user_id,
-    activity_id,
-    booker_name,
-    booker_group_id,
-    booker_group_name,
-    group_free_text,
-    responsible_name,
-    phone_number,
-    participant_count,
-    booked_for_other,
-    cancellation_reason
-FROM booking
-WHERE id = $1
+  "-- The booker's kår name is derived by joining scout_group; a kårnummer not
+-- among the registered kårer renders as 'Kår <id>'. A booking without a kår
+-- yields '' (squirrel cannot type expressions as nullable) — the model layer
+-- derives the Option from booker_group_id.
+SELECT b.id,
+    b.user_id,
+    b.activity_id,
+    b.booker_name,
+    b.booker_group_id,
+    COALESCE(sg.name, 'Kår ' || b.booker_group_id, '') AS booker_group_name,
+    b.group_free_text,
+    b.responsible_name,
+    b.phone_number,
+    b.participant_count,
+    b.booked_for_other,
+    b.cancellation_reason
+FROM booking b
+    LEFT JOIN scout_group sg ON sg.id = b.booker_group_id
+WHERE b.id = $1
 "
   |> pog.query
-  |> pog.parameter(pog.text(uuid.to_string(id)))
+  |> pog.parameter(pog.text(uuid.to_string(b_id)))
   |> pog.returning(decoder)
   |> pog.execute(db)
 }
@@ -1799,7 +1837,7 @@ pub type GetBookingsByActivityRow {
     activity_id: Uuid,
     booker_name: String,
     booker_group_id: Option(Int),
-    booker_group_name: Option(String),
+    booker_group_name: String,
     group_free_text: String,
     responsible_name: String,
     phone_number: String,
@@ -1809,15 +1847,17 @@ pub type GetBookingsByActivityRow {
   )
 }
 
-/// Runs the `get_bookings_by_activity` query
-/// defined in `./src/server/sql/get_bookings_by_activity.sql`.
+/// The booker's kår name is derived by joining scout_group; a kårnummer not
+/// among the registered kårer renders as 'Kår <id>'. A booking without a kår
+/// yields '' (squirrel cannot type expressions as nullable) — the model layer
+/// derives the Option from booker_group_id.
 ///
 /// > 🐿️ This function was generated automatically using v4.7.0 of
 /// > the [squirrel package](https://github.com/giacomocavalieri/squirrel).
 ///
 pub fn get_bookings_by_activity(
   db: pog.Connection,
-  activity_id: Uuid,
+  b_activity_id: Uuid,
   arg_2: Int,
   arg_3: Int,
 ) -> Result(pog.Returned(GetBookingsByActivityRow), pog.QueryError) {
@@ -1827,7 +1867,7 @@ pub fn get_bookings_by_activity(
     use activity_id <- decode.field(2, uuid_decoder())
     use booker_name <- decode.field(3, decode.string)
     use booker_group_id <- decode.field(4, decode.optional(decode.int))
-    use booker_group_name <- decode.field(5, decode.optional(decode.string))
+    use booker_group_name <- decode.field(5, decode.string)
     use group_free_text <- decode.field(6, decode.string)
     use responsible_name <- decode.field(7, decode.string)
     use phone_number <- decode.field(8, decode.string)
@@ -1850,26 +1890,31 @@ pub fn get_bookings_by_activity(
     ))
   }
 
-  "SELECT id,
-    user_id,
-    activity_id,
-    booker_name,
-    booker_group_id,
-    booker_group_name,
-    group_free_text,
-    responsible_name,
-    phone_number,
-    participant_count,
-    booked_for_other,
-    cancellation_reason
-FROM booking
-WHERE activity_id = $1
-ORDER BY responsible_name ASC
+  "-- The booker's kår name is derived by joining scout_group; a kårnummer not
+-- among the registered kårer renders as 'Kår <id>'. A booking without a kår
+-- yields '' (squirrel cannot type expressions as nullable) — the model layer
+-- derives the Option from booker_group_id.
+SELECT b.id,
+    b.user_id,
+    b.activity_id,
+    b.booker_name,
+    b.booker_group_id,
+    COALESCE(sg.name, 'Kår ' || b.booker_group_id, '') AS booker_group_name,
+    b.group_free_text,
+    b.responsible_name,
+    b.phone_number,
+    b.participant_count,
+    b.booked_for_other,
+    b.cancellation_reason
+FROM booking b
+    LEFT JOIN scout_group sg ON sg.id = b.booker_group_id
+WHERE b.activity_id = $1
+ORDER BY b.responsible_name ASC
 LIMIT $2
 OFFSET $3
 "
   |> pog.query
-  |> pog.parameter(pog.text(uuid.to_string(activity_id)))
+  |> pog.parameter(pog.text(uuid.to_string(b_activity_id)))
   |> pog.parameter(pog.int(arg_2))
   |> pog.parameter(pog.int(arg_3))
   |> pog.returning(decoder)
@@ -1889,7 +1934,7 @@ pub type GetBookingsByUserRow {
     activity_id: Uuid,
     booker_name: String,
     booker_group_id: Option(Int),
-    booker_group_name: Option(String),
+    booker_group_name: String,
     group_free_text: String,
     responsible_name: String,
     phone_number: String,
@@ -1899,15 +1944,17 @@ pub type GetBookingsByUserRow {
   )
 }
 
-/// Runs the `get_bookings_by_user` query
-/// defined in `./src/server/sql/get_bookings_by_user.sql`.
+/// The booker's kår name is derived by joining scout_group; a kårnummer not
+/// among the registered kårer renders as 'Kår <id>'. A booking without a kår
+/// yields '' (squirrel cannot type expressions as nullable) — the model layer
+/// derives the Option from booker_group_id.
 ///
 /// > 🐿️ This function was generated automatically using v4.7.0 of
 /// > the [squirrel package](https://github.com/giacomocavalieri/squirrel).
 ///
 pub fn get_bookings_by_user(
   db: pog.Connection,
-  user_id: Uuid,
+  b_user_id: Uuid,
 ) -> Result(pog.Returned(GetBookingsByUserRow), pog.QueryError) {
   let decoder = {
     use id <- decode.field(0, uuid_decoder())
@@ -1915,7 +1962,7 @@ pub fn get_bookings_by_user(
     use activity_id <- decode.field(2, uuid_decoder())
     use booker_name <- decode.field(3, decode.string)
     use booker_group_id <- decode.field(4, decode.optional(decode.int))
-    use booker_group_name <- decode.field(5, decode.optional(decode.string))
+    use booker_group_name <- decode.field(5, decode.string)
     use group_free_text <- decode.field(6, decode.string)
     use responsible_name <- decode.field(7, decode.string)
     use phone_number <- decode.field(8, decode.string)
@@ -1938,24 +1985,29 @@ pub fn get_bookings_by_user(
     ))
   }
 
-  "SELECT id,
-    user_id,
-    activity_id,
-    booker_name,
-    booker_group_id,
-    booker_group_name,
-    group_free_text,
-    responsible_name,
-    phone_number,
-    participant_count,
-    booked_for_other,
-    cancellation_reason
-FROM booking
-WHERE user_id = $1
-ORDER BY id;
+  "-- The booker's kår name is derived by joining scout_group; a kårnummer not
+-- among the registered kårer renders as 'Kår <id>'. A booking without a kår
+-- yields '' (squirrel cannot type expressions as nullable) — the model layer
+-- derives the Option from booker_group_id.
+SELECT b.id,
+    b.user_id,
+    b.activity_id,
+    b.booker_name,
+    b.booker_group_id,
+    COALESCE(sg.name, 'Kår ' || b.booker_group_id, '') AS booker_group_name,
+    b.group_free_text,
+    b.responsible_name,
+    b.phone_number,
+    b.participant_count,
+    b.booked_for_other,
+    b.cancellation_reason
+FROM booking b
+    LEFT JOIN scout_group sg ON sg.id = b.booker_group_id
+WHERE b.user_id = $1
+ORDER BY b.id;
 "
   |> pog.query
-  |> pog.parameter(pog.text(uuid.to_string(user_id)))
+  |> pog.parameter(pog.text(uuid.to_string(b_user_id)))
   |> pog.returning(decoder)
   |> pog.execute(db)
 }
@@ -2263,6 +2315,45 @@ WHERE location_id = $1;
 "
   |> pog.query
   |> pog.parameter(pog.text(uuid.to_string(arg_1)))
+  |> pog.returning(decoder)
+  |> pog.execute(db)
+}
+
+/// A row you get from running the `get_scout_group_name` query
+/// defined in `./src/server/sql/get_scout_group_name.sql`.
+///
+/// > 🐿️ This type definition was generated automatically using v4.7.0 of the
+/// > [squirrel package](https://github.com/giacomocavalieri/squirrel).
+///
+pub type GetScoutGroupNameRow {
+  GetScoutGroupNameRow(name: String)
+}
+
+/// The kår display name for a Scoutnet kårnummer. Returns no row when the id
+/// is not among the registered kårer — the caller falls back to 'Kår <id>',
+/// matching the COALESCE fallback in the booking queries.
+///
+/// > 🐿️ This function was generated automatically using v4.7.0 of
+/// > the [squirrel package](https://github.com/giacomocavalieri/squirrel).
+///
+pub fn get_scout_group_name(
+  db: pog.Connection,
+  arg_1: Int,
+) -> Result(pog.Returned(GetScoutGroupNameRow), pog.QueryError) {
+  let decoder = {
+    use name <- decode.field(0, decode.string)
+    decode.success(GetScoutGroupNameRow(name:))
+  }
+
+  "-- The kår display name for a Scoutnet kårnummer. Returns no row when the id
+-- is not among the registered kårer — the caller falls back to 'Kår <id>',
+-- matching the COALESCE fallback in the booking queries.
+SELECT name
+FROM scout_group
+WHERE id = $1;
+"
+  |> pog.query
+  |> pog.parameter(pog.int(arg_1))
   |> pog.returning(decoder)
   |> pog.execute(db)
 }
@@ -3153,7 +3244,7 @@ pub type ListRecurringBookingsOverviewRow {
     end_time: Timestamp,
     max_attendees: Option(Int),
     booker_group_id: Option(Int),
-    booker_group_name: Option(String),
+    booker_group_name: String,
     group_count: Int,
     booking_count: Int,
   )
@@ -3167,7 +3258,11 @@ pub type ListRecurringBookingsOverviewRow {
 /// a zero `booking_count`, so every bookable slot appears. Called-off slots and
 /// cancelled bookings are excluded. Restricted to a single day window: `$2`
 /// (inclusive) .. `$3` (exclusive), matching the activity list queries. Ordered
-/// so a slot's rows are contiguous and groups sort by name.
+/// so a slot's rows are contiguous and groups sort by name. The kår name is
+/// derived by joining scout_group; a kårnummer not among the registered kårer
+/// renders as 'Kår <id>'. A booking without a kår yields '' (squirrel cannot
+/// type expressions as nullable) — the model layer derives the Option from
+/// booker_group_id.
 ///
 /// > 🐿️ This function was generated automatically using v4.7.0 of
 /// > the [squirrel package](https://github.com/giacomocavalieri/squirrel).
@@ -3184,7 +3279,7 @@ pub fn list_recurring_bookings_overview(
     use end_time <- decode.field(2, pog.timestamp_decoder())
     use max_attendees <- decode.field(3, decode.optional(decode.int))
     use booker_group_id <- decode.field(4, decode.optional(decode.int))
-    use booker_group_name <- decode.field(5, decode.optional(decode.string))
+    use booker_group_name <- decode.field(5, decode.string)
     use group_count <- decode.field(6, decode.int)
     use booking_count <- decode.field(7, decode.int)
     decode.success(ListRecurringBookingsOverviewRow(
@@ -3207,19 +3302,24 @@ pub fn list_recurring_bookings_overview(
 -- a zero `booking_count`, so every bookable slot appears. Called-off slots and
 -- cancelled bookings are excluded. Restricted to a single day window: `$2`
 -- (inclusive) .. `$3` (exclusive), matching the activity list queries. Ordered
--- so a slot's rows are contiguous and groups sort by name.
+-- so a slot's rows are contiguous and groups sort by name. The kår name is
+-- derived by joining scout_group; a kårnummer not among the registered kårer
+-- renders as 'Kår <id>'. A booking without a kår yields '' (squirrel cannot
+-- type expressions as nullable) — the model layer derives the Option from
+-- booker_group_id.
 SELECT
     a.id AS activity_id,
     a.start_time,
     a.end_time,
     a.max_attendees,
     b.booker_group_id,
-    b.booker_group_name,
+    COALESCE(sg.name, 'Kår ' || b.booker_group_id, '') AS booker_group_name,
     COALESCE(SUM(b.participant_count), 0)::int AS group_count,
     COUNT(b.id) AS booking_count
 FROM activity a
 LEFT JOIN booking b ON b.activity_id = a.id
     AND b.cancellation_reason IS NULL
+LEFT JOIN scout_group sg ON sg.id = b.booker_group_id
 WHERE a.recurring_activity_kind = $1
     AND NOT EXISTS (
         SELECT 1 FROM call_off c WHERE c.activity_id = a.id
@@ -3227,13 +3327,53 @@ WHERE a.recurring_activity_kind = $1
     AND a.start_time >= $2
     AND a.start_time < $3
 GROUP BY a.id, a.start_time, a.end_time, a.max_attendees,
-    b.booker_group_id, b.booker_group_name
-ORDER BY a.start_time ASC, a.id, b.booker_group_name ASC;
+    b.booker_group_id, sg.name
+ORDER BY a.start_time ASC, a.id, booker_group_name ASC;
 "
   |> pog.query
   |> pog.parameter(pog.text(a_recurring_activity_kind))
   |> pog.parameter(pog.timestamp(arg_2))
   |> pog.parameter(pog.timestamp(arg_3))
+  |> pog.returning(decoder)
+  |> pog.execute(db)
+}
+
+/// A row you get from running the `list_scout_groups` query
+/// defined in `./src/server/sql/list_scout_groups.sql`.
+///
+/// > 🐿️ This type definition was generated automatically using v4.7.0 of the
+/// > [squirrel package](https://github.com/giacomocavalieri/squirrel).
+///
+pub type ListScoutGroupsRow {
+  ListScoutGroupsRow(id: Int, name: String)
+}
+
+/// Every registered kår, for the book-for-other kår picker
+/// (`/api/scout-groups`). The client sorts and filters the list itself, but
+/// return a stable name order so the payload (and its ETag) is deterministic.
+///
+/// > 🐿️ This function was generated automatically using v4.7.0 of
+/// > the [squirrel package](https://github.com/giacomocavalieri/squirrel).
+///
+pub fn list_scout_groups(
+  db: pog.Connection,
+) -> Result(pog.Returned(ListScoutGroupsRow), pog.QueryError) {
+  let decoder = {
+    use id <- decode.field(0, decode.int)
+    use name <- decode.field(1, decode.string)
+    decode.success(ListScoutGroupsRow(id:, name:))
+  }
+
+  "-- Every registered kår, for the book-for-other kår picker
+-- (`/api/scout-groups`). The client sorts and filters the list itself, but
+-- return a stable name order so the payload (and its ETag) is deterministic.
+SELECT id,
+    name
+FROM scout_group
+ORDER BY name ASC,
+    id ASC;
+"
+  |> pog.query
   |> pog.returning(decoder)
   |> pog.execute(db)
 }
@@ -3312,7 +3452,7 @@ pub type RestoreBookingRow {
     activity_id: Uuid,
     booker_name: String,
     booker_group_id: Option(Int),
-    booker_group_name: Option(String),
+    booker_group_name: String,
     group_free_text: String,
     responsible_name: String,
     phone_number: String,
@@ -3323,7 +3463,8 @@ pub type RestoreBookingRow {
 }
 
 /// Restore a cancelled booking to active by clearing its reason. The handler
-/// re-checks capacity first — a restored booking occupies spots again.
+/// re-checks capacity first — a restored booking occupies spots again. The
+/// booker's kår name is derived by joining scout_group on the returned booking.
 ///
 /// > 🐿️ This function was generated automatically using v4.7.0 of
 /// > the [squirrel package](https://github.com/giacomocavalieri/squirrel).
@@ -3338,7 +3479,7 @@ pub fn restore_booking(
     use activity_id <- decode.field(2, uuid_decoder())
     use booker_name <- decode.field(3, decode.string)
     use booker_group_id <- decode.field(4, decode.optional(decode.int))
-    use booker_group_name <- decode.field(5, decode.optional(decode.string))
+    use booker_group_name <- decode.field(5, decode.string)
     use group_free_text <- decode.field(6, decode.string)
     use responsible_name <- decode.field(7, decode.string)
     use phone_number <- decode.field(8, decode.string)
@@ -3362,22 +3503,38 @@ pub fn restore_booking(
   }
 
   "-- Restore a cancelled booking to active by clearing its reason. The handler
--- re-checks capacity first — a restored booking occupies spots again.
-UPDATE booking
-SET cancellation_reason = NULL
-WHERE id = $1
-RETURNING id,
-    user_id,
-    activity_id,
-    booker_name,
-    booker_group_id,
-    booker_group_name,
-    group_free_text,
-    responsible_name,
-    phone_number,
-    participant_count,
-    booked_for_other,
-    cancellation_reason
+-- re-checks capacity first — a restored booking occupies spots again. The
+-- booker's kår name is derived by joining scout_group on the returned booking.
+WITH restored AS (
+    UPDATE booking
+    SET cancellation_reason = NULL
+    WHERE id = $1
+    RETURNING id,
+        user_id,
+        activity_id,
+        booker_name,
+        booker_group_id,
+        group_free_text,
+        responsible_name,
+        phone_number,
+        participant_count,
+        booked_for_other,
+        cancellation_reason
+)
+SELECT r.id,
+    r.user_id,
+    r.activity_id,
+    r.booker_name,
+    r.booker_group_id,
+    COALESCE(sg.name, 'Kår ' || r.booker_group_id, '') AS booker_group_name,
+    r.group_free_text,
+    r.responsible_name,
+    r.phone_number,
+    r.participant_count,
+    r.booked_for_other,
+    r.cancellation_reason
+FROM restored r
+    LEFT JOIN scout_group sg ON sg.id = r.booker_group_id
 "
   |> pog.query
   |> pog.parameter(pog.text(uuid.to_string(id)))
@@ -3854,7 +4011,7 @@ pub type UpdateBookingRow {
     activity_id: Uuid,
     booker_name: String,
     booker_group_id: Option(Int),
-    booker_group_name: Option(String),
+    booker_group_name: String,
     group_free_text: String,
     responsible_name: String,
     phone_number: String,
@@ -3864,8 +4021,10 @@ pub type UpdateBookingRow {
   )
 }
 
-/// Runs the `update_booking` query
-/// defined in `./src/server/sql/update_booking.sql`.
+/// The booker's kår name is derived by joining scout_group on the returned
+/// booking; a kårnummer not among the registered kårer renders as 'Kår <id>'.
+/// A booking without a kår yields '' (squirrel cannot type expressions as
+/// nullable) — the model layer derives the Option from booker_group_id.
 ///
 /// > 🐿️ This function was generated automatically using v4.7.0 of
 /// > the [squirrel package](https://github.com/giacomocavalieri/squirrel).
@@ -3884,7 +4043,7 @@ pub fn update_booking(
     use activity_id <- decode.field(2, uuid_decoder())
     use booker_name <- decode.field(3, decode.string)
     use booker_group_id <- decode.field(4, decode.optional(decode.int))
-    use booker_group_name <- decode.field(5, decode.optional(decode.string))
+    use booker_group_name <- decode.field(5, decode.string)
     use group_free_text <- decode.field(6, decode.string)
     use responsible_name <- decode.field(7, decode.string)
     use phone_number <- decode.field(8, decode.string)
@@ -3907,24 +4066,43 @@ pub fn update_booking(
     ))
   }
 
-  "UPDATE booking
-SET group_free_text = $2,
-    responsible_name = $3,
-    phone_number = $4,
-    participant_count = $5
-WHERE id = $1
-RETURNING id,
-    user_id,
-    activity_id,
-    booker_name,
-    booker_group_id,
-    booker_group_name,
-    group_free_text,
-    responsible_name,
-    phone_number,
-    participant_count,
-    booked_for_other,
-    cancellation_reason
+  "-- The booker's kår name is derived by joining scout_group on the returned
+-- booking; a kårnummer not among the registered kårer renders as 'Kår <id>'.
+-- A booking without a kår yields '' (squirrel cannot type expressions as
+-- nullable) — the model layer derives the Option from booker_group_id.
+WITH updated AS (
+    UPDATE booking
+    SET group_free_text = $2,
+        responsible_name = $3,
+        phone_number = $4,
+        participant_count = $5
+    WHERE id = $1
+    RETURNING id,
+        user_id,
+        activity_id,
+        booker_name,
+        booker_group_id,
+        group_free_text,
+        responsible_name,
+        phone_number,
+        participant_count,
+        booked_for_other,
+        cancellation_reason
+)
+SELECT u.id,
+    u.user_id,
+    u.activity_id,
+    u.booker_name,
+    u.booker_group_id,
+    COALESCE(sg.name, 'Kår ' || u.booker_group_id, '') AS booker_group_name,
+    u.group_free_text,
+    u.responsible_name,
+    u.phone_number,
+    u.participant_count,
+    u.booked_for_other,
+    u.cancellation_reason
+FROM updated u
+    LEFT JOIN scout_group sg ON sg.id = u.booker_group_id
 "
   |> pog.query
   |> pog.parameter(pog.text(uuid.to_string(id)))
