@@ -19,6 +19,38 @@ pub fn scout_field(label: String, child: Element(msg)) -> Element(msg) {
   element.element("scout-field", [attribute.attribute("label", label)], [child])
 }
 
+/// A `scout-field` plus its validation error messages, rendered as siblings
+/// *below* the field rather than inside it.
+///
+/// `scout-field` is one of the two light-DOM (non-shadow) web components in the
+/// library, so Stencil relocates its slotted children into the component's own
+/// markup and patches `insertBefore`/`removeChild` on the host. Lustre still
+/// believes those nodes are direct children of `<scout-field>`, so as soon as
+/// the field's child list changes shape — which is exactly what happens when an
+/// error message appears or disappears — the patched `insertBefore` is handed a
+/// reference node that no longer belongs to the host and throws
+/// `Child to insert before is not a child of this node`, killing the runtime.
+/// Keeping the field's slot content to a single element that never changes
+/// avoids the whole class of bug; the errors live in the wrapper `div`, which is
+/// a plain element Lustre can reconcile freely.
+fn field_with_errors(
+  label: String,
+  input: Element(msg),
+  errors: List(String),
+) -> Element(msg) {
+  html.div([attribute.class("flex flex-col gap-1")], [
+    scout_field(label, input),
+    ..list.map(errors, field_error)
+  ])
+}
+
+fn field_error(message: String) -> Element(msg) {
+  html.small(
+    [attribute.styles([#("color", "var(--color-text-danger-base)")])],
+    [element.text(message)],
+  )
+}
+
 /// A labelled, non-editable `scout-input` showing a fixed value. Used for
 /// values that are displayed for context but cannot be changed by the user
 /// (e.g. the booker identity taken from the login token). Rendered `disabled`
@@ -43,30 +75,18 @@ pub fn scout_form_field(
   input_type: String,
   name: String,
 ) -> Element(msg) {
-  let errors = form.field_error_messages(f, name)
-  scout_field(
+  field_with_errors(
     label,
-    element.fragment([
-      element.element(
-        "scout-input",
-        [
-          attribute.attribute("type", input_type),
-          attribute.attribute("name", name),
-          attribute.attribute("value", form.field_value(f, name)),
-        ],
-        [],
-      ),
-      ..list.map(errors, fn(msg) {
-        html.small(
-          [
-            attribute.styles([
-              #("color", "var(--color-text-danger-base)"),
-            ]),
-          ],
-          [element.text(msg)],
-        )
-      })
-    ]),
+    element.element(
+      "scout-input",
+      [
+        attribute.attribute("type", input_type),
+        attribute.attribute("name", name),
+        attribute.attribute("value", form.field_value(f, name)),
+      ],
+      [],
+    ),
+    form.field_error_messages(f, name),
   )
 }
 
@@ -80,36 +100,24 @@ pub fn scout_form_number_field(
   min: Int,
   max: Option(Int),
 ) -> Element(msg) {
-  let errors = form.field_error_messages(f, name)
   let max_attr = case max {
     Some(limit) -> [attribute.attribute("max", int.to_string(limit))]
     None -> []
   }
-  scout_field(
+  field_with_errors(
     label,
-    element.fragment([
-      element.element(
-        "scout-input",
-        [
-          attribute.attribute("type", "number"),
-          attribute.attribute("name", name),
-          attribute.attribute("value", form.field_value(f, name)),
-          attribute.attribute("min", int.to_string(min)),
-          ..max_attr
-        ],
-        [],
-      ),
-      ..list.map(errors, fn(msg) {
-        html.small(
-          [
-            attribute.styles([
-              #("color", "var(--color-text-danger-base)"),
-            ]),
-          ],
-          [element.text(msg)],
-        )
-      })
-    ]),
+    element.element(
+      "scout-input",
+      [
+        attribute.attribute("type", "number"),
+        attribute.attribute("name", name),
+        attribute.attribute("value", form.field_value(f, name)),
+        attribute.attribute("min", int.to_string(min)),
+        ..max_attr
+      ],
+      [],
+    ),
+    form.field_error_messages(f, name),
   )
 }
 
@@ -122,26 +130,18 @@ pub fn scout_textarea_field(
   name: String,
   rows: Int,
 ) -> Element(msg) {
-  let errors = form.field_error_messages(f, name)
-  scout_field(
+  field_with_errors(
     label,
-    element.fragment([
-      element.element(
-        "scout-text-area",
-        [
-          attribute.attribute("name", name),
-          attribute.attribute("rows", int.to_string(rows)),
-          attribute.attribute("value", form.field_value(f, name)),
-        ],
-        [],
-      ),
-      ..list.map(errors, fn(msg) {
-        html.small(
-          [attribute.styles([#("color", "var(--color-text-danger-base)")])],
-          [element.text(msg)],
-        )
-      })
-    ]),
+    element.element(
+      "scout-text-area",
+      [
+        attribute.attribute("name", name),
+        attribute.attribute("rows", int.to_string(rows)),
+        attribute.attribute("value", form.field_value(f, name)),
+      ],
+      [],
+    ),
+    form.field_error_messages(f, name),
   )
 }
 
