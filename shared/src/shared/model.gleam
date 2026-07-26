@@ -252,6 +252,10 @@ pub type ActivitySummary {
     /// The location's name in both languages, embedded so list cards need no
     /// follow-up request. `None` when the activity has no location.
     location_name: Option(BilingualString),
+    /// Id of the location this activity happens at (resolve via `/api/locations`).
+    /// Carried on the summary so the list view can filter by location without
+    /// fetching each activity's detail. `None` when the activity has no location.
+    location_id: Option(Uuid),
     /// Ids of the activity tags applied to this activity. Carried on the summary
     /// so the list view can filter without fetching each activity's detail.
     tags: List(Uuid),
@@ -290,6 +294,11 @@ pub fn activity_summary_decoder() -> decode.Decoder(ActivitySummary) {
     None,
     decode.optional(bilingual_string_decoder()),
   )
+  use location_id <- decode.optional_field(
+    "location_id",
+    None,
+    decode.optional(uuid_decoder()),
+  )
   use tags <- decode.optional_field(
     "tags",
     [],
@@ -319,6 +328,7 @@ pub fn activity_summary_decoder() -> decode.Decoder(ActivitySummary) {
         start_time: timestamp.from_unix_seconds(start_time_secs),
         end_time: timestamp.from_unix_seconds(end_time_secs),
         location_name:,
+        location_id:,
         tags:,
         target_groups:,
         cancellation:,
@@ -333,6 +343,7 @@ pub fn activity_summary_decoder() -> decode.Decoder(ActivitySummary) {
           start_time: timestamp.from_unix_seconds(start_time_secs),
           end_time: timestamp.from_unix_seconds(end_time_secs),
           location_name:,
+          location_id:,
           tags:,
           target_groups:,
           cancellation:,

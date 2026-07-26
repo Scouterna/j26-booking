@@ -50,3 +50,4 @@ When you create, finish, or touch a plan here, keep the folder consistent:
 | 22 | [Seed bookings only on capped activities](22-seed-bookings-only-on-capped-activities.md) | 🔲 Not started |
 | 23 | [Anonymous browsing: activities load without login (issue #20)](23-anonymous-browse.md) | ✅ Done 2026-07-20 |
 | 24 | [Bulk edit beach bus & climbing wall shared fields (issue #31)](24-bulk-edit-recurring-activities.md) | ✅ Done 2026-07-20 |
+| 25 | [Filter the activity list by location](25-filter-activities-by-location.md) | ✅ Done 2026-07-26 |

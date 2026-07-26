@@ -544,6 +544,12 @@ pub fn summary_to_json(activity: Activity) -> Json {
         model.bilingual_string_to_json,
       ),
     ),
+    // The location's id (alongside its name) so the list view can filter by
+    // location without fetching each activity's detail — mirrors `tags`.
+    #(
+      "location_id",
+      json.nullable(location |> option.map(fn(l) { l.id }), uuid_to_json),
+    ),
     #("tags", json.array(tags, uuid_to_json)),
     #("target_groups", json.array(target_groups, model.target_group_to_json)),
     #("cancellation", json.nullable(cancellation, json.string)),

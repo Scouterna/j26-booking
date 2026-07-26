@@ -2129,6 +2129,12 @@ components:
           description: The location's name in both languages (null if the activity has no location). The client selects a variant by active language.
           allOf:
             - $ref: '#/components/schemas/BilingualString'
+        location_id:
+          type: string
+          format: uuid
+          nullable: true
+          description: Id of the location this activity happens at (null if it has no location); resolve to the full location via `/locations`. Carried on the summary so list views can filter by location without fetching each activity's detail.
+          example: "b7a3559f-8f1a-4a3e-9d8e-2f6c1f1a2b3c"
         tags:
           type: array
           description: Ids of the activity tags applied to this activity (resolve them via `/activity-tags`). Carried on the summary so list views can filter without fetching each activity's detail.

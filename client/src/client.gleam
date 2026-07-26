@@ -193,6 +193,8 @@ fn english_translations() -> g18n.Translations {
   |> g18n.add_translation("list.filter.more", "More filters")
   |> g18n.add_translation("list.filter.audience_label", "Target audience")
   |> g18n.add_translation("list.filter.tags_label", "Tags")
+  |> g18n.add_translation("list.filter.location_label", "Location")
+  |> g18n.add_translation("list.filter.location_search", "Search location")
   |> g18n.add_translation("list.bucket.forenoon", "Morning")
   |> g18n.add_translation("list.bucket.afternoon", "Afternoon")
   |> g18n.add_translation("list.bucket.evening", "Evening")
@@ -392,6 +394,8 @@ fn swedish_translations() -> g18n.Translations {
   |> g18n.add_translation("list.filter.more", "Fler filter")
   |> g18n.add_translation("list.filter.audience_label", "Målgrupp")
   |> g18n.add_translation("list.filter.tags_label", "Taggar")
+  |> g18n.add_translation("list.filter.location_label", "Plats")
+  |> g18n.add_translation("list.filter.location_search", "Sök plats")
   |> g18n.add_translation("list.bucket.forenoon", "Förmiddag")
   |> g18n.add_translation("list.bucket.afternoon", "Eftermiddag")
   |> g18n.add_translation("list.bucket.evening", "Kväll")
@@ -885,6 +889,25 @@ pub fn default_edit_ui() -> EditUi {
   )
 }
 
+/// Transient view state for the list filter panel's location multi-select
+/// combobox. The chosen location *ids* live in `ListFilters.locations` (they are
+/// real filter state); only the search query and open/closed state — which are
+/// pure UI — live here, mirroring how `EditUi` holds the edit form picker's
+/// `location_query` / `location_open`.
+pub type LocationFilterUi {
+  LocationFilterUi(
+    /// Free-text filter typed into the combobox (case-insensitive match on the
+    /// localized name). Shown in the field while the dropdown is open.
+    query: String,
+    /// Whether the combobox's dropdown list is open.
+    open: Bool,
+  )
+}
+
+pub fn default_location_filter_ui() -> LocationFilterUi {
+  LocationFilterUi(query: "", open: False)
+}
+
 pub type ActivitiesFilterTab {
   TabActivities
   TabBeachBus
@@ -899,6 +922,7 @@ pub type ListFilters {
     more_open: Bool,
     target_groups: List(TargetGroup),
     tags: List(Uuid),
+    locations: List(Uuid),
   )
 }
 
@@ -909,6 +933,7 @@ pub fn default_filters() -> ListFilters {
     more_open: False,
     target_groups: [],
     tags: [],
+    locations: [],
   )
 }
 
@@ -1133,6 +1158,10 @@ pub type Model {
     // reveal). Kept here rather than in the multi-variant `EditState` so it can
     // be updated with a plain record update; reset whenever the form opens.
     edit_ui: EditUi,
+    // Transient view state (search query + open/closed) for the list filter
+    // panel's location combobox. The selected location ids live in
+    // `ListFilters.locations`; only this pure UI state lives on the Model.
+    location_filter_ui: LocationFilterUi,
     // Transient view state for the booking form's book-for-other section
     // (target + kår combobox), the `edit_ui` of the booking drawer. Reset
     // whenever the booking form opens.
@@ -1675,6 +1704,7 @@ fn to_summary(a: Activity) -> ActivitySummary {
     start_time: a.start_time,
     end_time: a.end_time,
     location_name: option.map(a.location, fn(l) { l.name }),
+    location_id: option.map(a.location, fn(l) { l.id }),
     tags: a.tags,
     target_groups: a.target_groups,
     cancellation: a.cancellation,
@@ -2115,6 +2145,7 @@ fn init(_flags) -> #(Model, Effect(Msg)) {
       // fields fill in then.
       booker: IdentityUnknown,
       edit_ui: default_edit_ui(),
+      location_filter_ui: default_location_filter_ui(),
       booking_ui: default_booking_ui(),
       // Fetched once /api/me shows the user may book for others.
       scout_groups: NotAsked,
@@ -2220,6 +2251,11 @@ pub type Msg {
   UserSearchedLocation(String)
   UserOpenedLocationDropdown
   UserClosedLocationDropdown
+  // Location filter (list "More filters" panel — multi-select combobox)
+  UserToggledLocationFilter(Uuid)
+  UserSearchedLocationFilter(String)
+  UserOpenedLocationFilterDropdown
+  UserClosedLocationFilterDropdown
   // Book-for-other (booking form): target toggle + kår combobox
   UserSelectedBookingTarget(Int)
   UserSelectedBookingGroup(Int)
@@ -3057,6 +3093,47 @@ pub fn update(model: Model, msg: Msg) -> #(Model, Effect(Msg)) {
     // before this blur, so a selection is never lost to the close.
     UserClosedLocationDropdown -> #(
       Model(..model, edit_ui: EditUi(..model.edit_ui, location_open: False)),
+      effect.none(),
+    )
+
+    // Location filter (list panel): multi-select, so a pick toggles membership
+    // of the id set in `ListFilters.locations` and the dropdown stays open so
+    // more can be picked. Mirrors `UserToggledTag`, but there is no activity-form
+    // branch — the form's location picker is the separate single-select above.
+    UserToggledLocationFilter(location_id) ->
+      update_filters(model, fn(f) {
+        ListFilters(..f, locations: toggle_member(f.locations, location_id))
+      })
+
+    // Typing filters the list and keeps it open.
+    UserSearchedLocationFilter(query) -> #(
+      Model(..model, location_filter_ui: LocationFilterUi(query:, open: True)),
+      effect.none(),
+    )
+
+    // Clicking the field opens the list on a clean filter, so the full list of
+    // locations shows; a click while already open must not wipe the query.
+    UserOpenedLocationFilterDropdown -> {
+      let query = case model.location_filter_ui.open {
+        True -> model.location_filter_ui.query
+        False -> ""
+      }
+      #(
+        Model(..model, location_filter_ui: LocationFilterUi(query:, open: True)),
+        effect.none(),
+      )
+    }
+
+    // Blurring the field closes the list. Option toggles fire on `mousedown`,
+    // before this blur, so a selection is never lost to the close.
+    UserClosedLocationFilterDropdown -> #(
+      Model(
+        ..model,
+        location_filter_ui: LocationFilterUi(
+          ..model.location_filter_ui,
+          open: False,
+        ),
+      ),
       effect.none(),
     )
 
@@ -4438,6 +4515,7 @@ fn view(model: Model) -> Element(Msg) {
         model.list_warning_dismissed,
         model.edit_ui,
         model.locations,
+        model.location_filter_ui,
         model.session,
       )
     ActivityDetailPage(id, booking) ->
@@ -4491,6 +4569,7 @@ fn view_activities_list(
   warning_dismissed: Bool,
   edit_ui: EditUi,
   locations: Dict(Uuid, Location),
+  location_filter_ui: LocationFilterUi,
   session: Session,
 ) -> Element(Msg) {
   let t = fn(key) { g18n.translate(translator, key) }
@@ -4528,7 +4607,14 @@ fn view_activities_list(
     // `more_open` survives tab switches so the panel reappears when returning
     // to a tab that has filter controls; the recurring tabs never show it.
     case filters.more_open && tab_has_search_and_filters(filters.tab) {
-      True -> view_more_filters_panel(translator, filters, activity_tags)
+      True ->
+        view_more_filters_panel(
+          translator,
+          filters,
+          activity_tags,
+          locations,
+          location_filter_ui,
+        )
       False -> element.none()
     },
     html.div([attribute.class("flex flex-col gap-3 mt-3")], [
@@ -4820,6 +4906,8 @@ fn view_more_filters_panel(
   translator: Translator,
   filters: ListFilters,
   activity_tags: Dict(Uuid, ActivityTag),
+  locations: Dict(Uuid, Location),
+  location_filter_ui: LocationFilterUi,
 ) -> Element(Msg) {
   html.div(
     [
@@ -4827,11 +4915,21 @@ fn view_more_filters_panel(
         "bg-white border-b border-gray-200 p-3 flex flex-col gap-3",
       ),
     ],
-    view_target_group_and_tag_pickers(
-      translator,
-      filters.target_groups,
-      filters.tags,
-      activity_tags,
+    list.append(
+      view_target_group_and_tag_pickers(
+        translator,
+        filters.target_groups,
+        filters.tags,
+        activity_tags,
+      ),
+      [
+        view_location_filter(
+          translator,
+          locations,
+          filters.locations,
+          location_filter_ui,
+        ),
+      ],
     ),
   )
 }
@@ -4993,6 +5091,127 @@ fn view_location_picker(
                 )
               })
             ],
+          )
+      },
+    ]),
+  ])
+}
+
+/// The list filter panel's location filter: a searchable multi-select combobox.
+/// Typing filters the (many) locations by localized name; clicking an option
+/// toggles its membership of the selected set (`ListFilters.locations`) and the
+/// list stays open so several can be picked. Chosen locations show as removable
+/// chips above the field (clicking a chip toggles it off). Unlike the form's
+/// single-select `view_location_picker`, there is no "no location" entry.
+///
+/// Options toggle on `mousedown` — which fires before the field's blur — so the
+/// blur that closes the list never swallows the click.
+fn view_location_filter(
+  translator: Translator,
+  locations: Dict(Uuid, Location),
+  selected: List(Uuid),
+  ui: LocationFilterUi,
+) -> Element(Msg) {
+  let t = fn(key) { g18n.translate(translator, key) }
+  let name_of = fn(id) {
+    case dict.get(locations, id) {
+      Ok(l) -> localized(translator, l.name)
+      Error(_) -> ""
+    }
+  }
+  let matches =
+    dict.values(locations)
+    |> list.sort(fn(a, b) {
+      string.compare(
+        localized(translator, a.name),
+        localized(translator, b.name),
+      )
+    })
+    |> list.filter(fn(l) {
+      case ui.query |> string.trim |> string.lowercase {
+        "" -> True
+        needle ->
+          string.contains(
+            string.lowercase(localized(translator, l.name)),
+            needle,
+          )
+      }
+    })
+  let option_button = fn(label: String, is_selected: Bool, msg: Msg) {
+    let base =
+      "w-full text-left px-3 py-2 text-body-sm cursor-pointer hover:bg-gray-100 "
+    html.button(
+      [
+        attribute.type_("button"),
+        attribute.class(case is_selected {
+          True -> base <> "bg-gray-100 font-semibold"
+          False -> base
+        }),
+        // mousedown (not click) so the toggle lands before the field's blur.
+        event.on("mousedown", decode.success(msg)),
+      ],
+      [element.text(label)],
+    )
+  }
+  html.div([attribute.class("flex flex-col gap-2")], [
+    html.h4([attribute.class("text-body-sm font-semibold")], [
+      element.text(t("list.filter.location_label")),
+    ]),
+    // The chosen locations, each removed by clicking (toggles it off).
+    case selected {
+      [] -> element.none()
+      _ ->
+        html.div(
+          [attribute.class("flex flex-wrap gap-2")],
+          list.map(selected, fn(id) {
+            component.filter_chip(
+              name_of(id),
+              True,
+              UserToggledLocationFilter(id),
+            )
+          }),
+        )
+    },
+    html.div([attribute.class("relative")], [
+      // Clicking the field opens the list; typing filters it; blur closes it.
+      html.div(
+        [event.on("click", decode.success(UserOpenedLocationFilterDropdown))],
+        [
+          element.element(
+            "scout-input",
+            [
+              attribute.attribute("type", "text"),
+              attribute.attribute(
+                "placeholder",
+                t("list.filter.location_search"),
+              ),
+              attribute.attribute("value", ui.query),
+              event.on_input(UserSearchedLocationFilter),
+              event.on(
+                "scoutBlur",
+                decode.success(UserClosedLocationFilterDropdown),
+              ),
+            ],
+            [],
+          ),
+        ],
+      ),
+      case ui.open {
+        False -> element.none()
+        True ->
+          html.div(
+            [
+              attribute.class(
+                "absolute left-0 right-0 z-10 mt-1 max-h-56 overflow-y-auto rounded-md border border-gray-300 bg-white shadow-lg",
+              ),
+            ],
+            list.map(matches, fn(l) {
+              option_button(
+                localized(translator, l.name),
+                list.contains(selected, l.id),
+                UserToggledLocationFilter(l.id),
+              )
+            }),
           )
       },
     ]),
@@ -7443,7 +7662,8 @@ pub fn apply_filters(
   // filter state left over from the other tabs must not narrow their lists.
   let f = case tab_has_search_and_filters(f.tab) {
     True -> f
-    False -> ListFilters(..f, search: "", target_groups: [], tags: [])
+    False ->
+      ListFilters(..f, search: "", target_groups: [], tags: [], locations: [])
   }
   let needle = string.lowercase(string.trim(f.search))
   use item <- list.filter(items)
@@ -7463,7 +7683,8 @@ pub fn apply_filters(
   }
   // Membership (tab/favourites) is resolved upstream via the source id windows
   // and the statuses-derived favourites set, so every tab is pass-through on
-  // status here; only search + day + target group + tags filter client-side.
+  // status here; only search + day + target group + tags + location filter
+  // client-side.
   let target_group_match = case f.target_groups {
     [] -> True
     selected -> lists_intersect(summary.target_groups, selected)
@@ -7472,7 +7693,17 @@ pub fn apply_filters(
     [] -> True
     selected -> lists_intersect(summary.tags, selected)
   }
-  title_match && day_match && target_group_match && tag_match
+  // A summary has at most one location, so match is membership of its id in the
+  // selected set. Activities with no location are excluded when a location
+  // filter is active (same intuition as the tag filter).
+  let location_match = case f.locations {
+    [] -> True
+    selected ->
+      summary.location_id
+      |> option.map(list.contains(selected, _))
+      |> option.unwrap(False)
+  }
+  title_match && day_match && target_group_match && tag_match && location_match
 }
 
 fn date_to_iso(date: calendar.Date) -> String {
