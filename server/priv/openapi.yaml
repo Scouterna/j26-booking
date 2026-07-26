@@ -1560,7 +1560,9 @@ paths:
       description: |
         Create a location. `opening_hours` (default `{}`) is stored verbatim
         and `tags` (default `[]`) are the ids of tags to link to it. Returns the
-        created location; the `Location` response header points at it.
+        created location; the `Location` response header points at it. Requires
+        authentication (`401` otherwise) and the `locations:manage` role
+        (`403` otherwise).
       operationId: createLocation
       security:
         - bearerAuth: []
@@ -1619,7 +1621,10 @@ paths:
       tags:
         - Locations
       summary: Update a location
-      description: Replace all fields of a location, including its tag links.
+      description: >-
+        Replace all fields of a location, including its tag links. Requires
+        authentication (`401` otherwise) and the `locations:manage` role
+        (`403` otherwise).
       operationId: updateLocation
       security:
         - bearerAuth: []
@@ -1654,7 +1659,10 @@ paths:
       tags:
         - Locations
       summary: Delete a location
-      description: Deletes the location together with its tag links.
+      description: >-
+        Deletes the location together with its tag links. Requires
+        authentication (`401` otherwise) and the `locations:manage` role
+        (`403` otherwise).
       operationId: deleteLocation
       security:
         - bearerAuth: []
@@ -1856,7 +1864,10 @@ paths:
       tags:
         - Locations
       summary: Create a location tag
-      description: Create a new location tag with a bilingual name and icon.
+      description: >-
+        Create a new location tag with a bilingual name and icon. Requires
+        authentication (`401` otherwise) and the `locations:manage` role
+        (`403` otherwise).
       operationId: createLocationTag
       security:
         - bearerAuth: []
@@ -1915,7 +1926,10 @@ paths:
       tags:
         - Locations
       summary: Update a location tag
-      description: Update an existing location tag's bilingual name and icon.
+      description: >-
+        Update an existing location tag's bilingual name and icon. Requires
+        authentication (`401` otherwise) and the `locations:manage` role
+        (`403` otherwise).
       operationId: updateLocationTag
       security:
         - bearerAuth: []
@@ -1950,7 +1964,10 @@ paths:
       tags:
         - Locations
       summary: Delete a location tag
-      description: Deletes the tag and unlinks it from any locations.
+      description: >-
+        Deletes the tag and unlinks it from any locations. Requires
+        authentication (`401` otherwise) and the `locations:manage` role
+        (`403` otherwise).
       operationId: deleteLocationTag
       security:
         - bearerAuth: []

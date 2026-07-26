@@ -36,6 +36,7 @@ pub type Role {
   BookingsOthersCreate
   BookingsRead
   BookingsSelfCreate
+  LocationsManage
   Admin
 }
 
@@ -45,6 +46,7 @@ pub fn string_to_role(value: String) -> Result(Role, Nil) {
     "bookings:others:create" -> Ok(BookingsOthersCreate)
     "bookings:read" -> Ok(BookingsRead)
     "bookings:self:create" -> Ok(BookingsSelfCreate)
+    "locations:manage" -> Ok(LocationsManage)
     "admin" -> Ok(Admin)
     _ -> Error(Nil)
   }
@@ -56,6 +58,7 @@ pub fn role_to_string(role: Role) -> String {
     BookingsOthersCreate -> "bookings:others:create"
     BookingsRead -> "bookings:read"
     BookingsSelfCreate -> "bookings:self:create"
+    LocationsManage -> "locations:manage"
     Admin -> "admin"
   }
 }

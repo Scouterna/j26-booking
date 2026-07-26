@@ -127,7 +127,7 @@ pub fn get_one(req: Request, id: String, ctx: web.Context) -> Response {
 pub fn create(req: Request, ctx: web.Context) -> Response {
   use <- wisp.require_method(req, Post)
   use user <- web.with_authenticated_user(ctx)
-  use <- web.require_role(user, web.ActivitiesManage)
+  use <- web.require_role(user, web.LocationsManage)
   use body <- wisp.require_json(req)
   use input <- given.ok(decode.run(body, location_input_decoder()), fn(_) {
     wisp.bad_request("Invalid JSON payload")
@@ -207,7 +207,7 @@ type UpdateError {
 pub fn update(req: Request, id: String, ctx: web.Context) -> Response {
   use <- wisp.require_method(req, Put)
   use user <- web.with_authenticated_user(ctx)
-  use <- web.require_role(user, web.ActivitiesManage)
+  use <- web.require_role(user, web.LocationsManage)
   use location_id <- given.ok(uuid.from_string(id), fn(_) {
     wisp.bad_request("Invalid location ID format")
   })
@@ -301,7 +301,7 @@ pub fn delete(req: Request, id: String, ctx: web.Context) -> Response {
   use <- wisp.require_method(req, Delete)
   web.discard_body(req)
   use user <- web.with_authenticated_user(ctx)
-  use <- web.require_role(user, web.ActivitiesManage)
+  use <- web.require_role(user, web.LocationsManage)
   use location_id <- given.ok(uuid.from_string(id), fn(_) {
     wisp.bad_request("Invalid location ID format")
   })
@@ -355,7 +355,7 @@ pub fn get_tag(req: Request, id: String, ctx: web.Context) -> Response {
 pub fn create_tag(req: Request, ctx: web.Context) -> Response {
   use <- wisp.require_method(req, Post)
   use user <- web.with_authenticated_user(ctx)
-  use <- web.require_role(user, web.ActivitiesManage)
+  use <- web.require_role(user, web.LocationsManage)
   use body <- wisp.require_json(req)
   use input <- given.ok(decode.run(body, location_tag_input_decoder()), fn(_) {
     wisp.bad_request("Invalid JSON payload")
@@ -390,7 +390,7 @@ pub fn create_tag(req: Request, ctx: web.Context) -> Response {
 pub fn update_tag(req: Request, id: String, ctx: web.Context) -> Response {
   use <- wisp.require_method(req, Put)
   use user <- web.with_authenticated_user(ctx)
-  use <- web.require_role(user, web.ActivitiesManage)
+  use <- web.require_role(user, web.LocationsManage)
   use tag_id <- given.ok(uuid.from_string(id), fn(_) {
     wisp.bad_request("Invalid location tag ID format")
   })
@@ -422,7 +422,7 @@ pub fn delete_tag(req: Request, id: String, ctx: web.Context) -> Response {
   use <- wisp.require_method(req, Delete)
   web.discard_body(req)
   use user <- web.with_authenticated_user(ctx)
-  use <- web.require_role(user, web.ActivitiesManage)
+  use <- web.require_role(user, web.LocationsManage)
   use tag_id <- given.ok(uuid.from_string(id), fn(_) {
     wisp.bad_request("Invalid location tag ID format")
   })
