@@ -49,6 +49,7 @@ fn a_summary(
     start_time: timestamp.from_unix_seconds(1_750_000_000),
     end_time: timestamp.from_unix_seconds(1_750_003_600),
     location_name: None,
+    location_id: None,
     tags: [],
     target_groups: [],
     cancellation: None,
@@ -170,6 +171,7 @@ fn base_model() -> client.Model {
     session: client.SessionUnknown,
     booker: client.IdentityUnknown,
     edit_ui: client.default_edit_ui(),
+    location_filter_ui: client.default_location_filter_ui(),
     booking_ui: client.default_booking_ui(),
     scout_groups: client.NotAsked,
   )
@@ -472,6 +474,64 @@ pub fn apply_filters_ignores_search_on_recurring_tabs_test() {
       tab: client.TabBeachBus,
     )
   assert client.apply_filters([climb, swim], filters, None) == [climb, swim]
+}
+
+fn loc_x() -> Uuid {
+  uid("00000000-0000-0000-0000-0000000000f1")
+}
+
+fn loc_y() -> Uuid {
+  uid("00000000-0000-0000-0000-0000000000f2")
+}
+
+// A summary at a given location (the base helper has no location).
+fn summary_at(
+  id: Uuid,
+  title: String,
+  location: Uuid,
+) -> model.ActivitySummary {
+  model.ActivitySummary(
+    ..a_summary(id, title, None),
+    location_id: Some(location),
+  )
+}
+
+pub fn apply_filters_location_keeps_only_selected_test() {
+  let at_x =
+    client.CardItem(summary_at(id_a(), "A", loc_x()), model.NotInterested, None)
+  let at_y =
+    client.CardItem(summary_at(id_b(), "B", loc_y()), model.NotInterested, None)
+  let filters =
+    client.ListFilters(..client.default_filters(), locations: [loc_x()])
+  assert client.apply_filters([at_x, at_y], filters, None) == [at_x]
+}
+
+// With a location filter active, an activity with no location is excluded (same
+// intuition as the tag/target-group filters).
+pub fn apply_filters_location_excludes_activities_without_location_test() {
+  let at_x =
+    client.CardItem(summary_at(id_a(), "A", loc_x()), model.NotInterested, None)
+  let no_location =
+    client.CardItem(a_summary(id_b(), "B", None), model.NotInterested, None)
+  let filters =
+    client.ListFilters(..client.default_filters(), locations: [loc_x()])
+  assert client.apply_filters([at_x, no_location], filters, None) == [at_x]
+}
+
+// The location filter has no controls on the recurring tabs, so leftover
+// selections from another tab must not narrow their lists.
+pub fn apply_filters_ignores_location_on_recurring_tabs_test() {
+  let at_x =
+    client.CardItem(summary_at(id_a(), "A", loc_x()), model.NotInterested, None)
+  let at_y =
+    client.CardItem(summary_at(id_b(), "B", loc_y()), model.NotInterested, None)
+  let filters =
+    client.ListFilters(
+      ..client.default_filters(),
+      locations: [loc_x()],
+      tab: client.TabClimbingWall,
+    )
+  assert client.apply_filters([at_x, at_y], filters, None) == [at_x, at_y]
 }
 
 // LIST DERIVATION: tab_summaries -----------------------------------------------
