@@ -1512,10 +1512,25 @@ paths:
         - Locations
       summary: List locations
       description: |
-        Retrieve all map locations, ordered by name. Each location embeds the
+        Retrieve map locations, ordered by name. Each location embeds the
         ids of its tags (resolve them via `/location-tags`) and its opening
         hours keyed by ISO date. Not paginated.
+
+        By default every location is returned. Set `has_activities=true` to
+        return only locations referenced by at least one activity — the
+        activity list's location filter uses this to avoid offering
+        facility-only locations (toilets, info points, …) that no activity uses.
       operationId: listLocations
+      parameters:
+        - name: has_activities
+          in: query
+          required: false
+          description: |
+            When `true`, only locations referenced by at least one activity are
+            returned. Defaults to `false` (all locations).
+          schema:
+            type: boolean
+            default: false
       responses:
         '200':
           description: Successfully retrieved locations

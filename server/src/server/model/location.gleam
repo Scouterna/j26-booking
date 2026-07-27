@@ -169,9 +169,18 @@ pub fn group_tags_by_location(
   })
 }
 
-/// Fetch every location with its tag ids stitched in, ordered by name.
-pub fn fetch_all(db: pog.Connection) -> Result(List(Location), pog.QueryError) {
-  use pog.Returned(_, location_rows) <- result.try(sql.list_locations(db))
+/// Fetch locations with their tag ids stitched in, ordered by name. When
+/// `only_with_activities` is `True`, locations that no activity references are
+/// excluded (see `list_locations.sql`); when `False`, every location is
+/// returned.
+pub fn fetch_all(
+  db: pog.Connection,
+  only_with_activities: Bool,
+) -> Result(List(Location), pog.QueryError) {
+  use pog.Returned(_, location_rows) <- result.try(sql.list_locations(
+    db,
+    only_with_activities,
+  ))
   use pog.Returned(_, link_rows) <- result.try(sql.list_location_tag_links(db))
   let tags_by_location = group_tags_by_location(link_rows)
   location_rows
@@ -187,7 +196,8 @@ pub fn fetch_all(db: pog.Connection) -> Result(List(Location), pog.QueryError) {
 pub fn fetch_all_dict(
   db: pog.Connection,
 ) -> Result(Dict(Uuid, Location), pog.QueryError) {
-  use locations <- result.map(fetch_all(db))
+  // Embedding needs every referenced location, so it never filters.
+  use locations <- result.map(fetch_all(db, False))
   list.fold(locations, dict.new(), fn(acc, location) {
     dict.insert(acc, location.id, location)
   })

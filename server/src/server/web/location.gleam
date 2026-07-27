@@ -86,12 +86,24 @@ fn location_tag_input_decoder() -> decode.Decoder(LocationTagInput) {
 
 // --- Locations -------------------------------------------------------------
 
-/// Returns all locations with their tag ids embedded. Locations and their
+/// Returns locations with their tag ids embedded. Locations and their
 /// join-table links are fetched separately and stitched together in
 /// `location.fetch_all`, avoiding an array aggregation in SQL.
+///
+/// The optional `has_activities` query param (default `false`) narrows the list
+/// to locations referenced by at least one activity — the client's activity
+/// list location filter sets it so facility-only locations (toilets, …) that no
+/// activity uses aren't offered as filter options. A malformed value is a 400.
 pub fn get_all(req: Request, ctx: web.Context) -> Response {
   use <- wisp.require_method(req, Get)
-  case location.fetch_all(ctx.db_connection) {
+  use has_activities <- web.ensure_valid_query_param(
+    in: wisp.get_query(req),
+    with_name: "has_activities",
+    if_missing_return: False,
+    using: parse_bool,
+    else_respond_with: "Invalid has_activities parameter. Allowed values: true, false",
+  )
+  case location.fetch_all(ctx.db_connection, has_activities) {
     Error(error) -> web.query_error(error)
     Ok(locations) ->
       wisp.json_response(
@@ -444,4 +456,12 @@ pub fn delete_tag(req: Request, id: String, ctx: web.Context) -> Response {
 fn transaction_error(error: pog.TransactionError(pog.QueryError)) -> Response {
   wisp.log_error("TransactionError " <> string.inspect(error))
   wisp.internal_server_error()
+}
+
+fn parse_bool(value: String) -> Result(Bool, Nil) {
+  case value {
+    "true" -> Ok(True)
+    "false" -> Ok(False)
+    _ -> Error(Nil)
+  }
 }
