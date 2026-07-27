@@ -167,6 +167,7 @@ fn base_model() -> client.Model {
     spots: dict.new(),
     activity_tags: dict.new(),
     locations: dict.new(),
+    filter_locations: dict.new(),
     roles: [client.ManageActivities],
     session: client.SessionUnknown,
     booker: client.IdentityUnknown,

@@ -1141,9 +1141,17 @@ pub type Model {
     // loaded (and if the fetch fails), in which case tag chips simply don't show.
     activity_tags: Dict(Uuid, ActivityTag),
     // Location vocabulary, keyed by id, fetched once from /api/locations. Feeds
-    // the create/edit form's location picker. Empty until loaded (and if the
-    // fetch fails), in which case the picker shows only the "no location" option.
+    // the create/edit form's location picker, which must be able to assign any
+    // location. Empty until loaded (and if the fetch fails), in which case the
+    // picker shows only the "no location" option.
     locations: Dict(Uuid, Location),
+    // Locations that at least one activity references, keyed by id, fetched once
+    // from /api/locations?has_activities=true. Feeds ONLY the activity list's
+    // location filter, so facility-only locations (toilets, …) aren't offered as
+    // filter options (filtering by them could only ever yield nothing). Empty
+    // until loaded (and if the fetch fails), in which case the filter offers no
+    // options.
+    filter_locations: Dict(Uuid, Location),
     // The current user's roles, gating manage-only UI (edit, view bookings).
     roles: List(Role),
     // Whether the visitor is logged in at all, from /api/me (401 = Anonymous).
@@ -2230,6 +2238,7 @@ fn init(_flags) -> #(Model, Effect(Msg)) {
       spots: dict.new(),
       activity_tags: dict.new(),
       locations: dict.new(),
+      filter_locations: dict.new(),
       // Empty until /api/me returns; the role-gated UI reveals once loaded.
       roles: [],
       session: SessionUnknown,
@@ -2270,6 +2279,7 @@ fn init(_flags) -> #(Model, Effect(Msg)) {
       fetch_spots(),
       fetch_activity_tags(),
       fetch_locations(),
+      fetch_filter_locations(),
       page_effect,
       overview_effect,
       // Always attempt; a 401 (anonymous user) leaves the status dict empty.
@@ -2299,6 +2309,7 @@ pub type Msg {
   ApiReturnedActivitySpotsOne(Uuid, Result(Int, rsvp.Error))
   ApiReturnedActivityTags(Result(List(ActivityTag), rsvp.Error))
   ApiReturnedLocations(Result(List(Location), rsvp.Error))
+  ApiReturnedFilterLocations(Result(List(Location), rsvp.Error))
   ApiReturnedScoutGroups(Result(List(ScoutGroup), rsvp.Error))
   ApiCreatedActivity(Result(Activity, rsvp.Error))
   ApiUpdatedActivity(Result(Activity, rsvp.Error))
@@ -2623,6 +2634,18 @@ pub fn update(model: Model, msg: Msg) -> #(Model, Effect(Msg)) {
     // Keep the prior vocabulary (empty) on failure; the picker just shows the
     // "no location" option only.
     ApiReturnedLocations(Error(_)) -> #(model, effect.none())
+
+    ApiReturnedFilterLocations(Ok(locations)) -> {
+      let filter_locations =
+        list.fold(locations, dict.new(), fn(acc, location) {
+          dict.insert(acc, location.id, location)
+        })
+      #(Model(..model, filter_locations:), effect.none())
+    }
+
+    // Keep the prior vocabulary (empty) on failure; the location filter just
+    // offers no options.
+    ApiReturnedFilterLocations(Error(_)) -> #(model, effect.none())
 
     ApiReturnedScoutGroups(Ok(scout_groups)) -> #(
       Model(..model, scout_groups: Loaded(scout_groups)),
@@ -4460,6 +4483,16 @@ fn fetch_locations() -> Effect(Msg) {
   )
 }
 
+/// The location vocabulary for the activity list's location filter: only
+/// locations an activity references (filtered in the database via
+/// `has_activities`, not here), so facility-only locations aren't offered.
+fn fetch_filter_locations() -> Effect(Msg) {
+  rsvp.get(
+    api_prefix <> "/api/locations?has_activities=true",
+    rsvp.expect_json(model.locations_decoder(), ApiReturnedFilterLocations),
+  )
+}
+
 fn delete_activity(id: Uuid) -> Effect(Msg) {
   rsvp.delete(
     api_prefix <> "/api/activities/" <> uuid.to_string(id),
@@ -4782,6 +4815,7 @@ fn view(model: Model) -> Element(Msg) {
         model.list_warning_dismissed,
         model.edit_ui,
         model.locations,
+        model.filter_locations,
         model.location_filter_ui,
         model.session,
       )
@@ -4836,6 +4870,7 @@ fn view_activities_list(
   warning_dismissed: Bool,
   edit_ui: EditUi,
   locations: Dict(Uuid, Location),
+  filter_locations: Dict(Uuid, Location),
   location_filter_ui: LocationFilterUi,
   session: Session,
 ) -> Element(Msg) {
@@ -4879,7 +4914,7 @@ fn view_activities_list(
           translator,
           filters,
           activity_tags,
-          locations,
+          filter_locations,
           location_filter_ui,
         )
       False -> element.none()
@@ -5134,7 +5169,7 @@ fn view_more_filters_panel(
   translator: Translator,
   filters: ListFilters,
   activity_tags: Dict(Uuid, ActivityTag),
-  locations: Dict(Uuid, Location),
+  filter_locations: Dict(Uuid, Location),
   location_filter_ui: LocationFilterUi,
 ) -> Element(Msg) {
   html.div(
@@ -5153,7 +5188,7 @@ fn view_more_filters_panel(
       [
         view_location_filter(
           translator,
-          locations,
+          filter_locations,
           filters.locations,
           location_filter_ui,
         ),
