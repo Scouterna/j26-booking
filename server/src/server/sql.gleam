@@ -3174,14 +3174,21 @@ pub type ListLocationsRow {
   )
 }
 
-/// Lists all locations ordered by name. `opening_hours` (jsonb) comes back as
-/// its JSON text, which Squirrel maps to a String for the model layer to parse.
+/// Lists locations ordered by name. `opening_hours` (jsonb) comes back as its
+/// JSON text, which Squirrel maps to a String for the model layer to parse.
+///
+/// When $1 is true, only locations referenced by at least one activity are
+/// returned — the activity list's location filter uses this so facility-only
+/// locations (toilets, info points, …) that no activity links to aren't offered.
+/// When $1 is false, every location is returned (e.g. the activity form's
+/// location picker, which must be able to assign any location).
 ///
 /// > 🐿️ This function was generated automatically using v4.7.0 of
 /// > the [squirrel package](https://github.com/giacomocavalieri/squirrel).
 ///
 pub fn list_locations(
   db: pog.Connection,
+  arg_1: Bool,
 ) -> Result(pog.Returned(ListLocationsRow), pog.QueryError) {
   let decoder = {
     use id <- decode.field(0, uuid_decoder())
@@ -3210,8 +3217,14 @@ pub fn list_locations(
     ))
   }
 
-  "-- Lists all locations ordered by name. `opening_hours` (jsonb) comes back as
--- its JSON text, which Squirrel maps to a String for the model layer to parse.
+  "-- Lists locations ordered by name. `opening_hours` (jsonb) comes back as its
+-- JSON text, which Squirrel maps to a String for the model layer to parse.
+--
+-- When $1 is true, only locations referenced by at least one activity are
+-- returned — the activity list's location filter uses this so facility-only
+-- locations (toilets, info points, …) that no activity links to aren't offered.
+-- When $1 is false, every location is returned (e.g. the activity form's
+-- location picker, which must be able to assign any location).
 SELECT id,
     name,
     name_en,
@@ -3224,9 +3237,16 @@ SELECT id,
     longitude,
     opening_hours
 FROM location
+WHERE NOT $1
+    OR EXISTS (
+        SELECT 1
+        FROM activity
+        WHERE activity.location_id = location.id
+    )
 ORDER BY name ASC;
 "
   |> pog.query
+  |> pog.parameter(pog.bool(arg_1))
   |> pog.returning(decoder)
   |> pog.execute(db)
 }
