@@ -45,10 +45,9 @@ fn field_with_errors(
 }
 
 fn field_error(message: String) -> Element(msg) {
-  html.small(
-    [attribute.styles([#("color", "var(--color-text-danger-base)")])],
-    [element.text(message)],
-  )
+  html.small([attribute.styles([#("color", "var(--color-text-danger-base)")])], [
+    element.text(message),
+  ])
 }
 
 /// A labelled, non-editable `scout-input` showing a fixed value. Used for

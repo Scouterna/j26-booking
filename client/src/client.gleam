@@ -5711,7 +5711,10 @@ fn card_status(
 
 /// Localized validation error messages for the activity form (formal's built-in
 /// messages are English only). Applied via `form.language` in the form view.
-fn form_error_message(translator: Translator, error: form.FieldError) -> String {
+fn form_error_message(
+  translator: Translator,
+  error: form.FieldError,
+) -> String {
   let t = fn(key) { g18n.translate(translator, key) }
   case error {
     form.MustBePresent -> t("form.error.required")
