@@ -2428,9 +2428,10 @@ SELECT $1, unnest($2::uuid[]);
 "
   |> pog.query
   |> pog.parameter(pog.text(uuid.to_string(arg_1)))
-  |> pog.parameter(
-    pog.array(fn(value) { pog.text(uuid.to_string(value)) }, arg_2),
-  )
+  |> pog.parameter(pog.array(
+    fn(value) { pog.text(uuid.to_string(value)) },
+    arg_2,
+  ))
   |> pog.returning(decoder)
   |> pog.execute(db)
 }
@@ -2482,9 +2483,10 @@ SELECT $1, unnest($2::uuid[]);
 "
   |> pog.query
   |> pog.parameter(pog.text(uuid.to_string(arg_1)))
-  |> pog.parameter(
-    pog.array(fn(value) { pog.text(uuid.to_string(value)) }, arg_2),
-  )
+  |> pog.parameter(pog.array(
+    fn(value) { pog.text(uuid.to_string(value)) },
+    arg_2,
+  ))
   |> pog.returning(decoder)
   |> pog.execute(db)
 }
@@ -3675,9 +3677,10 @@ WHERE target_group NOT IN (
 "
   |> pog.query
   |> pog.parameter(pog.text(uuid.to_string(activity_id)))
-  |> pog.parameter(
-    pog.array(fn(value) { pog.text(uuid.to_string(value)) }, arg_2),
-  )
+  |> pog.parameter(pog.array(
+    fn(value) { pog.text(uuid.to_string(value)) },
+    arg_2,
+  ))
   |> pog.parameter(pog.array(fn(value) { target_group_encoder(value) }, arg_3))
   |> pog.returning(decoder)
   |> pog.execute(db)
