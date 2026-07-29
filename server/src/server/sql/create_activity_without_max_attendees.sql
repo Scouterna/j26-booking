@@ -17,4 +17,5 @@ RETURNING id,
     start_time,
     end_time,
     location_id,
-    booking_opens_at
+    booking_opens_at,
+    recurring_activity_kind

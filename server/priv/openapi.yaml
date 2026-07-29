@@ -725,6 +725,8 @@ paths:
                         participant_count: 12
                         booked_for_other: false
                         cancellation: null
+                        left_campsite: false
+                        left_beach: false
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':
@@ -796,6 +798,8 @@ paths:
                 participant_count: 12
                 booked_for_other: false
                 cancellation: null
+                left_campsite: false
+                left_beach: false
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':
@@ -896,6 +900,8 @@ paths:
                 participant_count: 12
                 booked_for_other: false
                 cancellation: null
+                left_campsite: false
+                left_beach: false
         '400':
           $ref: '#/components/responses/BadRequest'
         '404':
@@ -959,6 +965,8 @@ paths:
                 participant_count: 15
                 booked_for_other: false
                 cancellation: null
+                left_campsite: false
+                left_beach: false
         '400':
           $ref: '#/components/responses/BadRequest'
         '404':
@@ -1079,6 +1087,8 @@ paths:
                 participant_count: 12
                 booked_for_other: false
                 cancellation: "Dubbelbokning — kåren har redan en tid"
+                left_campsite: false
+                left_beach: false
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':
@@ -1144,6 +1154,8 @@ paths:
                 participant_count: 12
                 booked_for_other: false
                 cancellation: null
+                left_campsite: false
+                left_beach: false
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':
@@ -1181,6 +1193,88 @@ paths:
                           - "Booking is not cancelled"
               example:
                 error: "Booking is not cancelled"
+        '500':
+          $ref: '#/components/responses/ServerError'
+
+  /bookings/{id}/left-campsite:
+    put:
+      tags:
+        - Bookings
+      summary: Tick the badbuss "left the campsite" check-off
+      description: |
+        Set (or clear) the badbuss departure check-off recording that this
+        booking's kår has left the campsite. The beach-bus staff tick each kår
+        off from the slot's bookings view.
+
+        **Badbuss only.** The request is refused with a 409 unless the booking's
+        activity is a slot of the `beach-bus` recurring kind, and also when the
+        booking is cancelled — that kår is not boarding.
+
+        Open to everyone who may read the badbuss booking lists
+        (`bookings:read`, `activities:manage` or `bookings:others:create`;
+        `admin` implies all three): whoever runs the bus is who ticks the boxes.
+
+        Idempotent, and writes only its own column — the sibling
+        `left-beach` flag is never touched, so two staff members ticking the two
+        stages of the same booking at the same time cannot overwrite each other.
+      operationId: setBookingLeftCampsite
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/BookingId'
+      requestBody:
+        $ref: '#/components/requestBodies/DepartureCheck'
+      responses:
+        '200':
+          $ref: '#/components/responses/DepartureUpdated'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/NotABeachBusBooking'
+        '500':
+          $ref: '#/components/responses/ServerError'
+
+  /bookings/{id}/left-beach:
+    put:
+      tags:
+        - Bookings
+      summary: Tick the badbuss "left the beach" check-off
+      description: |
+        Set (or clear) the badbuss departure check-off recording that this
+        booking's kår has left the beach (the return leg). The sibling of
+        `PUT /bookings/{id}/left-campsite` — same roles, same badbuss-only and
+        not-cancelled rules, and likewise writes only its own column.
+
+        The two stages are independent: ticking this one does not require
+        `left_campsite`, so staff can correct either in any order.
+      operationId: setBookingLeftBeach
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/BookingId'
+      requestBody:
+        $ref: '#/components/requestBodies/DepartureCheck'
+      responses:
+        '200':
+          $ref: '#/components/responses/DepartureUpdated'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/NotABeachBusBooking'
         '500':
           $ref: '#/components/responses/ServerError'
 
@@ -1457,6 +1551,8 @@ paths:
                             participant_count: 5
                             booked_for_other: false
                             cancellation: null
+                            left_campsite: false
+                            left_beach: false
                       - activity_id: "b4219a53-4746-4a09-8b4e-3e2ac0c3df11"
                         status: "favourited"
         '401':
@@ -2106,6 +2202,17 @@ components:
           nullable: true
           description: The per-activity opens-at override as stored, or null when the activity follows the global default. Edit forms must round-trip this value — not `booking_opens_at` — or they would freeze the global default into an override.
           example: 1748764800
+        recurring_kind:
+          type: string
+          nullable: true
+          enum: ["beach-bus", "climbing-wall", null]
+          description: >-
+            The recurring kind this activity is one slot of — badbuss
+            (`beach-bus`) or klättervägg (`climbing-wall`) — or null for an
+            ordinary activity. Detail-only: `ActivitySummary` omits it. A
+            `beach-bus` slot is what unlocks the departure check-offs on its
+            bookings (`left_campsite` / `left_beach`).
+          example: null
 
     ActivitySummary:
       type: object
@@ -2275,6 +2382,8 @@ components:
         - participant_count
         - booked_for_other
         - cancellation
+        - left_campsite
+        - left_beach
       properties:
         id:
           type: string
@@ -2343,6 +2452,21 @@ components:
             edited or cancelled again, and blocks its user from booking the
             activity again until it is restored or deleted.
           example: null
+        left_campsite:
+          type: boolean
+          description: >-
+            Badbuss departure check-off: the kår has left the campsite. Written
+            by `PUT /bookings/{id}/left-campsite`, which refuses any booking that
+            is not on a `beach-bus` slot — so this is always `false` on an
+            ordinary booking.
+          example: false
+        left_beach:
+          type: boolean
+          description: >-
+            Badbuss departure check-off: the kår has left the beach (the return
+            leg). Written by `PUT /bookings/{id}/left-beach`. Independent of
+            `left_campsite`.
+          example: false
 
     GroupCount:
       type: object
@@ -3041,3 +3165,64 @@ components:
 
     Forbidden:
       description: Forbidden - the authenticated user lacks the required role
+
+    DepartureUpdated:
+      description: >-
+        Check-off saved; returns the whole booking, so the response also carries
+        the other stage as currently stored.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Booking'
+          example:
+            id: "dd000001-0000-4000-8000-000000000001"
+            user_id: "a1b2c3d4-e5f6-4a90-abcd-ef1234567890"
+            activity_id: "6f5e1d46-5f58-4e23-9a9d-8c2bfc2d22a0"
+            booker_name: "Anna Svensson"
+            booker_group_id: 101
+            booker_group_name: "Sjöscoutkåren Dansen"
+            group_free_text: "Patrull Örnarna"
+            responsible_name: "Anna Svensson"
+            phone_number: "+46701234567"
+            participant_count: 12
+            booked_for_other: false
+            cancellation: null
+            left_campsite: true
+            left_beach: false
+
+    NotABeachBusBooking:
+      description: >-
+        The booking is not on a `beach-bus` slot, so it has no departure
+        check-offs — or it is cancelled, so it is not boarding.
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [error]
+            properties:
+              error:
+                type: string
+                enum:
+                  - "Booking is not on a beach bus slot"
+                  - "Booking is cancelled"
+          example:
+            error: "Booking is not on a beach bus slot"
+
+  requestBodies:
+    DepartureCheck:
+      description: >-
+        The new state of the check-off. Sending the value it already has is a
+        no-op success, so a mistaken tick is undone by sending `false`.
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [checked]
+            properties:
+              checked:
+                type: boolean
+                description: Whether this departure stage is ticked off.
+                example: true
+          example:
+            checked: true

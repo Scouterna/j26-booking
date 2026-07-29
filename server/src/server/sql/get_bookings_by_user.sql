@@ -13,7 +13,9 @@ SELECT b.id,
     b.phone_number,
     b.participant_count,
     b.booked_for_other,
-    b.cancellation_reason
+    b.cancellation_reason,
+    b.left_campsite,
+    b.left_beach
 FROM booking b
     LEFT JOIN scout_group sg ON sg.id = b.booker_group_id
 WHERE b.user_id = $1

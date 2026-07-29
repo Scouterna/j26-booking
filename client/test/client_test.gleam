@@ -71,6 +71,7 @@ fn an_activity(id: Uuid, max: Option(Int)) -> model.Activity {
     cancellation: None,
     booking_opens_at: None,
     booking_opens_at_override: None,
+    recurring_kind: None,
   )
 }
 
@@ -94,6 +95,7 @@ fn a_detail() -> client.ActivityDetail {
     description: model.BilingualString(sv: "Desc", en: "Desc"),
     location: None,
     booking_opens_at_override: None,
+    recurring_kind: None,
   )
 }
 
@@ -111,6 +113,8 @@ fn a_booking(id: Uuid, activity_id: Uuid) -> model.Booking {
     participant_count: 2,
     booked_for_other: False,
     cancellation: None,
+    left_campsite: False,
+    left_beach: False,
   )
 }
 
@@ -805,7 +809,12 @@ pub fn uri_to_page_bookings_for_valid_uuid_test() {
     "/_services/booking/activities/" <> uuid.to_string(id_a()) <> "/bookings"
   let #(page, _) = client.uri_to_page(parse_uri(path), dict.new())
   assert page
-    == client.ActivityBookingsPage(id_a(), client.Loading, client.BookingClosed)
+    == client.ActivityBookingsPage(
+      id_a(),
+      client.Loading,
+      client.BookingClosed,
+      None,
+    )
 }
 
 pub fn uri_to_page_manage_lists_activities_in_manage_mode_test() {
@@ -993,7 +1002,7 @@ pub fn uri_to_page_reads_the_overview_day_from_the_query_test() {
       ),
       dict.new(),
     )
-  assert page == client.RecurringBookingsPage(client.BeachBus, other_day())
+  assert page == client.RecurringBookingsPage(model.BeachBus, other_day())
 }
 
 pub fn overview_day_defaults_to_today_without_a_query_test() {
@@ -1005,7 +1014,7 @@ pub fn overview_day_defaults_to_today_without_a_query_test() {
       dict.new(),
     )
   let assert client.RecurringBookingsPage(kind, _) = page
-  assert kind == client.ClimbingWall
+  assert kind == model.ClimbingWall
 }
 
 pub fn back_to_the_overview_restores_the_day_and_loads_its_slots_test() {
@@ -1013,9 +1022,9 @@ pub fn back_to_the_overview_restores_the_day_and_loads_its_slots_test() {
     "/_services/booking/beach-bus?" <> client.overview_query(other_day())
   let picked = route(base_model(), overview_url)
   assert picked.page
-    == client.RecurringBookingsPage(client.BeachBus, other_day())
+    == client.RecurringBookingsPage(model.BeachBus, other_day())
   // The day's slots load on the route change (the same path a Back takes).
-  assert client.recurring_remote(picked, #(client.BeachBus, other_day()))
+  assert client.recurring_remote(picked, #(model.BeachBus, other_day()))
     == client.Loading
 }
 
@@ -1366,6 +1375,7 @@ pub fn deleting_unheld_booking_leaves_statuses_test() {
         id_a(),
         client.Loaded([mine]),
         client.UnbookSubmitting(id_c()),
+        None,
       ),
       statuses: dict.from_list([#(id_a(), model.Booked([mine]))]),
     )
@@ -1386,13 +1396,15 @@ pub fn updating_unheld_booking_leaves_statuses_test() {
         id_a(),
         client.Loaded([mine, foreign]),
         client.BookingSubmitting(client.BookingEdit(id_c())),
+        None,
       ),
       statuses: dict.from_list([#(id_a(), model.Booked([mine]))]),
     )
   let #(next, _) = client.update(model_, client.ApiUpdatedBooking(Ok(foreign)))
   assert dict.get(next.statuses, id_a()) == Ok(model.Booked([mine]))
   // The drawer closes and the page survives.
-  let assert client.ActivityBookingsPage(_, _, client.BookingClosed) = next.page
+  let assert client.ActivityBookingsPage(_, _, client.BookingClosed, _) =
+    next.page
 }
 
 // UPDATE: bookings-page manage flows (plan 16) ----------------------------------
@@ -1407,12 +1419,17 @@ pub fn edit_booking_card_opens_drawer_on_bookings_page_test() {
         id_a(),
         client.Loaded([booking]),
         client.BookingClosed,
+        None,
       ),
     )
   let #(next, _) =
     client.update(model_, client.UserClickedEditBookingCard(booking))
-  let assert client.ActivityBookingsPage(_, _, client.BookingOpen(_, _, mode)) =
-    next.page
+  let assert client.ActivityBookingsPage(
+    _,
+    _,
+    client.BookingOpen(_, _, mode),
+    _,
+  ) = next.page
   assert mode == client.BookingEdit(id_b())
 }
 
@@ -1426,6 +1443,7 @@ pub fn submitting_edit_on_bookings_page_submits_test() {
         id_a(),
         client.Loaded([booking]),
         client.BookingClosed,
+        None,
       ),
     )
   let #(opened, _) =
@@ -1439,8 +1457,12 @@ pub fn submitting_edit_on_bookings_page_submits_test() {
     )
   let #(next, _) =
     client.update(opened, client.UserSubmittedBookingForm(Ok(fields)))
-  let assert client.ActivityBookingsPage(_, _, client.BookingSubmitting(mode)) =
-    next.page
+  let assert client.ActivityBookingsPage(
+    _,
+    _,
+    client.BookingSubmitting(mode),
+    _,
+  ) = next.page
   assert mode == client.BookingEdit(id_b())
 }
 
@@ -1454,15 +1476,16 @@ pub fn unbook_card_confirms_then_submits_test() {
         id_a(),
         client.Loaded([booking]),
         client.BookingClosed,
+        None,
       ),
     )
   let #(confirming, _) =
     client.update(model_, client.UserClickedUnbookCard(id_b()))
-  let assert client.ActivityBookingsPage(_, _, client.UnbookConfirming(id)) =
+  let assert client.ActivityBookingsPage(_, _, client.UnbookConfirming(id), _) =
     confirming.page
   assert id == id_b()
   let #(next, _) = client.update(confirming, client.UserClickedConfirmUnbook)
-  let assert client.ActivityBookingsPage(_, _, client.UnbookSubmitting(_)) =
+  let assert client.ActivityBookingsPage(_, _, client.UnbookSubmitting(_), _) =
     next.page
 }
 
@@ -1477,12 +1500,17 @@ pub fn edit_self_booking_card_opens_drawer_and_submits_test() {
         id_a(),
         client.Loaded([booking]),
         client.BookingClosed,
+        None,
       ),
     )
   let #(opened, _) =
     client.update(model_, client.UserClickedEditBookingCard(booking))
-  let assert client.ActivityBookingsPage(_, _, client.BookingOpen(_, _, mode)) =
-    opened.page
+  let assert client.ActivityBookingsPage(
+    _,
+    _,
+    client.BookingOpen(_, _, mode),
+    _,
+  ) = opened.page
   assert mode == client.BookingEdit(id_b())
   let fields =
     client.BookingFormFields(
@@ -1493,7 +1521,7 @@ pub fn edit_self_booking_card_opens_drawer_and_submits_test() {
     )
   let #(next, _) =
     client.update(opened, client.UserSubmittedBookingForm(Ok(fields)))
-  let assert client.ActivityBookingsPage(_, _, client.BookingSubmitting(_)) =
+  let assert client.ActivityBookingsPage(_, _, client.BookingSubmitting(_), _) =
     next.page
 }
 
@@ -1507,15 +1535,16 @@ pub fn unbook_self_booking_card_confirms_then_submits_test() {
         id_a(),
         client.Loaded([booking]),
         client.BookingClosed,
+        None,
       ),
     )
   let #(confirming, _) =
     client.update(model_, client.UserClickedUnbookCard(id_b()))
-  let assert client.ActivityBookingsPage(_, _, client.UnbookConfirming(id)) =
+  let assert client.ActivityBookingsPage(_, _, client.UnbookConfirming(id), _) =
     confirming.page
   assert id == id_b()
   let #(next, _) = client.update(confirming, client.UserClickedConfirmUnbook)
-  let assert client.ActivityBookingsPage(_, _, client.UnbookSubmitting(_)) =
+  let assert client.ActivityBookingsPage(_, _, client.UnbookSubmitting(_), _) =
     next.page
 }
 
@@ -1529,6 +1558,7 @@ fn bookings_page_model(booking: model.Booking) -> client.Model {
       id_a(),
       client.Loaded([booking]),
       client.BookingClosed,
+      None,
     ),
   )
 }
@@ -1541,6 +1571,7 @@ pub fn cancel_card_opens_reason_drawer_test() {
     _,
     _,
     client.CancelReasonEditing(id, reason, error),
+    _,
   ) = next.page
   assert id == id_b()
   assert reason == ""
@@ -1559,6 +1590,7 @@ pub fn confirm_cancel_with_empty_reason_is_ignored_test() {
     _,
     _,
     client.CancelReasonEditing(_, _, _),
+    _,
   ) = next.page
 }
 
@@ -1573,6 +1605,7 @@ pub fn cancel_reason_confirm_moves_to_submitting_test() {
     _,
     _,
     client.CancelSubmitting(id, reason),
+    _,
   ) = next.page
   assert id == id_b()
   assert reason == "Dubbelbokning"
@@ -1592,11 +1625,13 @@ pub fn cancelled_booking_replaces_status_and_closes_test() {
         id_a(),
         client.Loaded([a_booking(id_b(), id_a())]),
         client.CancelSubmitting(id_b(), "Dubbelbokning"),
+        None,
       ),
     )
   let #(next, _) =
     client.update(model_, client.ApiCancelledBooking(id_a(), Ok(cancelled)))
-  let assert client.ActivityBookingsPage(_, _, client.BookingClosed) = next.page
+  let assert client.ActivityBookingsPage(_, _, client.BookingClosed, _) =
+    next.page
   let status = client.status_of(next.statuses, id_a())
   assert client.cancelled_bookings_of(status) == [cancelled]
   assert !client.has_active_booking(status)
@@ -1612,6 +1647,7 @@ pub fn failed_cancel_keeps_reason_and_shows_error_test() {
         id_a(),
         client.Loaded([a_booking(id_b(), id_a())]),
         client.CancelSubmitting(id_b(), "Dubbelbokning"),
+        None,
       ),
     )
   let #(next, _) =
@@ -1623,6 +1659,7 @@ pub fn failed_cancel_keeps_reason_and_shows_error_test() {
     _,
     _,
     client.CancelReasonEditing(id, reason, error),
+    _,
   ) = next.page
   assert id == id_b()
   assert reason == "Dubbelbokning"
@@ -1633,11 +1670,11 @@ pub fn restore_card_confirms_then_submits_test() {
   let model_ = bookings_page_model(a_cancelled_booking(id_b(), id_a()))
   let #(confirming, _) =
     client.update(model_, client.UserClickedRestoreBookingCard(id_b()))
-  let assert client.ActivityBookingsPage(_, _, client.RestoreConfirming(id)) =
+  let assert client.ActivityBookingsPage(_, _, client.RestoreConfirming(id), _) =
     confirming.page
   assert id == id_b()
   let #(next, _) = client.update(confirming, client.UserClickedConfirmRestore)
-  let assert client.ActivityBookingsPage(_, _, client.RestoreSubmitting(_)) =
+  let assert client.ActivityBookingsPage(_, _, client.RestoreSubmitting(_), _) =
     next.page
 }
 
@@ -1654,11 +1691,13 @@ pub fn restored_booking_replaces_status_and_closes_test() {
         id_a(),
         client.Loaded([a_cancelled_booking(id_b(), id_a())]),
         client.RestoreSubmitting(id_b()),
+        None,
       ),
     )
   let #(next, _) =
     client.update(model_, client.ApiRestoredBooking(id_a(), Ok(restored)))
-  let assert client.ActivityBookingsPage(_, _, client.BookingClosed) = next.page
+  let assert client.ActivityBookingsPage(_, _, client.BookingClosed, _) =
+    next.page
   let status = client.status_of(next.statuses, id_a())
   assert client.has_active_booking(status)
   assert client.cancelled_bookings_of(status) == []
@@ -1697,6 +1736,169 @@ pub fn cancelled_bookings_are_not_active_test() {
   assert client.self_booking_of(mixed) == Some(a_booking(id_c(), id_a()))
 }
 
+// UPDATE: badbuss departure check-offs -----------------------------------------
+
+/// Ticking a box flips the flag in the list straight away, without waiting for
+/// the server — the checkbox has to follow the finger, and the model has to move
+/// in step with the component's own checked state.
+pub fn toggling_departure_ticks_optimistically_test() {
+  let model_ = bookings_page_model(a_booking(id_b(), id_a()))
+  let #(next, _) =
+    client.update(
+      model_,
+      client.UserToggledDeparture(id_b(), client.LeftCampsite, True),
+    )
+  let assert client.ActivityBookingsPage(_, client.Loaded([booking]), _, error) =
+    next.page
+  assert booking.left_campsite
+  // The other stage is untouched.
+  assert !booking.left_beach
+  assert error == None
+}
+
+/// The two stages are independent: the beach box can be ticked on its own.
+pub fn toggling_left_beach_leaves_campsite_alone_test() {
+  let model_ = bookings_page_model(a_booking(id_b(), id_a()))
+  let #(next, _) =
+    client.update(
+      model_,
+      client.UserToggledDeparture(id_b(), client.LeftBeach, True),
+    )
+  let assert client.ActivityBookingsPage(_, client.Loaded([booking]), _, _) =
+    next.page
+  assert booking.left_beach
+  assert !booking.left_campsite
+}
+
+/// Unticking a set box works the same way round.
+pub fn untoggling_departure_clears_the_flag_test() {
+  let ticked = model.Booking(..a_booking(id_b(), id_a()), left_campsite: True)
+  let #(next, _) =
+    client.update(
+      bookings_page_model(ticked),
+      client.UserToggledDeparture(id_b(), client.LeftCampsite, False),
+    )
+  let assert client.ActivityBookingsPage(_, client.Loaded([booking]), _, _) =
+    next.page
+  assert !booking.left_campsite
+}
+
+/// A toggle for a booking that isn't on the list (a stale card) changes nothing.
+pub fn toggling_departure_for_unknown_booking_is_ignored_test() {
+  let model_ = bookings_page_model(a_booking(id_b(), id_a()))
+  let #(next, _) =
+    client.update(
+      model_,
+      client.UserToggledDeparture(id_c(), client.LeftCampsite, True),
+    )
+  assert next.page == model_.page
+}
+
+/// The check-offs only exist on the bookings page, so a toggle anywhere else is
+/// a no-op.
+pub fn toggling_departure_off_the_bookings_page_is_ignored_test() {
+  let model_ = base_model()
+  let #(next, _) =
+    client.update(
+      model_,
+      client.UserToggledDeparture(id_b(), client.LeftCampsite, True),
+    )
+  assert next.page == model_.page
+}
+
+/// The saved booking replaces the card wholesale, so a tick someone else made on
+/// the *other* stage lands here too.
+pub fn saved_departure_replaces_the_booking_test() {
+  let ticked =
+    model.Booking(
+      ..a_booking(id_b(), id_a()),
+      left_campsite: True,
+      left_beach: True,
+    )
+  let #(next, _) =
+    client.update(
+      bookings_page_model(a_booking(id_b(), id_a())),
+      client.ApiSetBookingDeparture(
+        id_b(),
+        client.LeftCampsite,
+        False,
+        Ok(ticked),
+      ),
+    )
+  let assert client.ActivityBookingsPage(_, client.Loaded([booking]), _, error) =
+    next.page
+  assert booking.left_campsite
+  assert booking.left_beach
+  assert error == None
+}
+
+/// A failed write rolls the tick back to what it was and says so — a box left
+/// claiming a kår has left when nothing was saved would be worse than an error.
+pub fn failed_departure_rolls_back_and_reports_test() {
+  let model_ = bookings_page_model(a_booking(id_b(), id_a()))
+  let #(ticked, _) =
+    client.update(
+      model_,
+      client.UserToggledDeparture(id_b(), client.LeftCampsite, True),
+    )
+  let #(next, _) =
+    client.update(
+      ticked,
+      client.ApiSetBookingDeparture(
+        id_b(),
+        client.LeftCampsite,
+        False,
+        Error(rsvp.BadBody),
+      ),
+    )
+  let assert client.ActivityBookingsPage(_, client.Loaded([booking]), _, error) =
+    next.page
+  assert !booking.left_campsite
+  assert error == Some(client.SetDepartureFailed)
+}
+
+/// Unticking that fails rolls forward — back to ticked, the stored value.
+pub fn failed_untick_restores_the_tick_test() {
+  let ticked = model.Booking(..a_booking(id_b(), id_a()), left_campsite: True)
+  let #(next, _) =
+    client.update(
+      bookings_page_model(model.Booking(..ticked, left_campsite: False)),
+      client.ApiSetBookingDeparture(
+        id_b(),
+        client.LeftCampsite,
+        True,
+        Error(rsvp.BadBody),
+      ),
+    )
+  let assert client.ActivityBookingsPage(_, client.Loaded([booking]), _, error) =
+    next.page
+  assert booking.left_campsite
+  assert error == Some(client.SetDepartureFailed)
+}
+
+/// A fresh list is the truth about every check-off, so it clears a stale error.
+pub fn refetched_bookings_clear_the_departure_error_test() {
+  let model_ = bookings_page_model(a_booking(id_b(), id_a()))
+  let #(failed, _) =
+    client.update(
+      model_,
+      client.ApiSetBookingDeparture(
+        id_b(),
+        client.LeftCampsite,
+        False,
+        Error(rsvp.BadBody),
+      ),
+    )
+  let assert client.ActivityBookingsPage(_, _, _, Some(_)) = failed.page
+  let #(next, _) =
+    client.update(
+      failed,
+      client.ApiReturnedBookings(id_a(), Ok([a_booking(id_b(), id_a())])),
+    )
+  let assert client.ActivityBookingsPage(_, _, _, error) = next.page
+  assert error == None
+}
+
 // UPDATE: bookings list fetch --------------------------------------------------
 
 pub fn returned_bookings_land_on_matching_page_test() {
@@ -1708,6 +1910,7 @@ pub fn returned_bookings_land_on_matching_page_test() {
         id_a(),
         client.Loading,
         client.BookingClosed,
+        None,
       ),
     )
   let #(next, _) =
@@ -1717,6 +1920,7 @@ pub fn returned_bookings_land_on_matching_page_test() {
       id_a(),
       client.Loaded([booking]),
       client.BookingClosed,
+      None,
     )
 }
 
@@ -1731,12 +1935,18 @@ pub fn returned_bookings_dropped_for_other_activity_test() {
         id_a(),
         client.Loading,
         client.BookingClosed,
+        None,
       ),
     )
   let #(next, _) =
     client.update(model_, client.ApiReturnedBookings(id_b(), Ok([booking])))
   assert next.page
-    == client.ActivityBookingsPage(id_a(), client.Loading, client.BookingClosed)
+    == client.ActivityBookingsPage(
+      id_a(),
+      client.Loading,
+      client.BookingClosed,
+      None,
+    )
 }
 
 pub fn failed_bookings_fetch_marks_failed_test() {
@@ -1747,6 +1957,7 @@ pub fn failed_bookings_fetch_marks_failed_test() {
         id_a(),
         client.Loading,
         client.BookingClosed,
+        None,
       ),
     )
   let #(next, _) =
@@ -1759,6 +1970,7 @@ pub fn failed_bookings_fetch_marks_failed_test() {
       id_a(),
       client.Failed(client.LoadBookingsFailed),
       client.BookingClosed,
+      None,
     )
 }
 

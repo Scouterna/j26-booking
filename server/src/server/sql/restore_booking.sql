@@ -15,7 +15,9 @@ WITH restored AS (
         phone_number,
         participant_count,
         booked_for_other,
-        cancellation_reason
+        cancellation_reason,
+        left_campsite,
+        left_beach
 )
 SELECT r.id,
     r.user_id,
@@ -28,6 +30,8 @@ SELECT r.id,
     r.phone_number,
     r.participant_count,
     r.booked_for_other,
-    r.cancellation_reason
+    r.cancellation_reason,
+    r.left_campsite,
+    r.left_beach
 FROM restored r
     LEFT JOIN scout_group sg ON sg.id = r.booker_group_id

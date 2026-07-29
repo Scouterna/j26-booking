@@ -19,7 +19,9 @@ WITH updated AS (
         phone_number,
         participant_count,
         booked_for_other,
-        cancellation_reason
+        cancellation_reason,
+        left_campsite,
+        left_beach
 )
 SELECT u.id,
     u.user_id,
@@ -32,6 +34,8 @@ SELECT u.id,
     u.phone_number,
     u.participant_count,
     u.booked_for_other,
-    u.cancellation_reason
+    u.cancellation_reason,
+    u.left_campsite,
+    u.left_beach
 FROM updated u
     LEFT JOIN scout_group sg ON sg.id = u.booker_group_id

@@ -31,6 +31,8 @@ fn a_booking(id: String, activity_id: Uuid) -> model.Booking {
     participant_count: 1,
     booked_for_other: False,
     cancellation: None,
+    left_campsite: False,
+    left_beach: False,
   )
 }
 

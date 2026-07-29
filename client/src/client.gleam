@@ -33,8 +33,9 @@ import shared/event as event_dates
 import shared/model.{
   type Activity, type ActivitySpots, type ActivityStatus,
   type ActivityStatusEntry, type ActivitySummary, type ActivityTag, type Booking,
-  type BookingSlot, type GroupCount, type Location, type ScoutGroup,
-  type TargetGroup, Booked, Favourited, NotInterested,
+  type BookingSlot, type GroupCount, type Location, type RecurringKind,
+  type ScoutGroup, type TargetGroup, BeachBus, Booked, ClimbingWall, Favourited,
+  NotInterested,
 }
 import youid/uuid.{type Uuid}
 
@@ -184,6 +185,10 @@ fn english_translations() -> g18n.Translations {
   )
   |> g18n.add_translation("bookings.participants.one", "{count} person")
   |> g18n.add_translation("bookings.participants.other", "{count} people")
+  // Badbuss departure check-offs — beach bus slots only.
+  |> g18n.add_translation("bookings.departures_heading", "Departures")
+  |> g18n.add_translation("bookings.left_campsite", "Left the campsite")
+  |> g18n.add_translation("bookings.left_beach", "Left the beach")
   |> g18n.add_translation("list.search_placeholder", "Search")
   |> g18n.add_translation("list.filter.all", "All")
   |> g18n.add_translation("list.tab.activities", "Activities")
@@ -230,6 +235,10 @@ fn english_translations() -> g18n.Translations {
   |> g18n.add_translation("error.cancel_booking", "Failed to cancel booking")
   |> g18n.add_translation("error.restore_booking", "Failed to restore booking")
   |> g18n.add_translation("error.load_bookings", "Failed to load bookings")
+  |> g18n.add_translation(
+    "error.set_departure",
+    "Could not save the check-off — try again",
+  )
   |> g18n.add_translation(
     "error.booking_group_required",
     "Choose a corps to book for",
@@ -385,6 +394,10 @@ fn swedish_translations() -> g18n.Translations {
   )
   |> g18n.add_translation("bookings.participants.one", "{count} person")
   |> g18n.add_translation("bookings.participants.other", "{count} personer")
+  // Badbuss departure check-offs — badbusspass only.
+  |> g18n.add_translation("bookings.departures_heading", "Avfärd")
+  |> g18n.add_translation("bookings.left_campsite", "Lämnat lägerplatsen")
+  |> g18n.add_translation("bookings.left_beach", "Lämnat stranden")
   |> g18n.add_translation("list.search_placeholder", "Sök")
   |> g18n.add_translation("list.filter.all", "Alla")
   |> g18n.add_translation("list.tab.activities", "Aktiviteter")
@@ -449,6 +462,10 @@ fn swedish_translations() -> g18n.Translations {
     "Kunde inte uppdatera bokningen",
   )
   |> g18n.add_translation("error.load_bookings", "Kunde inte ladda bokningarna")
+  |> g18n.add_translation(
+    "error.set_departure",
+    "Kunde inte spara markeringen — försök igen",
+  )
   |> g18n.add_translation(
     "error.booking_group_required",
     "Välj en kår att boka åt",
@@ -801,6 +818,8 @@ pub type AppError {
   BookingGroupRequired
   LoadBookingsFailed
   LoadScoutGroupsFailed
+  /// A badbuss departure check-off could not be saved; the tick was rolled back.
+  SetDepartureFailed
 }
 
 fn app_error_key(error: AppError) -> String {
@@ -821,6 +840,7 @@ fn app_error_key(error: AppError) -> String {
     LoadBookingsFailed -> "error.load_bookings"
     // Surfaced inside the kår picker; reuses the bookings-load message.
     LoadScoutGroupsFailed -> "error.load_bookings"
+    SetDepartureFailed -> "error.set_departure"
   }
 }
 
@@ -981,15 +1001,6 @@ pub fn tab_has_search_and_filters(tab: ActivitiesFilterTab) -> Bool {
   }
 }
 
-/// A kind of recurring activity that gets its own booking-overview page
-/// (Badbuss / Klättervägg). Both pages share one view, differing only in which
-/// slots they load and their heading; the kind also maps to the server's
-/// `recurring_activity_kind` and picks the overview endpoint.
-pub type RecurringKind {
-  BeachBus
-  ClimbingWall
-}
-
 /// Identity of a cached overview: which recurring kind and which event day. Both
 /// the slot window and its revalidation ETag are keyed by this, so each
 /// `(kind, day)` caches and revalidates independently — switching day shows the
@@ -997,6 +1008,44 @@ pub type RecurringKind {
 /// list's `WindowKey`).
 pub type RecurringKey =
   #(RecurringKind, calendar.Date)
+
+/// The two boarding stages the badbuss staff tick off per kår on a slot's
+/// bookings view: the kår has left the campsite, and later the beach. Two
+/// independent flags on the booking, each with its own endpoint, so ticking one
+/// can never overwrite the other.
+pub type DepartureStage {
+  LeftCampsite
+  LeftBeach
+}
+
+/// The `PUT /api/bookings/:id/…` path segment that writes a stage.
+fn departure_stage_path(stage: DepartureStage) -> String {
+  case stage {
+    LeftCampsite -> "left-campsite"
+    LeftBeach -> "left-beach"
+  }
+}
+
+/// A stage's current value on a booking.
+fn departure_stage_value(booking: Booking, stage: DepartureStage) -> Bool {
+  case stage {
+    LeftCampsite -> booking.left_campsite
+    LeftBeach -> booking.left_beach
+  }
+}
+
+/// `booking` with one stage set — the optimistic tick, and the rollback when the
+/// write fails.
+fn set_departure_stage(
+  booking: Booking,
+  stage: DepartureStage,
+  checked: Bool,
+) -> Booking {
+  case stage {
+    LeftCampsite -> model.Booking(..booking, left_campsite: checked)
+    LeftBeach -> model.Booking(..booking, left_beach: checked)
+  }
+}
 
 /// The outcome of a (conditional) overview fetch, derived from the HTTP response
 /// in the effect handler so `update` never touches raw responses (parallels
@@ -1060,6 +1109,10 @@ pub type Page {
     id: Uuid,
     bookings: RemoteData(List(Booking)),
     booking_form: BookingFormState,
+    /// The last badbuss departure check-off that failed to save (the tick is
+    /// rolled back when it does), or `None`. Page-scoped because the check-offs
+    /// only exist here; cleared by the next successful tick or refetch.
+    departure_error: Option(AppError),
   )
   /// Booking overview for a recurring activity kind (Badbuss / Klättervägg): the
   /// slots for `selected_day` (default today), grouped by kår. The slots + ETag
@@ -1086,6 +1139,10 @@ pub type ActivityDetail {
     /// the edit form needs it (gating uses the summary's effective
     /// `booking_opens_at`).
     booking_opens_at_override: Option(Timestamp),
+    /// Which recurring kind this activity is a slot of, `None` for an ordinary
+    /// activity. Detail-only because only the bookings view needs it — that is
+    /// where `Some(BeachBus)` unlocks the badbuss departure check-offs.
+    recurring_kind: Option(RecurringKind),
   )
 }
 
@@ -1208,7 +1265,7 @@ fn set_activity_form(model: Model, activity_form: ActivityFormState) -> Model {
 fn page_booking_form(page: Page) -> Result(#(Uuid, BookingFormState), Nil) {
   case page {
     ActivityDetailPage(id, booking_form) -> Ok(#(id, booking_form))
-    ActivityBookingsPage(id, _, booking_form) -> Ok(#(id, booking_form))
+    ActivityBookingsPage(id, _, booking_form, _) -> Ok(#(id, booking_form))
     _ -> Error(Nil)
   }
 }
@@ -1223,8 +1280,50 @@ fn set_page_booking_form(
   case model.page {
     ActivityDetailPage(id, _) ->
       Model(..model, page: ActivityDetailPage(id, booking_form))
-    ActivityBookingsPage(id, bookings, _) ->
-      Model(..model, page: ActivityBookingsPage(id, bookings, booking_form))
+    ActivityBookingsPage(id, bookings, _, departure_error) ->
+      Model(
+        ..model,
+        page: ActivityBookingsPage(id, bookings, booking_form, departure_error),
+      )
+    _ -> model
+  }
+}
+
+/// Swap one booking in the bookings page's loaded list, matched by id. A no-op
+/// off that page, while its list is still loading, or when the booking isn't in
+/// it — all of which mean the response outlived what it was for.
+fn replace_page_booking(model: Model, booking: Booking) -> Model {
+  case model.page {
+    ActivityBookingsPage(id, Loaded(bookings), booking_form, departure_error) ->
+      Model(
+        ..model,
+        page: ActivityBookingsPage(
+          id,
+          Loaded(
+            list.map(bookings, fn(existing) {
+              case existing.id == booking.id {
+                True -> booking
+                False -> existing
+              }
+            }),
+          ),
+          booking_form,
+          departure_error,
+        ),
+      )
+    _ -> model
+  }
+}
+
+/// Set (or clear) the bookings page's departure check-off error. A no-op off
+/// that page — the check-offs only live there.
+fn set_departure_error(model: Model, error: Option(AppError)) -> Model {
+  case model.page {
+    ActivityBookingsPage(id, bookings, booking_form, _) ->
+      Model(
+        ..model,
+        page: ActivityBookingsPage(id, bookings, booking_form, error),
+      )
     _ -> model
   }
 }
@@ -1782,7 +1881,7 @@ fn seed_detail_loading(
   page: Page,
 ) -> Dict(Uuid, RemoteData(ActivityDetail)) {
   case page {
-    ActivityDetailPage(id, _) | ActivityBookingsPage(id, _, _) ->
+    ActivityDetailPage(id, _) | ActivityBookingsPage(id, _, _, _) ->
       case dict.get(details, id) {
         Ok(Loaded(_)) -> details
         _ -> dict.insert(details, id, Loading)
@@ -1813,6 +1912,7 @@ fn to_detail(a: Activity) -> ActivityDetail {
     description: a.description,
     location: a.location,
     booking_opens_at_override: a.booking_opens_at_override,
+    recurring_kind: a.recurring_kind,
   )
 }
 
@@ -1831,6 +1931,7 @@ fn to_activity(summary: ActivitySummary, detail: ActivityDetail) -> Activity {
     cancellation: summary.cancellation,
     booking_opens_at: summary.booking_opens_at,
     booking_opens_at_override: detail.booking_opens_at_override,
+    recurring_kind: detail.recurring_kind,
   )
 }
 
@@ -2190,7 +2291,7 @@ fn app_bar_title(translator: Translator, page: Page) -> Option(String) {
       Some(g18n.translate(translator, "app_bar.manage_activities"))
     ActivityDetailPage(_, _) ->
       Some(g18n.translate(translator, "app_bar.activity_detail"))
-    ActivityBookingsPage(_, _, _) ->
+    ActivityBookingsPage(_, _, _, _) ->
       Some(g18n.translate(translator, "app_bar.activity_bookings"))
     RecurringBookingsPage(BeachBus, _) ->
       Some(g18n.translate(translator, "app_bar.beach_bus_bookings"))
@@ -2322,6 +2423,15 @@ pub type Msg {
   ApiDeletedBooking(Uuid, Uuid, Result(Nil, rsvp.Error))
   ApiCancelledBooking(Uuid, Result(Booking, rsvp.Error))
   ApiRestoredBooking(Uuid, Result(Booking, rsvp.Error))
+  /// A badbuss departure check-off came back. `Ok` carries the saved booking,
+  /// which replaces the optimistically-ticked one; on `Error` the tick is rolled
+  /// back to `was` — the value the flag had before the click.
+  ApiSetBookingDeparture(
+    booking_id: Uuid,
+    stage: DepartureStage,
+    was: Bool,
+    result: Result(Booking, rsvp.Error),
+  )
   ApiReturnedBookings(Uuid, Result(List(Booking), rsvp.Error))
   ApiToggledFavourite(Uuid, Bool, Result(Nil, rsvp.Error))
   // Form submissions
@@ -2380,6 +2490,9 @@ pub type Msg {
   UserClickedConfirmCancelBooking
   UserClickedRestoreBookingCard(Uuid)
   UserClickedConfirmRestore
+  /// Ticked or unticked one of the two badbuss departure check-offs on a
+  /// booking card. Carries the box's new state.
+  UserToggledDeparture(booking_id: Uuid, stage: DepartureStage, checked: Bool)
   // Recurring-activity booking overview (Badbuss / Klättervägg)
   ApiReturnedRecurringBookings(RecurringKey, RecurringResult)
   UserSelectedOverviewDay(Option(calendar.Date))
@@ -3309,7 +3422,7 @@ pub fn update(model: Model, msg: Msg) -> #(Model, Effect(Msg)) {
     // another user's, so my statuses can't supply it.
     UserClickedEditBookingCard(booking) ->
       case model.page {
-        ActivityBookingsPage(id, _, _) -> {
+        ActivityBookingsPage(id, _, _, _) -> {
           let max_attendees = case detail_of(model, id) {
             Loaded(activity) -> activity.max_attendees
             _ -> None
@@ -3340,7 +3453,7 @@ pub fn update(model: Model, msg: Msg) -> #(Model, Effect(Msg)) {
     // Bookings page: ask for confirmation before unbooking a card's booking.
     UserClickedUnbookCard(booking_id) ->
       case model.page {
-        ActivityBookingsPage(_, _, _) -> #(
+        ActivityBookingsPage(_, _, _, _) -> #(
           set_page_booking_form(model, UnbookConfirming(booking_id)),
           effect.none(),
         )
@@ -3351,7 +3464,7 @@ pub fn update(model: Model, msg: Msg) -> #(Model, Effect(Msg)) {
     // (issue #43).
     UserClickedCancelBookingCard(booking_id) ->
       case model.page {
-        ActivityBookingsPage(_, _, _) -> #(
+        ActivityBookingsPage(_, _, _, _) -> #(
           set_page_booking_form(
             model,
             CancelReasonEditing(booking_id, "", None),
@@ -3392,7 +3505,7 @@ pub fn update(model: Model, msg: Msg) -> #(Model, Effect(Msg)) {
     // booking (issue #43).
     UserClickedRestoreBookingCard(booking_id) ->
       case model.page {
-        ActivityBookingsPage(_, _, _) -> #(
+        ActivityBookingsPage(_, _, _, _) -> #(
           set_page_booking_form(model, RestoreConfirming(booking_id)),
           effect.none(),
         )
@@ -3405,6 +3518,65 @@ pub fn update(model: Model, msg: Msg) -> #(Model, Effect(Msg)) {
           set_page_booking_form(model, RestoreSubmitting(booking_id)),
           restore_booking(id, booking_id),
         )
+        _ -> #(model, effect.none())
+      }
+
+    // A badbuss departure check-off was ticked/unticked. The tick lands in the
+    // list immediately — a checkbox that waits for the network feels broken, and
+    // the model has to move in step with the component's own checked state — and
+    // the response either confirms it or rolls it back.
+    UserToggledDeparture(booking_id, stage, checked) ->
+      case model.page {
+        ActivityBookingsPage(_, Loaded(bookings), _, _) ->
+          case list.find(bookings, fn(b) { b.id == booking_id }) {
+            Ok(booking) -> {
+              let was = departure_stage_value(booking, stage)
+              // Nothing to do when the box already holds what was clicked (a
+              // re-render echoing our own optimistic write).
+              use <- bool.guard(when: was == checked, return: #(
+                model,
+                effect.none(),
+              ))
+              #(
+                model
+                  |> replace_page_booking(set_departure_stage(
+                    booking,
+                    stage,
+                    checked,
+                  ))
+                  |> set_departure_error(None),
+                set_booking_departure(booking_id, stage, checked, was),
+              )
+            }
+            Error(_) -> #(model, effect.none())
+          }
+        _ -> #(model, effect.none())
+      }
+
+    // The saved booking is authoritative — it also carries the *other* stage as
+    // stored, so a tick by someone else that we hadn't seen lands here too.
+    ApiSetBookingDeparture(_, _, _, Ok(booking)) -> #(
+      replace_page_booking(model, booking),
+      effect.none(),
+    )
+
+    // The write failed: put the tick back where it was and say so, rather than
+    // leaving a box claiming a kår has left when nothing was saved.
+    ApiSetBookingDeparture(booking_id, stage, was, Error(_)) ->
+      case model.page {
+        ActivityBookingsPage(_, Loaded(bookings), _, _) ->
+          case list.find(bookings, fn(b) { b.id == booking_id }) {
+            Ok(booking) -> #(
+              model
+                |> replace_page_booking(set_departure_stage(booking, stage, was))
+                |> set_departure_error(Some(SetDepartureFailed)),
+              effect.none(),
+            )
+            Error(_) -> #(
+              set_departure_error(model, Some(SetDepartureFailed)),
+              effect.none(),
+            )
+          }
         _ -> #(model, effect.none())
       }
 
@@ -3772,7 +3944,7 @@ pub fn update(model: Model, msg: Msg) -> #(Model, Effect(Msg)) {
       let model = set_page_booking_form(model, BookingClosed)
       // The bookings page shows the live list, so refetch it after an edit.
       let refetch = case model.page {
-        ActivityBookingsPage(id, _, _) -> fetch_bookings(id)
+        ActivityBookingsPage(id, _, _, _) -> fetch_bookings(id)
         _ -> effect.none()
       }
       #(
@@ -3816,7 +3988,7 @@ pub fn update(model: Model, msg: Msg) -> #(Model, Effect(Msg)) {
         remove_status_booking(model.statuses, activity_id, booking_id)
       let model = set_page_booking_form(model, BookingClosed)
       let refetch = case model.page {
-        ActivityBookingsPage(id, _, _) if id == activity_id ->
+        ActivityBookingsPage(id, _, _, _) if id == activity_id ->
           fetch_bookings(id)
         _ -> effect.none()
       }
@@ -3842,7 +4014,7 @@ pub fn update(model: Model, msg: Msg) -> #(Model, Effect(Msg)) {
       let statuses = replace_status_booking(model.statuses, booking)
       let model = set_page_booking_form(model, BookingClosed)
       let refetch = case model.page {
-        ActivityBookingsPage(id, _, _) if id == activity_id ->
+        ActivityBookingsPage(id, _, _, _) if id == activity_id ->
           fetch_bookings(id)
         _ -> effect.none()
       }
@@ -3875,7 +4047,7 @@ pub fn update(model: Model, msg: Msg) -> #(Model, Effect(Msg)) {
     // bookings page — a response for a page we've navigated away from is stale.
     ApiReturnedBookings(id, result) ->
       case model.page {
-        ActivityBookingsPage(page_id, _, booking_form) if page_id == id -> {
+        ActivityBookingsPage(page_id, _, booking_form, _) if page_id == id -> {
           let bookings = case result {
             Ok(bookings) -> Loaded(bookings)
             Error(_) -> Failed(LoadBookingsFailed)
@@ -3883,7 +4055,9 @@ pub fn update(model: Model, msg: Msg) -> #(Model, Effect(Msg)) {
           #(
             Model(
               ..model,
-              page: ActivityBookingsPage(id, bookings, booking_form),
+              // A fresh list is the truth about every check-off, so any
+              // stale departure error goes with it.
+              page: ActivityBookingsPage(id, bookings, booking_form, None),
             ),
             effect.none(),
           )
@@ -4358,6 +4532,30 @@ fn cancel_booking(
   )
 }
 
+/// PUT one badbuss departure check-off. Each stage has its own endpoint and
+/// writes only its own column, so two staff ticking the two stages of the same
+/// booking at once cannot overwrite each other. `was` rides along so a failure
+/// can roll the optimistic tick back. The server refuses the write unless the
+/// booking sits on a beach-bus slot.
+fn set_booking_departure(
+  booking_id: Uuid,
+  stage: DepartureStage,
+  checked: Bool,
+  was: Bool,
+) -> Effect(Msg) {
+  rsvp.put(
+    api_prefix
+      <> "/api/bookings/"
+      <> uuid.to_string(booking_id)
+      <> "/"
+      <> departure_stage_path(stage),
+    json.object([#("checked", json.bool(checked))]),
+    rsvp.expect_json(model.booking_decoder(), fn(result) {
+      ApiSetBookingDeparture(booking_id, stage, was, result)
+    }),
+  )
+}
+
 /// POST the restore of a cancelled booking (issue #43). The server re-checks
 /// capacity — the booking occupies spots again.
 fn restore_booking(activity_id: Uuid, booking_id: Uuid) -> Effect(Msg) {
@@ -4765,7 +4963,7 @@ pub fn uri_to_page(
             _ -> fetch_activity(id)
           }
           #(
-            ActivityBookingsPage(id, Loading, BookingClosed),
+            ActivityBookingsPage(id, Loading, BookingClosed, None),
             effect.batch([
               activity_effect,
               fetch_activity_spots(id),
@@ -4834,7 +5032,7 @@ fn view(model: Model) -> Element(Msg) {
         model.scout_groups,
         model.session,
       )
-    ActivityBookingsPage(id, bookings, booking_form) ->
+    ActivityBookingsPage(id, bookings, booking_form, departure_error) ->
       view_activity_bookings(
         model.translator,
         detail_of(model, id),
@@ -4845,6 +5043,7 @@ fn view(model: Model) -> Element(Msg) {
         model.booker,
         model.booking_ui,
         model.scout_groups,
+        departure_error,
       )
     RecurringBookingsPage(kind, selected_day) ->
       view_recurring_bookings(
@@ -7241,6 +7440,9 @@ fn view_time_interval(
 /// activity (title, time, spots filled) above a card per booking. The header
 /// reads from the shared caches via `activity_state`; `bookings` is the
 /// per-route fetch.
+///
+/// On a badbuss slot — and only there — each card also carries the two departure
+/// check-offs; `departure_error` reports a tick that failed to save.
 fn view_activity_bookings(
   translator: Translator,
   activity_state: RemoteData(Activity),
@@ -7251,6 +7453,7 @@ fn view_activity_bookings(
   booker: BookerIdentity,
   booking_ui: BookingUi,
   scout_groups: RemoteData(List(ScoutGroup)),
+  departure_error: Option(AppError),
 ) -> Element(Msg) {
   let t = fn(key) { g18n.translate(translator, key) }
   let max_attendees = case activity_state {
@@ -7260,6 +7463,15 @@ fn view_activity_bookings(
   let loaded_bookings = case bookings {
     Loaded(items) -> items
     _ -> []
+  }
+  // The check-offs are a badbuss thing only: the beach bus staff tick each kår
+  // off as it leaves. Klättervägg and ordinary activities never show them, and
+  // the server refuses the write for anything but a beach-bus slot. Absent while
+  // the activity is still loading, so the boxes can't flash in on a slot that
+  // turns out not to be badbuss.
+  let show_departures = case activity_state {
+    Loaded(activity) -> activity.recurring_kind == Some(BeachBus)
+    NotAsked | Loading | Failed(_) -> False
   }
   html.div([attribute.class("flex flex-col p-3 gap-4")], [
     // The same booking drawer as the detail page, hosting the edit form for
@@ -7290,6 +7502,14 @@ fn view_activity_bookings(
       html.h2([attribute.class("text-body-l font-semibold")], [
         element.text(t("bookings.heading")),
       ]),
+      // A check-off that didn't save. Sits above the list rather than on the
+      // card so it can't be missed, and the rolled-back box shows which tick it
+      // was about.
+      case departure_error {
+        Some(err) ->
+          component.error_banner(t("error.heading"), t(app_error_key(err)))
+        None -> element.none()
+      },
       case bookings {
         NotAsked | Loading ->
           html.div([attribute.class("flex justify-center py-6")], [
@@ -7315,6 +7535,7 @@ fn view_activity_bookings(
                   // matching the server's manage rule.
                   can_manage_bookings,
                   booking_form,
+                  show_departures,
                 ),
               )
             }),
@@ -7597,12 +7818,14 @@ fn view_bookings_header(
 
 /// One booking rendered as a card: the booker group in bold, then the
 /// free-text group (when a scout group name is also present), participant
-/// count, responsible leader, and a tappable phone link.
+/// count, responsible leader, and a tappable phone link. On a badbuss slot
+/// (`show_departures`) the two departure check-offs sit below that.
 fn view_booking_card(
   translator: Translator,
   booking: Booking,
   manageable: Bool,
   booking_form: BookingFormState,
+  show_departures: Bool,
 ) -> Element(Msg) {
   // Prefer the scout group name from the booker's token; fall back to the
   // free-text group, then to a placeholder when neither is present (the
@@ -7707,6 +7930,7 @@ fn view_booking_card(
               ])
             None -> element.none()
           },
+          view_departure_checks(translator, booking, show_departures),
           view_booking_card_actions(
             translator,
             booking,
@@ -7715,6 +7939,47 @@ fn view_booking_card(
           ),
         ]),
       ]),
+    ],
+  )
+}
+
+/// The two badbuss departure check-offs for one kår's booking — left the
+/// campsite, then left the beach — under a small heading so the boxes read as
+/// belonging to this kår rather than to the page.
+///
+/// Rendered only on a badbuss slot (`show`) and only for an active booking: a
+/// cancelled kår is not boarding, so ticking it off would be meaningless. The
+/// two stages are independent, so the beach box is not gated on the campsite one
+/// — staff may need to fix either after the fact.
+fn view_departure_checks(
+  translator: Translator,
+  booking: Booking,
+  show: Bool,
+) -> Element(Msg) {
+  use <- bool.guard(when: !show, return: element.none())
+  use <- bool.guard(
+    when: option.is_some(booking.cancellation),
+    return: element.none(),
+  )
+  let t = fn(key) { g18n.translate(translator, key) }
+  html.div(
+    [attribute.class("flex flex-col gap-1 pt-2 border-t border-gray-200")],
+    [
+      html.p([attribute.class("text-body-sm font-semibold text-gray-700")], [
+        element.text(t("bookings.departures_heading")),
+      ]),
+      component.scout_checkbox(
+        t("bookings.left_campsite"),
+        booking.left_campsite,
+        False,
+        fn(checked) { UserToggledDeparture(booking.id, LeftCampsite, checked) },
+      ),
+      component.scout_checkbox(
+        t("bookings.left_beach"),
+        booking.left_beach,
+        False,
+        fn(checked) { UserToggledDeparture(booking.id, LeftBeach, checked) },
+      ),
     ],
   )
 }

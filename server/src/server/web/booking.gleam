@@ -618,6 +618,136 @@ pub fn cancel(req: Request, id: String, ctx: web.Context) -> Response {
   }
 }
 
+/// Which badbuss departure check-off a request targets. Each stage is written
+/// on its own so two staff members ticking the two stages of the same booking
+/// at the same time cannot overwrite each other.
+type DepartureStage {
+  LeftCampsite
+  LeftBeach
+}
+
+/// `PUT /api/bookings/:id/left-campsite` — tick/untick "left the campsite".
+pub fn set_left_campsite(
+  req: Request,
+  id: String,
+  ctx: web.Context,
+) -> Response {
+  set_departure(req, id, LeftCampsite, ctx)
+}
+
+/// `PUT /api/bookings/:id/left-beach` — tick/untick "left the beach".
+pub fn set_left_beach(req: Request, id: String, ctx: web.Context) -> Response {
+  set_departure(req, id, LeftBeach, ctx)
+}
+
+/// Shared handler for the two badbuss departure check-offs: the beach-bus staff
+/// tick off each kår as it leaves the campsite and again as it leaves the beach.
+/// Body is `{"checked": true|false}`, so the write is idempotent and a mistaken
+/// tick can be undone.
+///
+/// Open to everyone who may read the badbuss booking lists (`bookings:read` /
+/// `activities:manage` / `bookings:others:create`) — whoever runs the bus is who
+/// ticks the boxes — and deliberately NOT to the booker, who cannot read the
+/// list at all.
+///
+/// Badbuss-only: the request is refused with a 409 unless the booking's activity
+/// is a `beach-bus` slot, so the columns cannot be used as a general-purpose
+/// flag on ordinary bookings. A cancelled booking is refused too — that kår is
+/// not boarding.
+fn set_departure(
+  req: Request,
+  id: String,
+  stage: DepartureStage,
+  ctx: web.Context,
+) -> Response {
+  use <- wisp.require_method(req, Put)
+  use user <- web.with_authenticated_user(ctx)
+  use <- web.require_any_role(user, [
+    web.BookingsRead,
+    web.ActivitiesManage,
+    web.BookingsOthersCreate,
+  ])
+  use booking_id <- given.ok(uuid.from_string(id), fn(_) {
+    wisp.bad_request("Invalid booking ID format")
+  })
+  use json_body <- wisp.require_json(req)
+  use checked <- given.ok(
+    decode.run(json_body, {
+      use checked <- decode.field("checked", decode.bool)
+      decode.success(checked)
+    }),
+    fn(_) { wisp.bad_request("Invalid JSON payload") },
+  )
+
+  // Load the booking first so a missing one answers 404, then its activity so a
+  // non-badbuss booking answers 409. Both are stable facts (a booking never
+  // moves to another activity, an activity never changes kind), so no
+  // transaction is needed around the check and the write.
+  use existing <- given.ok(fetch_booking(ctx, booking_id), fn(response) {
+    response
+  })
+  use <- given.that(existing.cancellation == option.None, else_return: fn() {
+    conflict_response("Booking is cancelled")
+  })
+  use <- given.that(is_beach_bus(ctx, existing.activity_id), else_return: fn() {
+    conflict_response("Booking is not on a beach bus slot")
+  })
+
+  let written = case stage {
+    LeftCampsite ->
+      sql.set_booking_left_campsite(ctx.db_connection, booking_id, checked)
+      |> result.map(fn(returned) {
+        list.map(returned.rows, booking.from_set_booking_left_campsite_row)
+      })
+    LeftBeach ->
+      sql.set_booking_left_beach(ctx.db_connection, booking_id, checked)
+      |> result.map(fn(returned) {
+        list.map(returned.rows, booking.from_set_booking_left_beach_row)
+      })
+  }
+  case written {
+    Error(error) -> web.query_error(error)
+    Ok([]) -> wisp.not_found()
+    Ok([updated, ..]) ->
+      wisp.json_response(updated |> booking.to_json |> json.to_string, 200)
+  }
+}
+
+/// The booking being ticked off, or the response to answer with instead (404
+/// when it is gone, 500 when the query failed).
+fn fetch_booking(
+  ctx: web.Context,
+  booking_id: uuid.Uuid,
+) -> Result(Booking, Response) {
+  case sql.get_booking(ctx.db_connection, booking_id) {
+    Error(error) -> Error(web.query_error(error))
+    Ok(pog.Returned(_, [])) -> Error(wisp.not_found())
+    Ok(pog.Returned(_, [row, ..])) -> Ok(booking.from_get_booking_row(row))
+  }
+}
+
+/// Whether the activity is a slot of the badbuss (beach-bus) recurring kind.
+/// A missing activity or a failed query answers `False`, which turns into the
+/// same 409 as any other non-badbuss booking — the check only ever opens the
+/// write up, never widens it.
+fn is_beach_bus(ctx: web.Context, activity_id: uuid.Uuid) -> Bool {
+  case sql.get_activity(ctx.db_connection, activity_id) {
+    Ok(pog.Returned(_, [row, ..])) ->
+      row.recurring_activity_kind
+      == option.Some(model.recurring_kind_to_string(model.BeachBus))
+    Ok(pog.Returned(_, [])) -> False
+    Error(error) -> {
+      wisp.log_error(
+        "Beach bus check failed for activity "
+        <> uuid.to_string(activity_id)
+        <> ": "
+        <> string.inspect(error),
+      )
+      False
+    }
+  }
+}
+
 /// Restore a cancelled booking to active (issue #43): POST
 /// /api/bookings/:id/restore. Requires `bookings:others:create`. Runs the
 /// same locking transaction shape as create — a restored booking occupies

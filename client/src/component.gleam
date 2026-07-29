@@ -173,6 +173,40 @@ pub fn scout_button_disabled(
   )
 }
 
+/// A labelled `scout-checkbox` whose state is owned by the model.
+///
+/// `checked` goes through the JS *property* rather than the attribute (like
+/// `scout_drawer`'s `open`): the component keeps its own internal checked state
+/// once the user clicks it, and only an explicit property write pushes the
+/// model's value back into it. A presence-based attribute could not — going from
+/// checked back to unchecked would just remove an attribute Lustre never
+/// rendered, leaving the box visually ticked while the model says otherwise.
+///
+/// `disabled` marks a box the viewer may look at but not change.
+pub fn scout_checkbox(
+  label: String,
+  checked: Bool,
+  disabled: Bool,
+  on_check: fn(Bool) -> msg,
+) -> Element(msg) {
+  element.element(
+    "scout-checkbox",
+    [
+      attribute.attribute("label", label),
+      attribute.property("checked", json.bool(checked)),
+      case disabled {
+        True -> attribute.attribute("disabled", "")
+        False -> attribute.none()
+      },
+      event.on("scoutChecked", {
+        use checked <- decode.subfield(["detail", "checked"], decode.bool)
+        decode.success(on_check(checked))
+      }),
+    ],
+    [],
+  )
+}
+
 pub fn scout_loader(text: String) -> Element(msg) {
   element.element(
     "scout-loader",
