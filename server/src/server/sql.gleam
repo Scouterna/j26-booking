@@ -31,6 +31,8 @@ pub type CancelBookingRow {
     participant_count: Int,
     booked_for_other: Bool,
     cancellation_reason: Option(String),
+    left_campsite: Bool,
+    left_beach: Bool,
   )
 }
 
@@ -61,6 +63,8 @@ pub fn cancel_booking(
     use participant_count <- decode.field(9, decode.int)
     use booked_for_other <- decode.field(10, decode.bool)
     use cancellation_reason <- decode.field(11, decode.optional(decode.string))
+    use left_campsite <- decode.field(12, decode.bool)
+    use left_beach <- decode.field(13, decode.bool)
     decode.success(CancelBookingRow(
       id:,
       user_id:,
@@ -74,6 +78,8 @@ pub fn cancel_booking(
       participant_count:,
       booked_for_other:,
       cancellation_reason:,
+      left_campsite:,
+      left_beach:,
     ))
   }
 
@@ -96,7 +102,9 @@ WITH cancelled AS (
         phone_number,
         participant_count,
         booked_for_other,
-        cancellation_reason
+        cancellation_reason,
+        left_campsite,
+        left_beach
 )
 SELECT c.id,
     c.user_id,
@@ -109,7 +117,9 @@ SELECT c.id,
     c.phone_number,
     c.participant_count,
     c.booked_for_other,
-    c.cancellation_reason
+    c.cancellation_reason,
+    c.left_campsite,
+    c.left_beach
 FROM cancelled c
     LEFT JOIN scout_group sg ON sg.id = c.booker_group_id
 "
@@ -288,6 +298,7 @@ pub type CreateActivityWithMaxAttendeesRow {
     end_time: Timestamp,
     location_id: Option(Uuid),
     booking_opens_at: Option(Timestamp),
+    recurring_activity_kind: Option(String),
   )
 }
 
@@ -322,6 +333,10 @@ pub fn create_activity_with_max_attendees(
       9,
       decode.optional(pog.timestamp_decoder()),
     )
+    use recurring_activity_kind <- decode.field(
+      10,
+      decode.optional(decode.string),
+    )
     decode.success(CreateActivityWithMaxAttendeesRow(
       id:,
       title:,
@@ -333,6 +348,7 @@ pub fn create_activity_with_max_attendees(
       end_time:,
       location_id:,
       booking_opens_at:,
+      recurring_activity_kind:,
     ))
   }
 
@@ -356,7 +372,9 @@ RETURNING id,
     start_time,
     end_time,
     location_id,
-    booking_opens_at"
+    booking_opens_at,
+    recurring_activity_kind
+"
   |> pog.query
   |> pog.parameter(pog.text(uuid.to_string(arg_1)))
   |> pog.parameter(pog.text(arg_2))
@@ -387,6 +405,7 @@ pub type CreateActivityWithoutMaxAttendeesRow {
     end_time: Timestamp,
     location_id: Option(Uuid),
     booking_opens_at: Option(Timestamp),
+    recurring_activity_kind: Option(String),
   )
 }
 
@@ -419,6 +438,10 @@ pub fn create_activity_without_max_attendees(
       8,
       decode.optional(pog.timestamp_decoder()),
     )
+    use recurring_activity_kind <- decode.field(
+      9,
+      decode.optional(decode.string),
+    )
     decode.success(CreateActivityWithoutMaxAttendeesRow(
       id:,
       title:,
@@ -429,6 +452,7 @@ pub fn create_activity_without_max_attendees(
       end_time:,
       location_id:,
       booking_opens_at:,
+      recurring_activity_kind:,
     ))
   }
 
@@ -451,7 +475,9 @@ RETURNING id,
     start_time,
     end_time,
     location_id,
-    booking_opens_at"
+    booking_opens_at,
+    recurring_activity_kind
+"
   |> pog.query
   |> pog.parameter(pog.text(uuid.to_string(arg_1)))
   |> pog.parameter(pog.text(arg_2))
@@ -1715,6 +1741,8 @@ pub type GetBookingRow {
     participant_count: Int,
     booked_for_other: Bool,
     cancellation_reason: Option(String),
+    left_campsite: Bool,
+    left_beach: Bool,
   )
 }
 
@@ -1743,6 +1771,8 @@ pub fn get_booking(
     use participant_count <- decode.field(9, decode.int)
     use booked_for_other <- decode.field(10, decode.bool)
     use cancellation_reason <- decode.field(11, decode.optional(decode.string))
+    use left_campsite <- decode.field(12, decode.bool)
+    use left_beach <- decode.field(13, decode.bool)
     decode.success(GetBookingRow(
       id:,
       user_id:,
@@ -1756,6 +1786,8 @@ pub fn get_booking(
       participant_count:,
       booked_for_other:,
       cancellation_reason:,
+      left_campsite:,
+      left_beach:,
     ))
   }
 
@@ -1774,7 +1806,9 @@ SELECT b.id,
     b.phone_number,
     b.participant_count,
     b.booked_for_other,
-    b.cancellation_reason
+    b.cancellation_reason,
+    b.left_campsite,
+    b.left_beach
 FROM booking b
     LEFT JOIN scout_group sg ON sg.id = b.booker_group_id
 WHERE b.id = $1
@@ -1844,6 +1878,8 @@ pub type GetBookingsByActivityRow {
     participant_count: Int,
     booked_for_other: Bool,
     cancellation_reason: Option(String),
+    left_campsite: Bool,
+    left_beach: Bool,
   )
 }
 
@@ -1874,6 +1910,8 @@ pub fn get_bookings_by_activity(
     use participant_count <- decode.field(9, decode.int)
     use booked_for_other <- decode.field(10, decode.bool)
     use cancellation_reason <- decode.field(11, decode.optional(decode.string))
+    use left_campsite <- decode.field(12, decode.bool)
+    use left_beach <- decode.field(13, decode.bool)
     decode.success(GetBookingsByActivityRow(
       id:,
       user_id:,
@@ -1887,6 +1925,8 @@ pub fn get_bookings_by_activity(
       participant_count:,
       booked_for_other:,
       cancellation_reason:,
+      left_campsite:,
+      left_beach:,
     ))
   }
 
@@ -1905,7 +1945,9 @@ SELECT b.id,
     b.phone_number,
     b.participant_count,
     b.booked_for_other,
-    b.cancellation_reason
+    b.cancellation_reason,
+    b.left_campsite,
+    b.left_beach
 FROM booking b
     LEFT JOIN scout_group sg ON sg.id = b.booker_group_id
 WHERE b.activity_id = $1
@@ -1941,6 +1983,8 @@ pub type GetBookingsByUserRow {
     participant_count: Int,
     booked_for_other: Bool,
     cancellation_reason: Option(String),
+    left_campsite: Bool,
+    left_beach: Bool,
   )
 }
 
@@ -1969,6 +2013,8 @@ pub fn get_bookings_by_user(
     use participant_count <- decode.field(9, decode.int)
     use booked_for_other <- decode.field(10, decode.bool)
     use cancellation_reason <- decode.field(11, decode.optional(decode.string))
+    use left_campsite <- decode.field(12, decode.bool)
+    use left_beach <- decode.field(13, decode.bool)
     decode.success(GetBookingsByUserRow(
       id:,
       user_id:,
@@ -1982,6 +2028,8 @@ pub fn get_bookings_by_user(
       participant_count:,
       booked_for_other:,
       cancellation_reason:,
+      left_campsite:,
+      left_beach:,
     ))
   }
 
@@ -2000,7 +2048,9 @@ SELECT b.id,
     b.phone_number,
     b.participant_count,
     b.booked_for_other,
-    b.cancellation_reason
+    b.cancellation_reason,
+    b.left_campsite,
+    b.left_beach
 FROM booking b
     LEFT JOIN scout_group sg ON sg.id = b.booker_group_id
 WHERE b.user_id = $1
@@ -3479,6 +3529,8 @@ pub type RestoreBookingRow {
     participant_count: Int,
     booked_for_other: Bool,
     cancellation_reason: Option(String),
+    left_campsite: Bool,
+    left_beach: Bool,
   )
 }
 
@@ -3506,6 +3558,8 @@ pub fn restore_booking(
     use participant_count <- decode.field(9, decode.int)
     use booked_for_other <- decode.field(10, decode.bool)
     use cancellation_reason <- decode.field(11, decode.optional(decode.string))
+    use left_campsite <- decode.field(12, decode.bool)
+    use left_beach <- decode.field(13, decode.bool)
     decode.success(RestoreBookingRow(
       id:,
       user_id:,
@@ -3519,6 +3573,8 @@ pub fn restore_booking(
       participant_count:,
       booked_for_other:,
       cancellation_reason:,
+      left_campsite:,
+      left_beach:,
     ))
   }
 
@@ -3539,7 +3595,9 @@ WITH restored AS (
         phone_number,
         participant_count,
         booked_for_other,
-        cancellation_reason
+        cancellation_reason,
+        left_campsite,
+        left_beach
 )
 SELECT r.id,
     r.user_id,
@@ -3552,7 +3610,9 @@ SELECT r.id,
     r.phone_number,
     r.participant_count,
     r.booked_for_other,
-    r.cancellation_reason
+    r.cancellation_reason,
+    r.left_campsite,
+    r.left_beach
 FROM restored r
     LEFT JOIN scout_group sg ON sg.id = r.booker_group_id
 "
@@ -3755,6 +3815,242 @@ WHERE id = $1
   |> pog.execute(db)
 }
 
+/// A row you get from running the `set_booking_left_beach` query
+/// defined in `./src/server/sql/set_booking_left_beach.sql`.
+///
+/// > 🐿️ This type definition was generated automatically using v4.7.0 of the
+/// > [squirrel package](https://github.com/giacomocavalieri/squirrel).
+///
+pub type SetBookingLeftBeachRow {
+  SetBookingLeftBeachRow(
+    id: Uuid,
+    user_id: Uuid,
+    activity_id: Uuid,
+    booker_name: String,
+    booker_group_id: Option(Int),
+    booker_group_name: String,
+    group_free_text: String,
+    responsible_name: String,
+    phone_number: String,
+    participant_count: Int,
+    booked_for_other: Bool,
+    cancellation_reason: Option(String),
+    left_campsite: Bool,
+    left_beach: Bool,
+  )
+}
+
+/// Tick (or untick) the badbuss "left the beach" check-off on one booking. The
+/// sibling of set_booking_left_campsite — see that file for why each stage gets
+/// its own single-column write.
+///
+/// > 🐿️ This function was generated automatically using v4.7.0 of
+/// > the [squirrel package](https://github.com/giacomocavalieri/squirrel).
+///
+pub fn set_booking_left_beach(
+  db: pog.Connection,
+  id: Uuid,
+  left_beach: Bool,
+) -> Result(pog.Returned(SetBookingLeftBeachRow), pog.QueryError) {
+  let decoder = {
+    use id <- decode.field(0, uuid_decoder())
+    use user_id <- decode.field(1, uuid_decoder())
+    use activity_id <- decode.field(2, uuid_decoder())
+    use booker_name <- decode.field(3, decode.string)
+    use booker_group_id <- decode.field(4, decode.optional(decode.int))
+    use booker_group_name <- decode.field(5, decode.string)
+    use group_free_text <- decode.field(6, decode.string)
+    use responsible_name <- decode.field(7, decode.string)
+    use phone_number <- decode.field(8, decode.string)
+    use participant_count <- decode.field(9, decode.int)
+    use booked_for_other <- decode.field(10, decode.bool)
+    use cancellation_reason <- decode.field(11, decode.optional(decode.string))
+    use left_campsite <- decode.field(12, decode.bool)
+    use left_beach <- decode.field(13, decode.bool)
+    decode.success(SetBookingLeftBeachRow(
+      id:,
+      user_id:,
+      activity_id:,
+      booker_name:,
+      booker_group_id:,
+      booker_group_name:,
+      group_free_text:,
+      responsible_name:,
+      phone_number:,
+      participant_count:,
+      booked_for_other:,
+      cancellation_reason:,
+      left_campsite:,
+      left_beach:,
+    ))
+  }
+
+  "-- Tick (or untick) the badbuss \"left the beach\" check-off on one booking. The
+-- sibling of set_booking_left_campsite — see that file for why each stage gets
+-- its own single-column write.
+WITH ticked AS (
+    UPDATE booking
+    SET left_beach = $2
+    WHERE id = $1
+    RETURNING id,
+        user_id,
+        activity_id,
+        booker_name,
+        booker_group_id,
+        group_free_text,
+        responsible_name,
+        phone_number,
+        participant_count,
+        booked_for_other,
+        cancellation_reason,
+        left_campsite,
+        left_beach
+)
+SELECT t.id,
+    t.user_id,
+    t.activity_id,
+    t.booker_name,
+    t.booker_group_id,
+    COALESCE(sg.name, 'Kår ' || t.booker_group_id, '') AS booker_group_name,
+    t.group_free_text,
+    t.responsible_name,
+    t.phone_number,
+    t.participant_count,
+    t.booked_for_other,
+    t.cancellation_reason,
+    t.left_campsite,
+    t.left_beach
+FROM ticked t
+    LEFT JOIN scout_group sg ON sg.id = t.booker_group_id
+"
+  |> pog.query
+  |> pog.parameter(pog.text(uuid.to_string(id)))
+  |> pog.parameter(pog.bool(left_beach))
+  |> pog.returning(decoder)
+  |> pog.execute(db)
+}
+
+/// A row you get from running the `set_booking_left_campsite` query
+/// defined in `./src/server/sql/set_booking_left_campsite.sql`.
+///
+/// > 🐿️ This type definition was generated automatically using v4.7.0 of the
+/// > [squirrel package](https://github.com/giacomocavalieri/squirrel).
+///
+pub type SetBookingLeftCampsiteRow {
+  SetBookingLeftCampsiteRow(
+    id: Uuid,
+    user_id: Uuid,
+    activity_id: Uuid,
+    booker_name: String,
+    booker_group_id: Option(Int),
+    booker_group_name: String,
+    group_free_text: String,
+    responsible_name: String,
+    phone_number: String,
+    participant_count: Int,
+    booked_for_other: Bool,
+    cancellation_reason: Option(String),
+    left_campsite: Bool,
+    left_beach: Bool,
+  )
+}
+
+/// Tick (or untick) the badbuss "left the campsite" check-off on one booking.
+/// Deliberately writes only its own flag so two staff members ticking the two
+/// stages of the same booking at once cannot overwrite each other (the second
+/// write would otherwise carry a stale value for the first's flag). The handler
+/// refuses the write unless the booking's activity is a beach-bus slot. The
+/// booker's kår name is derived by joining scout_group on the returned booking.
+///
+/// > 🐿️ This function was generated automatically using v4.7.0 of
+/// > the [squirrel package](https://github.com/giacomocavalieri/squirrel).
+///
+pub fn set_booking_left_campsite(
+  db: pog.Connection,
+  id: Uuid,
+  left_campsite: Bool,
+) -> Result(pog.Returned(SetBookingLeftCampsiteRow), pog.QueryError) {
+  let decoder = {
+    use id <- decode.field(0, uuid_decoder())
+    use user_id <- decode.field(1, uuid_decoder())
+    use activity_id <- decode.field(2, uuid_decoder())
+    use booker_name <- decode.field(3, decode.string)
+    use booker_group_id <- decode.field(4, decode.optional(decode.int))
+    use booker_group_name <- decode.field(5, decode.string)
+    use group_free_text <- decode.field(6, decode.string)
+    use responsible_name <- decode.field(7, decode.string)
+    use phone_number <- decode.field(8, decode.string)
+    use participant_count <- decode.field(9, decode.int)
+    use booked_for_other <- decode.field(10, decode.bool)
+    use cancellation_reason <- decode.field(11, decode.optional(decode.string))
+    use left_campsite <- decode.field(12, decode.bool)
+    use left_beach <- decode.field(13, decode.bool)
+    decode.success(SetBookingLeftCampsiteRow(
+      id:,
+      user_id:,
+      activity_id:,
+      booker_name:,
+      booker_group_id:,
+      booker_group_name:,
+      group_free_text:,
+      responsible_name:,
+      phone_number:,
+      participant_count:,
+      booked_for_other:,
+      cancellation_reason:,
+      left_campsite:,
+      left_beach:,
+    ))
+  }
+
+  "-- Tick (or untick) the badbuss \"left the campsite\" check-off on one booking.
+-- Deliberately writes only its own flag so two staff members ticking the two
+-- stages of the same booking at once cannot overwrite each other (the second
+-- write would otherwise carry a stale value for the first's flag). The handler
+-- refuses the write unless the booking's activity is a beach-bus slot. The
+-- booker's kår name is derived by joining scout_group on the returned booking.
+WITH ticked AS (
+    UPDATE booking
+    SET left_campsite = $2
+    WHERE id = $1
+    RETURNING id,
+        user_id,
+        activity_id,
+        booker_name,
+        booker_group_id,
+        group_free_text,
+        responsible_name,
+        phone_number,
+        participant_count,
+        booked_for_other,
+        cancellation_reason,
+        left_campsite,
+        left_beach
+)
+SELECT t.id,
+    t.user_id,
+    t.activity_id,
+    t.booker_name,
+    t.booker_group_id,
+    COALESCE(sg.name, 'Kår ' || t.booker_group_id, '') AS booker_group_name,
+    t.group_free_text,
+    t.responsible_name,
+    t.phone_number,
+    t.participant_count,
+    t.booked_for_other,
+    t.cancellation_reason,
+    t.left_campsite,
+    t.left_beach
+FROM ticked t
+    LEFT JOIN scout_group sg ON sg.id = t.booker_group_id
+"
+  |> pog.query
+  |> pog.parameter(pog.text(uuid.to_string(id)))
+  |> pog.parameter(pog.bool(left_campsite))
+  |> pog.returning(decoder)
+  |> pog.execute(db)
+}
+
 /// Point every slot of a recurring activity kind at the same location. The
 /// kind-wide counterpart of set_activity_location (a separate query from the
 /// bulk text update because squirrel parameters cannot be optional).
@@ -3846,6 +4142,7 @@ pub type UpdateActivityWithMaxAttendeesRow {
     end_time: Timestamp,
     location_id: Option(Uuid),
     booking_opens_at: Option(Timestamp),
+    recurring_activity_kind: Option(String),
   )
 }
 
@@ -3880,6 +4177,10 @@ pub fn update_activity_with_max_attendees(
       9,
       decode.optional(pog.timestamp_decoder()),
     )
+    use recurring_activity_kind <- decode.field(
+      10,
+      decode.optional(decode.string),
+    )
     decode.success(UpdateActivityWithMaxAttendeesRow(
       id:,
       title:,
@@ -3891,6 +4192,7 @@ pub fn update_activity_with_max_attendees(
       end_time:,
       location_id:,
       booking_opens_at:,
+      recurring_activity_kind:,
     ))
   }
 
@@ -3912,7 +4214,9 @@ RETURNING id,
     start_time,
     end_time,
     location_id,
-    booking_opens_at"
+    booking_opens_at,
+    recurring_activity_kind
+"
   |> pog.query
   |> pog.parameter(pog.text(uuid.to_string(id)))
   |> pog.parameter(pog.text(arg_2))
@@ -3943,6 +4247,7 @@ pub type UpdateActivityWithoutMaxAttendeesRow {
     end_time: Timestamp,
     location_id: Option(Uuid),
     booking_opens_at: Option(Timestamp),
+    recurring_activity_kind: Option(String),
   )
 }
 
@@ -3975,6 +4280,10 @@ pub fn update_activity_without_max_attendees(
       8,
       decode.optional(pog.timestamp_decoder()),
     )
+    use recurring_activity_kind <- decode.field(
+      9,
+      decode.optional(decode.string),
+    )
     decode.success(UpdateActivityWithoutMaxAttendeesRow(
       id:,
       title:,
@@ -3985,6 +4294,7 @@ pub fn update_activity_without_max_attendees(
       end_time:,
       location_id:,
       booking_opens_at:,
+      recurring_activity_kind:,
     ))
   }
 
@@ -4005,7 +4315,9 @@ RETURNING id,
     start_time,
     end_time,
     location_id,
-    booking_opens_at"
+    booking_opens_at,
+    recurring_activity_kind
+"
   |> pog.query
   |> pog.parameter(pog.text(uuid.to_string(id)))
   |> pog.parameter(pog.text(arg_2))
@@ -4038,6 +4350,8 @@ pub type UpdateBookingRow {
     participant_count: Int,
     booked_for_other: Bool,
     cancellation_reason: Option(String),
+    left_campsite: Bool,
+    left_beach: Bool,
   )
 }
 
@@ -4070,6 +4384,8 @@ pub fn update_booking(
     use participant_count <- decode.field(9, decode.int)
     use booked_for_other <- decode.field(10, decode.bool)
     use cancellation_reason <- decode.field(11, decode.optional(decode.string))
+    use left_campsite <- decode.field(12, decode.bool)
+    use left_beach <- decode.field(13, decode.bool)
     decode.success(UpdateBookingRow(
       id:,
       user_id:,
@@ -4083,6 +4399,8 @@ pub fn update_booking(
       participant_count:,
       booked_for_other:,
       cancellation_reason:,
+      left_campsite:,
+      left_beach:,
     ))
   }
 
@@ -4107,7 +4425,9 @@ WITH updated AS (
         phone_number,
         participant_count,
         booked_for_other,
-        cancellation_reason
+        cancellation_reason,
+        left_campsite,
+        left_beach
 )
 SELECT u.id,
     u.user_id,
@@ -4120,7 +4440,9 @@ SELECT u.id,
     u.phone_number,
     u.participant_count,
     u.booked_for_other,
-    u.cancellation_reason
+    u.cancellation_reason,
+    u.left_campsite,
+    u.left_beach
 FROM updated u
     LEFT JOIN scout_group sg ON sg.id = u.booker_group_id
 "

@@ -53,3 +53,4 @@ When you create, finish, or touch a plan here, keep the folder consistent:
 | 25 | [Filter the activity list by location](25-filter-activities-by-location.md) | ✅ Done 2026-07-26 |
 | 26 | [Activity-list filters live in the URL (Back restores them)](26-filters-in-the-url.md) | ✅ Done 2026-07-26 |
 | 27 | [Location filter offers only locations that have an activity](27-location-filter-only-locations-with-activities.md) | 🚧 In progress |
+| 28 | [Badbuss departure check-offs per kår](28-badbuss-departure-checkmarks.md) | 🚧 In progress |

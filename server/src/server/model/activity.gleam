@@ -122,6 +122,16 @@ pub fn group_target_groups_by_activity(
   })
 }
 
+/// The activity's recurring kind, read from the nullable
+/// `recurring_activity_kind` column. `None` for an ordinary activity — and also
+/// for a value this build doesn't recognise, so an unknown kind degrades to
+/// "just an activity" instead of failing the whole response.
+fn parse_recurring_kind(raw: Option(String)) -> Option(model.RecurringKind) {
+  option.then(raw, fn(value) {
+    model.recurring_kind_from_string(value) |> option.from_result
+  })
+}
+
 // --- activity row -> Activity ----------------------------------------------
 
 pub fn from_create_activity_with_max_attendees_row(
@@ -145,6 +155,7 @@ pub fn from_create_activity_with_max_attendees_row(
     cancellation: embed_cancellation(embeds, row.id),
     booking_opens_at: option.or(row.booking_opens_at, default_booking_opens_at),
     booking_opens_at_override: row.booking_opens_at,
+    recurring_kind: parse_recurring_kind(row.recurring_activity_kind),
   )
 }
 
@@ -169,6 +180,7 @@ pub fn from_create_activity_without_max_attendees_row(
     cancellation: embed_cancellation(embeds, row.id),
     booking_opens_at: option.or(row.booking_opens_at, default_booking_opens_at),
     booking_opens_at_override: row.booking_opens_at,
+    recurring_kind: parse_recurring_kind(row.recurring_activity_kind),
   )
 }
 
@@ -193,6 +205,7 @@ pub fn from_search_activity_row(
     cancellation: embed_cancellation(embeds, row.id),
     booking_opens_at: option.or(row.booking_opens_at, default_booking_opens_at),
     booking_opens_at_override: row.booking_opens_at,
+    recurring_kind: parse_recurring_kind(row.recurring_activity_kind),
   )
 }
 
@@ -217,6 +230,7 @@ pub fn from_get_activity_row(
     cancellation: embed_cancellation(embeds, row.id),
     booking_opens_at: option.or(row.booking_opens_at, default_booking_opens_at),
     booking_opens_at_override: row.booking_opens_at,
+    recurring_kind: parse_recurring_kind(row.recurring_activity_kind),
   )
 }
 
@@ -241,6 +255,7 @@ pub fn from_get_activities_by_title_row(
     cancellation: embed_cancellation(embeds, row.id),
     booking_opens_at: option.or(row.booking_opens_at, default_booking_opens_at),
     booking_opens_at_override: row.booking_opens_at,
+    recurring_kind: parse_recurring_kind(row.recurring_activity_kind),
   )
 }
 
@@ -265,6 +280,7 @@ pub fn from_get_activities_by_start_time_row(
     cancellation: embed_cancellation(embeds, row.id),
     booking_opens_at: option.or(row.booking_opens_at, default_booking_opens_at),
     booking_opens_at_override: row.booking_opens_at,
+    recurring_kind: parse_recurring_kind(row.recurring_activity_kind),
   )
 }
 
@@ -289,6 +305,7 @@ pub fn from_list_activities_by_title_row(
     cancellation: embed_cancellation(embeds, row.id),
     booking_opens_at: option.or(row.booking_opens_at, default_booking_opens_at),
     booking_opens_at_override: row.booking_opens_at,
+    recurring_kind: parse_recurring_kind(row.recurring_activity_kind),
   )
 }
 
@@ -313,6 +330,7 @@ pub fn from_list_activities_by_start_time_row(
     cancellation: embed_cancellation(embeds, row.id),
     booking_opens_at: option.or(row.booking_opens_at, default_booking_opens_at),
     booking_opens_at_override: row.booking_opens_at,
+    recurring_kind: parse_recurring_kind(row.recurring_activity_kind),
   )
 }
 
@@ -337,6 +355,7 @@ pub fn from_list_beach_bus_activities_row(
     cancellation: embed_cancellation(embeds, row.id),
     booking_opens_at: option.or(row.booking_opens_at, default_booking_opens_at),
     booking_opens_at_override: row.booking_opens_at,
+    recurring_kind: parse_recurring_kind(row.recurring_activity_kind),
   )
 }
 
@@ -361,6 +380,7 @@ pub fn from_list_climbing_wall_activities_row(
     cancellation: embed_cancellation(embeds, row.id),
     booking_opens_at: option.or(row.booking_opens_at, default_booking_opens_at),
     booking_opens_at_override: row.booking_opens_at,
+    recurring_kind: parse_recurring_kind(row.recurring_activity_kind),
   )
 }
 
@@ -385,6 +405,7 @@ pub fn from_list_favourited_activities_row(
     cancellation: embed_cancellation(embeds, row.id),
     booking_opens_at: option.or(row.booking_opens_at, default_booking_opens_at),
     booking_opens_at_override: row.booking_opens_at,
+    recurring_kind: parse_recurring_kind(row.recurring_activity_kind),
   )
 }
 
@@ -409,6 +430,7 @@ pub fn from_update_activity_with_max_attendees_row(
     cancellation: embed_cancellation(embeds, row.id),
     booking_opens_at: option.or(row.booking_opens_at, default_booking_opens_at),
     booking_opens_at_override: row.booking_opens_at,
+    recurring_kind: parse_recurring_kind(row.recurring_activity_kind),
   )
 }
 
@@ -433,6 +455,7 @@ pub fn from_update_activity_without_max_attendees_row(
     cancellation: embed_cancellation(embeds, row.id),
     booking_opens_at: option.or(row.booking_opens_at, default_booking_opens_at),
     booking_opens_at_override: row.booking_opens_at,
+    recurring_kind: parse_recurring_kind(row.recurring_activity_kind),
   )
 }
 
@@ -488,6 +511,7 @@ pub fn to_json(activity: Activity) -> Json {
     cancellation:,
     booking_opens_at:,
     booking_opens_at_override:,
+    recurring_kind:,
   ) = activity
   json.object([
     #("id", id |> uuid.to_string |> json.string),
@@ -508,6 +532,13 @@ pub fn to_json(activity: Activity) -> Json {
       "booking_opens_at_override",
       json.nullable(booking_opens_at_override, unix_seconds_to_json),
     ),
+    // Detail-only (absent from `summary_to_json`): tells the bookings view that
+    // this activity is a badbuss slot, which is what unlocks the departure
+    // check-offs there.
+    #(
+      "recurring_kind",
+      json.nullable(recurring_kind, model.recurring_kind_to_json),
+    ),
   ])
 }
 
@@ -527,6 +558,7 @@ pub fn summary_to_json(activity: Activity) -> Json {
     cancellation:,
     booking_opens_at:,
     booking_opens_at_override: _,
+    recurring_kind: _,
   ) = activity
   json.object([
     #("id", id |> uuid.to_string |> json.string),

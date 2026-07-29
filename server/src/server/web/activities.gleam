@@ -855,24 +855,6 @@ pub fn update(req: Request, id: String, ctx: web.Context) -> Response {
 
 // --- Bulk edit of recurring activities ---------------------------------------
 
-/// A recurring activity kind — the two special multi-slot activities (badbuss
-/// and klättervägg) whose slots share title/description/location. Each kind
-/// has its own list route (`/api/beach-bus-activities`,
-/// `/api/climbing-wall-activities`), which also accepts the bulk-edit PUT, so
-/// the kind arrives typed from the router; the strings match the
-/// `activity.recurring_activity_kind` column values.
-type RecurringActivityKind {
-  BeachBus
-  ClimbingWall
-}
-
-fn recurring_activity_kind_to_sql(kind: RecurringActivityKind) -> String {
-  case kind {
-    BeachBus -> "beach-bus"
-    ClimbingWall -> "climbing-wall"
-  }
-}
-
 /// The shared fields a bulk edit applies to every slot of a recurring kind —
 /// exactly the fields the slots duplicate. Per-slot fields (times, capacity,
 /// tags, målgrupp, booking window) are deliberately absent.
@@ -918,12 +900,12 @@ fn write_recurring_activities_location(
 
 /// `PUT /api/beach-bus-activities` — bulk edit every beach bus slot.
 pub fn update_beach_bus(req: Request, ctx: web.Context) -> Response {
-  update_recurring(req, BeachBus, ctx)
+  update_recurring(req, model.BeachBus, ctx)
 }
 
 /// `PUT /api/climbing-wall-activities` — bulk edit every climbing wall slot.
 pub fn update_climbing_wall(req: Request, ctx: web.Context) -> Response {
-  update_recurring(req, ClimbingWall, ctx)
+  update_recurring(req, model.ClimbingWall, ctx)
 }
 
 /// Bulk-applies the shared fields (title, description, location) to every
@@ -933,7 +915,7 @@ pub fn update_climbing_wall(req: Request, ctx: web.Context) -> Response {
 /// which is not an error (the write is idempotent).
 fn update_recurring(
   req: Request,
-  kind: RecurringActivityKind,
+  kind: model.RecurringKind,
   ctx: web.Context,
 ) -> Response {
   use <- wisp.require_method(req, Put)
@@ -946,7 +928,7 @@ fn update_recurring(
   )
   use locations <- with_locations(ctx)
   use <- require_valid_location(locations, input.location_id)
-  let kind_sql = recurring_activity_kind_to_sql(kind)
+  let kind_sql = model.recurring_kind_to_string(kind)
   let transaction_result =
     pog.transaction(ctx.db_connection, fn(conn) {
       use updated <- result.try(sql.update_recurring_activities(

@@ -87,6 +87,13 @@ fn handle_api_request(
     _, ["bookings", _, "cancel"] -> wisp.method_not_allowed([Post])
     Post, ["bookings", id, "restore"] -> booking.restore(req, id, ctx)
     _, ["bookings", _, "restore"] -> wisp.method_not_allowed([Post])
+    // The two badbuss departure check-offs. Badbuss-only: the handler refuses a
+    // booking whose activity is not a beach-bus slot.
+    Put, ["bookings", id, "left-campsite"] ->
+      booking.set_left_campsite(req, id, ctx)
+    _, ["bookings", _, "left-campsite"] -> wisp.method_not_allowed([Put])
+    Put, ["bookings", id, "left-beach"] -> booking.set_left_beach(req, id, ctx)
+    _, ["bookings", _, "left-beach"] -> wisp.method_not_allowed([Put])
     Get, ["locations"] -> location.get_all(req, ctx)
     Post, ["locations"] -> location.create(req, ctx)
     _, ["locations"] -> wisp.method_not_allowed([Get, Post])

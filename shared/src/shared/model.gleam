@@ -38,6 +38,11 @@ pub type Activity {
     /// seeding the form from the effective value would silently freeze the
     /// global default into an override.
     booking_opens_at_override: Option(Timestamp),
+    /// The recurring kind this activity is one slot of, `None` for an ordinary
+    /// activity. Detail-only (absent from `ActivitySummary`): the lists have no
+    /// use for it, while the bookings view needs it to tell a badbuss slot from
+    /// anything else.
+    recurring_kind: Option(RecurringKind),
   )
 }
 
@@ -90,6 +95,11 @@ pub fn activity_decoder() -> decode.Decoder(Activity) {
     None,
     decode.optional(unix_seconds_decoder()),
   )
+  use recurring_kind <- decode.optional_field(
+    "recurring_kind",
+    None,
+    decode.optional(recurring_kind_decoder()),
+  )
   case uuid.from_string(id_str) {
     Ok(id) ->
       decode.success(Activity(
@@ -105,6 +115,7 @@ pub fn activity_decoder() -> decode.Decoder(Activity) {
         cancellation:,
         booking_opens_at:,
         booking_opens_at_override:,
+        recurring_kind:,
       ))
     Error(_) ->
       decode.failure(
@@ -121,10 +132,56 @@ pub fn activity_decoder() -> decode.Decoder(Activity) {
           cancellation:,
           booking_opens_at:,
           booking_opens_at_override:,
+          recurring_kind:,
         ),
         "valid UUID string",
       )
   }
+}
+
+/// A kind of recurring activity — the two special multi-slot activities whose
+/// slots share title, description and location: badbuss (`beach-bus`) and
+/// klättervägg (`climbing-wall`). An ordinary activity has no kind.
+///
+/// The wire strings match the `activity.recurring_activity_kind` column values
+/// and the kind-specific route segments (`/api/beach-bus-activities`,
+/// `/api/beach-bus-bookings`), so the same identity serves the DB, the API and
+/// the client's overview pages.
+pub type RecurringKind {
+  BeachBus
+  ClimbingWall
+}
+
+/// The wire/DB string for a recurring kind.
+pub fn recurring_kind_to_string(kind: RecurringKind) -> String {
+  case kind {
+    BeachBus -> "beach-bus"
+    ClimbingWall -> "climbing-wall"
+  }
+}
+
+/// Parse a recurring kind from its wire/DB string. `Error(Nil)` for any other
+/// value, including the `NULL` an ordinary activity carries.
+pub fn recurring_kind_from_string(raw: String) -> Result(RecurringKind, Nil) {
+  case raw {
+    "beach-bus" -> Ok(BeachBus)
+    "climbing-wall" -> Ok(ClimbingWall)
+    _ -> Error(Nil)
+  }
+}
+
+/// Decode a recurring kind from its wire string, failing on an unknown value.
+pub fn recurring_kind_decoder() -> decode.Decoder(RecurringKind) {
+  use raw <- decode.then(decode.string)
+  case recurring_kind_from_string(raw) {
+    Ok(kind) -> decode.success(kind)
+    Error(_) -> decode.failure(BeachBus, "valid recurring activity kind")
+  }
+}
+
+/// Encode a recurring kind as its wire string.
+pub fn recurring_kind_to_json(kind: RecurringKind) -> Json {
+  kind |> recurring_kind_to_string |> json.string
 }
 
 /// Decode a timestamp sent as unix seconds, tolerating a float encoding the
@@ -487,6 +544,15 @@ pub type Booking {
     /// booking frees its spots and blocks the booker from re-booking the
     /// activity until it is restored or hard-deleted. `None` = active.
     cancellation: Option(String),
+    /// Badbuss departure check-off: the kår has left the campsite. Ticked by
+    /// the beach-bus staff on the slot's bookings view. Only meaningful — and
+    /// only settable — for a booking on a `BeachBus` slot; `False` everywhere
+    /// else. See `left_beach` for the second stage.
+    left_campsite: Bool,
+    /// Badbuss departure check-off: the kår has left the beach (the return
+    /// leg). The two stages are independent flags — ticking this one does not
+    /// require `left_campsite`, so staff can correct either in any order.
+    left_beach: Bool,
   )
 }
 
@@ -521,6 +587,12 @@ pub fn booking_decoder() -> decode.Decoder(Booking) {
     None,
     decode.optional(decode.string),
   )
+  use left_campsite <- decode.optional_field(
+    "left_campsite",
+    False,
+    decode.bool,
+  )
+  use left_beach <- decode.optional_field("left_beach", False, decode.bool)
   case
     uuid.from_string(id_str),
     uuid.from_string(user_id_str),
@@ -540,6 +612,8 @@ pub fn booking_decoder() -> decode.Decoder(Booking) {
         participant_count:,
         booked_for_other:,
         cancellation:,
+        left_campsite:,
+        left_beach:,
       ))
     _, _, _ -> {
       let dummy =
@@ -556,6 +630,8 @@ pub fn booking_decoder() -> decode.Decoder(Booking) {
           participant_count:,
           booked_for_other:,
           cancellation:,
+          left_campsite:,
+          left_beach:,
         )
       decode.failure(dummy, "valid UUID strings for id, user_id, activity_id")
     }
